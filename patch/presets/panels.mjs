@@ -7,6 +7,7 @@
 // A panel shows what you play with, not everything: a few knobs per module,
 // the rest stays in the module's own view. Big cells are split into tabs.
 import { types, normalise } from "./kit.mjs";
+import { panels as moduleFxPanels } from "./module-fx.mjs";
 
 // One unit is 20 px. Sizes are [columns, rows].
 const SIZE = { dial: [4, 4], slider: [2, 8], meter: [2, 8], button: [4, 3], select: [6, 3], switch: [6, 3] };
@@ -54,7 +55,7 @@ const slider = (label, ref) => ["slider", label, ref];
 // Hand-written panels, keyed by preset name, go here: `export default { "Preset Name": [panel, modulePanel…] }`. A cell preset without
 // one gets the panel the board's "Build panel from cell" draws (build.mjs), which is what all the factory cells use now.
 // (`Builder`, `dial` and `slider` are the helpers for writing one; see the history of this file for Punch Machine's.)
-export default {};
+export default { ...moduleFxPanels };   // Module FX: each effect module's own view
 
 // ------------------------------------------------------------------- check
 /// A control must wire to something that exists, sit inside its panel, and not

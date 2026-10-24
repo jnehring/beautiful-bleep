@@ -1,6 +1,1206 @@
 {
   "format": 1,
   "panels": {
+    "Chorus: Classic Chorus": [
+      {"id": "chorus-classic-chorus", "name": "Chorus: Classic Chorus", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Chorus","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Chorus: Subtle Thicken": [
+      {"id": "chorus-subtle-thicken", "name": "Chorus: Subtle Thicken", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Chorus","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Chorus: Wide Ensemble": [
+      {"id": "chorus-wide-ensemble", "name": "Chorus: Wide Ensemble", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Chorus","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Chorus: Slow Wash": [
+      {"id": "chorus-slow-wash", "name": "Chorus: Slow Wash", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Chorus","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Chorus: Shimmer Fast": [
+      {"id": "chorus-shimmer-fast", "name": "Chorus: Shimmer Fast", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Chorus","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Chorus: Vibrato": [
+      {"id": "chorus-vibrato", "name": "Chorus: Vibrato", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Chorus","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Chorus: Tape Warble": [
+      {"id": "chorus-tape-warble", "name": "Chorus: Tape Warble", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Chorus","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Chorus: Soft Flanger": [
+      {"id": "chorus-soft-flanger", "name": "Chorus: Soft Flanger", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Chorus","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Chorus: Jet Flanger": [
+      {"id": "chorus-jet-flanger", "name": "Chorus: Jet Flanger", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Chorus","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Chorus: Negative Flange": [
+      {"id": "chorus-negative-flange", "name": "Chorus: Negative Flange", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Chorus","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Chorus: Metallic Ring": [
+      {"id": "chorus-metallic-ring", "name": "Chorus: Metallic Ring", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Chorus","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Chorus: Deep Doubler": [
+      {"id": "chorus-deep-doubler", "name": "Chorus: Deep Doubler", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Chorus","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Compressor: Gentle Glue": [
+      {"id": "compressor-gentle-glue", "name": "Compressor: Gentle Glue", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Compressor","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Compressor: Vocal Leveler": [
+      {"id": "compressor-vocal-leveler", "name": "Compressor: Vocal Leveler", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Compressor","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Compressor: Drum Punch": [
+      {"id": "compressor-drum-punch", "name": "Compressor: Drum Punch", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Compressor","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Compressor: Bass Control": [
+      {"id": "compressor-bass-control", "name": "Compressor: Bass Control", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Compressor","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Compressor: Parallel Smash": [
+      {"id": "compressor-parallel-smash", "name": "Compressor: Parallel Smash", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Compressor","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Compressor: Soft Limiter": [
+      {"id": "compressor-soft-limiter", "name": "Compressor: Soft Limiter", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Compressor","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Compressor: Brick Wall": [
+      {"id": "compressor-brick-wall", "name": "Compressor: Brick Wall", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Compressor","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Compressor: Slow Opto": [
+      {"id": "compressor-slow-opto", "name": "Compressor: Slow Opto", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Compressor","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Compressor: Sustain Boost": [
+      {"id": "compressor-sustain-boost", "name": "Compressor: Sustain Boost", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Compressor","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Compressor: Pump Duck": [
+      {"id": "compressor-pump-duck", "name": "Compressor: Pump Duck", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Compressor","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Compressor: Transient Tamer": [
+      {"id": "compressor-transient-tamer", "name": "Compressor: Transient Tamer", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Compressor","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Compressor: Wide Squash": [
+      {"id": "compressor-wide-squash", "name": "Compressor: Wide Squash", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Compressor","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Compressor: Gain Reduction Source": [
+      {"id": "compressor-gain-reduction-source", "name": "Compressor: Gain Reduction Source", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Compressor","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Crunch: Warm Saturation": [
+      {"id": "crunch-warm-saturation", "name": "Crunch: Warm Saturation", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Crunch","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Crunch: Overdrive": [
+      {"id": "crunch-overdrive", "name": "Crunch: Overdrive", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Crunch","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Crunch: Fuzz Wall": [
+      {"id": "crunch-fuzz-wall", "name": "Crunch: Fuzz Wall", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Crunch","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Crunch: Lo-Fi Bits": [
+      {"id": "crunch-lo-fi-bits", "name": "Crunch: Lo-Fi Bits", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Crunch","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Crunch: Telephone Crush": [
+      {"id": "crunch-telephone-crush", "name": "Crunch: Telephone Crush", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Crunch","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Crunch: Rate Grinder": [
+      {"id": "crunch-rate-grinder", "name": "Crunch: Rate Grinder", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Crunch","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Crunch: Broken Machine": [
+      {"id": "crunch-broken-machine", "name": "Crunch: Broken Machine", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Crunch","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Crunch: Parallel Grit": [
+      {"id": "crunch-parallel-grit", "name": "Crunch: Parallel Grit", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Crunch","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Crunch: Drum Crunch": [
+      {"id": "crunch-drum-crunch", "name": "Crunch: Drum Crunch", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Crunch","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Crunch: Dark Dirt": [
+      {"id": "crunch-dark-dirt", "name": "Crunch: Dark Dirt", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Crunch","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Crunch: Bit Dust": [
+      {"id": "crunch-bit-dust", "name": "Crunch: Bit Dust", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Crunch","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Crunch: Square Wave Mangler": [
+      {"id": "crunch-square-wave-mangler", "name": "Crunch: Square Wave Mangler", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Crunch","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Crunch: Total Destruction": [
+      {"id": "crunch-total-destruction", "name": "Crunch: Total Destruction", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Crunch","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay: Eighth Echo": [
+      {"id": "delay-eighth-echo", "name": "Delay: Eighth Echo", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay: Dotted Eighth": [
+      {"id": "delay-dotted-eighth", "name": "Delay: Dotted Eighth", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay: Tape Slap": [
+      {"id": "delay-tape-slap", "name": "Delay: Tape Slap", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay: Ping-Pong Bounce": [
+      {"id": "delay-ping-pong-bounce", "name": "Delay: Ping-Pong Bounce", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay: Stereo Offset": [
+      {"id": "delay-stereo-offset", "name": "Delay: Stereo Offset", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay: Dub Echo": [
+      {"id": "delay-dub-echo", "name": "Delay: Dub Echo", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay: Triplet Ping-Pong": [
+      {"id": "delay-triplet-ping-pong", "name": "Delay: Triplet Ping-Pong", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay: Quarter Note Wash": [
+      {"id": "delay-quarter-note-wash", "name": "Delay: Quarter Note Wash", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay: Chorus Doubler": [
+      {"id": "delay-chorus-doubler", "name": "Delay: Chorus Doubler", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay: Comb Resonance": [
+      {"id": "delay-comb-resonance", "name": "Delay: Comb Resonance", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay: Long Haunt": [
+      {"id": "delay-long-haunt", "name": "Delay: Long Haunt", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay: Half Note Ping-Pong": [
+      {"id": "delay-half-note-ping-pong", "name": "Delay: Half Note Ping-Pong", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay: Thin Radio Echo": [
+      {"id": "delay-thin-radio-echo", "name": "Delay: Thin Radio Echo", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay: Endless Repeat": [
+      {"id": "delay-endless-repeat", "name": "Delay: Endless Repeat", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay Net: Soft Ring": [
+      {"id": "delay-net-soft-ring", "name": "Delay Net: Soft Ring", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay Net","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay Net: Parallel Taps": [
+      {"id": "delay-net-parallel-taps", "name": "Delay Net: Parallel Taps", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay Net","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay Net: Chain Cascade": [
+      {"id": "delay-net-chain-cascade", "name": "Delay Net: Chain Cascade", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay Net","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay Net: Mesh Cloud": [
+      {"id": "delay-net-mesh-cloud", "name": "Delay Net: Mesh Cloud", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay Net","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay Net: Tempo Scatter": [
+      {"id": "delay-net-tempo-scatter", "name": "Delay Net: Tempo Scatter", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay Net","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay Net: Wobbly Tape": [
+      {"id": "delay-net-wobbly-tape", "name": "Delay Net: Wobbly Tape", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay Net","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay Net: Reverse Bloom": [
+      {"id": "delay-net-reverse-bloom", "name": "Delay Net: Reverse Bloom", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay Net","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay Net: Dark Tunnel": [
+      {"id": "delay-net-dark-tunnel", "name": "Delay Net: Dark Tunnel", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay Net","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay Net: Bright Glimmer": [
+      {"id": "delay-net-bright-glimmer", "name": "Delay Net: Bright Glimmer", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay Net","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay Net: Slow Drift": [
+      {"id": "delay-net-slow-drift", "name": "Delay Net: Slow Drift", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay Net","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay Net: Dirty Loop": [
+      {"id": "delay-net-dirty-loop", "name": "Delay Net: Dirty Loop", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay Net","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay Net: Granular Smear": [
+      {"id": "delay-net-granular-smear", "name": "Delay Net: Granular Smear", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay Net","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay Net: Mono Pulse": [
+      {"id": "delay-net-mono-pulse", "name": "Delay Net: Mono Pulse", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay Net","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Delay Net: Swell Cathedral": [
+      {"id": "delay-net-swell-cathedral", "name": "Delay Net: Swell Cathedral", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Delay Net","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: Smile Curve": [
+      {"id": "eq-smile-curve", "name": "EQ: Smile Curve", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: Bass Boost": [
+      {"id": "eq-bass-boost", "name": "EQ: Bass Boost", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: Low Cut Lite": [
+      {"id": "eq-low-cut-lite", "name": "EQ: Low Cut Lite", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: Mud Remover": [
+      {"id": "eq-mud-remover", "name": "EQ: Mud Remover", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: Presence Lift": [
+      {"id": "eq-presence-lift", "name": "EQ: Presence Lift", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: Air": [
+      {"id": "eq-air", "name": "EQ: Air", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: Warm Darkness": [
+      {"id": "eq-warm-darkness", "name": "EQ: Warm Darkness", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: Vocal Clarity": [
+      {"id": "eq-vocal-clarity", "name": "EQ: Vocal Clarity", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: Telephone": [
+      {"id": "eq-telephone", "name": "EQ: Telephone", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: Hollow Notch": [
+      {"id": "eq-hollow-notch", "name": "EQ: Hollow Notch", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: Resonant Peaks": [
+      {"id": "eq-resonant-peaks", "name": "EQ: Resonant Peaks", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: Kick Shaper": [
+      {"id": "eq-kick-shaper", "name": "EQ: Kick Shaper", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: Lo-Fi Radio": [
+      {"id": "eq-lo-fi-radio", "name": "EQ: Lo-Fi Radio", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: Tilt Down": [
+      {"id": "eq-tilt-down", "name": "EQ: Tilt Down", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: Rumble Remover": [
+      {"id": "eq-rumble-remover", "name": "EQ: Rumble Remover", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "EQ: De-Harsh": [
+      {"id": "eq-de-harsh", "name": "EQ: De-Harsh", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"EQ","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Freq Shifter: Slow Barber Pole": [
+      {"id": "freq-shifter-slow-barber-pole", "name": "Freq Shifter: Slow Barber Pole", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Freq Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Freq Shifter: Gentle Detune": [
+      {"id": "freq-shifter-gentle-detune", "name": "Freq Shifter: Gentle Detune", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Freq Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Freq Shifter: Stereo Widener": [
+      {"id": "freq-shifter-stereo-widener", "name": "Freq Shifter: Stereo Widener", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Freq Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Freq Shifter: Down Spiral": [
+      {"id": "freq-shifter-down-spiral", "name": "Freq Shifter: Down Spiral", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Freq Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Freq Shifter: Up Spiral": [
+      {"id": "freq-shifter-up-spiral", "name": "Freq Shifter: Up Spiral", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Freq Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Freq Shifter: Phase Bells": [
+      {"id": "freq-shifter-phase-bells", "name": "Freq Shifter: Phase Bells", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Freq Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Freq Shifter: Inharmonic Bell": [
+      {"id": "freq-shifter-inharmonic-bell", "name": "Freq Shifter: Inharmonic Bell", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Freq Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Freq Shifter: Dissonant Shift": [
+      {"id": "freq-shifter-dissonant-shift", "name": "Freq Shifter: Dissonant Shift", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Freq Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Freq Shifter: Negative Shift": [
+      {"id": "freq-shifter-negative-shift", "name": "Freq Shifter: Negative Shift", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Freq Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Freq Shifter: Wide Stereo Spread": [
+      {"id": "freq-shifter-wide-stereo-spread", "name": "Freq Shifter: Wide Stereo Spread", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Freq Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Freq Shifter: Negative Feedback Cloud": [
+      {"id": "freq-shifter-negative-feedback-cloud", "name": "Freq Shifter: Negative Feedback Cloud", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Freq Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Freq Shifter: Synced Sweep": [
+      {"id": "freq-shifter-synced-sweep", "name": "Freq Shifter: Synced Sweep", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Freq Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Freq Shifter: Extreme Warp": [
+      {"id": "freq-shifter-extreme-warp", "name": "Freq Shifter: Extreme Warp", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Freq Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Phaser: Classic Phase": [
+      {"id": "phaser-classic-phase", "name": "Phaser: Classic Phase", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Phaser","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Phaser: Gentle Swirl": [
+      {"id": "phaser-gentle-swirl", "name": "Phaser: Gentle Swirl", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Phaser","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Phaser: Deep Sweep": [
+      {"id": "phaser-deep-sweep", "name": "Phaser: Deep Sweep", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Phaser","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Phaser: Two-Stage Wobble": [
+      {"id": "phaser-two-stage-wobble", "name": "Phaser: Two-Stage Wobble", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Phaser","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Phaser: Twelve Stage Glass": [
+      {"id": "phaser-twelve-stage-glass", "name": "Phaser: Twelve Stage Glass", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Phaser","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Phaser: Stereo Spin": [
+      {"id": "phaser-stereo-spin", "name": "Phaser: Stereo Spin", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Phaser","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Phaser: Mono Pulse": [
+      {"id": "phaser-mono-pulse", "name": "Phaser: Mono Pulse", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Phaser","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Phaser: Resonant Peaks": [
+      {"id": "phaser-resonant-peaks", "name": "Phaser: Resonant Peaks", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Phaser","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Phaser: Hollow Negative": [
+      {"id": "phaser-hollow-negative", "name": "Phaser: Hollow Negative", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Phaser","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Phaser: Low Rumble Phase": [
+      {"id": "phaser-low-rumble-phase", "name": "Phaser: Low Rumble Phase", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Phaser","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Phaser: High Shimmer": [
+      {"id": "phaser-high-shimmer", "name": "Phaser: High Shimmer", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Phaser","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Phaser: Fast Leslie-ish": [
+      {"id": "phaser-fast-leslie-ish", "name": "Phaser: Fast Leslie-ish", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Phaser","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Pitch Shifter: Octave Up": [
+      {"id": "pitch-shifter-octave-up", "name": "Pitch Shifter: Octave Up", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Pitch Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Pitch Shifter: Octave Down": [
+      {"id": "pitch-shifter-octave-down", "name": "Pitch Shifter: Octave Down", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Pitch Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Pitch Shifter: Octave Blend": [
+      {"id": "pitch-shifter-octave-blend", "name": "Pitch Shifter: Octave Blend", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Pitch Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Pitch Shifter: Fifth Up": [
+      {"id": "pitch-shifter-fifth-up", "name": "Pitch Shifter: Fifth Up", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Pitch Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Pitch Shifter: Sub Octave": [
+      {"id": "pitch-shifter-sub-octave", "name": "Pitch Shifter: Sub Octave", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Pitch Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Pitch Shifter: Detune Double": [
+      {"id": "pitch-shifter-detune-double", "name": "Pitch Shifter: Detune Double", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Pitch Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Pitch Shifter: Wide Detune": [
+      {"id": "pitch-shifter-wide-detune", "name": "Pitch Shifter: Wide Detune", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Pitch Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Pitch Shifter: Tape Flutter": [
+      {"id": "pitch-shifter-tape-flutter", "name": "Pitch Shifter: Tape Flutter", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Pitch Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Pitch Shifter: Shimmer Spiral": [
+      {"id": "pitch-shifter-shimmer-spiral", "name": "Pitch Shifter: Shimmer Spiral", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Pitch Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Pitch Shifter: Dark Descent": [
+      {"id": "pitch-shifter-dark-descent", "name": "Pitch Shifter: Dark Descent", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Pitch Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Pitch Shifter: Minor Third Echo": [
+      {"id": "pitch-shifter-minor-third-echo", "name": "Pitch Shifter: Minor Third Echo", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Pitch Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Pitch Shifter: Chipmunk": [
+      {"id": "pitch-shifter-chipmunk", "name": "Pitch Shifter: Chipmunk", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Pitch Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Pitch Shifter: Monster": [
+      {"id": "pitch-shifter-monster", "name": "Pitch Shifter: Monster", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Pitch Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Pitch Shifter: Granular Window": [
+      {"id": "pitch-shifter-granular-window", "name": "Pitch Shifter: Granular Window", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Pitch Shifter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Small Room": [
+      {"id": "verb-small-room", "name": "Verb: Small Room", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Medium Hall": [
+      {"id": "verb-medium-hall", "name": "Verb: Medium Hall", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Bright Plate": [
+      {"id": "verb-bright-plate", "name": "Verb: Bright Plate", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Vocal Space": [
+      {"id": "verb-vocal-space", "name": "Verb: Vocal Space", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Warm Chamber": [
+      {"id": "verb-warm-chamber", "name": "Verb: Warm Chamber", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Big Cathedral": [
+      {"id": "verb-big-cathedral", "name": "Verb: Big Cathedral", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Wide Pad": [
+      {"id": "verb-wide-pad", "name": "Verb: Wide Pad", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Shimmer Mod": [
+      {"id": "verb-shimmer-mod", "name": "Verb: Shimmer Mod", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Gated Snap": [
+      {"id": "verb-gated-snap", "name": "Verb: Gated Snap", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Dub Spring": [
+      {"id": "verb-dub-spring", "name": "Verb: Dub Spring", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Dark Abyss": [
+      {"id": "verb-dark-abyss", "name": "Verb: Dark Abyss", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Infinite Freeze": [
+      {"id": "verb-infinite-freeze", "name": "Verb: Infinite Freeze", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Mono Closet": [
+      {"id": "verb-mono-closet", "name": "Verb: Mono Closet", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Eco Wash": [
+      {"id": "verb-eco-wash", "name": "Verb: Eco Wash", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Boing Spring": [
+      {"id": "verb-boing-spring", "name": "Verb: Boing Spring", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Long Drip": [
+      {"id": "verb-long-drip", "name": "Verb: Long Drip", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Tight Flutter": [
+      {"id": "verb-tight-flutter", "name": "Verb: Tight Flutter", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Held Coil": [
+      {"id": "verb-held-coil", "name": "Verb: Held Coil", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Room Print: Small Room": [
+      {"id": "room-print-small-room", "name": "Room Print: Small Room", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Room Print: Warm Hall": [
+      {"id": "room-print-warm-hall", "name": "Room Print: Warm Hall", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Room Print: Cathedral": [
+      {"id": "room-print-cathedral", "name": "Room Print: Cathedral", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Room Print: Bright Plate": [
+      {"id": "room-print-bright-plate", "name": "Room Print: Bright Plate", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Room Print: Spring Tank": [
+      {"id": "room-print-spring-tank", "name": "Room Print: Spring Tank", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Room Print: Metal Tank": [
+      {"id": "room-print-metal-tank", "name": "Room Print: Metal Tank", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Room Print: Deep Cave": [
+      {"id": "room-print-deep-cave", "name": "Room Print: Deep Cave", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Room Print: Swell Bloom": [
+      {"id": "room-print-swell-bloom", "name": "Room Print: Swell Bloom", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Room Print: Gated Burst": [
+      {"id": "room-print-gated-burst", "name": "Room Print: Gated Burst", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Room Print: Ping Pong Echoes": [
+      {"id": "room-print-ping-pong-echoes", "name": "Room Print: Ping Pong Echoes", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Room Print: Tight Early": [
+      {"id": "room-print-tight-early", "name": "Room Print: Tight Early", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Room Print: Distant Wash": [
+      {"id": "room-print-distant-wash", "name": "Room Print: Distant Wash", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Room Print: Big and Dark": [
+      {"id": "room-print-big-and-dark", "name": "Room Print: Big and Dark", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Room Print: Closet": [
+      {"id": "room-print-closet", "name": "Room Print: Closet", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Room Print: Wide Plate": [
+      {"id": "room-print-wide-plate", "name": "Room Print: Wide Plate", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Zone Delay: Tape Echo": [
+      {"id": "zone-delay-tape-echo", "name": "Zone Delay: Tape Echo", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Zone Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Zone Delay: Dub Echo": [
+      {"id": "zone-delay-dub-echo", "name": "Zone Delay: Dub Echo", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Zone Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Zone Delay: Slapback": [
+      {"id": "zone-delay-slapback", "name": "Zone Delay: Slapback", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Zone Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Zone Delay: Stereo Spread": [
+      {"id": "zone-delay-stereo-spread", "name": "Zone Delay: Stereo Spread", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Zone Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Zone Delay: Flanger": [
+      {"id": "zone-delay-flanger", "name": "Zone Delay: Flanger", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Zone Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Zone Delay: Tuned Comb": [
+      {"id": "zone-delay-tuned-comb", "name": "Zone Delay: Tuned Comb", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Zone Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Zone Delay: Chorus Double": [
+      {"id": "zone-delay-chorus-double", "name": "Zone Delay: Chorus Double", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Zone Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Zone Delay: Diffuse Cloud": [
+      {"id": "zone-delay-diffuse-cloud", "name": "Zone Delay: Diffuse Cloud", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Zone Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Zone Delay: Ambient Wash": [
+      {"id": "zone-delay-ambient-wash", "name": "Zone Delay: Ambient Wash", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Zone Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Zone Delay: Lo-Fi Loop": [
+      {"id": "zone-delay-lo-fi-loop", "name": "Zone Delay: Lo-Fi Loop", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Zone Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Zone Delay: Crossfade Echo": [
+      {"id": "zone-delay-crossfade-echo", "name": "Zone Delay: Crossfade Echo", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Zone Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Zone Delay: Tape Dive": [
+      {"id": "zone-delay-tape-dive", "name": "Zone Delay: Tape Dive", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Zone Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Zone Delay: Bright Ping": [
+      {"id": "zone-delay-bright-ping", "name": "Zone Delay: Bright Ping", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Zone Delay","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Warm Low-Pass": [
+      {"id": "multi-filter-warm-low-pass", "name": "Multi Filter: Warm Low-Pass", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Dark Room": [
+      {"id": "multi-filter-dark-room", "name": "Multi Filter: Dark Room", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Ladder Bass": [
+      {"id": "multi-filter-ladder-bass", "name": "Multi Filter: Ladder Bass", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Acid Squelch": [
+      {"id": "multi-filter-acid-squelch", "name": "Multi Filter: Acid Squelch", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Self-Oscillating Ladder": [
+      {"id": "multi-filter-self-oscillating-ladder", "name": "Multi Filter: Self-Oscillating Ladder", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Telephone": [
+      {"id": "multi-filter-telephone", "name": "Multi Filter: Telephone", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Thin Air": [
+      {"id": "multi-filter-thin-air", "name": "Multi Filter: Thin Air", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Rumble Cut": [
+      {"id": "multi-filter-rumble-cut", "name": "Multi Filter: Rumble Cut", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Notch Sweep": [
+      {"id": "multi-filter-notch-sweep", "name": "Multi Filter: Notch Sweep", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Vocal Peak": [
+      {"id": "multi-filter-vocal-peak", "name": "Multi Filter: Vocal Peak", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Presence Boost": [
+      {"id": "multi-filter-presence-boost", "name": "Multi Filter: Presence Boost", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Bass Shelf": [
+      {"id": "multi-filter-bass-shelf", "name": "Multi Filter: Bass Shelf", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Air Shelf": [
+      {"id": "multi-filter-air-shelf", "name": "Multi Filter: Air Shelf", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Slow Phaser": [
+      {"id": "multi-filter-slow-phaser", "name": "Multi Filter: Slow Phaser", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Jet Flanger": [
+      {"id": "multi-filter-jet-flanger", "name": "Multi Filter: Jet Flanger", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Gritty Drive": [
+      {"id": "multi-filter-gritty-drive", "name": "Multi Filter: Gritty Drive", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Wall Squeal": [
+      {"id": "multi-filter-wall-squeal", "name": "Multi Filter: Wall Squeal", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Vowel Mouth": [
+      {"id": "multi-filter-vowel-mouth", "name": "Multi Filter: Vowel Mouth", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Hollow Tube": [
+      {"id": "multi-filter-hollow-tube", "name": "Multi Filter: Hollow Tube", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Multi Filter: Terraced Lows": [
+      {"id": "multi-filter-terraced-lows", "name": "Multi Filter: Terraced Lows", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Multi Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Dual Filter: Warm Serial LP": [
+      {"id": "dual-filter-warm-serial-lp", "name": "Dual Filter: Warm Serial LP", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Dual Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Dual Filter: Wide Band-Pass": [
+      {"id": "dual-filter-wide-band-pass", "name": "Dual Filter: Wide Band-Pass", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Dual Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Dual Filter: Formant Pair": [
+      {"id": "dual-filter-formant-pair", "name": "Dual Filter: Formant Pair", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Dual Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Dual Filter: Vowel Sweep": [
+      {"id": "dual-filter-vowel-sweep", "name": "Dual Filter: Vowel Sweep", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Dual Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Dual Filter: Stereo Split": [
+      {"id": "dual-filter-stereo-split", "name": "Dual Filter: Stereo Split", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Dual Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Dual Filter: Phase Notch": [
+      {"id": "dual-filter-phase-notch", "name": "Dual Filter: Phase Notch", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Dual Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Dual Filter: Dark Pad Filter": [
+      {"id": "dual-filter-dark-pad-filter", "name": "Dual Filter: Dark Pad Filter", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Dual Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Dual Filter: Thin Radio": [
+      {"id": "dual-filter-thin-radio", "name": "Dual Filter: Thin Radio", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Dual Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Dual Filter: Mirror Morph": [
+      {"id": "dual-filter-mirror-morph", "name": "Dual Filter: Mirror Morph", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Dual Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Dual Filter: Resonant Bass": [
+      {"id": "dual-filter-resonant-bass", "name": "Dual Filter: Resonant Bass", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Dual Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Dual Filter: Acid Twin": [
+      {"id": "dual-filter-acid-twin", "name": "Dual Filter: Acid Twin", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Dual Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Dual Filter: Crossed Filters": [
+      {"id": "dual-filter-crossed-filters", "name": "Dual Filter: Crossed Filters", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Dual Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Dual Filter: Ringing Pair": [
+      {"id": "dual-filter-ringing-pair", "name": "Dual Filter: Ringing Pair", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Dual Filter","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
     "Slate Stabs": [
       {"name": "Slate Stabs", "cell": "root", "cols": 51, "rows": 54, "id": "slate-stabs", "controls": [
         {"id":"c1","type":"label","at":[1,0],"size":[49,2],"text":"Slate Stabs","style":"title"},

@@ -59,6 +59,14 @@ fewer than ten or more than twenty presets. A module without a file has no prese
 controllers, samplers). Factory presets are read-only; the user's own live in the native library `module:<type>`
 (`<app data>/Beautiful Bleep/Module Presets/<type>/`, one `.bleepmodule` file each) and keep every knob plus the node's `data`.
 
+### Module FX
+
+[`module-fx.mjs`](module-fx.mjs) turns every module preset of an effect module (Reverb, Delay, EQ, Chorus …, the list is
+`MODULES` there, with each one's ring-out `tail`) into a cell preset in the category *Module FX*, named `<Module>: <preset>`.
+The cell is the module alone between In L/R and Out L/R, so Bleep FX offers each of them, and its panel is the module's own
+view pinned (`view` control, so the module's preset bar comes with it). No second copy to keep: edit `modules/<type>.mjs`,
+then run `build-modules.mjs` and `build.mjs`. Add an effect module by adding it to `MODULES`. Presets that carry `data` are skipped.
+
 ### Module manuals
 
 Every module's manual (`patch/modules/<type>/doc/<type>.md`) lists its demo patches and its presets in two **generated**

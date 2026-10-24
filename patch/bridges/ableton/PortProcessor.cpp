@@ -136,12 +136,12 @@ bool PortProcessor::acceptsMidi() const {
            kind_ == PortKind::AudioOut || kind_ == PortKind::Instrument;
 }
 
-bool PortProcessor::reportsLatency() const noexcept {
-    return kind_ == PortKind::Patch || kind_ == PortKind::AudioOut || kind_ == PortKind::Instrument ||
 int PortProcessor::boardLatency() noexcept {
     return engine().supports(2) ? engine().portLatencySamples(handle()) : engine().latencySamples();
 }
 
+bool PortProcessor::reportsLatency() const noexcept {
+    return kind_ == PortKind::Patch || kind_ == PortKind::AudioOut || kind_ == PortKind::Instrument ||
            kind_ == PortKind::AudioInsert;
 }
 
