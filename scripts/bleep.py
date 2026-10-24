@@ -106,6 +106,35 @@ def live_running():
     return bool(subprocess.run("pgrep -f '\\.app/Contents/MacOS/Live$' | head -1", shell=True, capture_output=True, text=True).stdout.strip())
 
 
+def live_user_library():
+    """Live's User Library: BLEEP_LIVE_USER_LIBRARY, else the default place (a library moved in Live's settings needs the variable)."""
+    env = os.environ.get("BLEEP_LIVE_USER_LIBRARY")
+    if env:
+        return Path(env).expanduser()
+    base = Path.home() / ("Music" if sys.platform == "darwin" else "Documents")
+    return base / "Ableton" / "User Library"
+
+
+def install_live_link_device(library=None):
+    """Copies the Bleep Live Link device and its script into Live's User Library, so it shows up in Live's browser
+    under User Library > Presets > Audio Effects > Max Audio Effect > bleep-live-link.
+    A script that is already a link to the repo's copy is left alone (that is a development setup)."""
+    src = ROOT / "patch" / "bridges" / "ableton" / "live-link"
+    library = library or live_user_library()
+    if not library.is_dir():
+        print(f"Live's User Library not found at {library}: the Bleep Live Link device was not installed "
+              "(set BLEEP_LIVE_USER_LIBRARY if you moved it).")
+        return
+    dest = library / "Presets" / "Audio Effects" / "Max Audio Effect" / "bleep-live-link"
+    dest.mkdir(parents=True, exist_ok=True)
+    for name in ("Bleep Live Link.amxd", "live-link.js"):
+        target = dest / name
+        if target.exists() and (src / name).samefile(target):
+            continue
+        shutil.copy2(src / name, target)
+    print(f"installed the Bleep Live Link device in {dest}")
+
+
 def build_plugins(args, s):
     """The plugins as VST3 (and the standalone app unless --no-app), then the DSP, engine and bridge tests.
     Copies them to the user plugin folders (args.install True), unless told not to (False). By default (None) it copies,
@@ -119,6 +148,8 @@ def build_plugins(args, s):
                   "(overwriting a loaded plugin can crash Live).\nQuit Live, then run: ./bleep build plugins --install\n")
     d = patch_defines(args, s, tests=not (args.plugins_only or args.no_test_build), app=not args.no_app, install=install)
     cmake(ROOT / "patch", BUILD / "patch", config, d, test=not (args.no_test or args.plugins_only), clean=args.clean)
+    if install:
+        install_live_link_device()
     print("\nBleep plugins built (VST3):")
     for p in sorted((BUILD / "patch").glob(f"*_artefacts/{config}/*")):
         if p.suffix in (".app", ".vst3", ".exe"):

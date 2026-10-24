@@ -13,7 +13,8 @@ def dispatch(argv, settings=None, live=False):
     """Runs ./bleep with the external commands replaced: returns the commands it would have run.
     `live`: whether Ableton Live counts as running."""
     calls = []
-    with mock.patch.object(bleep, "run", lambda cmd, **kw: calls.append([str(c) for c in cmd])), \
+    with mock.patch.object(bleep, "install_live_link_device", lambda: calls.append(["install-live-link"])), \
+            mock.patch.object(bleep, "run", lambda cmd, **kw: calls.append([str(c) for c in cmd])), \
             mock.patch.object(bleep, "have", lambda tool: False), \
             mock.patch.object(bleep, "live_running", lambda: live), \
             mock.patch.object(bleep.settings, "load", lambda: dict(settings or {})):
@@ -41,6 +42,21 @@ class Commands(unittest.TestCase):
         self.assertIn("-DBLEEP_COPY_PLUGINS=OFF", dispatch(["build", "plugins"], live=True)[0])
         self.assertIn("-DBLEEP_COPY_PLUGINS=ON", dispatch(["build", "plugins", "--install"], live=True)[0])
         self.assertIn("-DBLEEP_COPY_PLUGINS=OFF", dispatch(["build", "plugins", "--no-install"], live=True)[0])
+
+    def test_the_live_link_device_goes_with_the_plugins(self):
+        self.assertIn(["install-live-link"], dispatch(["build", "plugins"]))
+        self.assertNotIn(["install-live-link"], dispatch(["build", "plugins", "--no-install"]))
+        self.assertNotIn(["install-live-link"], dispatch(["build", "plugins"], live=True))
+
+    def test_install_live_link_device_copies_into_the_user_library(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            bleep.install_live_link_device(Path(tmp))
+            dest = Path(tmp) / "Presets/Audio Effects/Max Audio Effect/bleep-live-link"
+            self.assertTrue((dest / "Bleep Live Link.amxd").is_file())
+            self.assertTrue((dest / "live-link.js").is_file())
+            bleep.install_live_link_device(Path(tmp))  # again: overwrites
+        bleep.install_live_link_device(Path("/nonexistent/library"))  # no library: says so, no error
 
     def test_plugins_only_builds_no_tests_and_no_ctest(self):
         calls = dispatch(["build", "plugins", "--plugins-only"])
