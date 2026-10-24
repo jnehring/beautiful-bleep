@@ -8,7 +8,7 @@
     ./bleep check   [repo|api-docs|account]                        default: repo api-docs
     ./bleep docs    [build|help-index|screenshots]
     ./bleep release plugins|modules|community [...]
-    ./bleep package [module ...]
+    ./bleep package [module ...]                                   packages, signs with your kit and installs (--no-install: only package)
     ./bleep config                                                 show the effective settings
 
 Settings (JUCE checkout, signing kit, token file, registry, Live set) come from config/bleep.json, then
@@ -457,12 +457,28 @@ def cmd_docs(args, s):
 
 # ---- package / release ----------------------------------------------------------------------------------------------
 
+def default_data_dir():
+    """The folder the app and the plugins read installed modules from (library::defaultDataDir): BLEEP_DATA_DIR, else per platform."""
+    if os.environ.get("BLEEP_DATA_DIR"):
+        return Path(os.environ["BLEEP_DATA_DIR"]).expanduser()
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / "Bleep"
+    if sys.platform == "win32":
+        return Path(os.environ.get("APPDATA", Path.home())) / "Bleep"
+    return Path.home() / ".local" / "share" / "Bleep"
+
+
 def cmd_package(args, s):
+    """Packages the modules and, by default, signs them with the kit and installs them into the data folder (modules/local), where the app
+    and the plugins read modules from. --no-install only packages; --install DATA installs somewhere else."""
     cmd = [PY, SCRIPTS / "release" / "package-module.py", *args.modules]
-    if args.install:
-        if not s.get("signingKit"):
+    if not args.no_install:
+        if s.get("signingKit"):
+            cmd += ["--install", str(args.install or default_data_dir()), "--kit", s["signingKit"]]
+        elif args.install:
             sys.exit("--install needs a signing kit: signingKit in config/bleep.local.json")
-        cmd += ["--install", args.install, "--kit", s["signingKit"]]
+        else:
+            print("Packaged only: no signing kit is configured (signingKit in config/bleep.local.json), so nothing was installed.")
     run(cmd)
 
 
@@ -563,7 +579,8 @@ def parser():
 
     p = sub.add_parser("package", help="package built modules as .bleepmod files")
     p.add_argument("modules", nargs="*")
-    p.add_argument("--install", metavar="DATA", help="also sign them with the kit and put them into DATA/modules/local")
+    p.add_argument("--install", metavar="DATA", help="install into DATA/modules/local instead of the default data folder (the app's and the plugins')")
+    p.add_argument("--no-install", action="store_true", help="only package: do not sign with the kit or install (the default is to install)")
     p.set_defaults(fn=cmd_package)
 
     rl = sub.add_parser("release", help="release plugins or modules to the library, or share a community module")
