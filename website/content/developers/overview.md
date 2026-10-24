@@ -35,6 +35,7 @@ Bleep is GPL-3.0-or-later with a module exception, so your modules can be closed
 
 ![Bleep plugins in Live, the Bleep App and Bleep Play in the browser each run an engine and board. They load modules, one .wasm file each, installed from the Bleep Library. The Bleep Bus is a separate open protocol between any plugins.](/img/developer-overview.svg)
 
+- The [Architecture overview](development/architecture.md) explains all of this in more depth.
 - **Modules** are the nodes on the board (oscillators, filters, sequencers). Each is a standalone WebAssembly file, so the same module runs in the plugins, the app and the browser. They are installed from the Bleep Library. [Bleep Script](bleep-script/overview.md) is a way to write them in code.
 - **Plugins** are the VST3s you add in Live. A set has one engine; the first plugin loaded creates it and the others share it. Ports connect a track to the board.
 - **The app and the web build** run the same board without a DAW. The three can exchange audio, MIDI and sync through bridges.

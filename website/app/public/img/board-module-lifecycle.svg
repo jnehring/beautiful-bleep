@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 296" role="img" aria-labelledby="t d">
+  <title id="t">How the engine runs modules</title>
+  <desc id="d">The engine splits each host block into 32-sample chunks. For every chunk it calls bleep_process of each node in cable order, one module instance per node.</desc>
+  <style>
+    :root { --bg:#fbfaf7; --fg:#1b1d22; --muted:#646b78; --card:#ffffff; --line:#cfcdc6; --accent:#0f9488; --tint:#e3f4f1; --warn:#b4570a; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#15171c; --fg:#e7e9ee; --muted:#9aa1b1; --card:#1d2027; --line:#3a404d; --accent:#4fd1c5; --tint:#1c3a38; --warn:#f0a050; } }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; fill: var(--fg); }
+    .box { fill: var(--card); stroke: var(--line); stroke-width: 1.5; }
+    .hub { fill: var(--tint); stroke: var(--accent); stroke-width: 2; }
+    .grp { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 6 5; }
+    .name { font-size: 16px; font-weight: 650; text-anchor: middle; }
+    .lay { font-size: 14px; font-weight: 650; text-anchor: middle; }
+    .sub { font-size: 12.5px; fill: var(--muted); text-anchor: middle; }
+    .cap { font-size: 12.5px; font-weight: 600; text-anchor: middle; }
+    .capa { font-size: 12.5px; font-weight: 600; text-anchor: middle; fill: var(--accent); }
+    .link { stroke: var(--accent); stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .thin { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+    .head { fill: var(--accent); }
+    .warn { fill: var(--card); stroke: var(--warn); stroke-width: 2; }
+  </style>
+  <rect width="760" height="296" rx="14" fill="var(--bg)"/>
+<text class="name" x="380" y="28">One host block, for example 256 samples</text><rect class="box" x="24" y="44" width="81" height="34" rx="7"/><text class="cap" x="64" y="66">32</text><rect class="box" x="113" y="44" width="81" height="34" rx="7"/><text class="cap" x="153" y="66">32</text><rect class="hub" x="202" y="44" width="81" height="34" rx="7"/><text class="cap" x="242" y="66">32</text><rect class="box" x="291" y="44" width="81" height="34" rx="7"/><text class="cap" x="331" y="66">32</text><rect class="box" x="380" y="44" width="81" height="34" rx="7"/><text class="cap" x="420" y="66">32</text><rect class="box" x="469" y="44" width="81" height="34" rx="7"/><text class="cap" x="509" y="66">32</text><rect class="box" x="558" y="44" width="81" height="34" rx="7"/><text class="cap" x="598" y="66">32</text><rect class="box" x="647" y="44" width="81" height="34" rx="7"/><text class="cap" x="687" y="66">32</text><text class="sub" x="380" y="100">The engine splits the block into 32-sample chunks and runs the compiled board once per chunk.</text><rect class="grp" x="24" y="122" width="712" height="126" rx="14"/><text class="capa" x="380" y="144">One chunk</text><rect class="box" x="44" y="158" width="134" height="52" rx="10"/><text class="lay" x="111" y="180">Oscillator</text><text class="sub" x="111" y="198">bleep_process(32)</text><path class="link" d="M178 184 H208"/><path class="head" d="M216 184 l-10 -6 v12 z"/><rect class="box" x="216" y="158" width="134" height="52" rx="10"/><text class="lay" x="283" y="180">Filter</text><text class="sub" x="283" y="198">bleep_process(32)</text><path class="link" d="M350 184 H380"/><path class="head" d="M388 184 l-10 -6 v12 z"/><rect class="box" x="388" y="158" width="134" height="52" rx="10"/><text class="lay" x="455" y="180">Delay</text><text class="sub" x="455" y="198">bleep_process(32)</text><path class="link" d="M522 184 H552"/><path class="head" d="M560 184 l-10 -6 v12 z"/><rect class="box" x="560" y="158" width="134" height="52" rx="10"/><text class="lay" x="627" y="180">Reverb</text><text class="sub" x="627" y="198">bleep_process(32)</text><text class="sub" x="380" y="232">in order of the cables; a cycle gets a 32-sample feedback delay; each call is one instance of one .wasm</text><text class="sub" x="380" y="276">Before each chunk the engine writes input buffers, knob values and the transport; after it, it reads the output buffers.</text></svg>
