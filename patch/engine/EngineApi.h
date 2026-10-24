@@ -151,7 +151,7 @@ public:
     /// edited. Any thread.
     virtual int portLatencySamples(int handle) noexcept = 0;
 
-    /// [minor 3] What the board's Live Params nodes (doc: bridges/ableton/live-link/live-params-node.md) want Live to do: writes the values of their
+    /// [minor 3] What the board's Live Params nodes (doc: board/ui/live-params.md) want Live to do: writes the values of their
     /// rows (32 of them, 8 channels of 4, as engine/LiveParams.h defines them) into `values32` (0..1, or -1 for a row no node
     /// drives) and returns the bit mask of the rows a node drives. Any thread; the values are those of the last block.
     virtual uint32_t liveParams(float* values32) noexcept = 0;
