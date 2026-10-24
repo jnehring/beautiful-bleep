@@ -90,6 +90,10 @@ public:
     bool canRedo() const noexcept { return !redo_.empty(); }
     /// Knob and amount changes: cheap, no undo entry of their own.
     void beginGesture();
+    /// A setting of the board itself ("zeroHostLatencyInputs"): saved with the board, no recompile.
+    void setBoardSetting(const juce::String& key, const juce::var& value);
+    /// What the Latency settings page shows: {zeroHostLatencyInputs, crossIn, forced, boardSamples, blockSamples, running}.
+    juce::var latencyInfo() const;
     void setParam(const juce::String& nodeId, const juce::String& paramId, float normalised);
     void setAmount(const juce::String& cableId, float amount);
     /// A node's data (e.g. a sequencer's steps): no recompile, no undo entry of its own.
@@ -152,7 +156,15 @@ private:
     /// Modules were installed: nodes of a type that was missing are real nodes now.
     void modulesChanged();
     void reconcile(bool force);
-    void runTick(int64_t block, const BlockIO& claimer) noexcept;
+    /// Runs the program for host block `block`. With a `driver` (Bleep Board, in its own plugin's block) the driver's own
+    /// ports see this very block and every other plugin's the one before; without one (a set with no Bleep Board, the
+    /// app) the tick processes what the plugins handed over in block - 1. [RT]
+    void runTick(int64_t block, const BlockIO& claimer, const PortSlot* driver) noexcept;
+    /// What the latency each plugin reports depends on: the ports on other tracks the board has and the setting. Message thread.
+    void updateLatencyModel();
+    int hostBlock() const noexcept;
+    /// "0 host latency for inputs": on unless the board says otherwise.
+    bool zeroHostLatencyInputs() const;
     /// Runs a cell plugin's cell in the plugin's own block, if the board has it apart from the other plugins. [RT]
     bool runLocal(PortSlot& s, BlockIO& io) noexcept;
     void clearBoard();
@@ -202,6 +214,11 @@ private:
 
     // Ticks (audio threads).
     std::atomic<int64_t> ticks_{0};
+    /// Bleep Board's slot while it runs the board in its own block (no latency of its own); null: the first plugin of a
+    /// block runs it (a set without Bleep Board, a bridged one, the app).
+    std::atomic<const PortSlot*> driver_{nullptr};
+    std::atomic<bool> crossIn_{false};        ///< the board has a MIDI In or Audio In on another track
+    std::atomic<bool> inputsReported_{true};  ///< the delay of those inputs is reported to the host (else only kept inside)
     bool wasPlaying_ = false;
     std::atomic<double> uiBpm_{120.0};          ///< the transport of the last tick, for the side menu [RT writes, UI reads]
     std::atomic<bool> uiPlaying_{false};

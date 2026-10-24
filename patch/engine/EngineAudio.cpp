@@ -114,7 +114,15 @@ void Engine::process(int handle, BlockIO& io) noexcept {
     // A cell plugin with nothing cabled to other plugins runs its cell right here, in its own block.
     const bool local = (s->kind == PortKind::Instrument || s->kind == PortKind::AudioInsert) && runLocal(*s, io);
     if (!local) writeIn(*s, c, io);
-    if (claimed) runTick(c, io);
+    const PortSlot* driver = driver_.load(std::memory_order_acquire);
+    if (driver != nullptr) {
+        // Bleep Board runs the board in its own block: its audio and MIDI go in and out in this very block. Every other
+        // plugin is one block away: the board reads what they wrote in block c-1, and they read what it wrote in c-1.
+        if (s == driver) runTick(c, io, driver);
+        if (!local) readOut(*s, s == driver ? c : c - 1, io);
+        return;
+    }
+    if (claimed) runTick(c, io, nullptr);
     if (!local) readOut(*s, c - 2, io);  // the tick in block c-1 processed block c-2
 }
 
@@ -159,14 +167,14 @@ void Engine::processAll(const int* handles, BlockIO* const* ios, int count) noex
         }
     }
     ticks_.store(c, std::memory_order_release);
-    runTick(c + 1, *ios[0]);  // processes block c
+    runTick(c + 1, *ios[0], nullptr);  // processes block c
     for (int k = 0; k < count; ++k) {
         if (PortSlot* s = slot(handles[k])) readOut(*s, c, *ios[k]);
         else silence(*ios[k]);
     }
 }
 
-void Engine::runTick(int64_t block, const BlockIO& claimer) noexcept {
+void Engine::runTick(int64_t block, const BlockIO& claimer, const PortSlot* driver) noexcept {
     Program* p = nullptr;
     do {
         p = program_.load(std::memory_order_seq_cst);
@@ -174,9 +182,11 @@ void Engine::runTick(int64_t block, const BlockIO& claimer) noexcept {
     } while (p != program_.load(std::memory_order_seq_cst));
 
     if (p != nullptr) {
-        // The tick in block N processes what the plugins handed over in block N-1.
-        const int64_t b = block - 1;
-        const int idx = (int)(b % kRing);
+        // Without a driver the tick in block N processes what the plugins handed over in block N-1, and writes it for
+        // them under that number. With one, the tick runs in block N for the driver's ports and for N-1 for the others'.
+        const int64_t outBlock = driver ? block : block - 1;
+        const int outIdx = (int)(((outBlock % kRing) + kRing) % kRing);
+        auto inBlock = [&](const PortSlot& s) { return driver && &s == driver ? block : block - 1; };
         Transport t = claimer.transport;
         int n = std::min(claimer.numSamples, kMaxHostBlock);
         bool found = false;
@@ -184,8 +194,9 @@ void Engine::runTick(int64_t block, const BlockIO& claimer) noexcept {
             PortSlot& s = *slotPtr;
             s.tickInValid = false;
             if (p->localGroup(&s) >= 0) continue;  // runs in its own plugin's block
-            s.tickInValid = readFrame(s.in[idx], b, s.tickIn);
-            if (s.tickInValid && !found) {
+            const int64_t b = inBlock(s);
+            s.tickInValid = b >= 0 && readFrame(s.in[(int)(b % kRing)], b, s.tickIn);  // the first block has no block before it
+            if (s.tickInValid && (!found || (driver && &s == driver))) {
                 t = s.tickIn.transport;
                 n = s.tickIn.numSamples;
                 found = true;
@@ -200,8 +211,8 @@ void Engine::runTick(int64_t block, const BlockIO& claimer) noexcept {
             st.io.in = st.port->tickInValid ? &st.port->tickIn : nullptr;
             st.io.out = nullptr;
             if (st.portWritesOut) {
-                PortFrame& o = st.port->out[idx];
-                o.beginWrite(b);
+                PortFrame& o = st.port->out[outIdx];
+                o.beginWrite(outBlock);
                 o.numSamples = n;
                 o.numChannels = 2;
                 o.numMidi = 0;

@@ -94,6 +94,7 @@ struct FakePort {
     std::vector<MidiEvent> midiIn, midiOut;
     bool playing = false;  ///< the host's transport
     double bpm = 120.0;
+    const float* macros = nullptr;  ///< Bleep Board: the macro values
     FakePort(Engine& e, int h) : engine(e), handle(h) {
         for (auto& b : in) b.assign(kBlock, 0.0f);
         for (auto& b : out) b.assign(kBlock, 0.0f);
@@ -119,6 +120,7 @@ struct FakePort {
         io.numMidiIn = (int)midiIn.size();
         io.midiOut = midiOut.data();
         io.midiOutCapacity = (int)midiOut.size();
+        io.macros = macros;
         engine.process(handle, io);
         midiIn.clear();
         return io;

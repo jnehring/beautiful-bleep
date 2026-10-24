@@ -172,7 +172,25 @@ PortState Engine::state(int handle) noexcept {
 
 int Engine::portLatencySamples(int handle) noexcept {
     PortSlot* s = slot(handle);
-    return s != nullptr && s->local.load(std::memory_order_relaxed) ? 0 : latencySamples();
+    if (s == nullptr) return latencySamples();
+    if (s->local.load(std::memory_order_relaxed)) return 0;
+    if (driver_.load(std::memory_order_acquire) == nullptr) return latencySamples();
+    // Bleep Board runs the board in its own block. A plugin on another track is one block away from it in each
+    // direction: a MIDI In or Audio In is one block before the board, an Audio Out one block after it. What the host is
+    // told is the delay between the plugin's signal and the board's own track, or the track the Audio Out is on.
+    const int m = hostBlock();
+    const int in = crossIn_.load(std::memory_order_relaxed) && inputsReported_.load(std::memory_order_relaxed) ? m : 0;
+    if (s->kind == PortKind::Patch) return in;
+    if (s->kind == PortKind::AudioOut) return m + in;
+    return latencySamples();  // a cell plugin that is cabled to others: in and out, two blocks
+}
+
+int Engine::hostBlock() const noexcept {
+    // Blocks of the size the host runs can be far below the maximum it announces (Live announces 512 whatever its buffer
+    // is). Report what has been seen once there is something, so Live compensates the delay that is there and not more.
+    const int seen = seenBlock_.load(std::memory_order_relaxed);
+    const int m = seen > 0 ? seen : maxBlock_.load();
+    return m > 0 ? m : 512;
 }
 
 uint32_t Engine::liveParams(float* values32) noexcept {
@@ -238,12 +256,8 @@ juce::var Engine::liveLinkInfo() const {
 }
 
 int Engine::latencySamples() noexcept {
-    // The two blocks a signal really spends in the engine are blocks of the size the host runs, which can be far
-    // below the maximum it announces (Live announces 512 whatever its buffer is). Report what has been seen once
-    // there is something, so Live compensates the delay that is there and not more.
-    const int seen = seenBlock_.load(std::memory_order_relaxed);
-    const int m = seen > 0 ? seen : maxBlock_.load();
-    return 2 * (m > 0 ? m : 512);
+    // The two blocks a signal really spends in the engine are blocks of the size the host runs (see hostBlock).
+    return 2 * hostBlock();
 }
 
 void Engine::statusText(int handle, char* out, int capacity) noexcept {
@@ -256,7 +270,7 @@ void Engine::statusText(int handle, char* out, int capacity) noexcept {
         case PortState::Ok: {
             const int l = s ? portLatencySamples(s->handle) : latencySamples();
             text = "Board running";
-            if (s && s->kind != PortKind::Patch && s->kind != PortKind::MidiIn && s->kind != PortKind::AudioIn)
+            if (s && s->kind != PortKind::MidiIn && s->kind != PortKind::AudioIn)
                 text << u8(" · latency ") << l << " smp (" << juce::String(1000.0 * l / sampleRate_, 1) << " ms)";
             if (s && s->resyncs.load() > 0) text << u8(" · resyncs ") << (int)s->resyncs.load();
             if (s && s->drops.load() > 0) text << u8(" · drops ") << (int)s->drops.load();

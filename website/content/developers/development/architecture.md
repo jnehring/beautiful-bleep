@@ -100,7 +100,7 @@ The first-party script modules in `patch/modules/` (they have `"language": "blee
 | **Modules arrive from** | The set installed on the machine by the app or the plugin window; never downloaded inside Live | The Library section, local files, bundles | Fetched from the site's library on first use, signature checked in the browser |
 | **Code nodes** | Run; compiler not shipped yet | Run; compiler not shipped yet | Compile and run |
 | **Sync** | Live's transport | Ableton Link, and Live's transport while bridged | The app's tempo and beat, when connected |
-| **Latency between ports** | A signal from an input port to an output port takes exactly two blocks, whatever order Live runs the tracks in | Not applicable | Not applicable |
+| **Latency between ports** | With Bleep Board in the set, its own track has no latency and each crossing to or from another track takes exactly one block, whatever order Live runs the tracks in (input port to output port: two) | Not applicable | Not applicable |
 
 A few differences deserve more explanation.
 

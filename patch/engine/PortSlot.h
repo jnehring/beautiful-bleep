@@ -7,9 +7,15 @@
 // tagged with the host block it belongs to and guarded by a sequence lock,
 // so a reader never uses a frame that is being written (spec §5.3):
 //
+//   no Bleep Board (the first plugin of a block runs the tick):
 //   host block N:  port writes in[N]   ─┐
 //                  engine tick N reads  in[N-1], writes out[N-1]
 //                  port reads out[N-2] ─┘      → two blocks of latency
+//
+//   with Bleep Board (it runs the tick in its own block N, driver):
+//                  every other port writes in[N] and reads out[N-1];
+//                  tick N reads in[N] of the driver and in[N-1] of the others, writes out[N] for all
+//                  → driver to driver none, one block to or from another plugin, two through the board
 #pragma once
 
 #include "EngineApi.h"

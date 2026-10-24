@@ -270,10 +270,13 @@ public:
                     if (style().onMenu) style().onMenu(a[0]);
                     done({});
                 }))
-                .withNativeFunction("settings", gated([](const juce::Array<juce::var>& a, Completion done) {
+                .withNativeFunction("settings", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     if (style().onSettings) { done(style().onSettings(a[0].toString(), a[1])); return; }
-                    auto* o = new juce::DynamicObject();  // a plugin: Live owns audio, MIDI and sync; only the library has settings
+                    // A plugin: Live owns audio, MIDI and sync. The board has the library and what it does with latency.
+                    if (a[0].toString() == "latency") engine_.setBoardSetting("zeroHostLatencyInputs", a[1]["zeroHostLatencyInputs"]);
+                    auto* o = new juce::DynamicObject();
                     o->setProperty("host", "plugin");
+                    o->setProperty("latency", engine_.latencyInfo());
                     done(juce::var(o));
                 }))
                 .withNativeFunction("watch", gated([this](const juce::Array<juce::var>& a, Completion done) {

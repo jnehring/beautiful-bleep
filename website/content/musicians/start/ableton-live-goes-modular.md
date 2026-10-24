@@ -64,42 +64,69 @@ cross the border between Live and the board:
  Live track ──► Bleep FX (send) ─┘   between modules)     └──► Bleep FX (return)
 ```
 
-Entering the board takes one audio buffer, and leaving it takes another. So:
+**Bleep Board runs the board on its own track, in the same audio buffer as the
+rest of that track.** Its own MIDI In, its own Audio In and its own Audio Out
+cost nothing. Only plugins on **other tracks** add latency, one audio buffer
+each way:
 
-> **One trip through the board (into it and back out) costs two audio buffers.**
+> **Into the board from another track (Bleep MIDI In, Bleep Audio In): 1 audio buffer.**
+> **Out of the board to another track (Bleep Audio Out): 1 audio buffer.**
 
 Cables between modules on the board cost nothing.
 
-## How much is two buffers?
+## How much is one buffer?
 
 | Buffer size in Live | 44.1 kHz | 48 kHz |
 |---|---|---|
-| 64 samples | 128 samples, 2.9 ms | 128 samples, 2.7 ms |
-| 128 samples | 256 samples, 5.8 ms | 256 samples, 5.3 ms |
-| 256 samples | 512 samples, 11.6 ms | 512 samples, 10.7 ms |
-| 512 samples | 1024 samples, 23.2 ms | 1024 samples, 21.3 ms |
+| 64 samples | 64 samples, 1.5 ms | 64 samples, 1.3 ms |
+| 128 samples | 128 samples, 2.9 ms | 128 samples, 2.7 ms |
+| 256 samples | 256 samples, 5.8 ms | 256 samples, 5.3 ms |
+| 512 samples | 512 samples, 11.6 ms | 512 samples, 10.7 ms |
 
-Bleep Audio Out, Bleep Instrument and Bleep FX report this delay to Live, so
-Live's delay compensation lines everything up. Your drums, your bass and
+Bleep Board, Bleep Audio Out, Bleep Instrument and Bleep FX report their delay to
+Live, so Live's delay compensation lines everything up. Your drums, your bass and
 the board's audio stay in time with each other. What you pay is the
 **total latency of the set**: Live delays the other tracks to match, which you
 feel when you play or record on a monitored track.
 
 Right after you load a set the plugins assume a larger buffer for a moment,
-then settle to twice your real buffer after the first block has played. After
-that the number only changes if you change the buffer size or sample rate.
+then settle to your real buffer after the first block has played. After
+that the number only changes if you change the buffer size, the sample rate or
+the ports on the board.
+
+### 0 host latency for inputs
+
+This is on by default. Bleep Board reports no latency to Live, however many
+Bleep MIDI In and Bleep Audio In plugins you add on other tracks. Their signals
+are delayed by one buffer inside the board instead: they arrive one buffer late
+against the rest of the set, and Live does not know. Your own track stays at zero
+latency, which is what you want when you play it.
+
+If you need the inputs lined up with the rest of the set, for example to blend a
+processed track with its dry original, open **Settings → Latency** in the board and
+turn **0 host latency for inputs** off. Bleep Board then reports that buffer and Live
+delays everything else by it.
+
+That only works while no audio goes back to Live on another track. As soon as a
+*Bleep Audio Out* on another track plays something from the board, Live must be told about the
+input's buffer too, or that track would be a buffer late. The board then reports
+it again and says so in the setting.
 
 ## Several plugins connected to each other
 
 This is the part that matters when you build bigger setups. The rule is simple:
-**you pay once for every crossing between Live and the board, not for every
+**you pay once for every crossing between another track and the board, not for every
 cable.**
 
 | Setup | Added latency |
 |---|---|
-| One track, *Bleep Instrument* played from a keyboard | 2 buffers |
-| Ten modules cabled together between *Audio In* and *Audio Out* | 2 buffers (the same as with one module) |
+| Bleep Board alone: its own MIDI In, its own Audio Out | none |
+| One track, *Bleep Instrument* played from a keyboard, cabled to nothing else | none |
+| *Bleep Audio In* on track A into the board's own Audio Out | 1 buffer |
+| The board's own MIDI In into a *Bleep Audio Out* on track B | 1 buffer |
+| *Bleep Audio In* on track A, ten modules cabled together, *Bleep Audio Out* on track B | 2 buffers (the same as with one module) |
 | Several *Bleep MIDI In* and *Audio In* ports feeding one *Audio Out*, all patched on the board | 2 buffers (inputs are processed together) |
+| *Bleep FX* cabled to other plugins | 2 buffers |
 | *Bleep FX* on track A, then *Bleep FX* on the same track after it | 4 buffers (two crossings, one after the other) |
 | Track A: *Audio In*, board, *Audio Out* on track B. Then track B: *Audio In*, board, *Audio Out* on track C | 4 buffers at track C (two crossings) |
 | Same as above, but you cable A straight to C on the board | 2 buffers |
@@ -116,7 +143,7 @@ lined up with the rest of your set. Parallel tracks that do not use Bleep are
 delayed to match. Some paths are not compensated:
 
 - **Bleep MIDI Out sent to another track.** Live does not reliably compensate
-  this routing. Notes arrive about two buffers late relative to the rest. Move
+  this routing. Notes arrive one or two buffers late relative to the rest. Move
   the target track earlier in your timeline or nudge it with the track delay.
 - **Tracks you monitor with Reduced Latency When Monitoring on.** Live skips
   delay compensation for them.
@@ -130,7 +157,7 @@ delayed to match. Some paths are not compensated:
 
 ### Feedback loops
 
-A feedback cable adds 32 samples inside the board. It does not add to the two
+A feedback cable adds 32 samples inside the board. It does not add to the
 buffers above. In a tight filter-grit loop that small delay slightly changes
 the pitch of the ringing, which many people use on purpose. A *tight feedback*
 option that reduces the delay to one sample is planned.
@@ -138,7 +165,7 @@ option that reduces the delay to one sample is planned.
 ## Tips for low latency
 
 - **Playing live:** set Live's buffer to 128 samples or lower for the tracks
-  you play. *Bleep Instrument* on a 128 buffer adds under 6 ms at 44.1 kHz.
+  you play. Play *Bleep Board*'s own track, or a *Bleep Instrument* that is cabled to nothing else: they add no latency at all.
 - **Mixing and producing:** buffer size does not matter for the sound, only
   for how fast the controls respond. Bigger buffers are fine.
 - **Don't use the board for phase-tight parallel processing.** *Bleep FX*

@@ -3,7 +3,7 @@
 // The host names itself in the first answer of native "settings" "get" (state.host: "app", "plugin" or "web"; no host = "app") and
 // that decides the tabs:
 //   app     Audio, MIDI and sync, Web, Library, Security
-//   plugin  Library, Security (Live owns the audio device and MIDI)
+//   plugin  Latency, Library, Security (Live owns the audio device and MIDI)
 //   web     Audio, MIDI, App, Library, Security, Data (answered by the browser: patch/web/js/web-settings.js)
 // Settings are applied as they are changed; there is no Save button.
 //
@@ -21,10 +21,10 @@
   let root, body, tabsEl, noteEl, poll = null, hasLibrary = false;
   const TABS = {
     app: [["audio", "Audio"], ["midi", "MIDI and sync"], ["web", "Web"], ["library", "Library"], ["security", "Security"]],
-    plugin: [["library", "Library"], ["security", "Security"]],
+    plugin: [["latency", "Latency"], ["library", "Library"], ["security", "Security"]],
     web: [["audio", "Audio"], ["midi", "MIDI"], ["app", "App"], ["library", "Library"], ["security", "Security"], ["data", "Data"]],
   };
-  const tabsOf = () => (TABS[host] || []).filter(([id]) => hasLibrary || host === "web" || (id !== "library" && id !== "security"));
+  const tabsOf = () => (TABS[host] || []).filter(([id]) => hasLibrary || host === "web" || id === "latency" || (id !== "library" && id !== "security"));
   const el = (tag, cls, text) => {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
@@ -112,6 +112,22 @@
     body.appendChild(el("h3", "", "Right now"));
     body.appendChild(el("div", "st-row single", `Latency ${a.latencyMs.toFixed(1)} ms · CPU ${(a.cpu * 100).toFixed(0)}% · dropouts ${a.xruns < 0 ? "not reported" : a.xruns}`));
     renderSystem();
+  }
+
+  /// Bleep Board runs the board in its own block, so its own track has no latency. A MIDI In or Audio In on another track is one
+  /// block before the board: With the setting on (the default) Live is told nothing; off, it is told and everything stays in time (doc: ableton-live-goes-modular.md).
+  function renderLatency() {
+    const l = state.latency;
+    if (!l) return;
+    body.appendChild(el("h3", "", "Inputs from other tracks"));
+    body.appendChild(checkbox("0 host latency for inputs", l.zeroHostLatencyInputs, (on) => change("latency", { zeroHostLatencyInputs: on })));
+    body.appendChild(el("div", "st-note", "A Bleep MIDI In or Bleep Audio In on another track reaches the board one block late. With this on (the default) Live is told nothing: Bleep Board adds no latency, and the signals of those inputs are one block late against the rest of the set. Turn it off and Live is told, and delays everything else by that block so it stays in time."));
+    if (l.forced)
+      body.appendChild(el("div", "st-note bad", "Not in effect: audio goes back to Live on another track (a Bleep Audio Out). That track reports the input's block too, or it would be a block late."));
+    body.appendChild(el("h3", "", "Right now"));
+    const ms = (n) => (1000 * n / (l.sampleRate || 48000)).toFixed(1);
+    body.appendChild(el("div", "st-row single", `Reported by Bleep Board: ${l.boardSamples} samples (${ms(l.boardSamples)} ms) · Live's block: ${l.blockSamples} samples`));
+    if (!l.crossIn) body.appendChild(el("div", "st-note", "No Bleep MIDI In or Audio In on another track is on this board."));
   }
 
   /// What the computer plays, as a System node on the board (doc/specs/system-audio.md). Shown with the audio device,
@@ -367,7 +383,7 @@
     if (state.stored === false) body.appendChild(el("div", "st-note", "This browser does not let the page store anything: settings last until the page is closed."));
     const shown = host === "web"
       ? { audio: renderWebAudio, midi: renderWebMidi, app: renderWebApp, library: renderWebLibrary, security: renderWebSecurity, data: renderWebData }
-      : { audio: renderAudio, midi: renderMidi, web: renderWeb, library: renderLibrary, security: renderSecurity };
+      : { audio: renderAudio, midi: renderMidi, web: renderWeb, library: renderLibrary, security: renderSecurity, latency: renderLatency };
     (shown[tab] || (() => {}))();
   }
 

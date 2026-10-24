@@ -63,10 +63,15 @@ patch/
   use that instance. The binary that created it pins itself so it is never
   unloaded. Binaries of another engine major refuse to share and say so. The plugins agree on a major and a minor version of the engine interface: [`website/content/developers/development/engine-abi.md`](../website/content/developers/development/engine-abi.md).
 - **Ticks.** For every host block the first plugin to run claims the block
-  and runs the compiled board. Plugins exchange their block with the engine
-  through small tagged rings: a signal from an input port to an output port
-  takes exactly two blocks, whatever order Live runs the tracks in. Output
-  ports report that latency to Live.
+  number. Bleep Board runs the compiled board in its own block, with its own
+  track's audio and MIDI of that block: no latency. Plugins on other tracks
+  exchange their block with the engine through small tagged rings: their
+  signal reaches the board one block later, and the board's output reaches an
+  Audio Out on another track one block later, whatever order Live runs the
+  tracks in. Bleep Board and the output ports report that latency to Live
+  (`Engine::portLatencySamples`); *0 host latency for inputs* keeps the
+  inputs' block inside the board. Without Bleep Board the first plugin of a
+  block runs it and every crossing takes two blocks.
 - **The board** is a JSON document owned by the engine and saved in Bleep Board's state. The page edits a copy and commits it; the engine sanitises
   it (`engine/Board.cpp`), compiles it (`engine/Program.cpp`: cells are
   flattened, cycles get a 32-sample feedback delay) and keeps the undo stack.

@@ -51,6 +51,10 @@ juce::var Engine::uiDispatch(int handle, const juce::String& m, const juce::var&
         else beginGesture();
         return uiMessage();
     }
+    if (m == "setBoardSetting") {
+        setBoardSetting(a[0].toString(), a[1]);
+        return uiMessage();
+    }
     if (m == "setParam") setParam(a[0].toString(), a[1].toString(), (float)a[2]);
     else if (m == "setAmount") setAmount(a[0].toString(), (float)a[1]);
     else if (m == "setData") setData(a[0].toString(), a[1]);
@@ -187,6 +191,19 @@ void Engine::setParam(const juce::String& nodeId, const juce::String& paramId, f
             const int i = m->spec().paramIndex(paramId.toStdString());
             if (i >= 0) m->setKnob(i, v);
         }
+    generation_.fetch_add(1);
+}
+
+void Engine::setBoardSetting(const juce::String& key, const juce::var& value) {
+    if (!hasBoard() || key != "zeroHostLatencyInputs") return;
+    auto* doc = board_.getDynamicObject();
+    if (doc == nullptr) return;
+    juce::var settings = doc->getProperty("settings");
+    if (settings.getDynamicObject() == nullptr) settings = juce::var(new juce::DynamicObject());
+    if (zeroHostLatencyInputs() == (bool)value) return;
+    settings.getDynamicObject()->setProperty(key, (bool)value);
+    doc->setProperty("settings", settings);
+    updateLatencyModel();   // the plugins ask for their latency on their timers
     generation_.fetch_add(1);
 }
 

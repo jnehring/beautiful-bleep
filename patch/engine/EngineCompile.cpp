@@ -45,6 +45,38 @@ void Engine::recompile() {
     const Program* fresh = next.get();
     if (Program* old = program_.exchange(next.release(), std::memory_order_seq_cst)) retired_.push_back(old);
     for (const auto& s : instances_) s->local.store(fresh != nullptr && fresh->localGroup(s.get()) >= 0, std::memory_order_relaxed);
+    updateLatencyModel();
+}
+
+bool Engine::zeroHostLatencyInputs() const {
+    const juce::var v = board_["settings"]["zeroHostLatencyInputs"];
+    return v.isVoid() || (bool)v;
+}
+
+void Engine::updateLatencyModel() {
+    // Bleep Board runs the board in its own block; a bridged one, the app and a set without Bleep Board have no such block.
+    const PortSlot* driver = nullptr;
+    if (!standalone_ && hasBoard())
+        for (const auto& s : instances_)
+            if (s->kind == PortKind::Patch && s->handle == mainHandle_ && !s->bridged) driver = s.get();
+    bool crossIn = false, crossOut = false;
+    if (const Program* p = program_.load(std::memory_order_seq_cst); p != nullptr && driver != nullptr)
+        for (const auto& s : p->slots()) {
+            if (s.get() == driver || p->localGroup(s.get()) >= 0) continue;
+            crossIn = crossIn || s->kind == PortKind::MidiIn || s->kind == PortKind::AudioIn;
+        }
+    if (const Program* p = program_.load(std::memory_order_seq_cst); p != nullptr && driver != nullptr)
+        for (const auto& st : p->steps()) {  // an Audio Out with nothing patched into it plays nothing
+            if (!st.port || st.port.get() == driver || st.local >= 0 || st.port->kind != PortKind::AudioOut) continue;
+            for (const auto& sources : st.inputSources) crossOut = crossOut || !sources.empty();
+        }
+    // "0 host latency for inputs" keeps the one block of the inputs inside the board and tells the host nothing. That only
+    // holds while no audio comes back to Live on another track: the Audio Out reports its own block, the host could not
+    // tell it the block of the input as well, and the signal would arrive a block late. Then the delay is reported.
+    const bool zero = zeroHostLatencyInputs();
+    crossIn_.store(crossIn, std::memory_order_relaxed);
+    inputsReported_.store(!zero || crossOut, std::memory_order_relaxed);
+    driver_.store(driver, std::memory_order_release);
 }
 
 void Engine::collectGarbage() {
@@ -251,6 +283,22 @@ juce::var Engine::liveState(const std::set<juce::String>& detailed) const {
     }
     if (statusProvider_) root->setProperty("status", statusProvider_());
     return juce::var(root);
+}
+
+juce::var Engine::latencyInfo() const {
+    auto* o = new juce::DynamicObject();
+    const bool zero = zeroHostLatencyInputs();
+    const bool crossIn = crossIn_.load(std::memory_order_relaxed);
+    const bool reported = inputsReported_.load(std::memory_order_relaxed);
+    const int m = hostBlock();
+    o->setProperty("running", driver_.load(std::memory_order_relaxed) != nullptr);
+    o->setProperty("zeroHostLatencyInputs", zero);
+    o->setProperty("crossIn", crossIn);
+    o->setProperty("forced", zero && reported);   // audio goes back to Live on another track: the setting cannot hold
+    o->setProperty("blockSamples", m);
+    o->setProperty("boardSamples", crossIn && reported ? m : 0);
+    o->setProperty("sampleRate", sampleRate_);
+    return juce::var(o);
 }
 
 juce::String Engine::statusLine() const {

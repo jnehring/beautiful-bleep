@@ -17,6 +17,14 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
     juce::String boardId = str(in, "id");
     out->setProperty("id", boardId.isNotEmpty() ? boardId : juce::Uuid().toDashedString());
     if (in.hasProperty("view")) out->setProperty("view", in["view"]);
+    // Settings of this board (not of a module): what Bleep Board does with latency.
+    if (in["settings"].getDynamicObject() != nullptr) {
+        auto* settings = new juce::DynamicObject();
+        if (in["settings"].hasProperty("zeroHostLatencyInputs"))
+            settings->setProperty("zeroHostLatencyInputs", (bool)in["settings"]["zeroHostLatencyInputs"]);
+        if (!settings->getProperties().isEmpty()) out->setProperty("settings", juce::var(settings));
+        else delete settings;
+    }
     // Front panels (doc/specs/panels.md): UI documents the engine keeps as they are, if each is an object with an id.
     if (auto* a = in["panels"].getArray()) {
         juce::Array<juce::var> panels;

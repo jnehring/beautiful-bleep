@@ -84,6 +84,103 @@ void latencyFollowsRealBlocks() {
     e->release();
 }
 
+juce::String ownNode(Engine& e, int handle, const char* suffix) {
+    char id[40];
+    e.instanceId(handle, id, sizeof id);
+    auto* n = board::findNodeByPort(e.board(), juce::String(id) + suffix);
+    return n ? n->getProperty("id").toString() : juce::String();
+}
+
+/// Bleep Board runs the board in its own block. A signal from the board's own track to the board's own track takes no
+/// block; from or to a plugin on another track one block; from one to another two. The plugins run in any order.
+void boardRunsInItsOwnBlock() {
+    g_test = "board in its own block";
+    struct Result { int block = -1, sample = -1; };
+    // `from` is "macro" (the board's own: Macro 1 jumps to 1 in block 2) or "audio" (an impulse from an Audio In in block 2
+    // at sample 5); `to` is "own" (the board's own Audio Out) or "port" (an Audio Out plugin on another track).
+    auto run = [&](bool fromPort, bool toPort, bool reportInputs, int& boardLatency, int& outLatency) {
+        auto* e = new Engine();
+        const int main = e->registerInstance(PortKind::Patch);
+        const int ain = e->registerInstance(PortKind::AudioIn);
+        const int aout = e->registerInstance(PortKind::AudioOut);
+        e->reconcileNow();
+        auto edited = copyOf(e->board());
+        const juce::String src = fromPort ? portNode(*e, ain) : portNode(*e, main);  // the Macros node
+        const juce::String dst = toPort ? portNode(*e, aout) : ownNode(*e, main, ":audio");
+        EXPECT(src.isNotEmpty() && dst.isNotEmpty());
+        edited["cables"].getArray()->add(cable(src, fromPort ? "l" : "m1", dst, "l"));
+        e->commit(edited, "patch");
+        if (reportInputs) e->setBoardSetting("zeroHostLatencyInputs", false);
+        FakePort pMain(*e, main), pIn(*e, ain), pOut(*e, aout);
+        float macro[kNumMacros] = {};
+        pMain.macros = macro;
+        std::mt19937 rng(11);
+        Result r;
+        for (int b = 0; b < 10; ++b) {
+            for (auto& ch : pIn.in) std::fill(ch.begin(), ch.end(), 0.0f);
+            if (b == 2 && fromPort) pIn.in[0][5] = 1.0f;
+            macro[0] = !fromPort && b >= 2 ? 1.0f : 0.0f;
+            std::vector<FakePort*> order{&pMain, &pIn, &pOut};
+            std::shuffle(order.begin(), order.end(), rng);
+            for (auto* p : order) p->run((int64_t)b * kBlock);
+            const auto& heard = toPort ? pOut.out[0] : pMain.out[0];
+            for (int i = 0; i < kBlock; ++i)
+                if (heard[(size_t)i] > 0.5f && r.block < 0) r = {b, i};
+        }
+        boardLatency = e->portLatencySamples(main);
+        outLatency = e->portLatencySamples(aout);
+        for (int h : {main, ain, aout}) e->unregisterInstance(h);
+        e->collectGarbage();
+        e->release();
+        return r;
+    };
+    int lb = 0, lo = 0;
+    auto own = run(false, false, false, lb, lo);   // own → own
+    EXPECT(own.block == 2 && own.sample == 0);
+    EXPECT(lb == 0);                               // 0 host latency for inputs is the default: the Audio In's block is kept inside
+    auto toOut = run(false, true, false, lb, lo);  // own → a plugin on another track
+    EXPECT(toOut.block == 3 && toOut.sample == 0);
+    EXPECT(lo == 2 * kBlock);
+    auto fromIn = run(true, false, false, lb, lo); // another track → own
+    EXPECT(fromIn.block == 3 && fromIn.sample == 5);
+    EXPECT(lb == 0);
+    auto through = run(true, true, false, lb, lo); // another track → another track
+    EXPECT(through.block == 4 && through.sample == 5);
+    EXPECT(lb == kBlock && lo == 2 * kBlock);
+
+    // With the setting off the block of the input is reported to Live (and the signal arrives at the same time).
+    fromIn = run(true, false, true, lb, lo);
+    EXPECT(fromIn.block == 3 && fromIn.sample == 5);
+    EXPECT(lb == kBlock);
+    through = run(true, true, true, lb, lo);
+    EXPECT(through.block == 4 && through.sample == 5);
+    EXPECT(lb == kBlock && lo == 2 * kBlock);
+    // With it on (the default) the block stays inside the board ... unless audio goes back to Live on another track: then the
+    // host must be told, or that track would be a block late. That is the `through` run above.
+}
+
+/// The setting is saved with the board, and a board without it reports the delay.
+void zeroLatencySettingIsSaved() {
+    g_test = "0 host latency setting";
+    auto* e = new Engine();
+    const int main = e->registerInstance(PortKind::Patch);
+    const int ain = e->registerInstance(PortKind::AudioIn);
+    e->reconcileNow();
+    FakePort pMain(*e, main), pIn(*e, ain);
+    EXPECT(e->portLatencySamples(main) == 0);   // on by default: a board that never heard of the setting
+    e->setBoardSetting("zeroHostLatencyInputs", false);
+    EXPECT(e->portLatencySamples(main) == kBlock);
+    EXPECT(!(bool)e->board()["settings"]["zeroHostLatencyInputs"]);
+    // A committed edit (the board page sends the whole board back) keeps it, and a saved board comes back with it.
+    e->commit(copyOf(e->board()), "edit");
+    EXPECT(e->portLatencySamples(main) == kBlock);
+    e->setBoardSetting("zeroHostLatencyInputs", true);
+    EXPECT(e->portLatencySamples(main) == 0);
+    for (int h : {main, ain}) e->unregisterInstance(h);
+    e->collectGarbage();
+    e->release();
+}
+
 /// Bleep FX alone on the board runs its cell in its own block: no latency, and the signal comes out in the block it went in.
 /// Cabled to another plugin it is on the tick again, two blocks.
 void cellPluginRunsInItsOwnBlock() {
@@ -96,7 +193,7 @@ void cellPluginRunsInItsOwnBlock() {
     FakePort pMain(*e, main), pFx(*e, fx), pIn(*e, ain);
     EXPECT(e->portLatencySamples(fx) == 0);
     EXPECT(e->portLatencySamples(ain) == e->latencySamples());  // a port to the tick keeps the two blocks
-    EXPECT(e->portLatencySamples(main) == e->latencySamples());
+    EXPECT(e->portLatencySamples(main) == 0);  // Bleep Board runs in its own block; the Audio In's block stays inside (the default setting)
 
     std::mt19937 rng(5);
     int wrong = 0;
@@ -439,6 +536,8 @@ void boardFollowsHostTempo() {
 void runHostTests() {
     latencyAndClaiming();
     latencyFollowsRealBlocks();
+    boardRunsInItsOwnBlock();
+    zeroLatencySettingIsSaved();
     cellPluginRunsInItsOwnBlock();
     cellPluginThreads();
     parallelThreads();
