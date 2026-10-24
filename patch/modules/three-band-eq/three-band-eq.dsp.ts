@@ -13,12 +13,10 @@ import { Biquad, Smoother, PeakHold } from "./bleep/dsp";
   colour: "#22c55e",
   description: "A simple stereo equaliser: low shelf, mid bell and high shelf, each with its own gain and frequency.",
   layout: [
-    { row: [
-      { title: "Low", column: ["lowGain", "lowFreq"] },
-      { title: "Mid", column: ["midGain", "midFreq", "midQ"] },
-      { title: "High", column: ["highGain", "highFreq"] },
-    ] },
-    { row: ["output"] },
+    // gains on top, frequencies below, in the same order: low, mid, high
+    { row: ["lowGain", "midGain", "highGain"] },
+    { row: ["lowFreq", "midFreq", "highFreq"] },
+    { row: ["midQ", "output"] },
   ],
 })
 export class ThreeBandEq {

@@ -25,8 +25,6 @@ With all three gains at 0 dB the module passes the signal through unchanged.
 
 Each channel runs through three biquad filters in a row:
 
-```text
-In -> low shelf -> mid bell -> high shelf -> Output -> Out
-```
+![Signal flow: In, low shelf, mid bell, high shelf, Output, Out](three-band-eq-flow.png)
 
 The filters are the standard RBJ designs (shelves with a slope of 1, a peaking bell with the chosen Q). The knobs are smoothed once per block of 32 samples, so moving them does not click. Frequencies are kept below 45 % of the sample rate.
