@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// EQ node (doc/eq.md): six bands (bell, shelves, cuts, notch, band-pass), stereo.
+// EQ node (doc/eq.md): six bands (bell, shelves, cuts, notch, band-pass), each Clean, Modern or Vintage, stereo.
 #include "EqDsp.h"
 #include "Registry.h"
 #include "dsp/SpectrumTap.h"
@@ -15,12 +15,12 @@ using patch::Biquad;
 using patch::EqBand;
 using patch::EqDsp;
 
-constexpr int kFields = 6;                  // per band: On, Type, Hz, Gain, Q, Slope
+constexpr int kFields = 7;                  // per band: On, Type, Hz, Gain, Q, Slope, Algo
 constexpr int kSlopeOrders[] = {1, 2, 3, 4, 6, 8};  // 6, 12, 18, 24, 36, 48 dB/octave
 
 class EqModule final : public Module {
 public:
-    enum Field { On, Type, Hz, Gain, Q, Slope };
+    enum Field { On, Type, Hz, Gain, Q, Slope, Algo };
     /// Param index: the selected band (a view setting), then kFields per band, then the output level.
     static constexpr int kSelected = 0;
     static constexpr int idx(int band, Field f) { return 1 + band * kFields + f; }
@@ -61,8 +61,9 @@ public:
                 for (int k = 0; k < EqDsp::kBands; ++k) {
                     const int type = std::clamp((int)std::lround(setting(idx(k, Type))), 0, (int)EqBand::NumKinds - 1);
                     const int slope = std::clamp((int)std::lround(setting(idx(k, Slope))), 0, 5);
+                    const int algo = std::clamp((int)std::lround(setting(idx(k, Algo))), 0, (int)EqBand::NumAlgos - 1);
                     bands[k] = {(EqBand::Kind)type, setting(idx(k, On)) > 0.5f, value(c, idx(k, Hz), i), value(c, idx(k, Gain), i),
-                                value(c, idx(k, Q), i), kSlopeOrders[slope]};
+                                value(c, idx(k, Q), i), kSlopeOrders[slope], (EqBand::Algo)algo};
                 }
                 dsp_[0].setBands(bands, kBlock);
                 dsp_[1].setBands(bands, kBlock);
@@ -101,7 +102,7 @@ static void registerEqModule(Registry& r) {
     s.category = "Effects/Dynamics & EQ";
     s.colour = "#0ea5e9";
     s.description = "Six-band parametric equaliser. Every band is a bell, low or high shelf, low or high cut, notch or band-pass. "
-                    "Frequency, gain and Q of every band can be modulated.";
+                    "Each band has an algorithm: Clean, Modern or Vintage. Frequency, gain and Q of every band can be modulated.";
     // The band being edited in the view: a setting of the view, not of the sound.
     s.params.push_back(ParamSpec::choice("band", "Band", {"1", "2", "3", "4", "5", "6"}, 0));
     for (int k = 0; k < EqDsp::kBands; ++k) {
@@ -115,6 +116,7 @@ static void registerEqModule(Registry& r) {
         s.params.push_back(ParamSpec::exponential(id + "Q", name + "Q", 0.1f, 18.0f, d.q));
         s.params.push_back(ParamSpec::choice(id + "Slope", name + "Slope",
                                              {"6 dB/oct", "12 dB/oct", "18 dB/oct", "24 dB/oct", "36 dB/oct", "48 dB/oct"}, 1));
+        s.params.push_back(ParamSpec::choice(id + "Algo", name + "Algorithm", {"Clean", "Modern", "Vintage"}, 0));
     }
     s.params.push_back(ParamSpec::number("level", "Level", -18.0f, 6.0f, 0.0f, "dB", 1));
     s.inputs = {{"l", "In L", Signal::Audio}, {"r", "In R", Signal::Audio}};

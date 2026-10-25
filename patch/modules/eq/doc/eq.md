@@ -19,10 +19,14 @@ Every band is a *biquad* filter (the formulas of the well-known "Audio EQ Cookbo
   - **Low Cut** / **High Cut**: removes everything below / above *Freq*, 3 dB down at *Freq*. *Slope* sets how steeply: 6, 12, 18, 24, 36 or 48 dB per octave (Butterworth, so no ringing).
   - **Notch**: removes a narrow band around *Freq*; *Q* sets how narrow.
   - **Band Pass**: keeps a band around *Freq* and removes the rest; *Q* sets how narrow.
+- **Algorithm** of a band chooses how its filter is designed. The sound of an existing patch does not change: the default is *Clean*.
+  - **Clean**: the textbook "Audio EQ Cookbook" filter. Transparent and predictable.
+  - **Modern**: a *bell* designed so that its width follows the analog bell all the way up the spectrum. With *Q* 1 at 12 kHz the bell is half its gain 6 kHz either side, where the Clean bell is cramped narrower towards the top of the spectrum; a boost and a cut of the same size and *Freq* cancel exactly. Shelves, cuts, notch and band-pass are the same as in Clean.
+  - **Vintage**: analog-style. A bell or shelf is *proportional-Q*: a small boost or cut is broad (half the *Q* you set) and a large one gets narrower (1.3 times the *Q* at ±18 dB), as on classic consoles. The band's output is also gently saturated (a soft clip that is unity for small signals and about 0.4 dB down at full scale), adding a little odd-harmonic warmth to loud signals. Cuts get the saturation but keep their Butterworth response. The curve in the display shows the Vintage widths, not the saturation.
 - **On** switches a band off without losing its settings. Bands 1 and 6 start as switched-off cuts, bands 2 and 5 as shelves and bands 3 and 4 as bells at 400 Hz and 2 kHz; any band can be changed to any type. A bell or shelf at 0 dB is bypassed, so unused bands cost nothing.
 - **Level** (−18 to +6 dB) is the gain after the equaliser, to make up for boosts.
 
-*Freq*, *Gain* and *Q* of every band can be modulated; the filters are updated every 16 samples, which is smooth for sweeps. Modulating the *Freq* of a bell with an LFO or envelope while boosting 10 dB gives a wah-wah. The band's type, slope and on switch, and the band being edited, are settings. With only *In L* patched, the signal feeds both sides.
+*Freq*, *Gain* and *Q* of every band can be modulated; the filters are updated every 16 samples, which is smooth for sweeps. Modulating the *Freq* of a bell with an LFO or envelope while boosting 10 dB gives a wah-wah. The band's type, algorithm, slope and on switch, and the band being edited, are settings. With only *In L* patched, the signal feeds both sides.
 
 ## How to use it?
 

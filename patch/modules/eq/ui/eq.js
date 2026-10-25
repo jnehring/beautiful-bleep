@@ -6,8 +6,8 @@
 // (hook `visible`): its type, and depending on the type its gain, Q or slope. The magnifiers zoom the dB axis,
 // the legend switches the in / out / curve drawings on and off (kept in localStorage), and the frequency under
 // the pointer is shown at the bottom left. Live arrays from EqModule::liveArrays: spectrumIn, spectrumOut (dB),
-// sampleRate. The response curve is computed here from the band params (modulation included), the same RBJ
-// biquads as EqDsp.h, so it follows every control at once, with or without audio.
+// sampleRate. The response curve is computed here from the band params (modulation included), the same biquads
+// (per band algorithm; Vintage's saturation is not drawn) as EqDsp.h, so it follows every control at once, with or without audio.
 (function () {
   "use strict";
   const BANDS = 6;
@@ -114,7 +114,8 @@
     const ps = st && st.params && st.params[id];
     return ps && ps.a ? ps.e : norm(view, id);
   }
-  /// {type, on, order, hz, gain, q} per band.
+  const algoOf = (view, k) => clamp(Math.round(norm(view, pid(k, "Algo")) * 2), 0, 2);  // 0 Clean, 1 Modern, 2 Vintage
+  /// {type, on, order, algo, hz, gain, q} per band.
   function bands(view, st) {
     if (!view.type.params.some((p) => p.id === pid(0, "Hz"))) return [];  // an engine older than this view
     const out = [];
@@ -122,6 +123,7 @@
       out.push({
         type: typeOf(view, k),
         on: isOn(view, k),
+        algo: algoOf(view, k),
         order: SLOPE_ORDERS[clamp(Math.round(norm(view, pid(k, "Slope")) * 5), 0, 5)],
         hz: units(view, pid(k, "Hz"), eff(view, st, pid(k, "Hz"))),
         gain: units(view, pid(k, "Gain"), eff(view, st, pid(k, "Gain"))),
@@ -131,7 +133,15 @@
   }
 
   // The same RBJ "Audio EQ Cookbook" sections as EqDsp.h (type: 0 bell, 1 low shelf, 2 high shelf, 3 low cut, 4 high cut, 5 notch, 6 band-pass).
-  function section(type, hz, gainDb, q, sr) {
+  // algo 1 (Modern): the bell is Orfanidis' design, bandwidth hz / q as in the analog bell; algo 2 (Vintage): proportional Q.
+  function section(type, hz, gainDb, q, sr, algo) {
+    if (algo === 1 && type === 0 && gainDb !== 0) {
+      const w0 = 2 * Math.PI * Math.min(hz, 0.45 * sr) / sr, G = Math.pow(10, Math.abs(gainDb) / 20);
+      const beta = Math.tan(Math.min(w0 / (2 * Math.max(q, 0.05)), 1.5)) / Math.sqrt(G), cs = Math.cos(w0), d = 1 + beta;
+      const b0 = (1 + G * beta) / d, b1 = -2 * cs / d, b2 = (1 - G * beta) / d, a2 = (1 - beta) / d;
+      return gainDb >= 0 ? [b0, b1, b2, b1, a2] : [1 / b0, b1 / b0, a2 / b0, b1 / b0, b2 / b0];
+    }
+    if (algo === 2 && type <= 2) q *= Math.min(0.5 + Math.abs(gainDb) / 22.5, 1.3);
     const A = Math.pow(10, gainDb / 40), w0 = 2 * Math.PI * Math.min(hz, 0.45 * sr) / sr;
     const cs = Math.cos(w0), alpha = Math.sin(w0) / (2 * Math.max(q, 0.05)), r = 2 * Math.sqrt(A) * alpha;
     let b0, b1, b2, a0, a1, a2;
@@ -151,7 +161,7 @@
     return [b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0];
   }
   function sections(b, sr) {
-    if (!isCut(b.type)) return [section(b.type, b.hz, b.gain, b.q, sr)];
+    if (!isCut(b.type)) return [section(b.type, b.hz, b.gain, b.q, sr, b.algo)];
     const out = [], n = b.order, hp = b.type === 3;
     if (n % 2) {
       const K = Math.tan(Math.PI * Math.min(b.hz, 0.45 * sr) / sr), m = 1 / (1 + K);
@@ -416,17 +426,17 @@
     '<circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4M4.3 6.5h4.4' + (minus ? "" : "M6.5 4.3v4.4") + '"/></svg>';
 
   BleepViews.register("eq", {
-    width: 510,
+    width: 1020,
     layout: [].concat(
       Array.from({ length: BANDS }, (_, k) => ({
         title: "Band " + (k + 1),
-        params: ["On", "Type", "Hz", "Gain", "Q", "Slope"].map((f) => pid(k, f)),
+        params: ["On", "Type", "Algo", "Hz", "Gain", "Q", "Slope"].map((f) => pid(k, f)),
       })),
       [{ title: "Output", params: ["level"] }]),
     hideParams: ["band"],   // chosen with the tabs and by clicking a point
     // Only the selected band's controls are shown, and of those only the ones its type uses.
     visible(item, view) {
-      const m = /^b([1-6])(On|Type|Hz|Gain|Q|Slope)$/.exec(item.id);
+      const m = /^b([1-6])(On|Type|Algo|Hz|Gain|Q|Slope)$/.exec(item.id);
       if (!m) return true;
       const k = +m[1] - 1;
       if (k !== selected(view)) return false;
@@ -483,6 +493,11 @@
         savePrefs(view);
         draw(view, view.eq.st);
       }));
+      // With the wider view the Output knob sits at the end of the band tabs instead of wrapping below.
+      const row = custom.querySelector(".eq-tabs");
+      const out = [...(custom.parentElement || document).querySelectorAll(".bv-controls > .bv-sec")]
+        .find((x) => { const t = x.querySelector(".bv-sec-title"); return t && t.textContent === "Output"; });
+      if (row && out) { row.style.alignItems = "stretch"; row.appendChild(out); out.style.flex = "0 0 auto"; }
       tabs(view);
     },
     onState(st, view) { view.eq = view.eq || {}; view.eq.st = st; tabs(view); draw(view, st); },

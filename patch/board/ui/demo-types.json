@@ -27128,7 +27128,7 @@
     "name": "EQ",
     "category": "Effects/Dynamics & EQ",
     "colour": "#0ea5e9",
-    "description": "Six-band parametric equaliser. Every band is a bell, low or high shelf, low or high cut, notch or band-pass. Frequency, gain and Q of every band can be modulated.",
+    "description": "Six-band parametric equaliser. Every band is a bell, low or high shelf, low or high cut, notch or band-pass. Each band has an algorithm: Clean, Modern or Vintage. Frequency, gain and Q of every band can be modulated.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,
@@ -27261,6 +27261,25 @@
         "decimals": 2
       },
       {
+        "id": "b1Algo",
+        "name": "Band 1 Algorithm",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Clean",
+          "Modern",
+          "Vintage"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
         "id": "b2On",
         "name": "Band 2 On",
         "kind": "bool",
@@ -27362,6 +27381,25 @@
         "min": 0.0,
         "max": 5.0,
         "def": 1.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "b2Algo",
+        "name": "Band 2 Algorithm",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Clean",
+          "Modern",
+          "Vintage"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
         "format": "choice",
         "decimals": 2
       },
@@ -27471,6 +27509,25 @@
         "decimals": 2
       },
       {
+        "id": "b3Algo",
+        "name": "Band 3 Algorithm",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Clean",
+          "Modern",
+          "Vintage"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
         "id": "b4On",
         "name": "Band 4 On",
         "kind": "bool",
@@ -27572,6 +27629,25 @@
         "min": 0.0,
         "max": 5.0,
         "def": 1.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "b4Algo",
+        "name": "Band 4 Algorithm",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Clean",
+          "Modern",
+          "Vintage"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
         "format": "choice",
         "decimals": 2
       },
@@ -27681,6 +27757,25 @@
         "decimals": 2
       },
       {
+        "id": "b5Algo",
+        "name": "Band 5 Algorithm",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Clean",
+          "Modern",
+          "Vintage"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
         "id": "b6On",
         "name": "Band 6 On",
         "kind": "bool",
@@ -27782,6 +27877,25 @@
         "min": 0.0,
         "max": 5.0,
         "def": 1.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "b6Algo",
+        "name": "Band 6 Algorithm",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Clean",
+          "Modern",
+          "Vintage"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
         "format": "choice",
         "decimals": 2
       },

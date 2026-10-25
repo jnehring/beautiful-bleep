@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Six-band parametric equaliser. Every band has a type (bell, shelves, cuts, notch, band-pass); RBJ "Audio EQ Cookbook"
 // biquads (the formulas are public), cuts as Butterworth cascades, transposed direct form II in double precision.
+// Every band has an algorithm: Clean (the RBJ biquads as they are), Modern (the bell is Orfanidis' design with a
+// prescribed 0 dB at Nyquist, so it is not cramped near the top of the spectrum) and Vintage (proportional-Q: a bell
+// or shelf gets narrower the more it boosts or cuts, plus a gentle tanh saturation after the band).
 #pragma once
 
 #include <algorithm>
@@ -14,8 +17,10 @@ struct EqBand {
     bool on = true;
     float hz = 1000.0f, gainDb = 0.0f, q = 1.0f;
     int order = 2;  ///< cuts: the filter order, 6 dB/octave per order (1, 2, 3, 4, 6 or 8)
+    enum Algo { Clean, Modern, Vintage, NumAlgos };
+    Algo algo = Clean;
     bool operator==(const EqBand& o) const noexcept {
-        return kind == o.kind && on == o.on && hz == o.hz && gainDb == o.gainDb && q == o.q && order == o.order;
+        return kind == o.kind && on == o.on && hz == o.hz && gainDb == o.gainDb && q == o.q && order == o.order && algo == o.algo;
     }
     /// Bell and shelves have a gain; the other types ignore it.
     bool hasGain() const noexcept { return kind == Bell || kind == LowShelf || kind == HighShelf; }
@@ -30,8 +35,27 @@ struct Biquad {
     static constexpr double kPi = 3.14159265358979323846;
     static constexpr int kMaxSections = 4;  ///< a cut of order 8 is four sections
 
-    /// One RBJ section (kind: Bell, LowShelf, HighShelf, Notch, BandPass, or LowCut / HighCut as a 2nd-order section).
-    static Biquad section(EqBand::Kind kind, double hz, double gainDb, double q, double sampleRate) noexcept {
+    /// Vintage: the Q a bell or shelf really gets. Small gains are broad (half the Q), large ones narrow (up to 1.3x at 18 dB).
+    static double vintageQ(double q, double gainDb) noexcept { return q * std::min(0.5 + std::abs(gainDb) / 22.5, 1.3); }
+
+    /// Modern bell: Orfanidis' peaking filter, G at the centre, bandwidth gain sqrt(G) and 1 (0 dB) at Nyquist. A cut is the
+    /// exact inverse of the boost of the same size, so a boost and a cut cancel.
+    static Biquad modernBell(double hz, double gainDb, double q, double sampleRate) noexcept {
+        const double w0 = 2.0 * kPi * std::min(hz, 0.45 * sampleRate) / sampleRate;
+        const double G = std::pow(10.0, std::abs(gainDb) / 20.0);
+        const double beta = std::tan(std::min(w0 / (2.0 * std::max(q, 0.05)), 1.5)) / std::sqrt(G);  // tan(dw / 2), dw = w0 / Q
+        const double cs = std::cos(w0), d = 1.0 + beta;
+        const double b0 = (1.0 + G * beta) / d, b1 = -2.0 * cs / d, b2 = (1.0 - G * beta) / d, a1 = b1, a2 = (1.0 - beta) / d;
+        if (gainDb >= 0.0) return {b0, b1, b2, a1, a2};
+        return {1.0 / b0, a1 / b0, a2 / b0, b1 / b0, b2 / b0};  // the inverse: numerator and denominator swapped
+    }
+
+    /// One section (kind: Bell, LowShelf, HighShelf, Notch, BandPass, or LowCut / HighCut as a 2nd-order section).
+    static Biquad section(EqBand::Kind kind, double hz, double gainDb, double q, double sampleRate,
+                          EqBand::Algo algo = EqBand::Clean) noexcept {
+        if (algo == EqBand::Modern && kind == EqBand::Bell && gainDb != 0.0) return modernBell(hz, gainDb, q, sampleRate);
+        if (algo == EqBand::Vintage && (kind == EqBand::Bell || kind == EqBand::LowShelf || kind == EqBand::HighShelf))
+            q = vintageQ(q, gainDb);
         const double A = std::pow(10.0, gainDb / 40.0);
         const double w0 = 2.0 * kPi * std::min(hz, 0.45 * sampleRate) / sampleRate;
         const double cs = std::cos(w0), sn = std::sin(w0);
@@ -85,7 +109,7 @@ struct Biquad {
     /// cascade: an optional first-order section and floor(N/2) second-order ones with Q = 1 / (2 cos theta).
     static int design(const EqBand& band, double sampleRate, Biquad (&out)[kMaxSections]) noexcept {
         if (!band.isCut()) {
-            out[0] = section(band.kind, band.hz, band.gainDb, band.q, sampleRate);
+            out[0] = section(band.kind, band.hz, band.gainDb, band.q, sampleRate, band.algo);
             return 1;
         }
         const int order = std::clamp(band.order, 1, 2 * kMaxSections);
@@ -140,7 +164,7 @@ public:
         for (int i = 0; i < kBands; ++i) {
             EqBand b = bands[i];
             const EqBand& cur = designed_[i];
-            if (a < 1.0 && cur.hz > 0.0f && b.kind == cur.kind && b.on == cur.on && b.order == cur.order) {
+            if (a < 1.0 && cur.hz > 0.0f && b.kind == cur.kind && b.on == cur.on && b.order == cur.order && b.algo == cur.algo) {
                 b.hz = glide(cur.hz, b.hz, a, true);
                 b.gainDb = glide(cur.gainDb, b.gainDb, a, false);
                 b.q = glide(cur.q, b.q, a, true);
@@ -163,12 +187,14 @@ public:
                 z[1] = c.b2 * x - c.a2 * y;
                 x = y;
             }
+            if (count_[i] && designed_[i].algo == EqBand::Vintage) x = std::tanh(kDrive * x) / kDrive;  // gentle soft clip
         }
         return (float)x;
     }
 
 private:
     static constexpr double kGlideSeconds = 0.01;
+    static constexpr double kDrive = 0.3;  ///< Vintage saturation: unity for small signals, 0.4 dB down at full scale
     /// One step of a one-pole glide from `from` towards `to` (in the log domain for hz and Q); lands on `to` once close.
     static float glide(float from, float to, double a, bool logDomain) noexcept {
         if (logDomain) {
