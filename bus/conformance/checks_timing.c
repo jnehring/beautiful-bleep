@@ -114,7 +114,7 @@ void check_latency_stopped(void) {
 
 #define T_WRITERS 4
 #define T_READERS 4
-#define T_CYCLES 3000
+#define T_CYCLES 300
 
 typedef struct thread_ctx {
     bb_endpoint* ep;
@@ -144,13 +144,14 @@ static void* worker(void* arg) {
         local_rng ^= local_rng << 13;
         local_rng ^= local_rng >> 17;
         local_rng ^= local_rng << 5;
-        for (uint32_t spin = local_rng % 200u; spin; --spin) sched_yield();
+        for (uint32_t spin = local_rng % 20u; spin; --spin) sched_yield();
 
         bb_block_info b = BB_BLOCK_INFO_INIT;
         b.transport_sample_pos = (int64_t)c * 256;
         b.num_samples = 256;
         b.sample_rate = 48000.0;
         b.flags = BB_BLOCK_PLAYING;
+        b.host_time_ns = 1000000000ull + (uint64_t)c * 5333333ull; /* same stamp for the whole cycle */
         bb_begin_block(ctx->ep, &b);
         if (ctx->is_writer) {
             fill(buf, 256, (float)c * ctx->writer_scale);

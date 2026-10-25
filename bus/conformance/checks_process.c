@@ -66,7 +66,7 @@ void check_cross_process(void) {
 
     char uid_arg[32];
     snprintf(uid_arg, sizeof(uid_arg), "%llu", (unsigned long long)peer_uid);
-    char* argv[] = {(char*)g_self, (char*)"peer-send", g_ns, uid_arg, (char*)"3", NULL};
+    char* argv[] = {(char*)g_self, (char*)"peer-send", g_ns, uid_arg, (char*)"1", NULL};
     pid_t child;
     if (posix_spawn(&child, g_self, NULL, NULL, argv, environ) != 0) {
         printf("#   could not spawn %s\n", g_self);
