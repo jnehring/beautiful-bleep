@@ -78,6 +78,19 @@ With *Spring* the knobs mean:
 Switching *Type* goes through the same 10 ms fade as *Quality* and *Seed*:
 the old tail is cut cleanly, the new tank starts empty.
 
+### Room: early reflections
+
+Real rooms announce themselves before the tail starts: the first few echoes
+off the walls, floor and ceiling arrive as separate, panned clicks that tell
+the ear how big the room is and where you stand in it. **Room** adds exactly
+that, ahead of either tank: *Booth*, *Studio*, *Club*, *Hall* or *Chapel*
+(*Off* by default). Verb places a source and a listener in a box of that
+size and works out where the sound bounces: the 24 earliest echoes, each with
+its own delay, level, stereo position and darkening (walls and air swallow the
+highs with every bounce). **Early** sets their level (100 % has the energy of
+the dry sound), and **Size** stretches the room from half to double its size.
+Pre-delay, Tone, Width and Freeze apply to the reflections as to the tail.
+
 **Freeze** (the gate input, or the latching *Freeze* button in the view):
 within 20 ms the input to the tank fades out and the tail stops decaying.
 The modulation keeps running, so the held sound shimmers instead of
@@ -121,6 +134,8 @@ meter of the wet level.
   plucked tone) and sweep *Size* for a coil being stretched.
 - **Dub throw:** *Type* Spring, *Mix* 100 % on an aux, a gate or a drum
   trigger onto the input, *Decay* about 3 s; ride *Decay* up for a throw.
+- **A place for a dry sound:** *Room* Studio, *Early* 60 %, *Decay* about
+  1 s, *Pre-delay* 0: a close, believable room around a drum or a voice.
 - **Spatial effects:** an audio-rate oscillator onto *Size* turns the tail
   into a frequency-modulated cloud.
 
@@ -141,7 +156,7 @@ Five whole patches show what Verb does. In the standalone app open **File → Pr
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Verb view has 18 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Verb view has 20 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
 
 | Preset | What it does |
 |---|---|
@@ -163,6 +178,8 @@ The preset bar of the Verb view has 18 factory presets. Pick one to set the knob
 | **Long Drip** | A long coil with slow, separate drips; the lows trail behind the highs. |
 | **Tight Flutter** | A short coil: fast metallic flutter with little chirp. |
 | **Held Coil** | An endless, wobbling metal drone; play into it, then lower Decay to let it go. |
+| **Studio Room** | Close, believable room: discrete early reflections around a short tail. |
+| **Chapel Echoes** | Distinct stone-wall echoes before a long, soft tail. |
 <!-- /generated -->
 
 ## Reference
@@ -188,6 +205,8 @@ The preset bar of the Verb view has 18 factory presets. Pick one to set the knob
 | Seed | 0 – 999 | 1 |
 | Freeze (latch) | Off, On | Off |
 | Type | Hall, Spring | Hall |
+| Room | Off, Booth, Studio, Club, Hall, Chapel | Off |
+| Early | 0 – 100 % | 50 % |
 
 - **Decay:** the knob reads seconds; past 60 s (92 %) it is the infinite
   zone, from 96 % fully infinite.
@@ -196,6 +215,7 @@ The preset bar of the Verb view has 18 factory presets. Pick one to set the knob
 - **Type:** the tank. *Hall* is the 8/16-line FDN, *Spring* the dispersive
   coil (see above). Not modulatable. *Diffusion* is the coil's dispersion,
   *Size* its length (22 – 122 ms) and *Mod Depth* the boing in *Spring*.
+- **Room / Early:** the early-reflections box and its level (see above); both types.
 - **Quality:** *Eco* costs about half the CPU; *Fine* is denser. Hall only.
 - **Seed:** the start phases and rates of the internal modulation. Hall only.
 - **Freeze (latch):** the view's Freeze button; saved with the board (the

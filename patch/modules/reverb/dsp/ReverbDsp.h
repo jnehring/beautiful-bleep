@@ -8,6 +8,7 @@
 // Type picks the tank: the FDN "Hall", or the "Spring" (dsp/SpringTank.h).
 #pragma once
 
+#include "EarlyReflections.h"
 #include "SpringTank.h"
 #include "dsp/Fdn.h"
 #include "dsp/Smoothing.h"
@@ -33,6 +34,7 @@ struct ReverbParams {
     float mix = 0.35f;          ///< dry/wet, equal power
     bool freeze = false;
     int type = 0;               ///< ReverbDsp::Hall or ReverbDsp::Spring
+    float early = 0.5f;         ///< early reflections level 0 … 1 (needs a room)
 };
 
 struct ReverbFrame {
@@ -67,6 +69,8 @@ public:
         seed_ = seed;
         fdn_.prepare(sampleRate, lines_, 1.0, seed);
         spring_.prepare(sampleRate);
+        early_.prepare(sampleRate);
+        early_.setRoom(room_);
         env_.prepare(sampleRate, 0.005f, 0.2f);
         toneCoef_ = (float)(std::tan(3.14159265358979323846 * 800.0 / sampleRate));
         toneCoef_ = toneCoef_ / (1.0f + toneCoef_);
@@ -80,6 +84,9 @@ public:
         fdn_.setLineCount(lines_);  // also clears
         fdn_.setSeed(seed_);        // restarts the modulation from the seed
         spring_.clear();
+        early_.clear();
+        room_ = wantRoom_;
+        early_.setRoom(room_);
         type_ = wantType_;
         toneZ_[0] = toneZ_[1] = 0.0f;
         env_.reset();
@@ -107,6 +114,11 @@ public:
         wantType_ = type == Spring ? Spring : Hall;
         if (wantType_ != type_) fadeDir_ = -1;
     }
+    /// Early-reflections room (0 = Off … EarlyReflections::kRoomCount − 1): same fade.
+    void setRoom(int room) noexcept {
+        wantRoom_ = std::clamp(room, 0, EarlyReflections::kRoomCount - 1);
+        if (wantRoom_ != room_) fadeDir_ = -1;
+    }
     void setSeed(uint64_t seed) noexcept {
         wantSeed_ = seed;
         if (wantSeed_ != seed_) fadeDir_ = -1;
@@ -131,9 +143,12 @@ public:
             if (fade_ <= 0.0f) {
                 fade_ = 0.0f;
                 fadeDir_ = 1;
-                if (pendingClear_ || wantLines_ != lines_ || wantType_ != type_) {
+                if (pendingClear_ || wantLines_ != lines_ || wantType_ != type_ || wantRoom_ != room_) {
                     lines_ = wantLines_;
                     type_ = wantType_;
+                    room_ = wantRoom_;
+                    early_.setRoom(room_);
+                    early_.clear();
                     fdn_.setLineCount(lines_);
                     spring_.clear();
                     toneZ_[0] = toneZ_[1] = 0.0f;
@@ -194,6 +209,16 @@ public:
         peak_ = std::max(level, peak_ * peakRelease_);
         hot_ = hot_ ? peak_ > 0.35f : peak_ > 0.5f;
 
+        // Early reflections run beside the tank (after the limiter's level
+        // detection, so they do not trip it) and share Tone, Width and the fade.
+        if (room_ != 0) {
+            float el, er;
+            early_.process(f.in[0], f.in[1], el, er, p.size, std::clamp(p.early, 0.0f, 1.0f), p.preDelaySamples,
+                           p.freeze);
+            wl += el;
+            wr += er;
+        }
+
         // Tone: tilt around 800 Hz (TPT one-pole split into low and high).
         float w[2] = {wl, wr};
         for (int c = 0; c < 2; ++c) {
@@ -228,6 +253,8 @@ private:
     double sr_ = 48000.0;
     dsp::Fdn fdn_;
     SpringTank spring_;
+    EarlyReflections early_;
+    int room_ = 0, wantRoom_ = 0;
     int type_ = Hall, wantType_ = Hall;
     bool springDue_ = true;
     dsp::EnvelopeFollower env_;

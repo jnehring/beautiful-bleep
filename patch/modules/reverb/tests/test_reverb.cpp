@@ -451,6 +451,82 @@ static void springSwitch() {
     EXPECT(render(1) == render(2));
 }
 
+static void earlyReflections() {
+    TEST("Early reflections: image-source taps per room, scaled by Size, Off leaves the reverb untouched");
+    EarlyReflections er;
+    er.prepare(kSr);
+    EXPECT(er.tapCount() == 0);
+    double lastSpan = 0.0;
+    for (int room = 1; room < EarlyReflections::kRoomCount; ++room) {
+        er.setRoom(room);
+        EXPECT(er.tapCount() == EarlyReflections::kMaxTaps);
+        for (int i = 1; i < er.tapCount(); ++i) EXPECT(er.tapSeconds(i) >= er.tapSeconds(i - 1));
+        EXPECT(er.tapSeconds(0) >= 0.0005);
+        const double span = er.tapSeconds(er.tapCount() - 1);
+        EXPECT(span > lastSpan);  // bigger rooms spread their reflections wider
+        lastSpan = span;
+    }
+    auto render = [&](int room, float size, float early, std::vector<float>* right = nullptr) {
+        ReverbDsp d;
+        d.prepare(kSr, 16, 1);
+        d.setRoom(room);
+        d.clearNow();  // takes the room at once, without the fade
+        ReverbParams q = wetOnly();
+        q.size = size;
+        q.early = early;
+        q.decay = decayKnob(0.3);
+        ReverbFrame f;
+        std::vector<float> y;
+        for (int i = 0; i < (int)(0.4 * kSr); ++i) {
+            f.in[0] = f.in[1] = i == 0 ? 1.0f : 0.0f;
+            d.tick(q, f);
+            y.push_back(f.wet[0]);
+            if (right) right->push_back(f.wet[1]);
+        }
+        return y;
+    };
+    const auto off = render(0, 0.5f, 1.0f);
+    const auto zero = render(3, 0.5f, 0.0f);
+    EXPECT(off == zero);  // Early at 0 % adds exactly nothing
+    std::vector<float> r;
+    const auto on = render(3, 0.5f, 1.0f, &r);
+    EXPECT(on != off);
+    for (float v : on) EXPECT(std::isfinite(v));
+    EXPECT(on != r);  // taps are panned: left and right differ
+    // First tap arrives later in a bigger Size (times scale 0.5× … 2×).
+    auto first = [&](const std::vector<float>& a, const std::vector<float>& b) {
+        for (size_t i = 0; i < a.size(); ++i)
+            if (a[i] != b[i]) return i;
+        return a.size();
+    };
+    const size_t small = first(render(3, 0.0f, 1.0f), render(0, 0.0f, 1.0f));
+    const size_t large = first(render(3, 1.0f, 1.0f), render(0, 1.0f, 1.0f));
+    EXPECT(large > 2 * small);
+}
+
+static void earlyRoomSwitch() {
+    TEST("Early reflections: switching Room and Freeze are click-free and stay bounded");
+    ReverbDsp d;
+    d.prepare(kSr);
+    ReverbParams p;
+    p.mix = 1.0f;
+    p.early = 1.0f;
+    ReverbFrame f;
+    float last = 0.0f, maxStep = 0.0f, peak = 0.0f;
+    for (int i = 0; i < 192000; ++i) {
+        d.setRoom((i / 24000) % EarlyReflections::kRoomCount);
+        p.freeze = (i / 48000) % 2 == 1;
+        f.in[0] = f.in[1] = 0.4f * (float)std::sin(i * 0.05);
+        d.tick(p, f);
+        if (i > 100) maxStep = std::max(maxStep, std::fabs(f.out[0] - last));
+        last = f.out[0];
+        peak = std::max(peak, std::fabs(f.out[0]));
+        EXPECT(std::isfinite(f.out[0]));
+    }
+    EXPECT(maxStep < 0.35f);
+    EXPECT(peak < 4.0f);
+}
+
 int main() {
     decayMapping();
     decayTime();
@@ -466,5 +542,7 @@ int main() {
     springDispersion();
     springStability();
     springSwitch();
+    earlyReflections();
+    earlyRoomSwitch();
     return bleep::test::finish("reverb");
 }

@@ -60,6 +60,7 @@ Every knob is also an input (`specs.md` section 7.3).
 | Seed | 0–999 | 1 |
 | Freeze (latch) | off / on | off |
 | Type | Hall, Spring | Hall |
+| Room | Off, Booth, Studio, Club, Hall, Chapel | Off |
 
 *Decay* is an exponential seconds knob (0.1 s at 0 %, 60 s at 92 %); above
 92 % it is the infinite region (4.3), so the knob's own read-out shows
@@ -271,6 +272,7 @@ saved: it opens empty). No node data.
 - **Mono input** with *In R* unpatched gives decorrelated L/R (correlation
   < 0.5) at Width 100 %, and identical L/R at Width 0 %.
 - **Pre-delay sync:** at 120 BPM, 1/8 gives 250 ms ± 1 sample.
+- **Early reflections:** 24 taps per room in ascending time, wider for bigger rooms; *Early* 0 % is bit-identical to *Off*; stereo taps differ; the first tap moves later with *Size*; Room switches and Freeze stay click-free and bounded.
 - **Spring:** T60 follows *Decay*; *Damping* darkens; the lows arrive after the highs with *Diffusion* up; bounded at infinite decay and full modulation; Hall → Spring switches are click-free; *Clear on Play* repeats.
 - The demo types file includes the module (`patch.ui-types`).
 
@@ -292,11 +294,32 @@ input and sets the loop gain to 1 without damping. *Quality* and *Seed* only
 act on the hall and are hidden. Switching *Type* uses the *Quality* fade
 (10 ms out, empty tank, 10 ms in).
 
+### 4.9 Early reflections
+
+*Room* (default *Off*, so saved boards are unchanged) adds a stage of
+discrete early echoes beside the tank, for both types; *Early* (0 – 100 %,
+default 50 %, modulatable) is its level. `dsp/EarlyReflections.h` builds,
+for the chosen box (Booth 2.4 × 2.0 × 2.3 m, Studio 6 × 4.6 × 3, Club
+13 × 9 × 4.2, Hall 30 × 21 × 12, Chapel 42 × 16 × 22; wall reflectivity
+0.72 … 0.90), the image sources of a fixed source and listener up to the
+third reflection and keeps the 24 earliest. Each tap has the delay of its
+extra path over the direct sound (343 m/s; at most 350 ms), the gain
+β^order · d₀/d, an equal-power pan from the direction it arrives from (the
+listener faces the far wall) and a one-pole low-pass at 14 kHz · 0.62^order
+that also closes with distance. The taps are normalised to unit energy, so
+*Early* 100 % has the energy of the input. Tap times scale with *Size* from
+0.5× to 2× (20 ms one-pole), read linearly from a mono buffer fed by the
+pre-delayed input, so *Pre-delay* moves tank and reflections together.
+The reflections pass *Tone*, *Width* and the fade, are muted by *Freeze*
+and emptied by *Clear*. Changing *Room* uses the *Quality* fade. CPU:
+24 reads and one-poles per sample, about 0.2 % of a core.
+
 ## 9. Later
 
 - *Shimmer:* a pitch shifter (+12 / +7 semitones) inside the loop.
-- *Early reflections* as a separate, shape-selectable stage (room, plate,
-  hall) with its own level.
+- Early reflections for non-box shapes (plate, hall with a stage) and a late
+  tank that starts after the last tap, so the two stages blend by time
+  instead of adding.
 - A *Ducking* knob (wet ducks under the dry signal's envelope).
 - A *Gate* mode for gated-reverb drums (tail cut after a hold time).
 - 32-line *Ultra* quality for very long, dense tails.

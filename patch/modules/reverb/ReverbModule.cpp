@@ -30,7 +30,7 @@ const std::vector<std::string>& preSyncNames() {
 class ReverbModule final : public Module {
 public:
     enum { Size, Decay, PreDelay, Diffusion, Damping, Bass, ModRate, ModDepth, Tone, Width, Mix,
-           PreSync, Quality, ClearOnPlay, Seed, FreezeLatch, Type };
+           PreSync, Quality, ClearOnPlay, Seed, FreezeLatch, Type, Early, Room };
     enum { InL, InR, Freeze, Clear };
     enum { OutL, OutR, WetL, WetR, Env };
     enum { ClearButton };
@@ -40,6 +40,7 @@ public:
     void prepare(double sampleRate) override {
         Module::prepare(sampleRate);
         dsp_.setType((int)setting(Type));
+        dsp_.setRoom((int)setting(Room));
         dsp_.prepare(sampleRate, setting(Quality) >= 0.5f ? 16 : 8, (uint64_t)setting(Seed));
         clearHigh_ = false;
     }
@@ -58,6 +59,7 @@ public:
         dsp_.setLines(setting(Quality) >= 0.5f ? 16 : 8);
         dsp_.setSeed((uint64_t)setting(Seed));
         dsp_.setType((int)setting(Type));
+        dsp_.setRoom((int)setting(Room));
         if (c.transportStarted) {
             if (setting(ClearOnPlay) >= 0.5f) dsp_.clearNow();
             else dsp_.restartModulation();
@@ -92,6 +94,7 @@ public:
                 p.tone = value(c, Tone, i);
                 p.width = value(c, Width, i);
                 p.mix = value(c, Mix, i);
+                p.early = value(c, Early, i);
             }
             f.in[0] = c.inputs[InL][i];
             f.in[1] = inR[i];
@@ -125,7 +128,7 @@ static void registerReverbModule(Registry& r) {
     s.colour = "#f0abfc";
     s.description = "Stereo FDN reverb built to be played: every knob, Size and Decay included, modulates "
                     "click-free; small rooms to endless pads, infinite decay and Freeze; "
-                    "or switch Type to Spring for a metallic, dispersive, boingy tail.";
+                    "a Room adds discrete early reflections ahead of the tail; or switch Type to Spring for a metallic, dispersive, boingy tail.";
     auto decay = ParamSpec::exponential("decay", "Decay", (float)ReverbDsp::kMinT60, (float)ReverbDsp::knobTopSeconds(), 2.5f);
     decay.format = ParamSpec::Format::Seconds;
     auto bass = ParamSpec::exponential("bass", "Bass", 0.5f, 2.0f, 1.0f, "\xc3\x97");
@@ -146,7 +149,9 @@ static void registerReverbModule(Registry& r) {
                 ParamSpec::toggle("clearOnPlay", "Clear on Play", false),
                 ParamSpec::integer("seed", "Seed", 0, 999, 1).when("type", 0, 0),
                 ParamSpec::toggle("freeze", "Freeze (latch)", false),
-                ParamSpec::choice("type", "Type", {"Hall", "Spring"}, 0)};
+                ParamSpec::choice("type", "Type", {"Hall", "Spring"}, 0),
+                ParamSpec::percent("early", "Early", 0.0f, 1.0f, 0.5f),
+                ParamSpec::choice("room", "Room", {"Off", "Booth", "Studio", "Club", "Hall", "Chapel"}, 0)};
     s.inputs = {{"l", "In L", Signal::Audio},
                 {"r", "In R", Signal::Audio},
                 {"freeze", "Freeze", Signal::Gate},

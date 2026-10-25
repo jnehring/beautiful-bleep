@@ -140,6 +140,7 @@
     layout: [
       { title: "Room", params: ["size", "decay", "preDelay", "diffusion"] },
       { title: "Tone", params: ["damping", "bass", "tone"] },
+      { title: "Early reflections", params: ["room", "early"] },
       { title: "Motion", params: ["modRate", "modDepth"] },
       { title: "Output", params: ["width", "mix"] },
       { title: "Mode", params: ["type", "preSync", "quality", "clearOnPlay", "seed"] },
