@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Attenuverter view: the transfer line, out = in x scale + offset,
 // limited by the Clip mode (off, soft knee past 0.8, hard +-1). A dot sits where
-// the live Out is (an unpatched input is 1). Mirrors AttenuverterDsp.h.
+// the live Outs are (an unpatched input is 1). Mirrors AttenuverterDsp.h.
 (function () {
   "use strict";
   const style = document.createElement("style");
@@ -35,8 +35,9 @@
       g.beginPath();
       for (let i = 0; i <= 40; i++) { const x = -1 + i / 20, y = Y(cy(clip(x * sc + off, mode))); i ? g.lineTo(X(x), y) : g.moveTo(X(x), y); }
       g.stroke(); g.shadowBlur = 0;
-      const out = o.out;
-      if (typeof out === "number" && Math.abs(sc) > 0.02) {
+      for (const id of ["out1", "out2"]) {
+        const out = o[id];
+        if (typeof out !== "number" || Math.abs(sc) <= 0.02) continue;
         const x = Math.max(-1, Math.min(1, (out - off) / sc));  // the input that makes this output
         BleepView.glow(g, th.text, 12); g.fillStyle = th.text; g.beginPath(); g.arc(X(x), Y(cy(out)), 3.5, 0, 7); g.fill(); g.shadowBlur = 0;
       }

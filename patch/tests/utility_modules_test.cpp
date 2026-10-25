@@ -140,15 +140,17 @@ void attenuverter() {
     r.set("scale", 0.5f);
     r.set("offset", 0.25f);
     r.run();
-    EXPECT_NEAR(r.out("out"), 0.75, 1e-5);  // unpatched: Scale + Offset
-    r.patch("in", -1.0f);
+    EXPECT_NEAR(r.out("out1"), 0.75, 1e-5);  // unpatched: Scale + Offset
+    r.patch("in1", -1.0f);
     r.run();
-    EXPECT_NEAR(r.out("out"), -0.25, 1e-5);
+    EXPECT_NEAR(r.out("out1"), -0.25, 1e-5);
+    EXPECT_NEAR(r.out("out2"), 0.75, 1e-5);  // second input shares Scale and Offset
     r.set("scale", 2.0f);
     r.set("offset", 0.5f);
     r.set("clip", 2.0f);  // Hard
     r.run();
-    EXPECT_NEAR(r.out("out"), -1.0, 1e-6);
+    EXPECT_NEAR(r.out("out1"), -1.0, 1e-6);
+    EXPECT_NEAR(r.out("out2"), 1.0, 1e-6);
 }
 
 void cvMixer() {

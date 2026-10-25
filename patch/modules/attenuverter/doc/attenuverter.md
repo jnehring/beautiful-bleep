@@ -4,14 +4,15 @@
 
 ## Introduction
 
-Makes a signal smaller, bigger, upside down or shifted. In the module view
-the *Scale* and *Offset* knobs sit next to a line that shows the result. With
-nothing patched, it is a knob you set by hand, so the Attenuverter is also a
-macro control: one *Out* can feed many destinations with the same value.
+Makes two signals smaller, bigger, upside down or shifted, both by the same
+*Scale* and *Offset*. In the module view the knobs sit next to a line that
+shows the result. With nothing patched, an input is a knob you set by hand, so
+the Attenuverter is also a macro control: one *Out* can feed many destinations
+with the same value.
 
 ## How does it work?
 
-It computes
+Each of the two inputs computes
 
     Out = In × Scale + Offset
 
@@ -19,7 +20,7 @@ It computes
 turns it upside down, and values beyond ±1 boost a weak signal. *Offset*
 shifts the result up or down.
 
-An unpatched *In* counts as a constant **+1**, so an empty Attenuverter outputs
+An unpatched *In* counts as a constant **+1**, so an empty input outputs
 *Scale* + *Offset*.
 
 Every cable already has its own amount at the destination. The Attenuverter
@@ -30,12 +31,13 @@ destination, and that knob can itself be modulated.
 
 - **One depth for many destinations:** LFO → *In 1*, *Out 1* to several
   knobs at full amount. *Scale 1* now sets all depths at once.
-- **Macro knob:** leave *In* unpatched, set *Scale* to 0 and use *Offset*
-  as a manual control. Patch *Out* to several knobs and move them together.
+- **Macro knob:** leave *In 1* unpatched, set *Scale* to 0 and use *Offset*
+  as a manual control. Patch *Out 1* to several knobs and move them together.
 - **Unipolar from bipolar:** an LFO (−1 … +1) with *Scale* 0.5 and *Offset*
   0.5 runs from 0 to 1.
 - **Invert:** *Scale* −1 makes an envelope fall instead of rise.
-- **Need several?** Add more Attenuverters; to add signals together use a CV Mixer.
+- **Two signals, one depth:** patch both into *In 1* and *In 2* and one *Scale* moves them together.
+- **Different settings?** Add another Attenuverter; to add signals together use a CV Mixer.
 
 <!-- generated:demos -->
 ## Demo patches
@@ -63,7 +65,7 @@ Five whole patches show what Attenuverter does. In the standalone app open **Fil
 
 - **Scale:** the gain. Negative values invert.
 - **Offset:** added after scaling.
-- **Clip:** limits the output to ±1. *Soft* leaves
+- **Clip:** limits both outputs to ±1. *Soft* leaves
   values up to ±0.8 untouched and bends smoothly into ±1; *Hard* cuts off at
   ±1.
 
@@ -71,10 +73,10 @@ Five whole patches show what Attenuverter does. In the standalone app open **Fil
 
 | Input | Signal | What it does |
 |---|---|---|
-| In | control | The signal. Unpatched: a constant +1. |
+| In 1, In 2 | control | The signals. Unpatched: a constant +1. |
 
 ### Outputs
 
 | Output | Signal | What it does |
 |---|---|---|
-| Out | control | In × Scale + Offset |
+| Out 1, Out 2 | control | In × Scale + Offset, for each input |

@@ -126,7 +126,7 @@ function looseTime() {
   for (const r of [rt, rv, rp]) p.cable(p.cin, "gate", r, "clock");
   p.cable(rt, "out", m1, "x1").cable(p.cin, "loose", m1, "y1", 0.65).cable(m1, "out1", pg, "delay", 0.1)
     .cable(p.cin, "gate", pg, "gate").cable(pg, "gate", p.cout, "gout");
-  p.cable(rv, "out", m2, "x1").cable(p.cin, "loose", m2, "y1", 0.65).cable(m2, "out1", velScale, "in").cable(velScale, "out", p.cout, "vel");
+  p.cable(rv, "out", m2, "x1").cable(p.cin, "loose", m2, "y1", 0.65).cable(m2, "out1", velScale, "in1").cable(velScale, "out1", p.cout, "vel");
   p.cable(rp, "out", m3, "x1").cable(p.cin, "loose", m3, "y1", 0.65).cable(m3, "out1", pitchSum, "in2")
     .cable(p.cin, "pitch", pitchSum, "in1").cable(pitchSum, "out", p.cout, "pout");
   return p;

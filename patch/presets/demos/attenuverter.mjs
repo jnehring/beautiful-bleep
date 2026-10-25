@@ -24,7 +24,7 @@ function opposite() {
   const fl = p.add("filter", [3, 0], { cutoff: 700, resonance: 0.3, type: "Ladder Tanh" }, { name: "Left Filter" });
   const fr = p.add("filter", [3, 1], { cutoff: 700, resonance: 0.3, type: "Ladder Tanh" }, { name: "Right Filter" });
   const mix = p.add("audio-mixer", [4, 0], { level1: -2, level2: -2, pan1: -0.85, pan2: 0.85, master: 5 });
-  p.cable(lfo, "out", a, "in").cable(lfo, "out", b, "in").cable(a, "out", fl, "cutoff", 0.3).cable(b, "out", fr, "cutoff", 0.3)
+  p.cable(lfo, "out", a, "in1").cable(lfo, "out", b, "in1").cable(a, "out1", fl, "cutoff", 0.3).cable(b, "out1", fr, "cutoff", 0.3)
     .cable(m.amp, "l", fl, "l").cable(m.amp, "l", fr, "l").cable(fl, "l", mix, "in1l").cable(fl, "l", mix, "in1r")
     .cable(fr, "l", mix, "in2l").cable(fr, "l", mix, "in2r");
   const v = p.add("reverb", [5, 0], { size: 0.5, decay: 2.2, mix: 0.22, quality: "Eco (8 lines)" });
@@ -43,7 +43,7 @@ function offsets() {
   const m = melody(p, [0, 0], [0, 3, 7, 3, 10, 7, 3, 5], { rate: "1/8", shape: 0.7, root: "C", scale: "Minor Pentatonic", gatelength: 0.5,
     env: { decay: 0.3, sustain: 0.3, release: 0.2 } });
   const f = p.add("filter", [3, 0], { cutoff: 300, resonance: 0.3, type: "Ladder Tanh" });
-  p.cable(a, "out", m.seq, "transpose").cable(b, "out", f, "cutoff", 0.5).cable(m.amp, "l", f, "l");
+  p.cable(a, "out1", m.seq, "transpose").cable(b, "out1", f, "cutoff", 0.5).cable(m.amp, "l", f, "l");
   const drums = beat(p, [0, 4], { style: "half", level: -8 });
   const mix = p.add("audio-mixer", [4, 0], { level1: 3, level2: -6, master: 0 });
   p.cable(f, "l", mix, "in1l").cable(f, "l", mix, "in1r").stereo(drums, mix, { from: ["outl", "outr"], to: ["in2l", "in2r"] });
@@ -66,7 +66,7 @@ function summed() {
   const mx = p.add("cv-mixer", [1, 2], { level1: 0.8, level2: 0.5, level3: 0.6, clip: "Off" }, { name: "Sum" });
   const a = p.add("attenuverter", [2, 2], { scale: 1 }, { name: "Depth" });
   const f = p.add("filter", [3, 0], { cutoff: 600, resonance: 0.35, type: "Ladder Tanh" });
-  p.cable(l1, "out", mx, "in1").cable(l2, "out", mx, "in2").cable(r, "out", mx, "in3").cable(mx, "out", a, "in").cable(a, "out", f, "cutoff", 0.35).cable(m.amp, "l", f, "l");
+  p.cable(l1, "out", mx, "in1").cable(l2, "out", mx, "in2").cable(r, "out", mx, "in3").cable(mx, "out", a, "in1").cable(a, "out1", f, "cutoff", 0.35).cable(m.amp, "l", f, "l");
   finish(p, [4, 0], f, "l", 6, { decay: 2.5 });
   return p;
 }
@@ -82,7 +82,7 @@ function clipped() {
   const lfo = p.add("lfo", [0, 2], { wave: "Triangle", sync: "Tempo", division: "2 bars" }, { name: "Triangle" });
   const a = p.add("attenuverter", [1, 2], { scale: 2, offset: 0, clip: "Hard" });
   const f = p.add("filter", [3, 0], { cutoff: 500, resonance: 0.4, type: "Ladder Tanh", drive: 0.2 });
-  p.cable(lfo, "out", a, "in").cable(a, "out", f, "cutoff", 0.3).cable(m.amp, "l", f, "l");
+  p.cable(lfo, "out", a, "in1").cable(a, "out1", f, "cutoff", 0.3).cable(m.amp, "l", f, "l");
   const drums = beat(p, [0, 4], { style: "four", level: -8 });
   const mix = p.add("audio-mixer", [4, 0], { level1: -3, level2: -6, master: -1 });
   p.cable(f, "l", mix, "in1l").cable(f, "l", mix, "in1r").stereo(drums, mix, { from: ["outl", "outr"], to: ["in2l", "in2r"] }).stereo(mix, p.out, { from: ["outl", "outr"] });
@@ -110,7 +110,7 @@ function ducking() {
   p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(seq, "pitch", o3, "pitch")
     .cable(o1, "out", pm, "in1l").cable(o1, "out", pm, "in1r").cable(o2, "out", pm, "in2l").cable(o2, "out", pm, "in2r")
     .cable(o3, "out", pm, "in3l").cable(o3, "out", pm, "in3r").stereo(pm, f, { from: ["outl", "outr"] }).stereo(f, vca);
-  p.cable(grid, "gate1", kickEnv, "gate").cable(kickEnv, "env", a, "in").cable(a, "out", vca, "gain");
+  p.cable(grid, "gate1", kickEnv, "gate").cable(kickEnv, "env", a, "in1").cable(a, "out1", vca, "gain");
   const mix = p.add("audio-mixer", [5, 0], { level1: -2, level2: -3, master: 0 });
   p.stereo(vca, mix, { to: ["in1l", "in1r"] }).stereo(drums, mix, { from: ["outl", "outr"], to: ["in2l", "in2r"] }).stereo(mix, p.out, { from: ["outl", "outr"] });
   return p;

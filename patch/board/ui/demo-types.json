@@ -1713,7 +1713,7 @@
     "name": "Attenuverter",
     "category": "Utility/Signal",
     "colour": "#c4b5fd",
-    "description": "Scale and offset; unpatched, a manual constant.",
+    "description": "One scale and offset for two signals; unpatched, a manual constant.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,
@@ -1768,16 +1768,28 @@
     ],
     "inputs": [
       {
-        "id": "in",
-        "name": "In",
+        "id": "in1",
+        "name": "In 1",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "in2",
+        "name": "In 2",
         "type": "control",
         "bipolar": true
       }
     ],
     "outputs": [
       {
-        "id": "out",
-        "name": "Out",
+        "id": "out1",
+        "name": "Out 1",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "out2",
+        "name": "Out 2",
         "type": "control",
         "bipolar": true
       }
