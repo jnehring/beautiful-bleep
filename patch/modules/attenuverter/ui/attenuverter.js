@@ -44,7 +44,7 @@
     }
   }
   BleepViews.register("attenuverter", {
-    width: 260,
+    width: 360,
     template: '<div class="bv-panel"><h2>Transfer line</h2><canvas class="at-cv"></canvas></div>',
     layout: [
       { title: "Level", params: ["scale", "offset"], columns: true },
