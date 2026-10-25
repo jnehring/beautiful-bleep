@@ -1,0 +1,11 @@
+{
+  "name": "Route",
+  "slug": "route",
+  "license": "GPL-3.0-only",
+  "tagline": "Sends one input to one of up to eight outputs: by a knob or CV, stepped by triggers or the song.",
+  "colour": "#99f6e4",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/route.md"
+}

@@ -572,9 +572,13 @@ void Program::runStep(Step& st, ProcessContext& ctx) noexcept {
         if (sources.empty()) {
             std::fill_n(buf, m, base);
         } else {
+            // A cabled choice, toggle or integer takes the cable as its value (the sum of the cables, amount 1), as a Live
+            // Params row does; a knob and a float setting add the cables to the knob.
+            const auto& ps = mod.spec().params[i];
+            const bool absolute = ps.cableable && ps.kind != ParamSpec::Kind::Float;
             for (int s = 0; s < m; ++s) {
-                float v = base;
-                for (const auto& src : sources) v += src.buffer[s] * src.amount;
+                float v = absolute ? 0.0f : base;
+                for (const auto& src : sources) v += src.buffer[s] * (absolute ? 1.0f : src.amount);
                 buf[s] = v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
             }
         }

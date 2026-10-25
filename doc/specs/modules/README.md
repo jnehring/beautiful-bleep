@@ -30,6 +30,9 @@ section 21): no hardware names in the files, the UI or the docs.
 | Logic | [logic.md](logic.md) | Implemented |
 | Quantizer | [quantizer.md](quantizer.md) | Implemented |
 | Switch | [switch.md](switch.md) | Implemented |
+| Select | [select.md](select.md) | Implemented |
+| Route | [route.md](route.md) | Implemented |
+| Index | [index.md](index.md) | Implemented |
 | Notes to CV | [notes-to-cv.md](notes-to-cv.md) | Implemented |
 | Arpeggiator | [arpeggiator.md](arpeggiator.md) | Implemented |
 | Drum Grid | [drum-grid.md](drum-grid.md) | Implemented |
@@ -88,6 +91,7 @@ The eurorack-inspired set:
 | Rotating Div | [rotating-divider.md](rotating-divider.md) | Implemented |
 | Segments | [segments.md](segments.md) | Implemented |
 | Shape Env | [shape-envelope.md](shape-envelope.md) | Implemented |
+| Shape Sequencer | [shape-sequencer.md](shape-sequencer.md) | Implemented |
 | Shift Register | [shift-register.md](shift-register.md) | Implemented |
 | Six Slopes | [six-slopes.md](six-slopes.md) | Implemented |
 | Splice | [splice.md](splice.md) | Implemented |

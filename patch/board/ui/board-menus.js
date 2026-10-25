@@ -173,7 +173,7 @@
 
 
       /// Types this board offers (MIDI Device only in the standalone app, spec §12).
-      const offered = (t) => t.creatable && (!t.standaloneOnly || s.standalone) &&
+      const offered = (t) => t.creatable && !t.older && (!t.standaloneOnly || s.standalone) &&
         !((t.type === "cell-in" || t.type === "cell-out") && !level());  // boundaries live inside a cell
 
       /// The Add menu (spec §9.6): Module › category › modules; Cell › new cells and presets by category.

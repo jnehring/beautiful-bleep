@@ -1,0 +1,11 @@
+{
+  "name": "Index",
+  "slug": "index",
+  "license": "GPL-3.0-only",
+  "tagline": "Turns a CV or gates into a whole-number step, to drive any dropdown or toggle on the board or in Live.",
+  "colour": "#fcd34d",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/index.md"
+}

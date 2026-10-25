@@ -1,0 +1,11 @@
+{
+  "name": "Select",
+  "slug": "select",
+  "license": "GPL-3.0-only",
+  "tagline": "Picks one of up to eight inputs for one output: by a knob or CV, stepped by triggers or the song.",
+  "colour": "#d8b4fe",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/select.md"
+}

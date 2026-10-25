@@ -25,6 +25,7 @@
 .bv-knob svg { width: 50px; height: 50px; cursor: ns-resize; touch-action: none; }
 .bv-value { font-variant-numeric: tabular-nums; font-size: 11px; }
 .bv-modulated .bv-label { color: var(--mod); }
+.bv-setting.bv-modulated select, .bv-setting.bv-modulated input, .bv-setting.bv-modulated .bv-toggle { border-color: var(--mod); opacity: .75; }
 .bv-track { stroke: var(--line); fill: none; stroke-width: 4; stroke-linecap: round; }
 .bv-arc { stroke: var(--accent); fill: none; stroke-width: 4; stroke-linecap: round; }
 .bv-ring { stroke: var(--mod); fill: none; stroke-width: 3; stroke-linecap: round; }

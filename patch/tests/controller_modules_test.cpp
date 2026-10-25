@@ -357,6 +357,56 @@ void patchbays() {
             EXPECT(modules.count("f") && typeIndex >= 0 && std::fabs(modules["f"]->setting(typeIndex) - want) < 0.5f);
         }
     }
+    {  // phase 2 of doc/specs/modules/index.md: every choice, toggle and integer takes a cable as its value (absolute)
+        auto driven = [&](const std::string& type, const std::string& id, float knob, float level, int& index, bool cabled = true) {
+            BoardModel m;
+            NodeModel d = node("d", "dial"), t = node("t", type.c_str());
+            for (const auto& p : d.spec->params) d.params[p.id] = p.defaultNormalised();
+            d.params["value"] = level;
+            d.params["smooth"] = 0.0f;
+            for (const auto& p : t.spec->params) t.params[p.id] = p.defaultNormalised();
+            index = t.spec->paramIndex(id);
+            t.params[id] = knob;
+            m.nodes = {d, t};
+            if (cabled) m.cables = {cable("k1", "d", "out", "t", id.c_str())};
+            std::map<std::string, std::shared_ptr<Module>> modules;
+            auto program = Program::compile(m, modules, {}, 48000.0);
+            Transport tr;
+            tr.sampleRate = 48000.0;
+            program->run(tr, kChunk, true);
+            program->run(tr, kChunk, false);
+            return modules.count("t") ? modules["t"]->setting(index) : -1.0f;
+        };
+        int index = -1;
+        // The knob does not matter while the cable is there: the knob is on the last item, the cable asks for the first.
+        EXPECT(std::fabs(driven("filter", "type", 1.0f, 0.0f, index)) < 0.5f);
+        // A Dial's value i / (n - 1) lands on item i, for every choice, toggle and integer of every module that accepts a cable.
+        int checked = 0, wrong = 0;
+        for (const ModuleSpec* spec : Registry::get().all()) {
+            if (!spec->userCreatable) continue;
+            for (const auto& p : spec->params) {
+                if (!p.cableable || p.kind == ParamSpec::Kind::Float) continue;
+                const int n = p.numSteps() > 0 ? p.numSteps() + 1 : 0;
+                if (n < 2) continue;
+                for (int i = 0; i < n; i += std::max(1, n - 1)) {  // first and last item: without the cable the knob is back
+                    const float knob = (float)i / (float)(n - 1);
+                    const float back = driven(spec->type, p.id, knob, 0.5f, index, false);
+                    ++checked;
+                    if (std::fabs(back - p.fromNormalised(knob)) > 0.01f && ++wrong <= 5)
+                        std::printf("  %s.%s without a cable, item %d: got %g\n", spec->type.c_str(), p.id.c_str(), i, back);
+                }
+                for (int i = 0; i < n; ++i) {
+                    const float got = driven(spec->type, p.id, 0.0f, (float)i / (float)(n - 1), index);
+                    ++checked;
+                    if (std::fabs(got - p.fromNormalised((float)i / (float)(n - 1))) > 0.01f) {
+                        if (++wrong <= 5) std::printf("  %s.%s item %d of %d: got %g\n", spec->type.c_str(), p.id.c_str(), i, n, got);
+                    }
+                }
+            }
+        }
+        std::printf("cabled discrete settings: %d checked, %d wrong\n", checked, wrong);
+        EXPECT(checked > 500 && wrong == 0);
+    }
     {  // bays in a row: the channel follows through both
         BoardModel m;
         m.nodes = {node("d", "dial"), node("a1", kPatchbayIn), node("b1", kPatchbayOut), node("a2", kPatchbayIn),

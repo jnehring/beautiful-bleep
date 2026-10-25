@@ -346,8 +346,11 @@
       const box = el("div", "bv-setting");
       const label = el("span", "bv-label", p.name);
       box.appendChild(label);
-      const s = { p, box, label };
+      const s = { p, box, label, eff: null };
       const steps = Math.max(2, p.steps);
+      // A cable on a setting sets its value: show that value, not the knob, and lock the control while the cable is there.
+      const cur = () => (s.eff !== null ? s.eff : (view.node.params[p.id] ?? p.default));
+      const lock = (control) => { box.classList.toggle("bv-modulated", s.eff !== null); control.disabled = s.eff !== null; };
       if (p.kind === "bool") {
         label.remove();
         s.label = null;
@@ -358,7 +361,7 @@
           s.draw();
         });
         box.appendChild(b);
-        s.draw = () => b.classList.toggle("on", (view.node.params[p.id] ?? p.default) >= 0.5);
+        s.draw = () => { b.classList.toggle("on", cur() >= 0.5); lock(b); };
       } else if (p.kind === "choice" || steps <= 33) {
         const select = el("select");
         let group = null;  // consecutive choices with the same group share an <optgroup>
@@ -379,8 +382,8 @@
         });
         box.appendChild(select);
         s.draw = () => {
-          if (document.activeElement !== select)
-            select.value = Math.round((view.node.params[p.id] ?? p.default) * (steps - 1));
+          if (document.activeElement !== select) select.value = Math.round(cur() * (steps - 1));
+          lock(select);
         };
       } else {
         const input = el("input", "bv-number");
@@ -393,8 +396,8 @@
         });
         box.appendChild(input);
         s.draw = () => {
-          if (document.activeElement !== input)
-            input.value = Math.round(p.min + (view.node.params[p.id] ?? p.default) * (p.max - p.min));
+          if (document.activeElement !== input) input.value = Math.round(p.min + cur() * (p.max - p.min));
+          lock(input);
         };
       }
       s.draw();
@@ -582,6 +585,7 @@
         for (const [id, s] of view.settings) {
           const ps = st.params[id];
           if (ps) view.node.params[id] = ps.v;
+          s.eff = ps && ps.a ? ps.e : null;
           s.draw();
         }
         if (drivers.size || (h && h.visible)) applyLayout();

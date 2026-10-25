@@ -162,6 +162,7 @@ const std::set<std::pair<std::string, std::string>>& cableableSettings() {
     {"harmony-master", "quality"},
     {"harmony-master", "scale"},
     {"harmony-master", "source"},
+    {"index", "mode"},
     {"lfo", "polarity"},
     {"lfo", "sync"},
     {"lfo", "wave"},
@@ -200,11 +201,36 @@ const std::set<std::pair<std::string, std::string>>& cableableSettings() {
     };
     return list;
 }
+
+/// Modules whose settings are read when something is prepared or started, not per block, or that act on files, devices and
+/// recordings: a cable on one of those would be ignored or do harm. Every other module's choices, toggles and integers
+/// accept a cable (isCableable()).
+const std::set<std::string>& staticModules() {
+    static const std::set<std::string> list = {"audio-console", "recorder", "sampler", "live-params"};
+    return list;
+}
+/// Single settings of an otherwise drivable module that are read only when it prepares.
+const std::set<std::pair<std::string, std::string>>& staticSettings() {
+    static const std::set<std::pair<std::string, std::string>> list = {
+    };
+    return list;
+}
+
+/// Can a cable end on this setting? Every choice, toggle and integer that is not a knob, except the static ones above; plus the
+/// older list of other settings. The cable then sets the value (absolute), see Program.cpp.
+bool isCableable(const ModuleSpec& spec, const ParamSpec& p) {
+    const std::string& type = spec.type;
+    if (p.modulatable) return false;
+    if (cableableSettings().count({type, p.id})) return true;
+    if (p.kind == ParamSpec::Kind::Float) return false;
+    if (spec.category == "Ports" || spec.category == "Cells") return false;  // ports and cells: structure, not sound
+    return !staticModules().count(type) && !staticSettings().count({type, p.id});
+}
 }  // namespace
 
 void Registry::add(ModuleSpec spec, Factory factory) {
     for (auto& p : spec.params)
-        if (!p.modulatable && cableableSettings().count({spec.type, p.id})) p.cableable = true;
+        if (isCableable(spec, p)) p.cableable = true;
     Entry e{std::make_unique<ModuleSpec>(std::move(spec)), std::move(factory)};
     const auto old = std::find_if(order_.begin(), order_.end(), [&](const ModuleSpec* s) { return s->type == e.spec->type; });
     if (old != order_.end()) *old = e.spec.get();  // a new version takes the old one's place in the lists
@@ -228,7 +254,7 @@ const ModuleSpec* Registry::find(const std::string& type, const std::string& ver
 
 void Registry::addOlder(ModuleSpec spec, Factory factory) {
     for (auto& p : spec.params)
-        if (!p.modulatable && cableableSettings().count({spec.type, p.id})) p.cableable = true;
+        if (isCableable(spec, p)) p.cableable = true;
     Entry e{std::make_unique<ModuleSpec>(std::move(spec)), std::move(factory)};
     e.older = true;
     entries_.push_back(std::move(e));

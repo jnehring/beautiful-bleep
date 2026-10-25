@@ -23,7 +23,7 @@ endif ()
 
 if (BLEEP_BUILD_TESTS)
     juce_add_console_app(bleep_hub_tests PRODUCT_NAME "Bleep Hub Tests")
-    target_sources(bleep_hub_tests PRIVATE tests/hub_test.cpp ${BLEEP_HUB_SOURCES} ${BLEEP_ENGINE_SOURCES}
+    target_sources(bleep_hub_tests PRIVATE tests/hub_test.cpp ${BLEEP_HUB_SOURCES} $<TARGET_OBJECTS:bleep_engine_objects>
         ${BLEEP_BRIDGE_SERVER_SOURCES} bridges/standalone/BridgeClient.cpp)
     target_include_directories(bleep_hub_tests PRIVATE ${BLEEP_ENGINE_INCLUDES} ${BLEEP_BRIDGE_INCLUDES} ${BLEEP_HUB_INCLUDES}
         "${CMAKE_CURRENT_SOURCE_DIR}/tests")

@@ -487,6 +487,17 @@
         pop.innerHTML = "";
         const src = nodeById(c.from.node), dst = nodeById(c.to.node);
         pop.appendChild(el("span", "", `${jackName(src, c.from.jack, true)} → ${jackName(dst, c.to.jack, false)}`));
+        // A cable on a dropdown, a toggle or a whole-number setting sets the value (amount 1): no slider.
+        const target = (typeOf(dst).params || []).find((p) => p.id === c.to.jack);
+        if (target && target.cableable && target.kind !== "float") {
+          const del = el("button", "", "Delete");
+          del.addEventListener("click", () => removeCable(c.id));
+          pop.append(el("span", "v", "sets the value"), del);
+          pop.hidden = false;
+          pop.dataset.cable = c.id;
+          positionCablePop();
+          return;
+        }
         const r = el("input");
         r.type = "range"; r.min = -1; r.max = 1; r.step = 0.01; r.value = c.amount;
         const v = el("span", "v", Math.round(c.amount * 100) + "%");

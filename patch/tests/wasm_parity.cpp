@@ -153,6 +153,7 @@ struct Stimulus {
                 case Signal::Trigger:
                     if (uni() < 0.01f) v[(size_t)range(0, kChunk - 1)] = 1.0f;
                     break;
+                case Signal::Patchbay: break;  // a patchbay jack carries no signal of its own
                 case Signal::Notes:
                     if (uni() < 0.04f) {
                         NoteEvent e;

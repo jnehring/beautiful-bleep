@@ -4,6 +4,7 @@
 // in octaves and may run at audio rate.
 #include "FilterDsp.h"
 #include "Registry.h"
+#include "dsp/SpectrumTap.h"
 
 namespace bleep::engine {
 namespace {
@@ -26,6 +27,16 @@ public:
     }
     void reset() override { dsp_.reset(); }
 
+    /// For the view: the audio going in and out (log-spaced dB, 20 Hz ... 20 kHz) and the sample rate, drawn behind the response curve.
+    void liveArrays(std::vector<std::pair<std::string, std::vector<float>>>& out) const override {
+        std::vector<float> in(kBins), wet(kBins);
+        tap_.spectrum(false, sampleRate_, in);
+        tap_.spectrum(true, sampleRate_, wet);
+        out.emplace_back("spectrumIn", std::move(in));
+        out.emplace_back("spectrumOut", std::move(wet));
+        out.emplace_back("sampleRate", std::vector<float>{(float)sampleRate_});
+    }
+
     void process(const ProcessContext& c) override {
         // A mono source (only L patched) feeds both channels.
         const float* inR = c.inputConnected[InR] ? c.inputs[InR] : c.inputs[InL];
@@ -46,11 +57,15 @@ public:
             c.outputs[Env][i] = dsp_.tick(p, c.inputs[Pitch][i], frame, 2);
             c.outputs[OutL][i] = frame[0];
             c.outputs[OutR][i] = frame[1];
+            tap_.push(0.5f * (c.inputs[InL][i] + inR[i]), 0.5f * (frame[0] + frame[1]));
         }
     }
 
 private:
+    static constexpr int kBins = 128;
+
     FilterDsp dsp_;
+    dsp::SpectrumTap tap_;
 };
 
 }  // namespace

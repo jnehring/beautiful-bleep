@@ -151,6 +151,38 @@
     }
   }
 
+  // Peaks rise at once and fall slowly, so the spectra read as a calm picture.
+  function smooth(keep, name, bins) {
+    const prev = keep[name];
+    if (!prev || prev.length !== bins.length) return (keep[name] = Float32Array.from(bins));
+    for (let i = 0; i < bins.length; i++) prev[i] = bins[i] > prev[i] ? bins[i] : prev[i] + (bins[i] - prev[i]) * 0.25;
+    return prev;
+  }
+
+  // Spectrum in dB (-90 … +24) as a filled area across the full height of the plot.
+  function spectrum(g, bins, w, h, colour, fillAlpha, lineWidth) {
+    const y = (db) => 2 + (24 - Math.min(24, Math.max(-90, db))) / 114 * (h - 4);
+    g.beginPath();
+    bins.forEach((db, i) => { const x = (i + 0.5) / bins.length * w; if (i) g.lineTo(x, y(db)); else g.moveTo(x, y(db)); });
+    g.save();
+    g.lineTo((bins.length - 0.5) / bins.length * w, h); g.lineTo(0.5 / bins.length * w, h); g.closePath();
+    const gr = g.createLinearGradient(0, 0, 0, h);
+    gr.addColorStop(0, colour); gr.addColorStop(1, "transparent");
+    g.globalAlpha = fillAlpha; g.fillStyle = gr; g.fill();
+    g.restore();
+    g.beginPath();
+    bins.forEach((db, i) => { const x = (i + 0.5) / bins.length * w; if (i) g.lineTo(x, y(db)); else g.moveTo(x, y(db)); });
+    g.strokeStyle = colour; g.lineWidth = lineWidth; g.globalAlpha = 0.8; g.stroke(); g.globalAlpha = 1;
+  }
+
+  // Which spectra are drawn: a per-viewer preference.
+  const PREFS = "bleep.filter.spectrum";
+  const show = { in: true, out: true };
+  try {
+    const p = JSON.parse(localStorage.getItem(PREFS) || "null");
+    for (const k of ["in", "out"]) if (p && typeof p[k] === "boolean") show[k] = p[k];
+  } catch (e) { /* no storage: defaults */ }
+
   const HIT = 14;  // px around the cutoff dot that grab it
 
   /// Drag the dot: left / right = cutoff (same log axis as the knob), up / down = resonance.
@@ -202,7 +234,17 @@
       { title: "Cutoff", params: ["cutoff", "keytrack", "resonance"] },
       { title: "Drive / Output", params: ["drive", "gain", "mix"] },
     ],
-    template: '<div class="bv-panel"><h2>Response</h2><canvas class="response" style="height:130px"></canvas></div>',
+    template: '<div class="bv-panel"><h2>Response <span style="float:right;font-weight:normal;font-size:11px">' +
+      ["in", "out"].map((k) => '<button type="button" class="flt-legend-btn" data-s="' + k + '" title="Show or hide the ' + k + 'put spectrum">▬ ' + k + '</button>').join(" ") +
+      '</span></h2><canvas class="response" style="height:130px"></canvas>' +
+      '<style>.flt-legend-btn{background:none;border:0;padding:0 2px;font:inherit;cursor:pointer}</style></div>',
+    afterBuild(view, custom) {
+      custom.querySelectorAll(".flt-legend-btn").forEach((b) => b.addEventListener("click", () => {
+        show[b.dataset.s] = !show[b.dataset.s];
+        try { localStorage.setItem(PREFS, JSON.stringify(show)); } catch (e) { /* ignore */ }
+        if (view.flt && view.flt.st) hooks.onState(view.flt.st, view);
+      }));
+    },
     onState(st, view) {
       const cv = view.root.querySelector(".response");
       if (!cv || !cv.clientWidth) return;
@@ -224,6 +266,13 @@
       const th = BleepView.theme(view.root);
       const top = 24, bottom = -36;
       const y = (db) => (top - Math.min(top, Math.max(bottom, db))) / (top - bottom) * (h - 4) + 2;
+      for (const b of view.root.querySelectorAll(".flt-legend-btn")) {
+        const k = b.dataset.s;
+        b.style.color = k === "in" ? (th.muted || th.line) : th.accent;
+        b.style.opacity = show[k] ? 1 : 0.35;
+        b.style.textDecoration = show[k] ? "none" : "line-through";
+        b.setAttribute("aria-pressed", show[k] ? "true" : "false");
+      }
       // grid: decades and 12 dB steps
       g.lineWidth = 1; g.strokeStyle = th.line; g.globalAlpha = 0.45;
       g.beginPath();
@@ -231,6 +280,10 @@
       for (const db of [12, -12, -24]) { const yy = Math.round(y(db)) + 0.5; g.moveTo(0, yy); g.lineTo(w, yy); }
       g.stroke(); g.globalAlpha = 1;
       g.strokeStyle = th.muted; g.beginPath(); g.moveTo(0, y(0) + 0.5); g.lineTo(w, y(0) + 0.5); g.stroke();
+      // the audio going in (muted) and coming out (accent), behind the curve
+      const arrays = st.arrays || {};
+      if (show.in && arrays.spectrumIn) spectrum(g, smooth(view.flt, "in", arrays.spectrumIn), w, h, th.muted || th.line, 0.25, 1);
+      if (show.out && arrays.spectrumOut) spectrum(g, smooth(view.flt, "out", arrays.spectrumOut), w, h, th.accent, 0.3, 1);
       const pts = [];
       for (let x = 0; x <= w; x += 2) {
         const freq = 20 * Math.pow(1000, x / w);
