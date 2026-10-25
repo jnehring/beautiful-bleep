@@ -238,7 +238,7 @@ Single source: the repository. CI builds and publishes; nobody uploads by hand.
 
 ## 9. The two sections: Library and Board
 
-The board is always on screen. The Library, Settings and Help topics open as dialogs over it, from the *Library*, *File* and *Help* menus of the top bar (the Library menu offers *Open Library…* and *Upload Project to Library…*):
+The board is always on screen. The Library, Settings and Help topics open as dialogs over it, from the *File* and *Help* menus of the top bar (the File menu offers *Open Library…* and *Upload Project to Library…*):
 
 | Section | For | What is in it |
 |---|---|---|

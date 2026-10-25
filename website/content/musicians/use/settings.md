@@ -140,7 +140,7 @@ field. A change of channel is read when the page loads: the tab offers **Reload
 now**.
 
 In a plugin, Settings has only the Library tab. The Library
-window itself (where you install modules) is under the *Library* menu.
+window itself (where you install modules) is under *File* → *Open Library…*.
 
 ## Data (Bleep Play)
 

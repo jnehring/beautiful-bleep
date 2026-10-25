@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
-// app-menu.js — the menu bar: File, Edit, View, Library, Help (one list for all three hosts) and the Help answers.
+// app-menu.js — the menu bar: File, Edit, View, Help (one list for all three hosts) and the Help answers.
 //
 //   The list below (MODEL) is the only definition of the menus. The browser board and the plugin window draw it in the top bar;
 //   the standalone app sends it to the native side (native "setMenu") and builds its menu bar from it. Choosing an item runs its
@@ -101,6 +101,9 @@
       { id: "project.saveBrowser", label: "Save to My Projects…", when: has("BleepProjectBrowser"), enabled: () => P.BleepProjectBrowser.canSave() },
       { id: "project.download", label: "Download Project", when: () => !native_ && !!P.BleepProjectBrowser },
       null,
+      { id: "library.open", label: "Open Library…", when: () => !!(document.getElementById("library") || window.BleepWeb) },
+      { id: "library.upload", label: "Upload Project to Library…", when: () => !!(document.getElementById("library") && P.BleepAccount && P.BleepAccount.enabled && P.BleepSideMenu) },
+      null,
       { id: "file.settings", label: "Settings…", appKey: cmdKey(","), when: settingsOffered },
     ]],
     ["Edit", [
@@ -129,10 +132,6 @@
       null,
       { id: "view.trace", label: "Trace Signal", key: "T" },
       { id: "view.keyboard", label: "Screen Keyboard", when: () => !!(window.BleepWeb && window.BleepPlayKeys) },   // Bleep Play: the piano under the board, on or off
-    ]],
-    ["Library", [
-      { id: "library.open", label: "Open Library…", when: () => !!(document.getElementById("library") || window.BleepWeb) },
-      { id: "library.upload", label: "Upload Project to Library…", when: () => !!(document.getElementById("library") && P.BleepAccount && P.BleepAccount.enabled && P.BleepSideMenu) },
     ]],
     ["Help", [
       { id: "help.docs", label: "Documentation" },
@@ -236,7 +235,7 @@
       button.addEventListener("click", (e) => { e.stopPropagation(); toggle(); });
       button.addEventListener("pointerenter", () => { if (openMenu && openMenu.list !== list) toggle(); });   // as a menu bar does
       wrap.append(button, list);
-      wrap.hidden = !items.some((it) => shown(it));   // nothing to offer here (no library in this build)
+      wrap.hidden = !items.some((it) => shown(it));   // nothing to offer here
       bar.appendChild(wrap);
     }
     document.addEventListener("pointerdown", (e) => { if (openMenu && !bar.contains(e.target)) closeMenu(); });
