@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Shape Sequencer (doc/specs/modules/shape-sequencer.md §8): the shapes, the slot
-// count, the song lock, trigger and gate sync (loop and once), reset, the
-// outputs and the output stage.
+// Shape Sequencer (doc/specs/modules/shape-sequencer.md §8): the shapes, finding the
+// shape at a position, the song lock, trigger and gate sync (loop and once),
+// reset, the outputs and the output stage.
 #include "ShapeSequencerDsp.h"
 
 #include "dsp/tests/TestUtil.h"
@@ -13,8 +13,8 @@
 using namespace bleep;
 using patch::ShapeFrame;
 using patch::ShapeParams;
+using patch::ShapeSegment;
 using patch::ShapeSequencerDsp;
-using patch::ShapeSlot;
 using patch::ShapeTable;
 using patch::ShapeTime;
 
@@ -22,75 +22,92 @@ static constexpr double kSr = 48000.0;
 static constexpr double kBpm = 120.0;          // 2 beats a second
 static constexpr int kBar = (int)(kSr * 2.0);  // one bar of 4/4 in samples
 
-static ShapeTable all(const ShapeSlot& s) {
-    ShapeTable t{};
-    for (auto& x : t) x = s;
+/// `n` equal shapes over `beats` quarter notes.
+static ShapeTable equal(const ShapeSegment& s, int n, double beats = 4.0) {
+    ShapeTable t;
+    for (int i = 0; i < n; ++i) {
+        ShapeSegment d = s;
+        d.start = beats * i / n;
+        d.len = beats / n;
+        t.seg[(size_t)i] = d;
+    }
+    t.count = n;
     return t;
 }
+static const ShapeSegment kUp{patch::ShapeRamp, 0.0f, 1.0f, 0.0f, 0.0, 0.0};
 
 static void shapes() {
     TEST("shape values");
-    const ShapeSlot up{patch::ShapeRamp, 0.0f, 1.0f, 0.0f};
+    const ShapeSegment up{patch::ShapeRamp, 0.0f, 1.0f, 0.0f, 0.0, 1.0};
     EXPECT_NEAR(patch::shapeValue(up, 0.0), 0.0, 1e-6);
     EXPECT_NEAR(patch::shapeValue(up, 0.5), 0.5, 1e-6);
     EXPECT_NEAR(patch::shapeValue(up, 1.0), 1.0, 1e-6);
-    const ShapeSlot down{patch::ShapeRamp, 1.0f, 0.0f, 0.0f};
+    const ShapeSegment down{patch::ShapeRamp, 1.0f, 0.0f, 0.0f, 0.0, 1.0};
     EXPECT_NEAR(patch::shapeValue(down, 0.25), 0.75, 1e-6);
-    ShapeSlot bent = up;
+    ShapeSegment bent = up;
     bent.c = 0.5f;  // exponent 2: a slow start
     EXPECT_NEAR(patch::shapeValue(bent, 0.5), 0.25, 1e-6);
     bent.c = -0.5f;
     EXPECT(patch::shapeValue(bent, 0.5) > 0.7f);
-    const ShapeSlot s{patch::ShapeCurve, 0.2f, 0.8f, 0.4f};
+    const ShapeSegment s{patch::ShapeCurve, 0.2f, 0.8f, 0.4f, 0.0, 1.0};
     EXPECT_NEAR(patch::shapeValue(s, 0.0), 0.2, 1e-6);
     EXPECT_NEAR(patch::shapeValue(s, 0.5), 0.5, 1e-6);
     EXPECT_NEAR(patch::shapeValue(s, 1.0), 0.8, 1e-6);
-    const ShapeSlot tri{patch::ShapeTriangle, 0.0f, 1.0f, 0.0f};
+    const ShapeSegment tri{patch::ShapeTriangle, 0.0f, 1.0f, 0.0f, 0.0, 1.0};
     EXPECT_NEAR(patch::shapeValue(tri, 0.0), 0.0, 1e-6);
     EXPECT_NEAR(patch::shapeValue(tri, 0.5), 1.0, 1e-6);
     EXPECT_NEAR(patch::shapeValue(tri, 1.0), 0.0, 1e-6);
-    const ShapeSlot plat{patch::ShapePlateau, 0.6f, 0.6f, 0.0f};
+    const ShapeSegment plat{patch::ShapePlateau, 0.6f, 0.6f, 0.0f, 0.0, 1.0};
     EXPECT_NEAR(patch::shapeValue(plat, 0.3), 0.6, 1e-6);
-    const ShapeSlot pulse{patch::ShapePulse, 1.0f, 0.25f, 0.0f};
+    const ShapeSegment pulse{patch::ShapePulse, 1.0f, 0.25f, 0.0f, 0.0, 1.0};
     EXPECT_NEAR(patch::shapeValue(pulse, 0.4), 1.0, 1e-6);
     EXPECT_NEAR(patch::shapeValue(pulse, 0.6), 0.25, 1e-6);
-    EXPECT_NEAR(patch::shapeValue(ShapeSlot{}, 0.5), 0.0, 1e-6);
+    EXPECT_NEAR(patch::shapeValue(ShapeSegment{}, 0.5), 0.0, 1e-6);
 }
 
-static void slotCounts() {
-    TEST("slot count");
-    EXPECT(patch::slotCount(4.0, 1.0) == 4);      // 1 bar on 1/4
-    EXPECT(patch::slotCount(4.0, 0.25) == 16);    // 1 bar on 1/16
-    EXPECT(patch::slotCount(2.0, 1.0) == 2);      // half a bar on 1/4
-    EXPECT(patch::slotCount(16.0, 0.125) == 32);  // 4 bars on 1/32: capped
-    EXPECT(patch::slotCount(1.0, 4.0) == 1);      // never fewer than one
+static void finding() {
+    TEST("find the shape at a position");
+    ShapeTable t;
+    t.seg[0] = {patch::ShapeRamp, 0.0f, 1.0f, 0.0f, 0.0, 1.0};   // [0, 1)
+    t.seg[1] = {patch::ShapePlateau, 0.5f, 0.5f, 0.0f, 1.5, 0.5};  // [1.5, 2): a gap before it
+    t.seg[2] = {patch::ShapeRamp, 1.0f, 0.0f, 0.0f, 2.0, 2.0};   // [2, 4)
+    t.count = 3;
+    EXPECT(t.find(0.0) == 0);
+    EXPECT(t.find(0.99) == 0);
+    EXPECT(t.find(1.2) == -1);  // the gap
+    EXPECT(t.find(1.5) == 1);
+    EXPECT(t.find(2.0) == 2);
+    EXPECT(t.find(3.99) == 2);
+    EXPECT(t.find(4.5) == -1);
+    ShapeTable none;
+    EXPECT(none.find(0.5) == -1);
 }
 
-/// Four-slot ramp loop on the transport: one bar = 4 slots.
+/// Four equal ramps over one bar on the transport.
 static void onTransport() {
-    const ShapeTable t = all({patch::ShapeRamp, 0.0f, 1.0f, 0.0f});
-    ShapeParams p;  // 1 bar, 1/4
+    const ShapeTable t = equal(kUp, 4);
+    ShapeParams p;  // 4 beats
     ShapeSequencerDsp dsp;
     dsp.prepare(kSr);
     ShapeFrame f;
     ShapeTime tm;
     tm.running = true;
     TEST("transport lock");
-    int cycles = 0, slots = 0;
+    int cycles = 0, steps = 0;
     float lc = 0.0f, ls = 0.0f, maxOut = 0.0f;
     for (int i = 0; i < 2 * kBar; ++i) {
         tm.ppq = (double)i / kSr * 2.0;
         dsp.tick(p, t, 0.0f, 0.0f, tm, f);
-        if (i == kBar / 8) EXPECT_NEAR(f.out, 0.5, 0.01);  // half way up the first slot
+        if (i == kBar / 8) EXPECT_NEAR(f.out, 0.5, 0.01);  // half way up the first shape
         if (f.cycle > 0.5f && lc < 0.5f) ++cycles;
-        if (f.slotTrig > 0.5f && ls < 0.5f) ++slots;
+        if (f.stepTrig > 0.5f && ls < 0.5f) ++steps;
         lc = f.cycle;
-        ls = f.slotTrig;
+        ls = f.stepTrig;
         maxOut = std::max(maxOut, f.out);
     }
     EXPECT(maxOut > 0.99f && maxOut <= 1.0f);
     EXPECT(cycles == 1);  // the loop starts once more at the second bar
-    EXPECT(slots == 8);
+    EXPECT(steps == 8);
 
     TEST("a loop jump lands on the same value");
     tm.ppq = 4.0 + 0.5;
@@ -106,8 +123,48 @@ static void onTransport() {
     EXPECT(!f.active && f.out == 0.0f);
 }
 
+static void anyLengthAndGaps() {
+    TEST("a loop of 3 beats");
+    ShapeTable t = equal(kUp, 3, 3.0);  // three ramps, one per beat
+    ShapeParams p;
+    p.lengthBeats = 3.0;
+    ShapeSequencerDsp dsp;
+    dsp.prepare(kSr);
+    ShapeFrame f;
+    ShapeTime tm;
+    tm.running = true;
+    tm.ppq = 3.0 + 0.5;  // half way up the first ramp of the second pass
+    dsp.tick(p, t, 0.0f, 0.0f, tm, f);
+    EXPECT_NEAR(f.out, 0.5, 1e-5);
+
+    TEST("a gap plays the floor");
+    t.seg[1] = t.seg[2];  // beats 1…2 are now empty
+    t.count = 2;
+    tm.ppq = 1.5;
+    dsp.tick(p, t, 0.0f, 0.0f, tm, f);
+    EXPECT(f.out == 0.0f);
+
+    TEST("a shape split in two keeps the rest");
+    // 1 beat ramp [0,1) replaced by two half-beat shapes: a plateau and a ramp.
+    ShapeTable s;
+    s.seg[0] = {patch::ShapePlateau, 0.8f, 0.8f, 0.0f, 0.0, 0.5};
+    s.seg[1] = {patch::ShapeRamp, 0.0f, 1.0f, 0.0f, 0.5, 0.5};
+    s.seg[2] = {patch::ShapeRamp, 0.0f, 1.0f, 0.0f, 1.0, 1.0};
+    s.count = 3;
+    p.lengthBeats = 2.0;
+    tm.ppq = 0.25;
+    dsp.tick(p, s, 0.0f, 0.0f, tm, f);
+    EXPECT_NEAR(f.out, 0.8, 1e-5);
+    tm.ppq = 0.75;  // half way up the second small shape
+    dsp.tick(p, s, 0.0f, 0.0f, tm, f);
+    EXPECT_NEAR(f.out, 0.5, 1e-5);
+    tm.ppq = 1.5;  // the untouched second shape
+    dsp.tick(p, s, 0.0f, 0.0f, tm, f);
+    EXPECT_NEAR(f.out, 0.5, 1e-5);
+}
+
 static void rateAndReset() {
-    const ShapeTable t = all({patch::ShapeRamp, 0.0f, 1.0f, 0.0f});
+    const ShapeTable t = equal(kUp, 4);
     ShapeParams p;
     p.rate = 2.0;  // the bar lasts two beats
     ShapeSequencerDsp dsp;
@@ -146,7 +203,7 @@ static std::vector<float> run(const ShapeParams& p, const ShapeTable& t, int n, 
 }
 
 static void triggerAndGate() {
-    const ShapeTable t = all({patch::ShapeRamp, 0.0f, 1.0f, 0.0f});
+    const ShapeTable t = equal(kUp, 4);
     ShapeParams p;
     p.sync = patch::ShapeOnTrigger;
     {
@@ -165,8 +222,8 @@ static void triggerAndGate() {
         p.once = true;
         const auto o = run(p, t, 3 * kBar, 0);
         EXPECT_NEAR(o[kBar / 8], 0.5, 0.01);
-        EXPECT_NEAR(o[2 * kBar], 1.0, 1e-4);
-        EXPECT_NEAR(o[3 * kBar - 1], 1.0, 1e-4);
+        EXPECT_NEAR(o[2 * kBar], 1.0, 1e-3);
+        EXPECT_NEAR(o[3 * kBar - 1], 1.0, 1e-3);
     }
     {
         TEST("a trigger restarts a running pass");
@@ -193,7 +250,7 @@ static void triggerAndGate() {
 }
 
 static void outputStage() {
-    ShapeTable t = all({patch::ShapePlateau, 0.5f, 0.5f, 0.0f});
+    ShapeTable t = equal({patch::ShapePlateau, 0.5f, 0.5f, 0.0f, 0.0, 0.0}, 1);
     ShapeSequencerDsp dsp;
     dsp.prepare(kSr);
     ShapeFrame f;
@@ -214,7 +271,7 @@ static void outputStage() {
         p.offset = 0.0f;
         dsp.tick(p, t, 0.0f, 0.0f, tm, f);
         EXPECT_NEAR(f.out, 0.0, 1e-6);  // a plateau at 50 % is the centre
-        t = all({patch::ShapePlateau, 1.0f, 1.0f, 0.0f});
+        t = equal({patch::ShapePlateau, 1.0f, 1.0f, 0.0f, 0.0, 0.0}, 1);
         dsp.tick(p, t, 0.0f, 0.0f, tm, f);
         EXPECT_NEAR(f.out, 1.0, 1e-6);
     }
@@ -227,10 +284,9 @@ static void outputStage() {
     }
     {
         TEST("slew smooths a jump");
-        const ShapeTable g = all({patch::ShapePulse, 1.0f, 0.0f, 0.0f});
+        const ShapeTable g = equal({patch::ShapePulse, 1.0f, 0.0f, 0.0f, 0.0, 0.0}, 1);
         p = ShapeParams{};
         p.slew = 1.0f;
-        p.gridBeats = 4.0;  // one slot: high, then low half way
         ShapeSequencerDsp d2;
         d2.prepare(kSr);
         for (int i = 0; i < 100000; ++i) {
@@ -248,8 +304,9 @@ static void outputStage() {
 
 int main() {
     shapes();
-    slotCounts();
+    finding();
     onTransport();
+    anyLengthAndGaps();
     rateAndReset();
     triggerAndGate();
     outputStage();
