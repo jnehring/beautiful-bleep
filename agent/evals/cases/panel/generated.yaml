@@ -346,8 +346,8 @@
   - kind: panel_covers
     min_controls: 32
     params:
-    - attenu.scale1
-    - attenu.offset1
+    - attenu.scale
+    - attenu.offset
   - kind: valid_patch
   - kind: unrelated_changes
     max: 0
