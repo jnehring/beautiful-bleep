@@ -270,6 +270,12 @@
       '<div style="display:flex;gap:8px;align-items:center;margin-top:6px">' +
       '<div class="sq-info bv-label" style="flex:1 1 auto"></div><div class="sq-btns" style="display:flex;gap:4px"></div></div></div>',
     afterBuild(view, el) {
+      // The view and the module come as a pair. A module built before the free step count has a Grid and no Steps: say so.
+      if (!view.type.params.some((p) => p.id === "steps") || !view.type.params.some((p) => p.id === "length" && p.max > 8)) {
+        el.querySelector(".bv-panel").innerHTML = '<div class="bv-label" style="padding:12px;line-height:1.5">This Shape Sequencer is an older version than its view. ' +
+          'Update the module (Bleep Library, or rebuild the web modules) and add it again.</div>';
+        return;
+      }
       const sq = (view.sq = { canvas: el.querySelector(".sq-canvas"), sel: null, tool: "select", state: null, handles: [] });
       sq.info = el.querySelector(".sq-info");
       const pal = el.querySelector(".sq-pal"), buttons = [];
