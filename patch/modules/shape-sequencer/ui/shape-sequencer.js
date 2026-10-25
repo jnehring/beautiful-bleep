@@ -76,25 +76,29 @@
   // ---- the playhead --------------------------------------------------------------------------
   // The engine reports the position about 30 times a second (and the board less often when it is busy). The playhead runs on
   // its own between reports at the speed seen in the last two, and every report puts it back on the true position.
-  const MAX_AHEAD = 0.25;  // seconds: never run on further than this without a report
+  const MAX_AHEAD = 0.25;  // seconds: never run on further than this without a new position
+  // `live` is the last position that really changed, when it arrived and the speed. A report that repeats the same
+  // position says nothing new: the engine does not run a voice of a Voice Cell while it is not sounding (the view
+  // shows the first voice), so its last position comes again and again. The playhead then keeps its speed, as the
+  // loop does on the transport, until the voice wakes up and reports the true position.
   function noteState(sq, st) {
     const now = performance.now() / 1000, prev = sq.live;
     if (!st || !(st.active > 0.5)) { sq.live = null; return; }
-    let rate = prev ? prev.rate : 0;
-    if (prev && now > prev.t + 1e-3) {
+    if (!prev) { sq.live = { phase: st.phase, t: now, rate: 0, stale: false }; return; }
+    if (Math.abs(st.phase - prev.phase) < 1e-9) { prev.stale = true; return; }
+    let rate = prev.rate;
+    if (!prev.stale) {
       let dp = st.phase - prev.phase;
       if (dp < -0.5) dp += 1;  // the loop wrapped between the reports
-      // A jump back (a restart) keeps the old speed, and so does a report that did not move: inside a Voice Cell the engine
-      // skips a voice that is not sounding, so its last position is repeated until it wakes up.
-      if (dp > 1e-6 && dp < 0.5) rate = dp / (now - prev.t);
+      if (dp > 1e-6 && dp < 0.5 && now > prev.t + 1e-3) rate = dp / (now - prev.t);  // a jump back (a restart) keeps the old speed
     }
-    sq.live = { phase: st.phase, t: now, rate };
+    sq.live = { phase: st.phase, t: now, rate, stale: false };
   }
   function playPhase(sq) {
     const l = sq.live;
     if (!l) return sq.state ? sq.state.phase : 0;
     if (l.phase >= 0.9999) return 1;  // a one-shot pass that has ended
-    const p = l.phase + l.rate * Math.min(MAX_AHEAD, performance.now() / 1000 - l.t);
+    const elapsed = performance.now() / 1000 - l.t, p = l.phase + l.rate * (l.stale ? elapsed : Math.min(MAX_AHEAD, elapsed));
     return p >= 1 ? p - Math.floor(p) : p;
   }
 
