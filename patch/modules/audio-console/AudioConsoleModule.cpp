@@ -456,7 +456,8 @@ static void registerAudioConsoleModule(Registry& r) {
     for (int k = 0; k < kConsoleChannels; ++k) {
         const std::string n = std::to_string(k + 1);
         s.inputs.push_back(JackSpec("in" + n + "l", "In " + n + " L", Signal::Audio).when("channels", k + 1, kConsoleChannels));
-        s.inputs.push_back(JackSpec("in" + n + "r", "In " + n + " R", Signal::Audio).when("channels", k + 1, kConsoleChannels));
+        s.inputs.push_back(JackSpec("in" + n + "r", "In " + n + " R", Signal::Audio)
+                               .when("channels", k + 1, kConsoleChannels).andWhen("ch" + n + "_stereo", 1, 1));
     }
     for (int j = 1; j <= kConsoleAux; ++j) {
         const std::string n = std::to_string(j);

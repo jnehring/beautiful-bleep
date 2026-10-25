@@ -139,7 +139,10 @@
       function isShown(n, item) {
         if (!item.show) return true;
         const v = paramValue(n, item.show.param);
-        return v >= item.show.min && v <= item.show.max;
+        if (v < item.show.min || v > item.show.max) return false;
+        if (!item.show.param2) return true;
+        const v2 = paramValue(n, item.show.param2);
+        return v2 >= item.show.min2 && v2 <= item.show.max2;
       }
       function shownName(n, item) {
         return (item.names && item.names.list[paramValue(n, item.names.by)]) || item.name;
@@ -148,7 +151,7 @@
       function drivesJacks(n, pid) {
         const t = typeOf(n);
         return [...(t.inputs || []), ...(t.outputs || [])].some((j) =>
-          (j.show && j.show.param === pid) || (j.names && j.names.by === pid));
+          (j.show && (j.show.param === pid || j.show.param2 === pid)) || (j.names && j.names.by === pid));
       }
       function insideVoiceCell(id, b = s.board) {
         for (let n = nodeById(id, b); n; n = nodeById(n.parent, b)) if (n.type === "voice-cell") return true;

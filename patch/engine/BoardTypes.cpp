@@ -16,6 +16,11 @@ void describeShowAndNames(juce::DynamicObject* o, const ShowIf& show, const std:
         s->setProperty("param", juce::String(show.param));
         s->setProperty("min", show.min);
         s->setProperty("max", show.max);
+        if (!show.param2.empty()) {
+            s->setProperty("param2", juce::String(show.param2));
+            s->setProperty("min2", show.min2);
+            s->setProperty("max2", show.max2);
+        }
         o->setProperty("show", juce::var(s));
     }
     if (!namesBy.empty() && !names.empty()) {

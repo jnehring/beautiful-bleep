@@ -20,7 +20,7 @@ recorder. A board that has an Audio Mixer keeps it.
 | Jack | Type | What it does |
 |---|---|---|
 | In 1…32 L | `audio` | Left (or mono) input of channel *k*. Shown while *k* ≤ *Channels*. |
-| In 1…32 R | `audio` | Right input. Read only while the channel's *Stereo* setting is on. Shown while *k* ≤ *Channels*. |
+| In 1…32 R | `audio` | Right input. Shown (and read) only while the channel's *Stereo* setting is on and *k* ≤ *Channels*; switching the channel to mono hides the jack and keeps its cable. |
 | Return 1…4 L / R | `audio` | Stereo return of aux bus *j* (*R* unpatched copies *L*). Shown while *j* ≤ *Aux Buses*. |
 
 Every knob is also an input (`specs.md` section 7.3). Knobs and jacks of channels above *Channels* are hidden;

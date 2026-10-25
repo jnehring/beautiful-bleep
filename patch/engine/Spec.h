@@ -32,6 +32,8 @@ inline bool compatible(Signal from, Signal to) noexcept {
 struct ShowIf {
     std::string param;
     int min = 0, max = 0;
+    std::string param2;  ///< optional second condition, both must hold (e.g. a channel exists and is stereo)
+    int min2 = 0, max2 = 0;
     bool active() const noexcept { return !param.empty(); }
 };
 
@@ -130,6 +132,14 @@ struct JackSpec {
     JackSpec when(std::string param, int lo, int hi) const {
         JackSpec j = *this;
         j.show = {std::move(param), lo, hi};
+        return j;
+    }
+    /// Also requires another setting in range (with when()).
+    JackSpec andWhen(std::string param, int lo, int hi) const {
+        JackSpec j = *this;
+        j.show.param2 = std::move(param);
+        j.show.min2 = lo;
+        j.show.max2 = hi;
         return j;
     }
     JackSpec namedBy(std::string param, std::vector<std::string> list) const {

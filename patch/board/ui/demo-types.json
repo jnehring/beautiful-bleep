@@ -18293,7 +18293,10 @@
         "show": {
           "param": "channels",
           "min": 1,
-          "max": 32
+          "max": 32,
+          "param2": "ch1_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18315,7 +18318,10 @@
         "show": {
           "param": "channels",
           "min": 2,
-          "max": 32
+          "max": 32,
+          "param2": "ch2_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18337,7 +18343,10 @@
         "show": {
           "param": "channels",
           "min": 3,
-          "max": 32
+          "max": 32,
+          "param2": "ch3_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18359,7 +18368,10 @@
         "show": {
           "param": "channels",
           "min": 4,
-          "max": 32
+          "max": 32,
+          "param2": "ch4_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18381,7 +18393,10 @@
         "show": {
           "param": "channels",
           "min": 5,
-          "max": 32
+          "max": 32,
+          "param2": "ch5_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18403,7 +18418,10 @@
         "show": {
           "param": "channels",
           "min": 6,
-          "max": 32
+          "max": 32,
+          "param2": "ch6_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18425,7 +18443,10 @@
         "show": {
           "param": "channels",
           "min": 7,
-          "max": 32
+          "max": 32,
+          "param2": "ch7_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18447,7 +18468,10 @@
         "show": {
           "param": "channels",
           "min": 8,
-          "max": 32
+          "max": 32,
+          "param2": "ch8_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18469,7 +18493,10 @@
         "show": {
           "param": "channels",
           "min": 9,
-          "max": 32
+          "max": 32,
+          "param2": "ch9_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18491,7 +18518,10 @@
         "show": {
           "param": "channels",
           "min": 10,
-          "max": 32
+          "max": 32,
+          "param2": "ch10_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18513,7 +18543,10 @@
         "show": {
           "param": "channels",
           "min": 11,
-          "max": 32
+          "max": 32,
+          "param2": "ch11_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18535,7 +18568,10 @@
         "show": {
           "param": "channels",
           "min": 12,
-          "max": 32
+          "max": 32,
+          "param2": "ch12_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18557,7 +18593,10 @@
         "show": {
           "param": "channels",
           "min": 13,
-          "max": 32
+          "max": 32,
+          "param2": "ch13_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18579,7 +18618,10 @@
         "show": {
           "param": "channels",
           "min": 14,
-          "max": 32
+          "max": 32,
+          "param2": "ch14_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18601,7 +18643,10 @@
         "show": {
           "param": "channels",
           "min": 15,
-          "max": 32
+          "max": 32,
+          "param2": "ch15_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18623,7 +18668,10 @@
         "show": {
           "param": "channels",
           "min": 16,
-          "max": 32
+          "max": 32,
+          "param2": "ch16_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18645,7 +18693,10 @@
         "show": {
           "param": "channels",
           "min": 17,
-          "max": 32
+          "max": 32,
+          "param2": "ch17_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18667,7 +18718,10 @@
         "show": {
           "param": "channels",
           "min": 18,
-          "max": 32
+          "max": 32,
+          "param2": "ch18_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18689,7 +18743,10 @@
         "show": {
           "param": "channels",
           "min": 19,
-          "max": 32
+          "max": 32,
+          "param2": "ch19_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18711,7 +18768,10 @@
         "show": {
           "param": "channels",
           "min": 20,
-          "max": 32
+          "max": 32,
+          "param2": "ch20_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18733,7 +18793,10 @@
         "show": {
           "param": "channels",
           "min": 21,
-          "max": 32
+          "max": 32,
+          "param2": "ch21_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18755,7 +18818,10 @@
         "show": {
           "param": "channels",
           "min": 22,
-          "max": 32
+          "max": 32,
+          "param2": "ch22_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18777,7 +18843,10 @@
         "show": {
           "param": "channels",
           "min": 23,
-          "max": 32
+          "max": 32,
+          "param2": "ch23_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18799,7 +18868,10 @@
         "show": {
           "param": "channels",
           "min": 24,
-          "max": 32
+          "max": 32,
+          "param2": "ch24_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18821,7 +18893,10 @@
         "show": {
           "param": "channels",
           "min": 25,
-          "max": 32
+          "max": 32,
+          "param2": "ch25_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18843,7 +18918,10 @@
         "show": {
           "param": "channels",
           "min": 26,
-          "max": 32
+          "max": 32,
+          "param2": "ch26_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18865,7 +18943,10 @@
         "show": {
           "param": "channels",
           "min": 27,
-          "max": 32
+          "max": 32,
+          "param2": "ch27_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18887,7 +18968,10 @@
         "show": {
           "param": "channels",
           "min": 28,
-          "max": 32
+          "max": 32,
+          "param2": "ch28_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18909,7 +18993,10 @@
         "show": {
           "param": "channels",
           "min": 29,
-          "max": 32
+          "max": 32,
+          "param2": "ch29_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18931,7 +19018,10 @@
         "show": {
           "param": "channels",
           "min": 30,
-          "max": 32
+          "max": 32,
+          "param2": "ch30_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18953,7 +19043,10 @@
         "show": {
           "param": "channels",
           "min": 31,
-          "max": 32
+          "max": 32,
+          "param2": "ch31_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -18975,7 +19068,10 @@
         "show": {
           "param": "channels",
           "min": 32,
-          "max": 32
+          "max": 32,
+          "param2": "ch32_stereo",
+          "min2": 1,
+          "max2": 1
         }
       },
       {

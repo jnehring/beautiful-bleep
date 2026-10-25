@@ -140,7 +140,13 @@ void showAndNames(std::string& out, const ShowIf& show, const std::string& names
     if (show.active()) {
         out += ",\"show\":{\"param\":";
         quote(out, show.param);
-        out += ",\"min\":" + std::to_string(show.min) + ",\"max\":" + std::to_string(show.max) + "}";
+        out += ",\"min\":" + std::to_string(show.min) + ",\"max\":" + std::to_string(show.max);
+        if (!show.param2.empty()) {
+            out += ",\"param2\":";
+            quote(out, show.param2);
+            out += ",\"min2\":" + std::to_string(show.min2) + ",\"max2\":" + std::to_string(show.max2);
+        }
+        out += "}";
     }
     if (!namesBy.empty() && !names.empty()) {
         out += ",\"names\":{\"by\":";
