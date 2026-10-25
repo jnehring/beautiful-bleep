@@ -121,14 +121,14 @@ function looseTime() {
   const m2 = p.add("multiplier", [1, 1], { biasy1: 0.35 }, { name: "Velocity × Loose" });
   const m3 = p.add("multiplier", [1, 2], { biasy1: 0.35 }, { name: "Pitch × Loose" });
   const pg = p.add("pulse-generator", [2, 0], { mode: "External Width", delay: 0.01, width: 0.02 }, { name: "Gate Delay" });
-  const velScale = p.add("attenuverter", [2, 1], { scale1: 0.28, offset1: 0.72, clip: "Hard" }, { name: "Velocity Range" });
-  const pitchSum = p.add("attenuverter", [2, 2], { scale1: 1, scale2: 0.012 }, { name: "Pitch + Wobble" });
+  const velScale = p.add("attenuverter", [2, 1], { scale: 0.28, offset: 0.72, clip: "Hard" }, { name: "Velocity Range" });
+  const pitchSum = p.add("cv-mixer", [2, 2], { level1: 1, level2: 0.012, clip: "Off" }, { name: "Pitch + Wobble" });
   for (const r of [rt, rv, rp]) p.cable(p.cin, "gate", r, "clock");
   p.cable(rt, "out", m1, "x1").cable(p.cin, "loose", m1, "y1", 0.65).cable(m1, "out1", pg, "delay", 0.1)
     .cable(p.cin, "gate", pg, "gate").cable(pg, "gate", p.cout, "gout");
-  p.cable(rv, "out", m2, "x1").cable(p.cin, "loose", m2, "y1", 0.65).cable(m2, "out1", velScale, "in1").cable(velScale, "out1", p.cout, "vel");
+  p.cable(rv, "out", m2, "x1").cable(p.cin, "loose", m2, "y1", 0.65).cable(m2, "out1", velScale, "in").cable(velScale, "out", p.cout, "vel");
   p.cable(rp, "out", m3, "x1").cable(p.cin, "loose", m3, "y1", 0.65).cable(m3, "out1", pitchSum, "in2")
-    .cable(p.cin, "pitch", pitchSum, "in1").cable(pitchSum, "sum", p.cout, "pout");
+    .cable(p.cin, "pitch", pitchSum, "in1").cable(pitchSum, "out", p.cout, "pout");
   return p;
 }
 
@@ -376,11 +376,11 @@ function runningTotal() {
   }).input("add", "Add").output("notes", "Notes", "notes").output("pitch", "Pitch", "pitch").output("gate", "Gate", "gate").output("total", "Total", "control");
   const clk = p.add("clock-divider", [0, 0], { div1: 1, base: "1/16", output: "Trigger", gatelength: "Base Step" }, { name: "Step Clock" });
   const hold = p.add("utility", [1, 0], { mode: "Sample & Hold" }, { name: "Total" });
-  const sum = p.add("attenuverter", [1, 1], { scale1: 1, offset1: 0.29, scale2: 0.5 }, { name: "Add Amount" });
+  const sum = p.add("cv-mixer", [1, 1], { level1: 1, level2: 0.5, offset: 0.29, clip: "Off" }, { name: "Add Amount" });
   const fold = p.add("utility", [2, 1], { mode: "Fold" }, { name: "Fold Back" });
   const snap = boardScale(p, [3, 0], { sample: "Trigger" });
   p.cable(clk, "out1", hold, "clock").cable(fold, "out", hold, "x").cable(hold, "out", sum, "in1")
-    .cable(p.cin, "add", sum, "in2").cable(sum, "sum", fold, "x")
+    .cable(p.cin, "add", sum, "in2").cable(sum, "out", fold, "x")
     .cable(hold, "out", snap, "ina", 0.8).cable(clk, "out1", snap, "triga")
     .cable(snap, "notes", p.cout, "notes").cable(snap, "outa", p.cout, "pitch").cable(clk, "out1", p.cout, "gate").cable(hold, "out", p.cout, "total");
   return p;

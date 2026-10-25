@@ -12,21 +12,11 @@ static void clipAndAttenuverter() {
     EXPECT(dsp::clip(1.5f, dsp::ClipHard) == 1.0f);
 
     g_test = "attenuverter";
-    const float in[4] = {0.5f, 1.0f, 0.2f, 1.0f}, scale[4] = {-1.0f, 0.0f, 2.0f, 1.0f}, offset[4] = {0.25f, 0.3f, 0.0f, 0.0f};
-    AttenuverterFrame f;
-    attenuverterTick(in, scale, offset, dsp::ClipOff, f);
-    EXPECT_NEAR(f.out[0], -0.25, 1e-6);
-    EXPECT_NEAR(f.out[1], 0.3, 1e-6);  // unpatched row: Scale + Offset with In = 1
-    EXPECT_NEAR(f.out[2], 0.4, 1e-6);
-    EXPECT_NEAR(f.sum, -0.25 + 0.3 + 0.4 + 1.0, 1e-6);
-    const float big[4] = {1.5f, 1.5f, 1.5f, 1.5f}, one[4] = {1, 1, 1, 1}, zero[4] = {};
-    attenuverterTick(big, one, zero, dsp::ClipOff, f);
-    EXPECT(f.out[0] == 1.5f);
-    for (int mode : {dsp::ClipSoft, dsp::ClipHard}) {
-        attenuverterTick(big, one, zero, mode, f);
-        for (float v : f.out) EXPECT(std::fabs(v) <= 1.0f);
-        EXPECT(std::fabs(f.sum) <= 1.0f);
-    }
+    EXPECT_NEAR(attenuverterTick(0.5f, -1.0f, 0.25f, dsp::ClipOff), -0.25, 1e-6);
+    EXPECT_NEAR(attenuverterTick(1.0f, 0.0f, 0.3f, dsp::ClipOff), 0.3, 1e-6);  // unpatched: Scale + Offset with In = 1
+    EXPECT_NEAR(attenuverterTick(0.2f, 2.0f, 0.0f, dsp::ClipOff), 0.4, 1e-6);
+    EXPECT(attenuverterTick(1.5f, 1.0f, 0.0f, dsp::ClipOff) == 1.5f);
+    for (int mode : {dsp::ClipSoft, dsp::ClipHard}) EXPECT(std::fabs(attenuverterTick(1.5f, 1.0f, 0.0f, mode)) <= 1.0f);
 }
 
 static void cvMixer() {

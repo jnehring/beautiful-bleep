@@ -1,28 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Attenuverter core (doc/specs/modules/attenuverter.md): four rows of
-// In × Scale + Offset, a sum, and optional clipping.
+// Attenuverter core (doc/specs/modules/attenuverter.md): In × Scale + Offset,
+// with optional clipping.
 #pragma once
 
 #include "dsp/Clip.h"
 
 namespace bleep::patch {
 
-constexpr int kAttenuverterRows = 4;
-
-struct AttenuverterFrame {
-    float out[kAttenuverterRows] = {};
-    float sum = 0.0f;
-};
-
-/// `in[r]` is the row's input; pass 1 for an unpatched row (spec §4.2).
-inline void attenuverterTick(const float* in, const float* scale, const float* offset, int clipMode,
-                             AttenuverterFrame& f) noexcept {
-    float sum = 0.0f;
-    for (int r = 0; r < kAttenuverterRows; ++r) {
-        f.out[r] = dsp::clip(in[r] * scale[r] + offset[r], clipMode);
-        sum += f.out[r];
-    }
-    f.sum = dsp::clip(sum, clipMode);
+/// `in` is the input; pass 1 for an unpatched input (spec §4.2).
+inline float attenuverterTick(float in, float scale, float offset, int clipMode) noexcept {
+    return dsp::clip(in * scale + offset, clipMode);
 }
 
 }  // namespace bleep::patch

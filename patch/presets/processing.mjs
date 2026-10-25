@@ -63,13 +63,14 @@ function rotor(p, col, row, src, { rate, delayMs, swing, am, name }) {
   const q = p.add("quad-lfo", [col, row], { mode: "Phase", spread: 90, rate1: rate }, { name: `${name} Rotor` });
   const dop = p.add("multiplier", [col + 1, row], { gain1: 1, gain2: 1 }, { name: `${name} Depth` });
   const dly = p.add("delay", [col + 1, row + 1], { timel: delayMs, timer: delayMs, feedback: 0, mix: 1, lowcut: 20, highcut: 20000 }, { name: `${name} Doppler` });
-  const att = p.add("attenuverter", [col + 2, row], { scale1: am, scale2: am }, { name: `${name} Swell` });
+  const att = p.add("attenuverter", [col + 2, row], { scale: am }, { name: `${name} Swell L` });
+  const att2 = p.add("attenuverter", [col + 3, row], { scale: am }, { name: `${name} Swell R` });
   const amp = p.add("multiplier", [col + 2, row + 1], { biasy1: 1, biasy2: 1 }, { name: `${name} Level` });
   p.cable(q, "out1", dop, "x1").cable(q, "out3", dop, "x2")
     .cable(dop, "out1", dly, "timel", swing).cable(dop, "out2", dly, "timer", swing)
     .cable(src, "l", dly, "l").cable(src, "r", dly, "r")
-    .cable(q, "out2", att, "in1").cable(q, "out4", att, "in2")
-    .cable(att, "out1", amp, "y1").cable(att, "out2", amp, "y2")
+    .cable(q, "out2", att, "in").cable(q, "out4", att2, "in")
+    .cable(att, "out", amp, "y1").cable(att2, "out", amp, "y2")
     .cable(dly, "l", amp, "x1").cable(dly, "r", amp, "x2")
     .cable(p.cin, "depth", dop, "gain1", 0.125).cable(p.cin, "depth", dop, "gain2", 0.125)
     .cable(p.cin, "mics", q, "spread", 0.25).cable(p.cin, "speed", q, "rate1", 0.1);

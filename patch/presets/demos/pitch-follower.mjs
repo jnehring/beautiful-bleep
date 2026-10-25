@@ -71,12 +71,12 @@ function onlyClearTonesPass() {
   const m = melody(p, [0, 0], [0, 4, 7, 4, 9, 7, 4, 2], { rate: "1/8", shape: 0.5, root: "G", scale: "Major Pentatonic", octave: 0,
     gatelength: 0.6, env: { decay: 0.2, sustain: 0.6, release: 0.05 } });
   const lfo = p.add("lfo", [0, 3], { wave: "Square", sync: "Tempo", division: "1/1", polarity: "Unipolar", pw: 0.5 }, { name: "Bar Switch" });
-  const inv = p.add("attenuverter", [1, 3], { scale1: -1, offset1: 1 }, { name: "Invert" });
-  p.cable(lfo, "out", inv, "in1");
+  const inv = p.add("attenuverter", [1, 3], { scale: -1, offset: 1 }, { name: "Invert" });
+  p.cable(lfo, "out", inv, "in");
   const tone = p.add("vca", [3, 0], {}, { name: "Tone Gate" });
   const noise = p.add("noise", [0, 5], { level: 0.8, colour: 0.2 });
   const nvca = p.add("vca", [3, 5], {}, { name: "Noise Gate" });
-  p.cable(m.amp, "l", tone, "l").cable(inv, "out1", tone, "gain").cable(noise, "out", nvca, "l").cable(lfo, "out", nvca, "gain");
+  p.cable(m.amp, "l", tone, "l").cable(inv, "out", tone, "gain").cable(noise, "out", nvca, "l").cable(lfo, "out", nvca, "gain");
   const src = p.add("audio-mixer", [4, 3], { level1: 0, level2: -3 }, { name: "Source Mix" });
   p.cable(tone, "l", src, "in1l").cable(nvca, "l", src, "in2l");
   const f = p.add("pitch-follower", [5, 3], { low: 100, high: 1500, glide: 0.01, hold: 0.03, confidence: 0.85, guard: "Light", vote: "Off" });

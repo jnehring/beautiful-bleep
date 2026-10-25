@@ -1713,14 +1713,14 @@
     "name": "Attenuverter",
     "category": "Utility/Signal",
     "colour": "#c4b5fd",
-    "description": "Four rows of scale and offset; unpatched rows are manual constants.",
+    "description": "Scale and offset; unpatched, a manual constant.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,
     "params": [
       {
-        "id": "scale1",
-        "name": "Scale 1",
+        "id": "scale",
+        "name": "Scale",
         "kind": "float",
         "default": 0.75,
         "steps": 0,
@@ -1730,12 +1730,11 @@
         "max": 2.0,
         "def": 1.0,
         "format": "number",
-        "decimals": 2,
-        "group": "Ch 1"
+        "decimals": 2
       },
       {
-        "id": "offset1",
-        "name": "Offset 1",
+        "id": "offset",
+        "name": "Offset",
         "kind": "float",
         "default": 0.5,
         "steps": 0,
@@ -1745,98 +1744,7 @@
         "max": 1.0,
         "def": 0.0,
         "format": "number",
-        "decimals": 2,
-        "group": "Ch 1"
-      },
-      {
-        "id": "scale2",
-        "name": "Scale 2",
-        "kind": "float",
-        "default": 0.75,
-        "steps": 0,
-        "modulatable": true,
-        "cableable": false,
-        "min": -2.0,
-        "max": 2.0,
-        "def": 1.0,
-        "format": "number",
-        "decimals": 2,
-        "group": "Ch 2"
-      },
-      {
-        "id": "offset2",
-        "name": "Offset 2",
-        "kind": "float",
-        "default": 0.5,
-        "steps": 0,
-        "modulatable": true,
-        "cableable": false,
-        "min": -1.0,
-        "max": 1.0,
-        "def": 0.0,
-        "format": "number",
-        "decimals": 2,
-        "group": "Ch 2"
-      },
-      {
-        "id": "scale3",
-        "name": "Scale 3",
-        "kind": "float",
-        "default": 0.75,
-        "steps": 0,
-        "modulatable": true,
-        "cableable": false,
-        "min": -2.0,
-        "max": 2.0,
-        "def": 1.0,
-        "format": "number",
-        "decimals": 2,
-        "group": "Ch 3"
-      },
-      {
-        "id": "offset3",
-        "name": "Offset 3",
-        "kind": "float",
-        "default": 0.5,
-        "steps": 0,
-        "modulatable": true,
-        "cableable": false,
-        "min": -1.0,
-        "max": 1.0,
-        "def": 0.0,
-        "format": "number",
-        "decimals": 2,
-        "group": "Ch 3"
-      },
-      {
-        "id": "scale4",
-        "name": "Scale 4",
-        "kind": "float",
-        "default": 0.75,
-        "steps": 0,
-        "modulatable": true,
-        "cableable": false,
-        "min": -2.0,
-        "max": 2.0,
-        "def": 1.0,
-        "format": "number",
-        "decimals": 2,
-        "group": "Ch 4"
-      },
-      {
-        "id": "offset4",
-        "name": "Offset 4",
-        "kind": "float",
-        "default": 0.5,
-        "steps": 0,
-        "modulatable": true,
-        "cableable": false,
-        "min": -1.0,
-        "max": 1.0,
-        "def": 0.0,
-        "format": "number",
-        "decimals": 2,
-        "group": "Ch 4"
+        "decimals": 2
       },
       {
         "id": "clip",
@@ -1860,63 +1768,20 @@
     ],
     "inputs": [
       {
-        "id": "in1",
-        "name": "In 1",
-        "type": "control",
-        "bipolar": true
-      },
-      {
-        "id": "in2",
-        "name": "In 2",
-        "type": "control",
-        "bipolar": true
-      },
-      {
-        "id": "in3",
-        "name": "In 3",
-        "type": "control",
-        "bipolar": true
-      },
-      {
-        "id": "in4",
-        "name": "In 4",
+        "id": "in",
+        "name": "In",
         "type": "control",
         "bipolar": true
       }
     ],
     "outputs": [
       {
-        "id": "out1",
-        "name": "Out 1",
-        "type": "control",
-        "bipolar": true
-      },
-      {
-        "id": "out2",
-        "name": "Out 2",
-        "type": "control",
-        "bipolar": true
-      },
-      {
-        "id": "out3",
-        "name": "Out 3",
-        "type": "control",
-        "bipolar": true
-      },
-      {
-        "id": "out4",
-        "name": "Out 4",
-        "type": "control",
-        "bipolar": true
-      },
-      {
-        "id": "sum",
-        "name": "Sum",
+        "id": "out",
+        "name": "Out",
         "type": "control",
         "bipolar": true
       }
-    ],
-    "groupColumns": true
+    ]
   },
   {
     "type": "cv-mixer",
