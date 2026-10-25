@@ -115,12 +115,27 @@ def package(slug: str, web: Path, out: Path) -> tuple[Path, str]:
     return target, hashlib.sha256(target.read_bytes()).hexdigest()
 
 
+def stamp_doc(md: str, version: str, built: str) -> str:
+    """The doc with "Version V · built DATE" under its title (at the top when it has none)."""
+    line = f"*Version {version} · built {built}*"
+    title, _, rest = md.partition("\n") if md.startswith("# ") else ("", "", md)
+    body = f"\n\n{rest.lstrip(chr(10))}" if rest.strip() else "\n"
+    return f"{title}\n\n{line}{body}" if title else f"{line}{body}"
+
+
 def install_local(package: Path, slug: str, data: Path, version: str) -> Path:
-    """A copy of the package in DATA/modules/local/<slug>-<version>.bleepmod, the way a developer would copy a module by hand."""
-    import shutil
+    """DATA/modules/local/<slug>-<version>.bleepmod, the way a developer would copy a module by hand. The copy's docs say which version it is and
+    when it was built; the package in the output folder stays reproducible, without either."""
+    import datetime
     target = data / "modules" / "local" / f"{slug}-{version}.bleepmod"
     target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(package, target)
+    built = datetime.date.today().isoformat()
+    with zipfile.ZipFile(package) as z:
+        files = {n: z.read(n) for n in z.namelist()}
+    for n in files:
+        if n.startswith("doc/") and n.endswith(".md"):
+            files[n] = stamp_doc(files[n].decode(), version, built).encode()
+    write_zip(files, target)
     return target
 
 
@@ -158,7 +173,8 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     slugs = a.modules or sorted(p.parent.name for p in (ROOT / "patch" / "modules").glob("*/module.json"))
     failed = 0
-    print(f"{'module':22} {'KB':>6}  types  sha256")
+    version = ""
+    print(f"{'module':22} {'KB':>6}  types  sha256            version")
     for slug in slugs:
         try:
             target, digest = package(slug, a.web, a.out)
@@ -179,7 +195,7 @@ def main(argv=None) -> int:
                 failed += 1
                 continue
         n = len(json.loads(zipfile.ZipFile(target).read("module.json"))["types"])
-        print(f"{slug:22} {target.stat().st_size / 1024:6.1f}  {n:5}  {digest[:16]}")
+        print(f"{slug:22} {target.stat().st_size / 1024:6.1f}  {n:5}  {digest[:16]}  {version if a.install else ''}")
     print(f"{len(slugs) - failed} packaged into {a.out}" + (f", {failed} failed" if failed else ""))
     return 1 if failed else 0
 
