@@ -156,7 +156,7 @@ Five whole patches show what Verb does. In the standalone app open **File → Pr
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Verb view has 18 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Verb view has 20 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
 
 | Preset | What it does |
 |---|---|
@@ -178,6 +178,8 @@ The preset bar of the Verb view has 18 factory presets. Pick one to set the knob
 | **Long Drip** | A long coil with slow, separate drips; the lows trail behind the highs. |
 | **Tight Flutter** | A short coil: fast metallic flutter with little chirp. |
 | **Held Coil** | An endless, wobbling metal drone; play into it, then lower Decay to let it go. |
+| **Studio Room** | Close, believable room: discrete early reflections around a short tail. |
+| **Chapel Echoes** | Distinct stone-wall echoes before a long, soft tail. |
 <!-- /generated -->
 
 ## Reference
