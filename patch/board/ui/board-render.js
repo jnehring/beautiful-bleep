@@ -59,6 +59,22 @@
       }
 
       function signalColour(t) { return `var(--sig-${t || "control"})`; }
+      /// "any" cables sweep the spectrum from one jack to the other; each gets its own gradient so it follows its endpoints.
+      const spectrum = ["#ff5f6d", "#ffa24c", "#f6d65b", "#5bd17a", "#4fd1c5", "#60a5fa", "#a78bfa", "#f472b6"];
+      function sweepGradient(id, a, b) {
+        const g = document.createElementNS(SVGNS, "linearGradient");
+        g.id = id;
+        g.setAttribute("gradientUnits", "userSpaceOnUse");
+        for (const [k, v] of Object.entries({ x1: a.x, y1: a.y, x2: b.x, y2: b.y })) g.setAttribute(k, v);
+        spectrum.forEach((c, i) => {
+          const stop = document.createElementNS(SVGNS, "stop");
+          stop.setAttribute("offset", i / (spectrum.length - 1));
+          stop.setAttribute("stop-color", c);
+          g.append(stop);
+        });
+        cablesEl.append(g);
+        return `url(#${id})`;
+      }
 
       function renderNodes() {
         nodesEl.innerHTML = "";
@@ -386,6 +402,7 @@
           if (isGhost(src) || isGhost(dst)) p.classList.add("ghost");
           if (s.trace && !(s.trace.has(src.id) && s.trace.has(dst.id))) p.classList.add("dim");
           if (isCableSel(c.id)) { p.classList.add("selected"); p.style.setProperty("--c", cableHighlight); }
+          else if (type === "any") p.style.stroke = sweepGradient("sweep-" + c.id.replace(/[^\w-]/g, "_"), a, b);
           const hit = document.createElementNS(SVGNS, "path");
           hit.setAttribute("d", d);
           hit.setAttribute("class", "cable-hit");

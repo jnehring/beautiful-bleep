@@ -22,7 +22,8 @@
   --sig-audio: #ff6b6b;
   --sig-notes: #a78bfa;
   --sig-patchbay: #e5e7eb;
-  --sig-any: #f472b6;   /* patch bay inlets: they take any cable but notes */
+  --sig-any: #f472b6;   /* patch bay inlets: they take any cable but notes; the cable and jack paint the spectrum instead (--sweep) */
+  --sweep: conic-gradient(from 200deg, #ff5f6d, #ffa24c, #f6d65b, #5bd17a, #4fd1c5, #60a5fa, #a78bfa, #f472b6, #ff5f6d);
   font: 13px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
   color-scheme: dark;
 }
@@ -115,6 +116,11 @@ kbd { font: inherit; font-size: 11px; color: var(--muted); }
 /* The port a drop would reach right now: the dot swells with a ring, the label lights up. */
 .jack.drop-hover .dot { background: var(--c, #fff); transform: scale(1.5); box-shadow: 0 0 0 4px rgba(255, 255, 255, .55), 0 0 10px var(--c, #fff); }
 .jack.drop-hover .jl { color: var(--text); }
+/* "any" jacks: a spectrum ring, filled with the spectrum when plugged in (or an outlet) */
+.jack[data-type="any"] .dot { border-color: transparent; background: linear-gradient(var(--canvas), var(--canvas)) padding-box, var(--sweep) border-box; }
+.jack[data-type="any"].out .dot, .jack[data-type="any"].connected .dot,
+.jack[data-type="any"].drop-hover .dot { background: var(--sweep) border-box; }
+.jack[data-type="any"].drop-hover .dot { box-shadow: 0 0 0 4px rgba(255, 255, 255, .55), 0 0 10px #f472b6; }
 canvas.scope { width: 34px; height: 12px; flex: none; }
 .zoomed-out .jack .jl, .zoomed-out canvas.scope { visibility: hidden; }
 
