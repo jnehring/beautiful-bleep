@@ -126,9 +126,7 @@ static void registerReverbModule(Registry& r) {
     s.name = "Verb";
     s.category = "Effects/Space & Time";
     s.colour = "#f0abfc";
-    s.description = "Stereo FDN reverb built to be played: every knob, Size and Decay included, modulates "
-                    "click-free; small rooms to endless pads, infinite decay and Freeze; "
-                    "a Room adds discrete early reflections ahead of the tail; or switch Type to Spring for a metallic, dispersive, boingy tail.";
+    s.description = "Stereo reverb with room reflections, infinite decay and Freeze; every knob modulates click-free.";
     auto decay = ParamSpec::exponential("decay", "Decay", (float)ReverbDsp::kMinT60, (float)ReverbDsp::knobTopSeconds(), 2.5f);
     decay.format = ParamSpec::Format::Seconds;
     auto bass = ParamSpec::exponential("bass", "Bass", 0.5f, 2.0f, 1.0f, "\xc3\x97");

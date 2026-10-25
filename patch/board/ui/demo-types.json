@@ -42201,7 +42201,7 @@
     "name": "Verb",
     "category": "Effects/Space & Time",
     "colour": "#f0abfc",
-    "description": "Stereo FDN reverb built to be played: every knob, Size and Decay included, modulates click-free; small rooms to endless pads, infinite decay and Freeze; a Room adds discrete early reflections ahead of the tail; or switch Type to Spring for a metallic, dispersive, boingy tail.",
+    "description": "Stereo reverb with room reflections, infinite decay and Freeze; every knob modulates click-free.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,

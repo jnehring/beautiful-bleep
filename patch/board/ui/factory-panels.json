@@ -835,6 +835,18 @@
         {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
       ]}
     ],
+    "Verb: Studio Room": [
+      {"id": "verb-studio-room", "name": "Verb: Studio Room", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
+    "Verb: Chapel Echoes": [
+      {"id": "verb-chapel-echoes", "name": "Verb: Chapel Echoes", "cell": "root", "cols": 30, "rows": 20, "controls": [
+        {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Verb","style":"title"},
+        {"id":"c2","type":"view","at":[1,3],"size":[28,16],"node":"fx"}
+      ]}
+    ],
     "Room Print: Small Room": [
       {"id": "room-print-small-room", "name": "Room Print: Small Room", "cell": "root", "cols": 30, "rows": 20, "controls": [
         {"id":"c1","type":"label","at":[1,0],"size":[28,2],"text":"Room Print","style":"title"},

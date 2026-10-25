@@ -397,8 +397,13 @@ void ModuleLibrary::buildViewCache() const {
     const auto started = juce::Time::getMillisecondCounter();
     juce::StringArray names;
     const auto c = const_cast<ModuleLibrary*>(this)->client();
-    for (const auto& m : c->installed()) {
-        if (!m.allowed) continue;
+    const auto installed = c->installed();
+    // The views and docs of a module come from its newest version (a dev copy beats the library's), whatever order the packages are found in.
+    std::map<std::string, std::string> newestOf;
+    for (const auto& m : installed)
+        if (m.allowed && (!newestOf.count(m.slug) || library::versionNewer(m.version, newestOf[m.slug]))) newestOf[m.slug] = m.version;
+    for (const auto& m : installed) {
+        if (!m.allowed || newestOf[m.slug] != m.version) continue;
         library::Package pkg;
         std::string error;
         // installed() may answer from its cache (keyed on size and time of the file): the files served to the board's web view

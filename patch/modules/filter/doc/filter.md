@@ -30,7 +30,7 @@ audio rate. **Type** picks the algorithm; the dropdown groups them by family.
 - **Drive** saturates the input before the filter (a soft tanh curve) for
   warmth and grit. The saturating types add their own distortion on top.
 - **Mode** is a dropdown that picks the response on the multimode types:
-  LP, BP, HP or Notch. A cable into it steps through the four.
+  Low-pass, Band-pass, High-pass or Notch. A cable into it steps through the four.
 
   On the phasers and the flanger it does something else (see below).
 - **Gain** sets the boost or cut of the shelving types, in dB. On the vowel

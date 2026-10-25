@@ -344,6 +344,8 @@
     // ---- settings: choices, toggles, integers
     function makeSetting(p) {
       const box = el("div", "bv-setting");
+      box.dataset.param = p.id;
+      if (p.modulatable) box.classList.add("bv-target");   // a cable dropped here sets the value (a cableable setting)
       const label = el("span", "bv-label", p.name);
       box.appendChild(label);
       const s = { p, box, label, eff: null };

@@ -78,7 +78,7 @@ void registerFilterModule(Registry& r) {
     s.colour = "#f472b6";
     s.description = "Stereo multimode filter: 32 virtual-analog algorithms (SVF, ladders, 1-poles, shelves, phasers, flanger, "
                     "Sallen-Key, vowel formants, tuned comb, staircase), LP/BP/HP/notch mode, drive, key tracking, envelope out.";
-    ParamSpec mode = ParamSpec::stepped("mode", "Mode", {"LP", "BP", "HP", "Notch"}, 0);
+    ParamSpec mode = ParamSpec::stepped("mode", "Mode", {"Low-pass", "Band-pass", "High-pass", "Notch"}, 0);
     std::vector<std::string> names, groups;
     for (const auto& group : patch::va::typeGroups())
         for (const char* name : group.types) {

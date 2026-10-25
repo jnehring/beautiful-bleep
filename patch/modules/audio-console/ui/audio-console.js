@@ -179,7 +179,11 @@
       }
     };
     /// One chip per cable into the fader: drag to set its amount, × removes the cable.
+    // A refresh during an amount drag (beginGesture answers with the board) must not replace the chip under the pointer: it re-renders on release.
+    let chipDrag = false, stale = false;
     f.renderAmounts = () => {
+      if (chipDrag) { stale = true; return; }
+      stale = false;
       amounts.innerHTML = "";
       if (!view.api.cablesInto) return;
       for (const c of view.api.cablesInto(id)) {
@@ -194,14 +198,14 @@
         x.addEventListener("click", (e) => { e.stopPropagation(); view.api.removeCable(c.id); });
         chip.append(pct, x);
         let y0 = null, a0 = 0;
-        chip.addEventListener("pointerdown", (e) => { y0 = e.clientY; a0 = c.amount; chip.setPointerCapture(e.pointerId); view.api.beginGesture(); });
+        chip.addEventListener("pointerdown", (e) => { y0 = e.clientY; a0 = c.amount; chipDrag = true; chip.setPointerCapture(e.pointerId); view.api.beginGesture(); });
         chip.addEventListener("pointermove", (e) => {
           if (y0 === null) return;
           c.amount = Math.round(clamp01((a0 + 1) / 2 + (y0 - e.clientY) / (e.shiftKey ? 1000 : 100)) * 2000 - 1000) / 1000;
           show();
           view.api.setAmount(c.id, c.amount);
         });
-        const end = () => { y0 = null; };
+        const end = () => { y0 = null; chipDrag = false; if (stale) f.renderAmounts(); };
         chip.addEventListener("pointerup", end);
         chip.addEventListener("pointercancel", end);
         chip.addEventListener("dblclick", () => { view.api.beginGesture(); c.amount = 1; show(); view.api.setAmount(c.id, 1); });

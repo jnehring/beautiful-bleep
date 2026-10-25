@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Six-band parametric equaliser. Every band has a type (bell, shelves, cuts, notch, band-pass); RBJ "Audio EQ Cookbook"
 // biquads (the formulas are public), cuts as Butterworth cascades, transposed direct form II in double precision.
-// Every band has an algorithm: Clean (the RBJ biquads as they are), Modern (the bell is Orfanidis' design with a
-// prescribed 0 dB at Nyquist, so it is not cramped near the top of the spectrum) and Vintage (proportional-Q: a bell
-// or shelf gets narrower the more it boosts or cuts, plus a gentle tanh saturation after the band).
+// Every band has an algorithm: Clean (the RBJ biquads as they are), Modern (the bell is Orfanidis' design, not cramped
+// near the top of the spectrum, with its Q measured 3 dB below the peak: a big boost or cut stays broad and musical where
+// Clean's gets pinched, and a cut is the exact inverse of the boost) and Vintage (proportional-Q: a bell or shelf is broad for small moves and
+// narrow for big ones, plus a tanh saturation after the band that grows with the band's boost or cut).
 #pragma once
 
 #include <algorithm>
@@ -35,15 +36,18 @@ struct Biquad {
     static constexpr double kPi = 3.14159265358979323846;
     static constexpr int kMaxSections = 4;  ///< a cut of order 8 is four sections
 
-    /// Vintage: the Q a bell or shelf really gets. Small gains are broad (half the Q), large ones narrow (up to 1.3x at 18 dB).
-    static double vintageQ(double q, double gainDb) noexcept { return q * std::min(0.5 + std::abs(gainDb) / 22.5, 1.3); }
+    /// Vintage: the Q a bell or shelf really gets. Small gains are broad (a third of the Q), large ones narrow (1.8x from 17 dB).
+    static double vintageQ(double q, double gainDb) noexcept { return q * std::min(0.35 + std::abs(gainDb) / 12.0, 1.8); }
+    /// Vintage: the saturation drive of a band, unity gain for small signals; 1 for a flat band, 2.8 at 18 dB.
+    static double vintageDrive(const EqBand& b) noexcept { return 1.0 + (b.hasGain() ? std::abs(b.gainDb) * 0.1 : 0.0); }
 
-    /// Modern bell: Orfanidis' peaking filter, G at the centre, bandwidth gain sqrt(G) and 1 (0 dB) at Nyquist. A cut is the
+    /// Modern bell: Orfanidis' peaking filter, G at the centre, 1 (0 dB) at Nyquist, the bandwidth (centre / Q) taken 3 dB
+    /// below the peak, which makes beta independent of the gain (a big boost is much broader than Clean's). A cut is the
     /// exact inverse of the boost of the same size, so a boost and a cut cancel.
     static Biquad modernBell(double hz, double gainDb, double q, double sampleRate) noexcept {
         const double w0 = 2.0 * kPi * std::min(hz, 0.45 * sampleRate) / sampleRate;
         const double G = std::pow(10.0, std::abs(gainDb) / 20.0);
-        const double beta = std::tan(std::min(w0 / (2.0 * std::max(q, 0.05)), 1.5)) / std::sqrt(G);  // tan(dw / 2), dw = w0 / Q
+        const double beta = std::tan(std::min(w0 / (2.0 * std::max(q, 0.05)), 1.5));  // tan(dw / 2), dw = w0 / Q
         const double cs = std::cos(w0), d = 1.0 + beta;
         const double b0 = (1.0 + G * beta) / d, b1 = -2.0 * cs / d, b2 = (1.0 - G * beta) / d, a1 = b1, a2 = (1.0 - beta) / d;
         if (gainDb >= 0.0) return {b0, b1, b2, a1, a2};
@@ -172,6 +176,7 @@ public:
             if (!(b == cur)) {
                 designed_[i] = b;
                 count_[i] = b.active() ? Biquad::design(b, sr_, sec_[i]) : 0;
+                drive_[i] = Biquad::vintageDrive(b);
                 for (int s = count_[i]; s < Biquad::kMaxSections; ++s) z_[i][s][0] = z_[i][s][1] = 0.0;
             }
         }
@@ -187,14 +192,13 @@ public:
                 z[1] = c.b2 * x - c.a2 * y;
                 x = y;
             }
-            if (count_[i] && designed_[i].algo == EqBand::Vintage) x = std::tanh(kDrive * x) / kDrive;  // gentle soft clip
+            if (count_[i] && designed_[i].algo == EqBand::Vintage) x = std::tanh(drive_[i] * x) / drive_[i];  // soft clip, harder the more the band boosts or cuts
         }
         return (float)x;
     }
 
 private:
     static constexpr double kGlideSeconds = 0.01;
-    static constexpr double kDrive = 0.3;  ///< Vintage saturation: unity for small signals, 0.4 dB down at full scale
     /// One step of a one-pole glide from `from` towards `to` (in the log domain for hz and Q); lands on `to` once close.
     static float glide(float from, float to, double a, bool logDomain) noexcept {
         if (logDomain) {
@@ -208,6 +212,7 @@ private:
     EqBand designed_[kBands];
     Biquad sec_[kBands][Biquad::kMaxSections];
     int count_[kBands]{};
+    double drive_[kBands]{};
     double z_[kBands][Biquad::kMaxSections][2]{};
 };
 

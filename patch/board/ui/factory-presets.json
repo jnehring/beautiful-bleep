@@ -10285,6 +10285,54 @@
       }
     },
     {
+      "name": "Verb: Studio Room", "category": "Module FX",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Module FX",
+        "description": "Close, believable room: discrete early reflections around a short tail. The Verb module on its own, with its view as the panel.",
+        "tags": ["reverb","verb","module","single module","effects","space","time","effect"],
+        "help": {"text":"Close, believable room: discrete early reflections around a short tail.\n\nThis is the Verb module on its own between In L/R and Out L/R. The panel is the module's own view, with its preset bar: change any knob, or pick another preset, and it follows.\n\nTip: open the board to cable the module's other jacks, or to put more modules around it."},
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":60}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Verb: Studio Room","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"fx","type":"reverb","name":"Verb","x":640,"y":40,"parent":"root","params":{"room":0.4,"early":0.6,"size":0.4,"decay":0.316003,"preDelay":0.202918,"diffusion":0.7,"damping":0.5,"mix":0.25}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"l"},"to":{"node":"fx","jack":"l"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"r"},"to":{"node":"fx","jack":"r"},"amount":1},
+          {"id":"k3","from":{"node":"fx","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k4","from":{"node":"fx","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Verb: Chapel Echoes", "category": "Module FX",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Module FX",
+        "description": "Distinct stone-wall echoes before a long, soft tail. The Verb module on its own, with its view as the panel.",
+        "tags": ["reverb","verb","module","single module","effects","space","time","effect"],
+        "help": {"text":"Distinct stone-wall echoes before a long, soft tail.\n\nThis is the Verb module on its own between In L/R and Out L/R. The panel is the module's own view, with its preset bar: change any knob, or pick another preset, and it follows.\n\nTip: open the board to cable the module's other jacks, or to put more modules around it."},
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":60}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Verb: Chapel Echoes","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"fx","type":"reverb","name":"Verb","x":640,"y":40,"parent":"root","params":{"room":1,"early":0.8,"size":0.6,"decay":0.562623,"preDelay":0.308006,"damping":0.5,"width":0.8,"mix":0.35}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"l"},"to":{"node":"fx","jack":"l"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"r"},"to":{"node":"fx","jack":"r"},"amount":1},
+          {"id":"k3","from":{"node":"fx","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k4","from":{"node":"fx","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
       "name": "Room Print: Small Room", "category": "Module FX",
       "preset": {
         "format": 1,

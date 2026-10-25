@@ -16,8 +16,8 @@ audio: levels in dB, equal-power panning, a master limiter and meters.
 
 | Jack | Type | What it does |
 |---|---|---|
-| In 1–4 L | `audio` | Left (or mono) input of each channel. |
-| In 1–4 R | `audio` | Right input. Unpatched: the channel is **mono** and takes *L* for both sides (see 4.2). |
+| In 1–8 L | `audio` | Left (or mono) input of each channel. |
+| In 1–8 R | `audio` | Right input; only present while the channel's *Stereo* setting is on. Unpatched: the channel is **mono** and takes *L* for both sides (see 4.2). |
 | Return L / R | `audio` | Stereo return from an effect chain; *Return R* unpatched copies *L*. Added to the master bus at *Return Level*. |
 | Mute 1–4 | `gate` | While high, the channel is muted, whatever its *Mute* setting. |
 
@@ -47,6 +47,7 @@ Every knob is also an input (`specs.md` section 7.3).
 
 | Setting | Values | Default |
 |---|---|---|
+| Stereo 1–8 | Off, On | On |
 | Mute 1–4 | Off, On | Off |
 | Solo 1–4 | Off, On | Off |
 | Send Point 1–4 | Post-fader, Pre-fader | Post-fader |
@@ -69,10 +70,10 @@ knob with −12 dB in the middle) places 0 dB at about 80 % of the travel.
 
 ### 4.2 Mono and stereo
 
-- **Mono** (*R* unpatched): equal-power pan, `L = x·cos θ`, `R = x·sin θ`
+- **Mono** (*Stereo* off, or *R* unpatched; with *Stereo* off the *In R* jack is removed): equal-power pan, `L = x·cos θ`, `R = x·sin θ`
   with `θ = (Pan + 1)·π/4`. At the centre both sides are −3 dB, so a mono
   source keeps its loudness as it moves.
-- **Stereo** (*R* patched): *Pan* is a balance. At the centre both sides
+- **Stereo** (*Stereo* on and *R* patched): *Pan* is a balance. At the centre both sides
   pass unchanged; moving right attenuates *L* with the same cosine law
   (and vice versa) and never boosts.
 

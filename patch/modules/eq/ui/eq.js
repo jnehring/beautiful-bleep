@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // EQ view (doc/eq.md): the signal going in (grey) and coming out (accent) as live spectra on a log axis
 // (20 Hz … 20 kHz), with the equaliser's response curve and its six band points on top. Drag a point to
-// change a band's frequency and gain (hold Cmd / Ctrl: its Q, or the slope of a cut); click it to edit the
-// band; the six tabs below the display select the band too. The knobs below show the selected band only
-// (hook `visible`): its type, and depending on the type its gain, Q or slope. The magnifiers zoom the dB axis,
+// change a band's frequency and gain (hold Cmd / Ctrl / Alt: its Q, or the slope of a cut); click it to edit the
+// band; the six tabs below the display select the band too and switch it on or off. The knobs below show the selected band only
+// (hook `visible`): its type and character, and depending on the type its gain, Q or slope. The magnifiers zoom the dB axis,
 // the legend switches the in / out / curve drawings on and off (kept in localStorage), and the frequency under
 // the pointer is shown at the bottom left. Live arrays from EqModule::liveArrays: spectrumIn, spectrumOut (dB),
 // sampleRate. The response curve is computed here from the band params (modulation included), the same biquads
@@ -17,7 +17,7 @@
   const PREFS = "bleep.eq.view";
   const FREQS = [50, 100, 200, 500, 1000, 2000, 5000, 10000];
   const TYPES = ["Bell", "Low Shelf", "High Shelf", "Low Cut", "High Cut", "Notch", "Band Pass"];
-  const SHORT = ["Bell", "Lo Shelf", "Hi Shelf", "Lo Cut", "Hi Cut", "Notch", "Band"];
+    const POWER = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 1.8v5.4M4.6 4.2a5.2 5.2 0 1 0 6.8 0"/></svg>';
   const hasGain = (t) => t <= 2;     // bell and shelves
   const isCut = (t) => t === 3 || t === 4;
   const HIT = 14;                    // px: how close a click must be to grab a point
@@ -26,8 +26,7 @@
   const fmtHz = (f) => (f >= 1000 ? f / 1000 + "k" : f + "");
   const fmtHzExact = (f) => (f >= 1000 ? (f / 1000).toFixed(f >= 10000 ? 1 : 2) + " kHz" : Math.round(f) + " Hz");
   const pid = (k, f) => "b" + (k + 1) + f;
-  const isMac = /Mac|iPhone|iPad/.test(navigator.platform || "");
-  const qModifier = (e) => (isMac ? e.metaKey : e.ctrlKey);  // Cmd on macOS, Ctrl elsewhere
+  const qModifier = (e) => e.metaKey || e.ctrlKey || e.altKey;  // Cmd / Ctrl / Alt
 
   // ---- per-viewer preferences: the zoom and which drawings are shown
   function loadPrefs(view) {
@@ -73,7 +72,7 @@
     root.querySelectorAll(".eq-tab").forEach((b, k) => {
       b.classList.toggle("sel", k === sel);
       b.classList.toggle("off", !isOn(view, k));
-      b.querySelector(".eq-tab-type").textContent = SHORT[typeOf(view, k)];
+      b.querySelector(".eq-tab-pwr").setAttribute("aria-pressed", isOn(view, k) ? "true" : "false");
     });
   }
 
@@ -133,15 +132,15 @@
   }
 
   // The same RBJ "Audio EQ Cookbook" sections as EqDsp.h (type: 0 bell, 1 low shelf, 2 high shelf, 3 low cut, 4 high cut, 5 notch, 6 band-pass).
-  // algo 1 (Modern): the bell is Orfanidis' design, bandwidth hz / q as in the analog bell; algo 2 (Vintage): proportional Q.
+  // algo 1 (Modern): the bell is Orfanidis' design, bandwidth hz / q taken 3 dB below the peak; algo 2 (Vintage): proportional Q.
   function section(type, hz, gainDb, q, sr, algo) {
     if (algo === 1 && type === 0 && gainDb !== 0) {
       const w0 = 2 * Math.PI * Math.min(hz, 0.45 * sr) / sr, G = Math.pow(10, Math.abs(gainDb) / 20);
-      const beta = Math.tan(Math.min(w0 / (2 * Math.max(q, 0.05)), 1.5)) / Math.sqrt(G), cs = Math.cos(w0), d = 1 + beta;
+      const beta = Math.tan(Math.min(w0 / (2 * Math.max(q, 0.05)), 1.5)), cs = Math.cos(w0), d = 1 + beta;
       const b0 = (1 + G * beta) / d, b1 = -2 * cs / d, b2 = (1 - G * beta) / d, a2 = (1 - beta) / d;
       return gainDb >= 0 ? [b0, b1, b2, b1, a2] : [1 / b0, b1 / b0, a2 / b0, b1 / b0, b2 / b0];
     }
-    if (algo === 2 && type <= 2) q *= Math.min(0.5 + Math.abs(gainDb) / 22.5, 1.3);
+    if (algo === 2 && type <= 2) q *= Math.min(0.35 + Math.abs(gainDb) / 12, 1.8);
     const A = Math.pow(10, gainDb / 40), w0 = 2 * Math.PI * Math.min(hz, 0.45 * sr) / sr;
     const cs = Math.cos(w0), alpha = Math.sin(w0) / (2 * Math.max(q, 0.05)), r = 2 * Math.sqrt(A) * alpha;
     let b0, b1, b2, a0, a1, a2;
@@ -252,7 +251,7 @@
       }
     }
     if (show.curve && pts.length) {
-      g.beginPath(); trace(curve(view, st, pts, n));
+      g.beginPath(); trace(curve(view, st, pts, n, true));  // the output level is not part of the EQ curve: it stays centred on 0 dB
       g.strokeStyle = text; g.lineWidth = 2;
       BleepView.glow(g, text, 6);
       g.stroke();
@@ -350,7 +349,7 @@
       if (!d || !geom) return;
       const { x, y } = at(e), fine = e.shiftKey ? 0.2 : 1;
       if (d.q) {
-        // Cmd / Ctrl: up and down change the Q (200 px for the whole range), or the slope of a cut (one step per 30 px).
+        // Cmd / Ctrl / Alt: up and down change the Q (200 px for the whole range), or the slope of a cut (one step per 30 px).
         if (isCut(typeOf(view, d.k))) set(view, pid(d.k, "Slope"), clamp(Math.round(d.s0 + (d.y0 - y) / 30), 0, 5) / 5);
         else set(view, pid(d.k, "Q"), d.q0 + (d.y0 - y) / 200 * fine);
         return draw(view, view.eq.st);
@@ -438,6 +437,7 @@
     visible(item, view) {
       const m = /^b([1-6])(On|Type|Algo|Hz|Gain|Q|Slope)$/.exec(item.id);
       if (!m) return true;
+      if (m[2] === "On") return false;   // switched in the band's tab   // chosen in the band's tab
       const k = +m[1] - 1;
       if (k !== selected(view)) return false;
       const t = typeOf(view, k);
@@ -458,23 +458,34 @@
       '<button type="button" class="eq-zoom-btn" data-z="out" title="Zoom out (dB axis)" aria-label="Zoom out">' + ICON(true) + '</button></div></div>' +
       '<div class="eq-tabs" role="tablist" aria-label="Band" style="display:flex;gap:4px;margin-top:6px">' +
       Array.from({ length: BANDS }, (_, k) =>
-        '<button type="button" class="eq-tab" role="tab" data-band="' + k + '">' +
-        '<span class="eq-tab-num">' + (k + 1) + '</span><span class="eq-tab-type"></span></button>').join("") +
+        '<div class="eq-tab" role="tab" tabindex="0" data-band="' + k + '">' +
+        '<span class="eq-tab-num">' + (k + 1) + '</span>' +
+        '<button type="button" class="eq-tab-pwr" aria-pressed="false" title="Band ' + (k + 1) + ' on / off" aria-label="Band ' + (k + 1) + ' on / off">' + POWER + '</button></div>').join("") +
       '</div>' +
       '<style>' +
       '.eq-legend-btn{background:none;border:0;padding:0 2px;font:inherit;cursor:pointer}' +
       '.eq-zoom-btn{width:22px;height:22px;padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer;' +
       'background:var(--panel);color:var(--muted);border:1px solid var(--line);border-radius:5px}' +
       '.eq-zoom-btn:hover:not(:disabled){color:var(--text)}.eq-zoom-btn:disabled{opacity:.35;cursor:default}' +
-      '.eq-tab{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 2px;cursor:pointer;' +
-      'background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;font:inherit;font-size:10px}' +
-      '.eq-tab-num{font-weight:700;font-size:12px}.eq-tab-type{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}' +
-      '.eq-tab.off{opacity:.5}.eq-tab.sel{background:var(--accent);color:#000;border-color:var(--accent);opacity:1}.eq-tab.sel .eq-tab-type{color:#000}' +
+      '.eq-tab{position:relative;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;padding:12px 2px;cursor:pointer;' +
+      'background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;font:inherit}' +
+      '.eq-tab:hover:not(.sel){border-color:var(--muted)}' +
+      '.eq-tab-num{font-weight:700;font-size:15px}' +
+      '.eq-tab-pwr{position:absolute;top:3px;right:3px;width:22px;height:22px;padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer;' +
+      'background:none;border:0;border-radius:50%;color:var(--muted)}' +
+      '.eq-tab-pwr:hover{color:var(--text)}.eq-tab-pwr[aria-pressed=true]{color:var(--accent)}' +
+      '.eq-tab.off .eq-tab-num{opacity:.55}' +
+      '.eq-tab.sel{background:var(--accent);color:#000;border-color:var(--accent)}' +
+      '.eq-tab.sel .eq-tab-pwr{color:rgba(0,0,0,.45)}.eq-tab.sel .eq-tab-pwr[aria-pressed=true]{color:#000}' +
       // The selected band's controls in one row: the settings stacked on the left, the knobs beside them, all the same width.
       '.bleep-view .bv-sec-body{display:flex;flex-direction:row;align-items:flex-start;gap:16px}' +
       '.bleep-view .bv-sec-settings{display:flex;flex-direction:column;gap:6px;width:120px}' +
       '.bleep-view .bv-sec-settings .bv-setting{width:100%;box-sizing:border-box}' +
       '.bleep-view .bv-sec-settings select,.bleep-view .bv-sec-settings .bv-toggle{width:100%;box-sizing:border-box}' +
+      // The window may grow nearly to the screen's height, so the EQ needs no scrolling.
+      '.vwin:has(.eq-display) .v-body{max-height:calc(100vh - 90px)}' +
+      // The Output knob stays on the same row as the band's controls, top-aligned with them.
+      '.bleep-view .bv-controls{flex-wrap:nowrap;align-items:flex-start}' +
       '.bleep-view .bv-sec-knobs{display:flex;flex-direction:row;align-items:flex-start;gap:6px}' +
       '</style></div>',
     afterBuild(view, custom) {
@@ -493,11 +504,13 @@
         savePrefs(view);
         draw(view, view.eq.st);
       }));
-      // With the wider view the Output knob sits at the end of the band tabs instead of wrapping below.
-      const row = custom.querySelector(".eq-tabs");
-      const out = [...(custom.parentElement || document).querySelectorAll(".bv-controls > .bv-sec")]
-        .find((x) => { const t = x.querySelector(".bv-sec-title"); return t && t.textContent === "Output"; });
-      if (row && out) { row.style.alignItems = "stretch"; row.appendChild(out); out.style.flex = "0 0 auto"; }
+      custom.querySelectorAll(".eq-tab-pwr").forEach((btn, k) => btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        view.api.beginGesture();
+        set(view, pid(k, "On"), isOn(view, k) ? 0 : 1);
+        tabs(view);
+        draw(view, view.eq && view.eq.st);
+      }));
       tabs(view);
     },
     onState(st, view) { view.eq = view.eq || {}; view.eq.st = st; tabs(view); draw(view, st); },

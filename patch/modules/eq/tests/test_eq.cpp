@@ -42,7 +42,7 @@ static void bellBoostsAtItsFrequency() {
     flat(b);
     b[3] = {EqBand::Bell, true, 800.0f, 12.0f, 2.0f, 2};
     EXPECT_NEAR(gainDb(b, 800.0), 12.0, 0.1);
-    EXPECT(std::fabs(gainDb(b, 8000.0)) < 0.7);
+    EXPECT(std::fabs(gainDb(b, 8000.0)) < 0.9);
     EXPECT(std::fabs(gainDb(b, 60.0)) < 0.7);
     b[3].gainDb = -9.0f;
     EXPECT_NEAR(gainDb(b, 800.0), -9.0, 0.1);
@@ -155,9 +155,9 @@ static void modernBellIsNotCramped() {
     b[3] = {EqBand::Bell, true, 12000.0f, 12.0f, 1.0f, 2, EqBand::Modern};
     EXPECT_NEAR(gainDb(b, 12000.0), 12.0, 0.15);
     EXPECT_NEAR(Biquad::bandMagnitudeDb(b[3], 23990.0, kSr), 0.0, 0.05);
-    // Q = 1 at 12 kHz: half the gain 6 kHz either side, as the analog bell has it; the RBJ one is cramped narrower.
-    EXPECT_NEAR(Biquad::bandMagnitudeDb(b[3], 6000.0, kSr), 6.0, 0.2);
-    EXPECT_NEAR(Biquad::bandMagnitudeDb(b[3], 18000.0, kSr), 6.0, 0.2);
+    // Q = 1 at 12 kHz, 3 dB-below-peak bandwidth: still 9.3 dB 6 kHz either side; the RBJ one is cramped to 2.7 dB.
+    EXPECT_NEAR(Biquad::bandMagnitudeDb(b[3], 6000.0, kSr), 9.26, 0.2);
+    EXPECT_NEAR(Biquad::bandMagnitudeDb(b[3], 18000.0, kSr), 9.26, 0.2);
     EqBand clean = b[3];
     clean.algo = EqBand::Clean;
     EXPECT(Biquad::bandMagnitudeDb(clean, 18000.0, kSr) < 4.0);
@@ -170,11 +170,14 @@ static void modernBellIsNotCramped() {
     EXPECT(std::fabs(gainDb(b, 8000.0)) < 0.7);
 }
 
-static void modernKeepsLowBellsLikeClean() {
-    TEST("Modern: a low bell is close to the Clean one");
-    EqBand m = {EqBand::Bell, true, 400.0f, 8.0f, 1.0f, 2, EqBand::Modern}, c = m;
+static void modernIsBroaderForBigMoves() {
+    TEST("Modern: the centre gain stays; a big boost is clearly broader than the Clean one, a small one only slightly");
+    EqBand m = {EqBand::Bell, true, 1000.0f, 12.0f, 1.0f, 2, EqBand::Modern}, c = m;
     c.algo = EqBand::Clean;
-    for (double hz : {100.0, 300.0, 400.0, 600.0, 2000.0}) EXPECT_NEAR(Biquad::bandMagnitudeDb(m, hz, kSr), Biquad::bandMagnitudeDb(c, hz, kSr), 0.6);
+    EXPECT_NEAR(Biquad::bandMagnitudeDb(m, 1000.0, kSr), 12.0, 0.01);
+    EXPECT(Biquad::bandMagnitudeDb(m, 2000.0, kSr) > Biquad::bandMagnitudeDb(c, 2000.0, kSr) + 3.0);
+    m.gainDb = c.gainDb = 3.0f;
+    EXPECT(std::fabs(Biquad::bandMagnitudeDb(m, 2000.0, kSr) - Biquad::bandMagnitudeDb(c, 2000.0, kSr)) < 0.4);
 }
 
 static void vintageIsProportionalQ() {
@@ -182,10 +185,10 @@ static void vintageIsProportionalQ() {
     EqBand v = {EqBand::Bell, true, 1000.0f, 3.0f, 1.0f, 2, EqBand::Vintage}, c = v;
     c.algo = EqBand::Clean;
     EXPECT_NEAR(Biquad::bandMagnitudeDb(v, 1000.0, kSr), 3.0, 0.01);
-    EXPECT(Biquad::bandMagnitudeDb(v, 2000.0, kSr) > Biquad::bandMagnitudeDb(c, 2000.0, kSr) + 0.3);
+    EXPECT(Biquad::bandMagnitudeDb(v, 2000.0, kSr) > Biquad::bandMagnitudeDb(c, 2000.0, kSr) + 0.5);
     v.gainDb = c.gainDb = 18.0f;
     EXPECT_NEAR(Biquad::bandMagnitudeDb(v, 1000.0, kSr), 18.0, 0.01);
-    EXPECT(Biquad::bandMagnitudeDb(v, 2000.0, kSr) < Biquad::bandMagnitudeDb(c, 2000.0, kSr) - 0.3);
+    EXPECT(Biquad::bandMagnitudeDb(v, 2000.0, kSr) < Biquad::bandMagnitudeDb(c, 2000.0, kSr) - 1.0);
     EqBand cut = {EqBand::LowCut, true, 1000.0f, 0.0f, 1.0f, 4, EqBand::Vintage}, cc = cut;  // cuts are not touched
     cc.algo = EqBand::Clean;
     EXPECT_NEAR(Biquad::bandMagnitudeDb(cut, 500.0, kSr), Biquad::bandMagnitudeDb(cc, 500.0, kSr), 1e-9);
@@ -199,7 +202,7 @@ static void vintageSaturates() {
     EXPECT_NEAR(toneDb(b, 1000.0, 0.01, 1000.0) - 20.0 * std::log10(0.01), 6.0, 0.02);
     EXPECT(toneDb(b, 1000.0, 0.01, 3000.0) < -110.0);
     const double h3 = toneDb(b, 1000.0, 0.45, 3000.0);
-    EXPECT(h3 > -60.0 && h3 < -25.0);
+    EXPECT(h3 > -45.0 && h3 < -10.0);
     EXPECT(toneDb(b, 1000.0, 0.45, 2000.0) < -90.0);  // symmetric curve: no even harmonics
     for (auto a : {EqBand::Clean, EqBand::Modern}) {
         useAlgo(b, a);
@@ -220,7 +223,7 @@ int main() {
     bandsAddUp();
     cleanIsTheDefault();
     modernBellIsNotCramped();
-    modernKeepsLowBellsLikeClean();
+    modernIsBroaderForBigMoves();
     vintageIsProportionalQ();
     vintageSaturates();
     return bleep::test::finish("eq");

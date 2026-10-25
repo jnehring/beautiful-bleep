@@ -136,6 +136,7 @@
 
   BleepViews.register("reverb", {
     parts: [{ id: "decay", name: "Decay", select: ".bv-panel:has(.rv-decay)" }, { id: "tank", name: "Reverb tank", select: ".bv-panel:has(.rv-tank)" }],
+    width: 1020,  // wide enough for the controls to sit in two rows, so the view does not scroll
     hideParams: ["freeze"],  // the Freeze button below replaces the latch
     layout: [
       { title: "Room", params: ["size", "decay", "preDelay", "diffusion"] },

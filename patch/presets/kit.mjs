@@ -51,6 +51,8 @@ export function resolveParam(where, p, v) {
   if (p.kind === "choice") {
     let i = typeof v === "number" ? v : p.choices.indexOf(v);
     if (i < 0) i = p.choices.findIndex((c) => c.toLowerCase() === String(v).toLowerCase());
+    // The initials of a spelt-out name ("LP" for "Low-pass") still work.
+    if (i < 0) i = p.choices.findIndex((c) => c.split(/[\s-]+/).map((w) => w[0]).join("").toLowerCase() === String(v).toLowerCase());
     if (!Number.isInteger(i) || i < 0 || i >= p.choices.length)
       throw new Error(`${where}: '${v}' is not one of ${p.choices.map((c) => `'${c}'`).join(", ")}`);
     return normalise(p, i + p.min);

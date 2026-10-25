@@ -33,7 +33,7 @@ public:
     // Per channel k: params Level, Pan, Send at 3k…3k+2; then these.
     enum { ReturnLevel = 3 * kMixerChannels, Master, Mute1, Solo1 = Mute1 + kMixerChannels,
            SendPoint1 = Solo1 + kMixerChannels, Limiter = SendPoint1 + kMixerChannels,
-           Mono, Channels };
+           Mono, Channels, Stereo1 };
     // Inputs: In k L at 2k, In k R at 2k+1; then these.
     enum { ReturnL = 2 * kMixerChannels, ReturnR, MuteIn1 };
     enum { OutL, OutR, SendL, SendR, Level };
@@ -64,7 +64,7 @@ public:
             p.ch[k].mute = setting(Mute1 + k) >= 0.5f;
             p.ch[k].solo = setting(Solo1 + k) >= 0.5f;
             p.ch[k].preFader = setting(SendPoint1 + k) >= 0.5f;
-            in.stereo[k] = c.inputConnected[2 * k + 1];
+            in.stereo[k] = c.inputConnected[2 * k + 1] && setting(Stereo1 + k) >= 0.5f;
         }
         const bool returnStereo = c.inputConnected[ReturnR];
         patch::AudioMixerFrame f;
@@ -131,10 +131,12 @@ void registerAudioMixerModule(Registry& r) {
     s.params.push_back(ParamSpec::toggle("limiter", "Limiter", true));
     s.params.push_back(ParamSpec::toggle("mono", "Mono", false));
     s.params.push_back(ParamSpec::integer("channels", "Channels", 1, kMixerChannels, 4));
+    for (int k = 1; k <= kMixerChannels; ++k)
+        s.params.push_back(ParamSpec::toggle("stereo" + std::to_string(k), "Stereo " + std::to_string(k), true).when("channels", k, kMixerChannels));
     for (int k = 1; k <= kMixerChannels; ++k) {
         const std::string n = std::to_string(k);
         s.inputs.push_back(JackSpec{"in" + n + "l", "In " + n + " L", Signal::Audio}.when("channels", k, kMixerChannels));
-        s.inputs.push_back(JackSpec{"in" + n + "r", "In " + n + " R", Signal::Audio}.when("channels", k, kMixerChannels));
+        s.inputs.push_back(JackSpec{"in" + n + "r", "In " + n + " R", Signal::Audio}.when("channels", k, kMixerChannels).andWhen("stereo" + n, 1, 1));
     }
     s.inputs.push_back({"returnl", "Return L", Signal::Audio});
     s.inputs.push_back({"returnr", "Return R", Signal::Audio});
