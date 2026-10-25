@@ -476,7 +476,7 @@ def cmd_package(args, s):
     and the plugins read modules from. --no-install only packages; --install DATA installs somewhere else."""
     cmd = [PY, SCRIPTS / "release" / "package-module.py", *args.modules]
     if not args.no_install:
-        cmd += ["--install", str(args.install or default_data_dir())]
+        cmd += ["--install", str(args.install or default_data_dir()), "--dev"]
     run(cmd)
 
 

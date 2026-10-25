@@ -218,12 +218,16 @@ void testClient(const juce::File& fixtures) {
     fixtures.getChildFile("valid.bleepmod").copyFileTo(local.getChildFile("acme.fuzz-1.0.0.bleepmod"));
     fixtures.getChildFile("valid.bleepmod").copyFileTo(local.getChildFile("handmade-0.1.0.bleepmod"));
     fixtures.getChildFile("valid.bleepmod").copyFileTo(local.getChildFile("renamed.bleepmod"));
+    fixtures.getChildFile("valid.bleepmod").copyFileTo(local.getChildFile("hand-made-0.1.4-dev.bleepmod"));
     fixtures.getChildFile("symlink.bleepmod").copyFileTo(local.getChildFile("broken-0.1.0.bleepmod"));
     {
         std::map<std::string, InstalledModule> by;
         for (const auto& i : client("site").installed())
             if (i.source == "local") by[i.slug] = i;
         CHECK(by["acme.fuzz"].allowed && by["handmade"].allowed, "a package copied into the local folder loads");
+        CHECK(by["hand-made"].allowed && by["hand-made"].version == "0.1.4-dev", "a -dev version in the name is read: a slug with a dash, version 0.1.4-dev");
+        CHECK(versionNewer("0.1.4-dev", "0.1.3") && !versionNewer("0.1.4-dev", "0.1.4") && !versionNewer("0.1.4", "0.1.4-dev") && !versionNewer("0.1.3", "0.1.4-dev"),
+              "a -dev version ranks like the release it precedes");
         CHECK(by["renamed"].allowed && by["renamed"].version == "0.0.0", "one without its version in the name loads as 0.0.0");
         CHECK(!by["broken"].allowed && !by["broken"].why.empty(), "one that is not a safe package does not: %s", by["broken"].why.c_str());
     }

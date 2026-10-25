@@ -5,9 +5,10 @@
     scripts/release/package-module.py                       every module that has a built .wasm
     scripts/release/package-module.py reverb filter         just these
     scripts/release/package-module.py --out DIR --web DIR   other folders (defaults: build/library/modules, build/web/modules, else build/web/site)
-    scripts/release/package-module.py --install DATA [--version 0.1.0]
+    scripts/release/package-module.py --install DATA [--version 0.1.0 | --dev]
                                                             also put each package into DATA/modules/local,
-                                                            the folder the apps read modules copied by hand from (for tests and development)
+                                                            the folder the apps read modules copied by hand from (for tests and development);
+                                                            --dev names each one after the next version of what the library has, e.g. 0.1.4-dev
 
 A package is a zip of: module.json (the module folder's, plus `types`, `requires.engineAbi`, and the `summary` and `category` of the library's tile), module.wasm (built by
 scripts/build/build-web.sh --modules-only), spec.json (the node types' descriptions, read from the .wasm with node: a host
@@ -22,6 +23,7 @@ ABI present. The zip is reproducible (sorted files, fixed dates), so packaging t
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 import sys
 import zipfile
@@ -122,6 +124,29 @@ def install_local(package: Path, slug: str, data: Path, version: str) -> Path:
     return target
 
 
+def published_version(slug: str, data: Path) -> tuple:
+    """The highest version of the module the library offers or this machine installed from it, as a tuple (0, 0, 0) when neither."""
+    found = [(0, 0, 0)]
+    def add(v):
+        parts = str(v).split("-")[0].split(".")
+        if len(parts) == 3 and all(p.isdigit() for p in parts):
+            found.append(tuple(int(p) for p in parts))
+    for d in (data / "modules" / "registry" / slug).glob("*"):
+        add(d.name)
+    try:
+        for channel in json.loads((data / "cache" / "index.json").read_text())["index"]["channels"].values():
+            add(channel["modules"][slug]["version"])
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return max(found)
+
+
+def dev_version(slug: str, data: Path) -> str:
+    """The next version after the published one, marked as a development build: 0.1.3 becomes 0.1.4-dev (a module the library does not have: 0.1.0-dev)."""
+    a, b, c = published_version(slug, data)
+    return "0.1.0-dev" if (a, b, c) == (0, 0, 0) else f"{a}.{b}.{c + 1}-dev"
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("modules", nargs="*", metavar="SLUG", help="module folders (default: every one with a built .wasm)")
@@ -129,6 +154,7 @@ def main(argv=None) -> int:
     ap.add_argument("--web", type=Path, default=DEFAULT_WEB, help="the output of build-web.sh --modules-only (default: build/web/modules, else the full build's build/web/site)")
     ap.add_argument("--install", type=Path, metavar="DATA", help="also install the packages into DATA/modules/local")
     ap.add_argument("--version", default="0.1.0", help="the version --install names the file with")
+    ap.add_argument("--dev", action="store_true", help="with --install: the next version after the library's, with -dev (0.1.4-dev); older -dev copies of the module are removed")
     a = ap.parse_args(argv)
     slugs = a.modules or sorted(p.parent.name for p in (ROOT / "patch" / "modules").glob("*/module.json"))
     failed = 0
@@ -142,7 +168,12 @@ def main(argv=None) -> int:
             continue
         if a.install:
             try:
-                install_local(target, slug, a.install, a.version)
+                version = dev_version(slug, a.install) if a.dev else a.version
+                if a.dev:
+                    for old in (a.install / "modules" / "local").glob(f"{slug}-*-dev.bleepmod"):
+                        if re.fullmatch(re.escape(slug) + r"-\d+\.\d+\.\d+-dev\.bleepmod", old.name):
+                            old.unlink()
+                install_local(target, slug, a.install, version)
             except (ValueError, OSError) as e:
                 print(f"{slug:22} NOT INSTALLED: {e}", file=sys.stderr)
                 failed += 1

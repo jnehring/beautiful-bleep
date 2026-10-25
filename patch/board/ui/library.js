@@ -81,7 +81,7 @@
   }
 
   const newer = (a, b) => {  // is version a newer than b
-    const x = a.split(".").map(Number), y = b.split(".").map(Number);
+    const x = a.split(".").map((n) => parseInt(n, 10)), y = b.split(".").map((n) => parseInt(n, 10));
     for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0);
     return false;
   };

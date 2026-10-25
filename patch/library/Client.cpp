@@ -45,9 +45,10 @@ std::string str(const juce::var& v) { return v.isString() ? v.toString().toStdSt
 
 /// "1.2.3" → a comparable number; -1 for anything else.
 long long versionKey(const std::string& v) {
-    int a = 0, b = 0, c = 0;
-    char extra = 0;
-    if (std::sscanf(v.c_str(), "%d.%d.%d%c", &a, &b, &c, &extra) != 3) return -1;
+    // "1.2.3", or "1.2.3-dev": a development build (bleep package), which ranks like the release it precedes.
+    int a = 0, b = 0, c = 0, used = 0;
+    if (std::sscanf(v.c_str(), "%d.%d.%d%n", &a, &b, &c, &used) != 3) return -1;
+    if (v.compare(used, std::string::npos, "-dev") != 0 && v.size() != (size_t)used) return -1;
     return ((long long)a << 40) | ((long long)b << 20) | c;
 }
 
@@ -478,9 +479,11 @@ std::vector<InstalledModule> Client::installed(bool recheck, bool allVersions) c
     }
     // copied by hand: <slug>-<version>.bleepmod (a file that does not say its version is taken as 0.0.0)
     for (const auto& f : modulesFolder("local").findChildFiles(juce::File::findFiles, false, "*.bleepmod")) {
-        const std::string name = f.getFileNameWithoutExtension().toStdString();
+        std::string name = f.getFileNameWithoutExtension().toStdString();
+        const bool dev = name.size() > 4 && name.compare(name.size() - 4, 4, "-dev") == 0;
+        if (dev) name.resize(name.size() - 4);
         const auto dash = name.rfind('-');
-        const std::string slug = dash == std::string::npos ? name : name.substr(0, dash), version = dash == std::string::npos ? "" : name.substr(dash + 1);
+        const std::string slug = dash == std::string::npos ? name : name.substr(0, dash), version = dash == std::string::npos ? "" : name.substr(dash + 1) + (dev ? "-dev" : "");
         consider(f, slug, versionKey(version) >= 0 ? version : "0.0.0", "local");
     }
     {   // forget what is no longer installed
