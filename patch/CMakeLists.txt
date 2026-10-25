@@ -267,6 +267,14 @@ if (BLEEP_BUILD_TESTS)
         juce::juce_recommended_config_flags)
     add_test(NAME patch.modules COMMAND bleep_module_harness)
 
+    # Route and Select on a real compiled board (tests/route_select_test.cpp).
+    juce_add_console_app(bleep_route_select_test PRODUCT_NAME "Bleep Route Select Test")
+    target_sources(bleep_route_select_test PRIVATE tests/route_select_test.cpp $<TARGET_OBJECTS:bleep_test_objects>)
+    target_include_directories(bleep_route_select_test PRIVATE ${BLEEP_ENGINE_INCLUDES})
+    target_compile_definitions(bleep_route_select_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+    target_link_libraries(bleep_route_select_test PRIVATE bleep_dsp juce::juce_core juce::juce_recommended_config_flags)
+    add_test(NAME patch.route-select COMMAND bleep_route_select_test)
+
     # The Audio Console's recorder on the real module, with the audio on another thread (tests/audio_console_record_test.cpp).
     juce_add_console_app(bleep_audio_console_record_test PRODUCT_NAME "Bleep Audio Console Record Test")
     target_sources(bleep_audio_console_record_test PRIVATE tests/audio_console_record_test.cpp $<TARGET_OBJECTS:bleep_test_objects>)
