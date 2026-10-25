@@ -28,7 +28,7 @@
   let cellsOpen = false, modsOpen = false;   // the two folding sections of the list on the left: both start closed
   const openCats = new Set();                // the cell categories that are unfolded (paths like "Drums/Kicks")
   let cells = [];             // plugin mode: [{name, category, description, tags, current}]
-  let root = null, listEl, groupsEl, viewsEl, cellsHeadEl, cellsEl, modHeadEl, modFilterEl, modsEl, originsEl, searchEl, saveRow, saveBtn, fileInput, noteEl;
+  let root = null, listEl, groupsEl, viewsEl, cellsHeadEl, cellsEl, modHeadEl, modFilterEl, modsEl, originsEl, searchEl, saveRow, fileInput, noteEl;
   let signedIn = null;        // web: is there a login (null: not asked yet)
   let current = null;         // the loaded project for the side menu: {name, source: "factory" | "user" | "community", address?, preset}
   const listeners = [];
@@ -294,7 +294,7 @@
     if (view === "cell") return "No cell presets here.";
     if (origins.size === 1 && origins.has("user")) {
       if (webMine() && signedIn === false) return "Log in on the website to keep projects in your account.";
-      return "Nothing saved yet. “Save current project…” keeps the board you are working on here.";
+      return "Nothing saved yet. File → Save to Library keeps the board you are working on here.";
     }
     return "Nothing here.";
   }
@@ -376,10 +376,6 @@
     renderGroups();
     renderOrigins();
     renderList();
-    if (saveBtn) {
-      saveBtn.disabled = !canSave();
-      saveBtn.title = canSave() ? "" : "Log in on the website to keep projects in your account";
-    }
   }
 
   /// In a plugin the patch's port nodes (Out 1/2, …) take the ports this board already has, by type;
@@ -454,11 +450,19 @@
   }
 
   // ---------------------------------------------------------------- Save, download, open from a file
+  /// The Save row, with the name and description of the project the board came from (Save As).
   function showSave() {
     if (!canSave()) { say("Log in on the website to keep projects in your account. Download Project saves a file."); return; }
+    const [name, desc] = saveRow.querySelectorAll("input");
+    name.value = current && current.source === "user" ? current.name : "";
+    desc.value = current && current.preset ? current.preset.description || "" : "";
     saveRow.hidden = false;
-    saveRow.querySelector("input").focus();
+    name.focus();
+    name.select();
   }
+
+  /// Is the board a project of the user's (loaded from Mine or saved there before)? Then Save replaces it without asking.
+  const savedBefore = () => !!current && current.source === "user" && !!current.name && current.name !== "Untitled";
 
   /// The board as one flat project: nodes, cables and panels with description, tags and what it needs.
   async function currentProject(description, noMedia) {
@@ -482,14 +486,19 @@
     return preset;
   }
 
-  async function save() {
-    const [name, desc] = [...saveRow.querySelectorAll("input")].map((i) => i.value.trim());
-    if (!name) return;
+  /// Stores the board under `name` in Mine (a project of that name is replaced). Returns whether it was saved.
+  async function saveAs(name, desc) {
     const preset = await currentProject(desc);
-    if (!preset) return;
-    try { mine = await mineSave(name, preset); } catch (e) { say(e.message); return; }
+    if (!preset) return false;
+    try { mine = await mineSave(name, preset); } catch (e) { say(e.message); return false; }
     say("");
     setCurrent({ name, source: "user", preset });
+    return true;
+  }
+
+  async function save() {
+    const [name, desc] = [...saveRow.querySelectorAll("input")].map((i) => i.value.trim());
+    if (!name || !(await saveAs(name, desc))) return;
     saveRow.hidden = true;
     for (const i of saveRow.querySelectorAll("input")) i.value = "";
     view = "project";
@@ -560,9 +569,6 @@
       renderList();
     });
     head.appendChild(searchEl);
-    saveBtn = el("button", "", "Save to Library…");
-    saveBtn.addEventListener("click", showSave);
-    if (!host.cells) head.appendChild(saveBtn);
     if (web() && !host.cells) {
       const fromFile = el("button", "", "From file…");
       fromFile.addEventListener("click", openFile);
@@ -655,8 +661,18 @@
     },
     open,
     close,
-    /// File → Save to Library…: opens the browser with its Save row ready.
-    async save() { await open(); if (!host.cells) showSave(); },
+    /// File → Save to Library: replaces the project the board came from; one that was never saved asks for a name, as Save As does.
+    async save() {
+      if (savedBefore() && canSave()) {
+        const desc = current.preset ? current.preset.description || "" : "";
+        if (await saveAs(current.name, desc)) return;
+        await open();   // it failed: the browser shows why
+        return;
+      }
+      await this.saveAs();
+    },
+    /// File → Save to Library As…: opens the browser with its Save row ready, named after the current project.
+    async saveAs() { await open(); if (!host.cells) showSave(); },
     /// Download Project and Open from a file: the browser board only.
     download,
     copyPatch,
