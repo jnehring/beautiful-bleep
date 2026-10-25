@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // agent-chat.js — the patch assistant's chat panel (doc/specs/agent.md §3.2, §5; doc/agent-concept.md).
 //
-// Only exists when the website's backend says so: GET /api/agent/status must answer {enabled: true}. In an instrument or FX plugin
+// Only exists when the website's backend says so: GET /api/agent/status must answer {enabled: true}, or {enabled: false, reason:
+// "disabled"} (the operator switched it off: the button stays and the panel says the assistant is not available yet). In an instrument or FX plugin
 // window (the cell's panel only), the static Play page without a backend, offline, or when the answer is anything else, the page shows
 // nothing at all (no button, no CSS loaded). Bleep Play talks to the backend with the website's session cookie; the standalone app and
 // the Bleep Board plugin with the library login (account.js: the personal token in the keychain), through the native `account` calls,
@@ -973,7 +974,7 @@
         blocker.textContent = "";
         const ok = status && status.enabled;
         let block = true;
-        if (!ok) { /* hidden anyway */ }
+        if (!ok) blocker.append(el("p", "", "The assistant is not available in this early release. Bleep works fully without it; the assistant will come in a later version."));
         else if (!status.signed_in) {
           blocker.append(el("p", "", "Sign in to use the assistant."));
           const r = el("div", "ag-actions");
@@ -1012,6 +1013,7 @@
       renderAll() {
         list.textContent = "";
         if (!state.items.length) {
+          if (!status || !status.enabled) return;   // switched off: only the notice
           const ex = el("div", "ag-examples");
           ex.appendChild(el("p", "ag-hint", "Ask about your patch, or have the assistant change it. For example:"));
           for (const q of EXAMPLES) {
@@ -1273,7 +1275,7 @@
       if (!r.ok) return;
       d = await r.json();
     } catch (e) { return; }   // offline, a static page without backend, not JSON: no assistant
-    if (!isObj(d) || d.enabled !== true) return;
+    if (!isObj(d) || (d.enabled !== true && d.reason !== "disabled")) return;   // switched off on purpose: the button stays, with a notice
     host = h;
     status = d;
     hookState();

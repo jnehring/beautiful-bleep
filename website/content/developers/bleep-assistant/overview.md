@@ -6,6 +6,8 @@ order: 10
 
 # Bleep Assistant
 
+> **Not in the first release.** The assistant calls a paid AI model, so the first public release ships with it switched off (`BLEEP_AGENT_ENABLED=false`). The board shows the Assistant button with a note that it is not available yet. It will come in a later version.
+
 The **Bleep Assistant** is a chat window in the board in which an AI agent helps with a patch. It answers questions about Bleep, finds out why there is no sound, adds and wires modules, programs sequencers, builds panels and designs a sound from scratch. It is *agentic*: it does not just reply, it looks things up and acts through tools, step by step, until the request is done.
 
 Two rules shape everything else:

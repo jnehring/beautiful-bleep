@@ -4,7 +4,7 @@
 
 ## Introduction
 
-A small stereo mixer for the board. It brings up to four sound sources
+A small stereo mixer for the board. It brings up to eight sound sources
 (oscillators, drums, Voice Cells) together into one stereo pair, with a
 level, a pan, mute and solo for each, and a send for a shared effect. A
 limiter on the master keeps the sum from clipping.
@@ -23,7 +23,7 @@ Each channel's signal goes through:
 4. **Send:** a copy of the channel goes to the *Send* outputs at the *Send*
    level, after the fader, or before it with *Send Point* *Pre-Fader*.
 
-The four channels and the *Return* (at *Return Level*) are added, scaled by
+The channels in use and the *Return* (at *Return Level*) are added, scaled by
 *Master*, and pass the **limiter**. It holds the output below −0.3 dBFS by
 turning the gain down just before a peak (a 1 ms lookahead) and releasing it
 over 50 ms. Switching it off leaves the signal untouched.
@@ -76,14 +76,15 @@ Five whole patches show what Audio Mixer does. In the standalone app open **File
 
 | Control | Range | Default |
 |---|---|---|
-| Level 1–4 | −60 dB (silence) … +6 dB | 0 dB |
-| Pan 1–4 | −1 (left) … +1 (right) | 0 |
-| Send 1–4 | −60 dB (silence) … +6 dB | silence |
+| Level 1–8 | −60 dB (silence) … +6 dB | 0 dB |
+| Pan 1–8 | −1 (left) … +1 (right) | 0 |
+| Send 1–8 | −60 dB (silence) … +6 dB | silence |
 | Return Level | −60 dB (silence) … +6 dB | 0 dB |
 | Master | −60 dB (silence) … +6 dB | 0 dB |
-| Mute 1–4 | Off, On | Off |
-| Solo 1–4 | Off, On | Off |
-| Send Point 1–4 | Post-Fader, Pre-Fader | Post-Fader |
+| Mute 1–8 | Off, On | Off |
+| Solo 1–8 | Off, On | Off |
+| Send Point 1–8 | Post-Fader, Pre-Fader | Post-Fader |
+| Channels | 1 … 8 | 4 |
 | Limiter | Off, On | On |
 | Mono | Off, On | Off |
 
@@ -94,7 +95,7 @@ Five whole patches show what Audio Mixer does. In the standalone app open **File
 | In 1–4 L | audio | Left (or mono) input of each channel |
 | In 1–4 R | audio | Right input; unpatched, the channel is mono |
 | Return L, R | audio | The effect return; Return R unpatched copies L |
-| Mute 1–4 | gate | Mutes the channel while high |
+| Mute 1–8 | gate | Mutes the channel while high |
 
 ### Outputs
 

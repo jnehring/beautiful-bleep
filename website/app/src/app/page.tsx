@@ -52,7 +52,7 @@ export default function Home() {
         <div className="card">
           <h3>Bleep Assistant</h3>
           <p>
-            An AI agent in the board that helps you patch: it adds and wires modules, builds panels and designs sounds.{" "}
+            An AI agent in the board that helps you patch: it adds and wires modules, builds panels and designs sounds. Not available in the first release; it comes in a later version.{" "}
             <a href="/docs/developers/bleep-assistant/overview/">How the assistant works</a>.
           </p>
         </div>

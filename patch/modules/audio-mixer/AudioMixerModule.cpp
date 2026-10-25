@@ -33,7 +33,7 @@ public:
     // Per channel k: params Level, Pan, Send at 3k…3k+2; then these.
     enum { ReturnLevel = 3 * kMixerChannels, Master, Mute1, Solo1 = Mute1 + kMixerChannels,
            SendPoint1 = Solo1 + kMixerChannels, Limiter = SendPoint1 + kMixerChannels,
-           Mono };
+           Mono, Channels };
     // Inputs: In k L at 2k, In k R at 2k+1; then these.
     enum { ReturnL = 2 * kMixerChannels, ReturnR, MuteIn1 };
     enum { OutL, OutR, SendL, SendR, Level };
@@ -57,6 +57,8 @@ public:
         patch::AudioMixerParams p;
         p.limiter = setting(Limiter) >= 0.5f;
         p.mono = setting(Mono) >= 0.5f;
+        const int n = std::clamp((int)std::lround(setting(Channels)), 1, kMixerChannels);
+        p.channels = n;
         patch::AudioMixerInputs in;
         for (int k = 0; k < kMixerChannels; ++k) {
             p.ch[k].mute = setting(Mute1 + k) >= 0.5f;
@@ -68,7 +70,7 @@ public:
         patch::AudioMixerFrame f;
         float peaks[kMixerChannels] = {}, masterL = 0.0f, masterR = 0.0f;
         for (int i = 0; i < c.numSamples; ++i) {
-            for (int k = 0; k < kMixerChannels; ++k) {
+            for (int k = 0; k < n; ++k) {
                 p.ch[k].levelDb = value(c, 3 * k, i);
                 p.ch[k].pan = value(c, 3 * k + 1, i);
                 p.ch[k].sendDb = value(c, 3 * k + 2, i);
@@ -86,11 +88,11 @@ public:
             c.outputs[SendL][i] = f.sendL;
             c.outputs[SendR][i] = f.sendR;
             c.outputs[Level][i] = f.level;
-            for (int k = 0; k < kMixerChannels; ++k) peaks[k] = std::max(peaks[k], f.peak[k]);
+            for (int k = 0; k < n; ++k) peaks[k] = std::max(peaks[k], f.peak[k]);
             masterL = std::max(masterL, std::fabs(f.outL));
             masterR = std::max(masterR, std::fabs(f.outR));
         }
-        for (int k = 0; k < kMixerChannels; ++k) raise(peak_[k], peaks[k]);
+        for (int k = 0; k < n; ++k) raise(peak_[k], peaks[k]);
         raise(masterL_, masterL);
         raise(masterR_, masterR);
         reduction_.store(dsp_.gainReduction());
@@ -112,31 +114,32 @@ void registerAudioMixerModule(Registry& r) {
     s.name = "Audio Mixer";
     s.category = "Audio/Mixing";
     s.colour = "#fb7185";
-    s.description = "Four stereo channels with level, pan, mute, solo and a send; return, master and limiter.";
+    s.description = "One to eight stereo channels (default four) with level, pan, mute, solo and a send; return, master and limiter.";
     for (int k = 1; k <= kMixerChannels; ++k) {
         const std::string n = std::to_string(k);
-        s.params.push_back(fader("level" + n, "Level " + n, 0.0f));
-        s.params.push_back(ParamSpec::number("pan" + n, "Pan " + n, -1.0f, 1.0f, 0.0f));
-        s.params.push_back(fader("send" + n, "Send " + n, dsp::kFaderFloorDb));
+        s.params.push_back(fader("level" + n, "Level " + n, 0.0f).when("channels", k, kMixerChannels));
+        s.params.push_back(ParamSpec::number("pan" + n, "Pan " + n, -1.0f, 1.0f, 0.0f).when("channels", k, kMixerChannels));
+        s.params.push_back(fader("send" + n, "Send " + n, dsp::kFaderFloorDb).when("channels", k, kMixerChannels));
     }
     s.params.push_back(fader("return", "Return Level", 0.0f));
     s.params.push_back(fader("master", "Master", 0.0f));
-    for (int k = 1; k <= kMixerChannels; ++k) s.params.push_back(ParamSpec::toggle("mute" + std::to_string(k), "Mute " + std::to_string(k), false));
-    for (int k = 1; k <= kMixerChannels; ++k) s.params.push_back(ParamSpec::toggle("solo" + std::to_string(k), "Solo " + std::to_string(k), false));
+    for (int k = 1; k <= kMixerChannels; ++k) s.params.push_back(ParamSpec::toggle("mute" + std::to_string(k), "Mute " + std::to_string(k), false).when("channels", k, kMixerChannels));
+    for (int k = 1; k <= kMixerChannels; ++k) s.params.push_back(ParamSpec::toggle("solo" + std::to_string(k), "Solo " + std::to_string(k), false).when("channels", k, kMixerChannels));
     for (int k = 1; k <= kMixerChannels; ++k)
         s.params.push_back(ParamSpec::choice("sendpoint" + std::to_string(k), "Send Point " + std::to_string(k),
-                                             {"Post-Fader", "Pre-Fader"}, 0));
+                                             {"Post-Fader", "Pre-Fader"}, 0).when("channels", k, kMixerChannels));
     s.params.push_back(ParamSpec::toggle("limiter", "Limiter", true));
     s.params.push_back(ParamSpec::toggle("mono", "Mono", false));
+    s.params.push_back(ParamSpec::integer("channels", "Channels", 1, kMixerChannels, 4));
     for (int k = 1; k <= kMixerChannels; ++k) {
         const std::string n = std::to_string(k);
-        s.inputs.push_back({"in" + n + "l", "In " + n + " L", Signal::Audio});
-        s.inputs.push_back({"in" + n + "r", "In " + n + " R", Signal::Audio});
+        s.inputs.push_back(JackSpec{"in" + n + "l", "In " + n + " L", Signal::Audio}.when("channels", k, kMixerChannels));
+        s.inputs.push_back(JackSpec{"in" + n + "r", "In " + n + " R", Signal::Audio}.when("channels", k, kMixerChannels));
     }
     s.inputs.push_back({"returnl", "Return L", Signal::Audio});
     s.inputs.push_back({"returnr", "Return R", Signal::Audio});
     for (int k = 1; k <= kMixerChannels; ++k)
-        s.inputs.push_back({"mute" + std::to_string(k) + "in", "Mute " + std::to_string(k), Signal::Gate});
+        s.inputs.push_back(JackSpec{"mute" + std::to_string(k) + "in", "Mute " + std::to_string(k), Signal::Gate}.when("channels", k, kMixerChannels));
     s.outputs = {{"outl", "Out L", Signal::Audio, true},
                  {"outr", "Out R", Signal::Audio, true},
                  {"sendl", "Send L", Signal::Audio, true},

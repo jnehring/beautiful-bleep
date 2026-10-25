@@ -4,7 +4,8 @@
 // its own level meter, then a master strip (fader, stereo meter, Limiter, Mono).
 (function () {
   "use strict";
-  const N = 4;
+  const N = 8;  // the most channels; the Channels setting picks how many show
+  const STRIP_W = 100;
   const FALL = 24;  // dB per second, the meters' fall
   const NS = "http://www.w3.org/2000/svg";
   const clamp01 = (v) => Math.min(1, Math.max(0, v));
@@ -39,6 +40,8 @@
     view.api.setParam(id, v);
   }
   const param = (view, id) => view.type.params.find((p) => p.id === id);
+  /// Channels in use (an integer param, stored normalised).
+  const channels = (view) => Math.min(N, Math.max(1, Math.round(units(param(view, "channels"), get(view, "channels")))));
   const get = (view, id) => view.node.params[id] ?? param(view, id).default;
 
   /// Drag helper: `set(event)` while the pointer is down, after one undo gesture.
@@ -195,10 +198,10 @@
     width: 610,
     partNames: ["Mixer strips"],
     partSizes: [[35, 10]],
-    layout: [{ title: "Send bus", params: ["sendpoint1", "sendpoint2", "sendpoint3", "sendpoint4", "return"] }],
+    layout: [{ title: "Send bus", params: ["return"] }],
     hideParams: [].concat(
-      ...[1, 2, 3, 4].map((k) => ["level" + k, "pan" + k, "send" + k, "mute" + k, "solo" + k]),
-      ["master", "limiter", "mono"]),
+      ...[1, 2, 3, 4, 5, 6, 7, 8].map((k) => ["level" + k, "pan" + k, "send" + k, "mute" + k, "solo" + k, "sendpoint" + k]),
+      ["master", "limiter", "mono", "channels"]),
     template:
       "<style>" +
       ".am{display:flex;gap:6px;align-items:stretch;flex:1 1 100%}" +
@@ -257,16 +260,17 @@
         const mute = button(view, "mute" + k, "M", "Mute");
         mute.box.classList.add("mute");
         const solo = button(view, "solo" + k, "S", "Solo");
+        const pre = button(view, "sendpoint" + k, "Pre", "Send taken before the fader (Pre) or after it (Post)");
         const row = el("div", "am-row");
         row.append(mute.box, solo.box);
         const fad = fader(view, "level" + k, 1);
         const col = el("div", "am-col");
-        col.append(pan.box, send.box, row);
+        col.append(pan.box, send.box, pre.box, row);
         const body = el("div", "am-body");
         body.append(fad.box, col);
         strip.append(el("div", "am-name", "" + k), body);
         root.appendChild(strip);
-        m.strips.push({ dials: [pan, send], buttons: [mute, solo], fader: fad });
+        m.strips.push({ box: strip, dials: [pan, send], buttons: [mute, solo, pre], fader: fad });
       }
       const ms = el("div", "am-strip am-master");
       const lim = button(view, "limiter", "Limiter", "Peak limiter at −0.3 dBFS");
@@ -276,14 +280,32 @@
       const opts = el("div", "am-row");
       opts.style.flexDirection = "column";
       opts.append(lim.box, mono.box);
+      const chs = el("div", "am-row");
+      const dec = el("button", "am-btn", "−"), inc = el("button", "am-btn", "+");
+      const count = el("div", "am-val");
+      dec.title = "Fewer channels";
+      inc.title = "More channels";
+      const step = (d) => {
+        view.api.beginGesture();
+        setValue(view, "channels", (channels(view) + d - 1) / (N - 1));
+        m.draw();
+      };
+      dec.addEventListener("click", () => step(-1));
+      inc.addEventListener("click", () => step(1));
+      chs.append(dec, count, inc);
       const mcol = el("div", "am-col");
-      mcol.append(opts, gr);
+      mcol.append(el("div", "am-cap", "Channels"), chs, opts, gr);
       const mbody = el("div", "am-body");
       mbody.append(mf.box, mcol);
       ms.append(el("div", "am-name", "Master"), mbody);
       root.appendChild(ms);
       m.master = { fader: mf, buttons: [lim, mono], gr };
+      m.count = count;
       m.draw = () => {
+        const n = channels(view);
+        m.strips.forEach((s, k) => { s.box.hidden = k >= n; });
+        m.count.textContent = n;
+        if (view.win) view.win.style.width = Math.max(610, STRIP_W * (n + 1) + 20) + "px";
         for (const s of m.strips) {
           for (const d of s.dials) d.draw();
           for (const b of s.buttons) b.draw();
@@ -301,12 +323,12 @@
       // Hidden params are not synced by the generic view: take them from the state.
       if (st.params && !m.down) {
         for (const [id, ps] of Object.entries(st.params))
-          if (/^(level|pan|send|mute|solo)\d$|^(master|limiter|mono)$/.test(id)) view.node.params[id] = ps.v;
+          if (/^(level|pan|send|mute|solo|sendpoint)\d$|^(master|limiter|mono|channels)$/.test(id)) view.node.params[id] = ps.v;
         m.draw();
       }
       const now = performance.now() / 1000, dt = m.last ? Math.min(0.5, now - m.last) : 0;
       m.last = now;
-      m.strips.forEach((s, k) => s.fader.meter([st["peak" + (k + 1)]], dt, now));
+      m.strips.forEach((s, k) => k < channels(view) && s.fader.meter([st["peak" + (k + 1)]], dt, now));
       m.master.fader.meter([st.masterL, st.masterR], dt, now);
       const g = toDb(st.gr ?? 1);
       m.master.gr.textContent = g < -0.1 ? "GR " + g.toFixed(1) + " dB" : "";

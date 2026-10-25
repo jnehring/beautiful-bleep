@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 """The patch assistant's endpoints (agent/, doc/specs/agent.md §5).
 
-GET  /api/agent/status  always answers; {"enabled": false} when BLEEP_AGENT_ENABLED is off (the board then hides the chat).
+GET  /api/agent/status  always answers; {"enabled": false, "reason": "disabled"} when BLEEP_AGENT_ENABLED is off (the board then shows the button with a notice, no composer).
 POST /api/agent/chat    a Server-Sent Events stream of one assistant turn; signed-in users only (the website's cookie, or the app's personal token), per-user rate, daily token budget.
 
 The library is imported only when the feature is on, so a disabled installation never loads a model client.
@@ -93,7 +93,7 @@ def get_resources() -> Any:
 @router.get("/status")
 def agent_status(user: User | None = Depends(get_optional_library_user), db: Session = Depends(get_db)) -> dict[str, Any]:
     if not settings.agent_enabled:
-        return {"enabled": False}
+        return {"enabled": False, "reason": "disabled"}
     out_of_budget = agent_quota.exhausted(db)
     return {"enabled": True, "signed_in": user is not None, "budget_exhausted": out_of_budget,
             "reset_at": agent_quota.reset_at().isoformat() if out_of_budget else None}

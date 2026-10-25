@@ -13,7 +13,7 @@
 
 namespace bleep::patch {
 
-constexpr int kMixerChannels = 4;
+constexpr int kMixerChannels = 8;  ///< the most channels; the Channels setting picks how many are used
 
 /// Lookahead peak limiter, linked stereo. The gain is the minimum of the
 /// required gains over the lookahead window, released slowly, then averaged
@@ -76,6 +76,7 @@ struct MixerChannelParams {
 };
 
 struct AudioMixerParams {
+    int channels = 4;  ///< channels in use, 1…kMixerChannels
     MixerChannelParams ch[kMixerChannels];
     float returnDb = 0.0f, masterDb = 0.0f;
     bool limiter = true;
@@ -124,9 +125,10 @@ public:
 
     void tick(const AudioMixerInputs& in, const AudioMixerParams& p, AudioMixerFrame& f) noexcept {
         bool anySolo = false;
-        for (const auto& c : p.ch) anySolo = anySolo || c.solo;
+        const int n = std::clamp(p.channels, 1, kMixerChannels);
+        for (int k = 0; k < n; ++k) anySolo = anySolo || p.ch[k].solo;
         float busL = 0.0f, busR = 0.0f, sendL = 0.0f, sendR = 0.0f;
-        for (int k = 0; k < kMixerChannels; ++k) {
+        for (int k = 0; k < n; ++k) {
             const auto& c = p.ch[k];
             const bool muted = c.mute || in.muteGate[k];
             const bool soloedOut = anySolo && !c.solo;

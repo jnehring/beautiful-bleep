@@ -40,7 +40,7 @@ Settings use the `BLEEP_` prefix and live in `website/api/app/config.py`.
 
 | Setting | Default | Meaning |
 |---|---|---|
-| `agent_enabled` | `false` | Mounts the router. When off, `GET /api/agent/status` still answers `{"enabled": false}` and the board hides the chat |
+| `agent_enabled` | `false` | Mounts the router. When off, `GET /api/agent/status` still answers `{"enabled": false, "reason": "disabled"}`; the board keeps the Assistant button and its panel says the assistant is not available yet |
 | `agent_daily_tokens` | 1,000,000 | The site-wide daily budget; a run is refused with 429 when it is used up and `reset_at` is the next UTC midnight |
 | `agent_model` | a Gemini flash model | The model the site uses |
 | `agent_embed_model` | `gemini-embedding-2` | Must equal the model in `docs.sqlite`, otherwise documentation search falls back to keywords only |

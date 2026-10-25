@@ -67,7 +67,7 @@ BODY = {"messages": [{"role": "user", "content": "what is a vca?"}], "snapshot":
 
 def test_disabled_by_default(client):
     assert settings.agent_enabled is False
-    assert client.get("/api/agent/status").json() == {"enabled": False}
+    assert client.get("/api/agent/status").json() == {"enabled": False, "reason": "disabled"}
     ann = other_client("ann@example.com", "Ann")
     assert ann.post("/api/agent/chat", json=BODY).status_code == 404
 

@@ -43110,6 +43110,422 @@
     ]
   },
   {
+    "type": "route",
+    "name": "Route",
+    "category": "Utility/Logic & Routing",
+    "colour": "#99f6e4",
+    "description": "Sends one input to one of up to 8 outputs: by the Select knob or a CV on it, stepped by triggers or the song, or jumped to with a trigger per output.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "select",
+        "name": "Select",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 2
+      },
+      {
+        "id": "fade",
+        "name": "Fade",
+        "kind": "float",
+        "default": 0.273082911968231,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.002000000094995,
+        "format": "seconds",
+        "decimals": 2,
+        "map": "skew",
+        "centre": 0.050000000745058
+      },
+      {
+        "id": "outputs",
+        "name": "Outputs",
+        "kind": "int",
+        "default": 0.333333343267441,
+        "steps": 7,
+        "modulatable": false,
+        "cableable": false,
+        "min": 2.0,
+        "max": 8.0,
+        "def": 4.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "order",
+        "name": "Order",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Forward",
+          "Backward",
+          "Ping-Pong",
+          "Random"
+        ],
+        "min": 0.0,
+        "max": 3.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "rate",
+        "name": "Rate",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 10,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Off",
+          "1/32",
+          "1/16",
+          "1/8",
+          "1/4",
+          "1/2",
+          "1 bar",
+          "2 bars",
+          "4 bars",
+          "8 bars"
+        ],
+        "min": 0.0,
+        "max": 9.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "curve",
+        "name": "Fade Curve",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Equal Power",
+          "Linear"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "idle",
+        "name": "Idle Outputs",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Zero",
+          "Hold"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "resetin",
+        "name": "Reset Input",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Off",
+          "On"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "trigs",
+        "name": "Slot Triggers",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 9,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 8.0,
+        "def": 0.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "changedout",
+        "name": "Changed Output",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Off",
+          "On"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "seed",
+        "name": "Seed",
+        "kind": "int",
+        "default": 0.001001000986435,
+        "steps": 1000,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 999.0,
+        "def": 1.0,
+        "format": "integer",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "in",
+        "name": "In",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "next",
+        "name": "Next",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "resetin",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "trig1",
+        "name": "Trig 1",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 1,
+          "max": 8
+        }
+      },
+      {
+        "id": "trig2",
+        "name": "Trig 2",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 2,
+          "max": 8
+        }
+      },
+      {
+        "id": "trig3",
+        "name": "Trig 3",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 3,
+          "max": 8
+        }
+      },
+      {
+        "id": "trig4",
+        "name": "Trig 4",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 4,
+          "max": 8
+        }
+      },
+      {
+        "id": "trig5",
+        "name": "Trig 5",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 5,
+          "max": 8
+        }
+      },
+      {
+        "id": "trig6",
+        "name": "Trig 6",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 6,
+          "max": 8
+        }
+      },
+      {
+        "id": "trig7",
+        "name": "Trig 7",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 7,
+          "max": 8
+        }
+      },
+      {
+        "id": "trig8",
+        "name": "Trig 8",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 8,
+          "max": 8
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out1",
+        "name": "Out 1",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "outputs",
+          "min": 1,
+          "max": 8
+        }
+      },
+      {
+        "id": "out2",
+        "name": "Out 2",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "outputs",
+          "min": 2,
+          "max": 8
+        }
+      },
+      {
+        "id": "out3",
+        "name": "Out 3",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "outputs",
+          "min": 3,
+          "max": 8
+        }
+      },
+      {
+        "id": "out4",
+        "name": "Out 4",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "outputs",
+          "min": 4,
+          "max": 8
+        }
+      },
+      {
+        "id": "out5",
+        "name": "Out 5",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "outputs",
+          "min": 5,
+          "max": 8
+        }
+      },
+      {
+        "id": "out6",
+        "name": "Out 6",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "outputs",
+          "min": 6,
+          "max": 8
+        }
+      },
+      {
+        "id": "out7",
+        "name": "Out 7",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "outputs",
+          "min": 7,
+          "max": 8
+        }
+      },
+      {
+        "id": "out8",
+        "name": "Out 8",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "outputs",
+          "min": 8,
+          "max": 8
+        }
+      },
+      {
+        "id": "changed",
+        "name": "Changed",
+        "type": "trigger",
+        "bipolar": false,
+        "show": {
+          "param": "changedout",
+          "min": 1,
+          "max": 1
+        }
+      }
+    ]
+  },
+  {
     "type": "sampler",
     "name": "Sampler",
     "category": "Audio/Sampling",
@@ -47984,6 +48400,404 @@
         "name": "Active",
         "type": "gate",
         "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "select",
+    "name": "Select",
+    "category": "Utility/Logic & Routing",
+    "colour": "#d8b4fe",
+    "description": "Picks one of up to 8 inputs for the output: by the Select knob or a CV on it, stepped by triggers or the song, or jumped to with a trigger per input.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "select",
+        "name": "Select",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 2
+      },
+      {
+        "id": "fade",
+        "name": "Fade",
+        "kind": "float",
+        "default": 0.273082911968231,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.002000000094995,
+        "format": "seconds",
+        "decimals": 2,
+        "map": "skew",
+        "centre": 0.050000000745058
+      },
+      {
+        "id": "inputs",
+        "name": "Inputs",
+        "kind": "int",
+        "default": 0.333333343267441,
+        "steps": 7,
+        "modulatable": false,
+        "cableable": false,
+        "min": 2.0,
+        "max": 8.0,
+        "def": 4.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "order",
+        "name": "Order",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Forward",
+          "Backward",
+          "Ping-Pong",
+          "Random"
+        ],
+        "min": 0.0,
+        "max": 3.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "rate",
+        "name": "Rate",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 10,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Off",
+          "1/32",
+          "1/16",
+          "1/8",
+          "1/4",
+          "1/2",
+          "1 bar",
+          "2 bars",
+          "4 bars",
+          "8 bars"
+        ],
+        "min": 0.0,
+        "max": 9.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "curve",
+        "name": "Fade Curve",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Equal Power",
+          "Linear"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "resetin",
+        "name": "Reset Input",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Off",
+          "On"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "trigs",
+        "name": "Slot Triggers",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 9,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 8.0,
+        "def": 0.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "changedout",
+        "name": "Changed Output",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Off",
+          "On"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "seed",
+        "name": "Seed",
+        "kind": "int",
+        "default": 0.001001000986435,
+        "steps": 1000,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 999.0,
+        "def": 1.0,
+        "format": "integer",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "in1",
+        "name": "In 1",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "inputs",
+          "min": 1,
+          "max": 8
+        }
+      },
+      {
+        "id": "in2",
+        "name": "In 2",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "inputs",
+          "min": 2,
+          "max": 8
+        }
+      },
+      {
+        "id": "in3",
+        "name": "In 3",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "inputs",
+          "min": 3,
+          "max": 8
+        }
+      },
+      {
+        "id": "in4",
+        "name": "In 4",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "inputs",
+          "min": 4,
+          "max": 8
+        }
+      },
+      {
+        "id": "in5",
+        "name": "In 5",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "inputs",
+          "min": 5,
+          "max": 8
+        }
+      },
+      {
+        "id": "in6",
+        "name": "In 6",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "inputs",
+          "min": 6,
+          "max": 8
+        }
+      },
+      {
+        "id": "in7",
+        "name": "In 7",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "inputs",
+          "min": 7,
+          "max": 8
+        }
+      },
+      {
+        "id": "in8",
+        "name": "In 8",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "inputs",
+          "min": 8,
+          "max": 8
+        }
+      },
+      {
+        "id": "next",
+        "name": "Next",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "resetin",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "trig1",
+        "name": "Trig 1",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 1,
+          "max": 8
+        }
+      },
+      {
+        "id": "trig2",
+        "name": "Trig 2",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 2,
+          "max": 8
+        }
+      },
+      {
+        "id": "trig3",
+        "name": "Trig 3",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 3,
+          "max": 8
+        }
+      },
+      {
+        "id": "trig4",
+        "name": "Trig 4",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 4,
+          "max": 8
+        }
+      },
+      {
+        "id": "trig5",
+        "name": "Trig 5",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 5,
+          "max": 8
+        }
+      },
+      {
+        "id": "trig6",
+        "name": "Trig 6",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 6,
+          "max": 8
+        }
+      },
+      {
+        "id": "trig7",
+        "name": "Trig 7",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 7,
+          "max": 8
+        }
+      },
+      {
+        "id": "trig8",
+        "name": "Trig 8",
+        "type": "trigger",
+        "bipolar": true,
+        "show": {
+          "param": "trigs",
+          "min": 8,
+          "max": 8
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "changed",
+        "name": "Changed",
+        "type": "trigger",
+        "bipolar": false,
+        "show": {
+          "param": "changedout",
+          "min": 1,
+          "max": 1
+        }
       }
     ]
   },
