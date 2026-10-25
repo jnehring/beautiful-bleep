@@ -47,8 +47,8 @@ Live keeps a plugin's code loaded until it quits, so:
 - **DSP, bus or C++ changes:** save your test set and run `./bleep run live <set.als>`.
   It builds first, and only quits Live if the build succeeded. It never
   force-quits Live: answer Live's save dialog if one appears.
-  While Live is running, `./bleep build plugins` only builds and says it did not copy: overwriting a loaded plugin can crash
-  Live. Quit Live and run `./bleep build plugins --install` (the plain command copies by default when Live is not running).
+  `./bleep build plugins` copies the plugins by default, also while Live is running (it warns): overwriting a loaded plugin can
+  crash Live. Quit Live first, or use `--no-install` to only build.
 - **Quick checks without Live:** `./bleep run ui` runs the board UI in a browser
   against a fake engine; the engine tests (`ctest --test-dir build/patch`) simulate Live's
   parallel tracks.
