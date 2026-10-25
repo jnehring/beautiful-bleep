@@ -26,9 +26,11 @@
 		Permissions-Policy "camera=(), geolocation=(), microphone=(self), payment=(), usb=()"
 		# Only honoured by browsers when the site was reached over HTTPS.
 		Strict-Transport-Security "max-age=31536000"
-		# Nobody frames the site (clickjacking on /device/ and /account).
-		X-Frame-Options "DENY"
 	}
+
+	# Nobody frames the site (clickjacking on /device/ and /account), except the one page below.
+	@noframe not path /play/board-code-view.html
+	header @noframe X-Frame-Options "DENY"
 
 	# The pages: no framing, no plugins, no <base>, forms and resources from here. The header deliberately has no script-src and no
 	# default-src: Next's static export writes inline scripts, and each page carries its own <meta> policy with script-src and the
@@ -37,8 +39,14 @@
 	# fetch directive is therefore listed here instead of coming from default-src. The export also writes inline styles, so style-src
 	# keeps 'unsafe-inline'. wasm-unsafe-eval (in the meta) is for Bleep Play compiling the modules; frame-src 'self' is for the sandboxed frame a Code node's own UI runs in (board-code-view.html, which sets its own policy: no network); ws://127.0.0.1 is its
 	# bridge to the Bleep App on the same computer.
-	@pages not path /registry/*
+	@pages not path /registry/* /play/board-code-view.html
 	header @pages Content-Security-Policy "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; object-src 'none'; frame-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+
+	# The one page that is framed: a Code node's own UI (board-code-view.html) is embedded by Bleep Play, from the same origin.
+	# It sets its own policy (a meta tag: no network), so the header here only controls who may frame it.
+	@codeview path /play/board-code-view.html
+	header @codeview Content-Security-Policy "frame-ancestors 'self'"
+	header @codeview X-Frame-Options "SAMEORIGIN"
 
 	# Library files are data, never pages: whatever a release uploaded cannot run script in the site's origin (it shares the session cookie's origin).
 	@registry path /registry/*
