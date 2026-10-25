@@ -1,17 +1,14 @@
 # SPDX-License-Identifier: MIT
-"""Community modules (website/content/developers/modules/signing.md section 2a): what the library checks before it signs a package an
-account uploaded, and how it builds the signed package.
+"""Community modules (website/content/developers/modules/library.md): what the library checks before it publishes a package an
+account uploaded, and how it builds the package it stores.
 
-A community module is signed by the library's own community key, not by its author. The signature therefore says "the library served these
-bytes and they passed these checks"; what keeps users safe is the sandbox and the checks below, which every client repeats before it runs
-the file. The checks are deliberately strict about WHAT a package may contain, and say nothing about who wrote it.
+What keeps users safe is the sandbox and the checks below, which every client repeats before it runs the file. The checks are
+deliberately strict about WHAT a package may contain, and say nothing about who wrote it.
 """
 import io
 import json
 import re
 import zipfile
-
-from . import signing
 
 ENGINE_ABI = 1
 
@@ -51,6 +48,39 @@ IMAGE_NAME = re.compile(r"^image\.(png|jpg|webp)$")
 REQUIRED_FILES = ("module.json", "module.wasm", "spec.json")
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 ZIP_DATE = (2020, 1, 1, 0, 0, 0)
+
+
+MAX_MEMBER_BYTES = 512 * 1024 * 1024    # one file inside a package (plugin packages carry big binaries)
+MAX_TOTAL_BYTES = 1024 * 1024 * 1024    # all files of a package together
+MAX_RATIO = 1000                        # uncompressed / compressed, for members above RATIO_FROM (a zip bomb is far above)
+RATIO_FROM = 16 * 1024 * 1024
+MAX_META_BYTES = 1024 * 1024            # module.json
+
+
+def safe_path(path: str) -> str:
+    parts = path.split("/")
+    if not path or path.startswith("/") or "\\" in path or "\0" in path or any(p in ("", ".", "..") for p in parts):
+        raise ValueError(f"bad path in package: {path!r}")
+    return path
+
+
+def check_member(info: zipfile.ZipInfo, total: int = 0, *, max_member: int | None = None, max_total: int | None = None) -> int:
+    """Refuses an oversize or bomb-like zip member before anything is decompressed; returns the running total."""
+    max_member = MAX_MEMBER_BYTES if max_member is None else max_member
+    max_total = MAX_TOTAL_BYTES if max_total is None else max_total
+    if info.file_size > max_member:
+        raise ValueError(f"{info.filename}: {info.file_size} bytes uncompressed, more than the limit of {max_member}")
+    if info.file_size > RATIO_FROM and info.file_size > MAX_RATIO * max(info.compress_size, 1):
+        raise ValueError(f"{info.filename}: compression ratio is implausibly high")
+    if total + info.file_size > max_total:
+        raise ValueError(f"package is larger than {max_total} bytes uncompressed")
+    return total + info.file_size
+
+
+def read_member(z: zipfile.ZipFile, name: str, limit: int = MAX_META_BYTES) -> bytes:
+    """One (small) member's bytes, refused when it is larger than `limit`."""
+    check_member(z.getinfo(name), max_member=limit)
+    return z.read(name)
 
 
 class Rejected(ValueError):
@@ -157,23 +187,21 @@ def inspect(data: bytes) -> tuple[dict[str, bytes], dict]:
         raise Rejected("This is not a .bleepmod package (a zip file)")
     files: dict[str, bytes] = {}
     with z:
-        infos = [i for i in z.infolist() if not i.is_dir()]
+        infos = [i for i in z.infolist() if not i.is_dir() and i.filename != "META/signature.json"]  # a leftover signature file is ignored
         if len(infos) > MAX_FILES:
             raise Rejected(f"A package has at most {MAX_FILES} files")
         total = 0
         for info in infos:
             name = info.filename
             try:
-                signing.safe_path(name)
-                total = signing.check_member(info, total, max_member=MAX_WASM_BYTES, max_total=2 * MAX_WASM_BYTES)
+                safe_path(name)
+                total = check_member(info, total, max_member=MAX_WASM_BYTES, max_total=2 * MAX_WASM_BYTES)
             except ValueError as e:
                 raise Rejected(str(e))
             if (info.external_attr >> 28) == 0xA:
                 raise Rejected(f"{name}: a symbolic link")
             if name in files:
                 raise Rejected(f"{name}: appears twice")
-            if name.startswith("META/"):
-                raise Rejected(f"{name}: upload the package unsigned; the library signs it")
             if not ALLOWED_FILES.match(name):
                 hint = " (a community module cannot bring page scripts; its own picture is view.sandbox.js, which runs in a sandbox)" if name.endswith(".js") else ""
                 raise Rejected(f"{name}: not allowed in a community package{hint}. Allowed: module.json, module.wasm, spec.json, LICENSE, view.sandbox.js, source.dsp.ts, image.png|jpg|webp, doc/*.md, doc/*.png")
@@ -204,19 +232,13 @@ def inspect(data: bytes) -> tuple[dict[str, bytes], dict]:
     return files, meta
 
 
-def entries_of(files: dict[str, bytes]) -> dict[str, tuple[bytes, bool]]:
-    import hashlib
-    return {p: (hashlib.sha256(c).digest(), False) for p, c in files.items()}
-
-
-def build_zip(files: dict[str, bytes], doc: dict) -> bytes:
-    """The package as the library stores it: the same files, sorted, with fixed dates, plus META/signature.json."""
+def build_zip(files: dict[str, bytes]) -> bytes:
+    """The package as the library stores it: the same files, sorted, with fixed dates."""
     out = io.BytesIO()
-    members = {**files, signing.SIGNATURE_PATH: (json.dumps(doc, indent=1) + "\n").encode()}
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
-        for path in sorted(members, key=lambda p: p.encode()):
+        for path in sorted(files, key=lambda p: p.encode()):
             info = zipfile.ZipInfo(path, ZIP_DATE)
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
-            z.writestr(info, members[path], compresslevel=9)
+            z.writestr(info, files[path], compresslevel=9)
     return out.getvalue()

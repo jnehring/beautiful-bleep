@@ -18,8 +18,6 @@ Edit `website/.env`:
 | `BLEEP_COOKIE_SECURE` | defaults to `true` (HTTPS); set `false` only for plain `http://localhost` development |
 | `BLEEP_SITE_PORT` | Optional, default 8080 |
 | `BLEEP_SITE_ADDRESS`, `BLEEP_SITE_TLS_PORT` | Optional automatic HTTPS, default off (`:80`, plain HTTP); see the HTTPS entry under [Notes](#notes) |
-| `BLEEP_ROOT_PUBLIC_KEYS`, `BLEEP_ISSUER_KEY`, `BLEEP_ISSUER_CERT` | The library's signing keys (see [Signing keys](#signing-keys)). Without the root public key the library refuses every release |
-| `BLEEP_REQUIRE_SIGNATURES` | Default `true`: a release without a valid developer signature is refused. Only turn it off for local experiments |
 
 Then start it:
 
@@ -27,20 +25,20 @@ Then start it:
 ./bleep run site          # or: cd website && docker compose up --build -d
 ```
 
-Open http://localhost:8080. The image build takes about a minute: it contains the site, the docs and the board's UI, but **no modules**. Bleep Play at `/board/` installs its modules by itself, from the Bleep Library of the same site, the first time a board needs one: it reads `/registry/v1/index.json`, downloads the module's package, checks its signature in the browser and only then runs it. A visitor needs nothing installed. Until modules have been released to the library, the board runs but stays silent ("cannot load …" in its status line).
+Open http://localhost:8080. The image build takes about a minute: it contains the site, the docs and the board's UI, but **no modules**. Bleep Play at `/board/` installs its modules by itself, from the Bleep Library of the same site, the first time a board needs one: it reads `/registry/v1/index.json`, downloads the module's package, checks it in the browser and only then runs it. A visitor needs nothing installed. Until modules have been released to the library, the board runs but stays silent ("cannot load …" in its status line).
 
-Getting modules into the library takes three steps, all on your machine (the signing keys are in [Signing keys](#signing-keys) below):
+Getting modules into the library takes three steps, all on your machine:
 
 ```bash
 scripts/build/build-web.sh --docker --modules-only   # compile every module to .wasm (Emscripten in Docker: no local emsdk needed)
 ```
 
 ```bash
-scripts/release/package-module.py                    # one signed-ready .bleepmod per module, in build/library/modules
+scripts/release/package-module.py                    # one .bleepmod per module, in build/library/modules
 ```
 
 ```bash
-scripts/release/release.py --modules --level patch --registry http://localhost:8080 --token-file ~/.bleep-release-token --kit ~/.bleep-signing-kit.json
+scripts/release/release.py --modules --level patch --registry http://localhost:8080 --token-file ~/.bleep-release-token
 ```
 
 The first build compiles every module (slow; on Apple Silicon the image runs emulated); later builds recompile only the modules whose files changed (the compiler's dependency list is hashed in `build/web/modules/.cache/`; delete that folder to force a full rebuild, `BLEEP_WEB_ONLY=oscillator,filter` builds just those). `release.py --modules` releases only the modules whose package content changed since their newest published version, so running it again after a small change releases that one module.
@@ -67,144 +65,23 @@ docker compose exec api python -m app.cli demote you@example.com        # make a
 docker compose exec api python -m app.cli set-password you@example.com  # prompts; ends their sessions
 ```
 
-Release tokens for `scripts/release/release.py` come from the same console: `token-create NAME [--days 1..3650] [--publisher P] [--out FILE]`, `token-list`, `token-revoke ID`; developer signing keys with `developer-create PUBLISHER [--days 1..825] [--out FILE] [--first-party --confirm]` (warns when the publisher already has an active key), `developer-list`, `developer-revoke` (the token and the key kit are secrets: `--out FILE` writes them with mode 0600, and without `--out` the command refuses to print into a file that other users can read, as `> kit.json` under the default umask would; a pipe or terminal is fine; see [release.md](release.md); the keys the library needs are `BLEEP_ROOT_PUBLIC_KEYS`, `BLEEP_ISSUER_KEY` and `BLEEP_ISSUER_CERT` in `website/.env`).
+Release tokens for `scripts/release/release.py` come from the same console: `token-create NAME [--days 1..3650] [--publisher P] [--out FILE]`, `token-list`, `token-revoke ID` (the token is a secret: `--out FILE` writes it with mode 0600, and without `--out` the command refuses to print into a file that other users can read, as `> token` under the default umask would; a pipe or terminal is fine; see [release.md](release.md)).
 
-Community modules (anyone with an account shares a module; the library signs it): `community-init [--days 1..825] [--out FILE]` makes the community key and prints the two `.env` lines (once, and again before the certificate lapses), `community-takedown AUTHOR/NAME VERSION` withdraws a release onto the signed revocation list, and `community-ban HANDLE` takes down an author's whole catalogue and deactivates the account. Reports from users show in the admin console's report list (`target: module`). Authors upload with `scripts/release/community-publish.py`.
+Community modules (anyone with an account shares a module): `community-takedown AUTHOR/NAME VERSION` withdraws a release from the index, and `community-ban HANDLE` takes down an author's whole catalogue and deactivates the account. Reports from users show in the admin console's report list (`target: module`). Authors upload with `scripts/release/community-publish.py`.
 
 Run these from `website/`. The password is typed at a prompt, never given as an argument.
 
-## Signing keys
-
-The library only accepts signed releases (the rules are in [signing.md](../../website/content/developers/modules/signing.md)). Three values in `website/.env` tell it whom to trust and let it issue developer keys:
-
-| Variable | What | Secret? |
-|---|---|---|
-| `BLEEP_ROOT_PUBLIC_KEYS` | The root **public** key (hex; two, comma separated, while a root is being replaced). The library checks every release against it, and the apps and plugins will carry the same key | No |
-| `BLEEP_ISSUER_KEY` | The issuer's private key (PEM on one line, newlines written as `\n`). It issues developer keys | **Yes** |
-| `BLEEP_ISSUER_CERT` | The issuer's certificate (JSON on one line), signed by the root | No |
-| `BLEEP_COMMUNITY_KEY` | The library's community key (PEM on one line, newlines as `\n`), or `BLEEP_COMMUNITY_KEY_FILE` for a Docker secret. It signs the modules accounts upload, after the library has checked them. Made by `python -m app.cli community-init`; empty: community uploads are off | **Yes** |
-| `BLEEP_COMMUNITY_CERT` | Its certificate (JSON on one line), issued by the issuer, modules only. Renew before it lapses (run `community-init` again and replace both lines): modules already published keep working through their receipts | No |
-
-The root **private** key never goes into `website/.env` or onto the server. If the server is broken into, the attacker gets the issuer key, which the root can revoke and replace; the root key could not be replaced without updating every installed app. Keep it offline, in your keystore.
-
-### 1. Create new keys
-
-Do this for a new installation, or on purpose to replace all keys. **Do not do it on a site whose developers already have keys**: it creates a new root and issuer, every existing signing kit stops being valid, and apps built with the old root public key reject what you release afterwards.
-
-1. **Make the keys** on a machine you trust. It needs Python's `cryptography` package (`pip install cryptography`):
-
-```bash
-scripts/release/signing.py init-registry ~/bleep-registry-keys
-```
-
-It writes `root.key` and `root.pub` (the root), `issuer.key` and `issuer.cert` (the issuer, valid for ten years) and `registry.env` (the three lines for `website/.env`). Do not set `BLEEP_KEY_PASSPHRASE` here: it would encrypt the issuer key and the API could not read it.
-
-2. **Secure the root key.** Put `root.key` into your keystore, check that you can read it back, then delete it from `~/bleep-registry-keys`. Keep `root.pub` (it is public; the apps will be built with it).
-
-3. **Give the library its part.** Append the three lines to the website config, restrict the file, then delete `registry.env` (it duplicates the issuer key). The first `echo` matters: if `website/.env` does not end with a newline, the first appended line would be glued to the last one (for example onto `S3_SECRET_KEY`, which also breaks the storage login) and the root key would never be read:
-
-```bash
-{ echo; cat ~/bleep-registry-keys/registry.env; } >> website/.env
-```
-
-```bash
-chmod 600 website/.env
-```
-
-4. **Start (or restart) the API** so it reads them and applies the database migrations:
-
-```bash
-./bleep run site
-```
-
-5. **Check:**
-
-```bash
-curl -s localhost:8080/api/registry/roots
-```
-
-It must show your root public key and `"requireSignatures":true`. An empty `roots` list means the lines did not reach the container: look at `website/.env` for a missing newline between two variables (each `NAME=` must start its own line).
-
-6. **Make a signing kit** for your own releases (the publisher `bleep` is ours; `--first-party` lets it sign ids without a namespace), and list the issued keys:
-
-```bash
-cd website && docker compose exec api python -m app.cli developer-create bleep --scopes module,plugin --first-party > ~/.bleep-signing-kit.json
-```
-
-```bash
-chmod 600 ~/.bleep-signing-kit.json
-```
-
-```bash
-docker compose exec api python -m app.cli developer-list
-```
-
-The kit is a signing key: back it up like the root key. It is valid for 365 days; make a new one before it expires or releases fail with "expired". For a developer outside the team, make a kit with their own publisher and a token that is bound to it, and hand both over privately:
-
-```bash
-docker compose exec api python -m app.cli developer-create acme --scopes module > acme.kit.json
-```
-
-```bash
-docker compose exec api python -m app.cli token-create "acme" --publisher acme > acme.token
-```
-
-7. **Release** with `--kit`: see [release.md](release.md). `scripts/release/release.py ... --dry-run` with the kit checks it against the library first.
-
-### 2. Reuse existing keys
-
-For a site that already has keys: moving the stack to another machine, a new `website/.env`, a rebuilt server. **Nothing is generated; do not run `init-registry`.** Existing signing kits and release tokens keep working.
-
-1. **Find the three values.** In the old `website/.env`, or in the `registry.env` of your first run (your backup). The root public key is also in `root.pub`. The root private key is not needed for this.
-2. **Put them into the new `website/.env`** (all three, `BLEEP_REQUIRE_SIGNATURES` stays `true`), and restrict the file:
-
-```bash
-chmod 600 website/.env
-```
-
-3. **Restore the database** from your backup if you can (see Notes below). The `developers` table lists the keys that were issued and which are revoked. Signatures verify without it, since the chain inside each one proves it was issued by your issuer. But in a **new empty database**, `developer-list` is empty, and keys revoked earlier are no longer refused. There is no command yet to add or revoke a key the database does not know, so restore the database if any key was revoked. Release tokens live in the database too: restore it, or make new tokens.
-4. **Start the API** (`./bleep run site`) and check that the library trusts your root:
-
-```bash
-curl -s localhost:8080/api/registry/roots
-```
-
-The key must be the one in `root.pub`.
-
-5. **Check that the issuer matches the root** by letting an existing kit sign a dry run. A kit from the old site is checked against the library's roots before anything is built or uploaded:
-
-```bash
-scripts/release/release.py --all --level patch --registry http://localhost:8080 --kit ~/.bleep-signing-kit.json --dry-run
-```
-
-It prints `Signing as bleep (key …)`. "not signed by a trusted root" means `BLEEP_ROOT_PUBLIC_KEYS` is not the root that certified the issuer (wrong or mixed-up values). "expired" means the kit needs renewing: `developer-create` (the issuer certificate itself lasts ten years).
-
-If you only have an old kit and lost the `.env`, you cannot recover the issuer key from the kit: the kit holds a developer key, not the issuer's. Without a backup of `issuer.key` the way forward is a new issuer certified by the root key from your keystore. That command does not exist yet (`init-registry` always makes a new root too); until it does, a lost issuer key means creating new keys as in section 1 and re-issuing every kit.
-
 ## Community modules
 
-Anyone with an account can publish a module (see [Publishing a module](../../website/content/developers/modules/publishing.md)); the library checks it and signs it with its **community key**. This needs the signing keys above (root, issuer) and two more lines in `website/.env`. Without them uploads answer 503 and nothing else changes.
-
-**Set up (once).** From `website/`:
-
-```bash
-(umask 077; docker compose exec -T api python -m app.cli community-init > community.env)
-cat community.env >> .env && rm community.env
-docker compose up -d api
-```
-
-`umask 077` is required: the command refuses to write a secret into a file other users can read. Check that `.env` ended with a newline before appending. `community-init` prints the key id and expiry on stderr and records the key in the `developers` table, so `developer-revoke KEY_ID` works on it. The key is a secret; a Docker secret works too (`BLEEP_COMMUNITY_KEY_FILE`).
-
-**Renew before the certificate lapses** (365 days by default; `--days` up to 825). `python -m app.cli developer-list` shows the expiry of the `community` key. Run `community-init` again, replace both lines in `.env` and restart the API. Published modules keep working: their publication receipts date them inside the old certificate. After the certificate lapses and before you renew, uploads answer 503 ("community key is expired").
+Anyone with an account can publish a module (see [Publishing a module](../../website/content/developers/modules/publishing.md)); the library checks it (files, `.wasm` imports and exports, node types, licence) and publishes it. There is nothing to set up: no keys are involved.
 
 **Moderation.**
 
 - Users report a module from the library; reports appear in the admin console with `target: module` (the id is the release id).
-- Withdraw a release: `docker compose exec api python -m app.cli community-takedown AUTHOR/NAME VERSION`. It leaves the index and goes on the signed revocation list; apps pick it up the next time they look. The version number stays used.
+- Withdraw a release: `docker compose exec api python -m app.cli community-takedown AUTHOR/NAME VERSION`. It leaves the index, so nobody can install it any more (installed copies stay until removed). The version number stays used.
 - Remove an author: `community-ban HANDLE` takes down all their releases, deactivates the account and ends its sessions.
-- If the community key itself leaks: `developer-revoke KEY_ID`, then `community-init`. Every community module stops loading until the author or you republish it, so do this only if you must.
 
-**What to check after setup.** Upload a test module with a test account (`scripts/release/community-publish.py ... --check` first); it must show up in the library list with `trust: community`.
+**What to check after setup.** Upload a test module with a test account (`scripts/release/community-publish.py ... --check` first); it must show up in the library list marked *community*.
 
 ## Notes
 

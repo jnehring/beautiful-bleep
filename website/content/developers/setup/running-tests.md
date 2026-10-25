@@ -16,7 +16,7 @@ The repository has one test suite per part. Run the ones for the part you change
 | Bleep Script (`patch/script`) | [Bleep Script tests](#bleep-script-tests) | Node 22 |
 | The website API (`website/api`) | [API tests](#website-api-tests) | Python 3 |
 | The patch assistant (`agent/`) | [Agent tests](#agent-tests) | Python 3 |
-| Release scripts (`scripts/release`) | [Release script tests](#release-script-tests) | Python 3, `cryptography` |
+| Release scripts (`scripts/release`) | [Release script tests](#release-script-tests) | Python 3 |
 
 ## Native tests (CTest)
 
@@ -94,8 +94,7 @@ The tests do not call a model API. The evaluation workbench (`bleep-agent eval r
 ## Release script tests
 
 ```bash
-python3 -m pip install cryptography
-cd scripts/release && python3 -m unittest test_release test_signing test_package_module
+cd scripts/release && python3 -m unittest test_release test_package_module
 ```
 
 ## Repository rules

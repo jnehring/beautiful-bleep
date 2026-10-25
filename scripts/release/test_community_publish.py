@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""python3 -m unittest scripts/release/test_community_publish.py   (needs the `cryptography` package)"""
+"""python3 -m unittest scripts/release/test_community_publish.py"""
 import importlib.util
 import json
 import sys

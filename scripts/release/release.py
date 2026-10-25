@@ -26,9 +26,6 @@ Modules: `release.py --modules --level patch` releases the packaged modules (bui
 package-module.py; `--package` makes them first). Each module counts its own version; one whose content did not change
 since its newest published version is skipped, so only what changed is released.
 
-Signing: every release file is signed with the developer's signing kit (--kit, signingKit in config/bleep.local.json, or $BLEEP_SIGNING_KIT; website/content/developers/modules/signing.md;
-an admin makes one with `python -m app.cli developer-create`). The kit is checked against the library's root keys before anything
-is uploaded, and the library checks every signature again: without a valid key the release fails.
 Token: a release token an admin created with
     docker compose exec api python -m app.cli token-create NAME
 read from $BLEEP_RELEASE_TOKEN or --token-file. It is never accepted as an argument, which would
@@ -51,32 +48,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "website" / "api"))
-from app import signing  # noqa: E402
 sys.path.insert(0, str(ROOT / "scripts"))
 import settings  # noqa: E402  (config/bleep.json, config/bleep.local.json, the environment)
-
-def library_config() -> dict:
-    """config/library.json: where the library is and whom it trusts, the one place the apps' build and these scripts read."""
-    try:
-        return json.loads((ROOT / "config" / "library.json").read_text())
-    except (OSError, ValueError):
-        return {}
-
-
-def pinned_roots() -> list[bytes]:
-    """The root keys this release trusts: rootKeys of config/library.json (plus $BLEEP_LIBRARY_ROOTS, hex, comma separated), the same
-    ones the apps are built with. They are never taken from the registry being published to: a registry that names its own root
-    could accept anything."""
-    keys = list(library_config().get("rootKeys") or [])
-    keys += [k.strip() for k in os.environ.get("BLEEP_LIBRARY_ROOTS", "").split(",") if k.strip()]
-    try:
-        roots = [bytes.fromhex(k) for k in keys]
-    except ValueError:
-        raise SystemExit("release: a root key in config/library.json or $BLEEP_LIBRARY_ROOTS is not hex")
-    if not roots or any(len(r) != 32 for r in roots):
-        raise SystemExit("release: no (valid) rootKeys in config/library.json; the signing kit cannot be checked without pinned roots")
-    return roots
-
 
 # slug -> (title, artefact path under the build dir; {cfg} = build configuration)
 PLUGINS = {
@@ -269,7 +242,7 @@ def find_artefact(slug: str, build_dir: Path, cfg: str) -> Path | None:
 def make_zip(src: Path, out: Path) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.unlink(missing_ok=True)
-    if platform.system() == "Darwin":  # keeps symlinks, permissions and code signatures inside bundles
+    if platform.system() == "Darwin":  # keeps symlinks, permissions and the macOS code signatures inside bundles
         subprocess.run(["ditto", "-c", "-k", "--keepParent", str(src), str(out)], check=True)
         return
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
@@ -280,35 +253,17 @@ def make_zip(src: Path, out: Path) -> None:
             z.write(src, src.name)
 
 
-def load_kit(path: str | None) -> dict | None:
-    path = path or settings.get("signingKit")
-    return json.loads(Path(path).expanduser().read_text()) if path else None
+def plugin_declaration(zip_path: Path, plat: str) -> dict:
+    """The file's declaration for the library."""
+    return {"path": zip_path, "declaration": {"path": zip_path.name, "sha256": sha256(zip_path), "bytes": zip_path.stat().st_size, "platform": plat}}
 
 
-def sign_file(zip_path: Path, slug: str, version: str, plat: str, kit: dict, roots: list[bytes]) -> dict:
-    """The file's declaration for the library, signed with the kit and checked against the library's roots first."""
-    sha = bytes.fromhex(sha256(zip_path))
-    entries = signing.entries_for_file(zip_path.name, sha)
-    doc = signing.sign_with_kit(entries, kit, "plugin", slug, version, plat)
-    result = signing.verify(entries, doc, kind="plugin", id_=slug, version=version, platform=plat, roots=roots)
-    if result.status != "signed":
-        sys.exit(f"{slug}: the signing kit is not valid for this release: {result.status}: {result.reason or 'see website/content/developers/modules/signing.md'}")
-    return {"path": zip_path, "declaration": {"path": zip_path.name, "sha256": sha.hex(), "bytes": zip_path.stat().st_size,
-                                              "platform": plat, "signature": doc}}
+def package_declaration(pkg: Path, slug: str, version: str) -> dict:
+    """The declaration of a module package."""
+    return {"path": pkg, "declaration": {"path": f"{slug}-{version}.bleepmod", "sha256": sha256(pkg), "bytes": pkg.stat().st_size, "platform": "any"}}
 
 
-def sign_package(pkg: Path, slug: str, version: str, kit: dict, roots: list[bytes]) -> dict:
-    """The declaration of a module package: signed over the files inside it (the zip itself may be repacked)."""
-    entries = signing.read_entries(pkg)
-    doc = signing.sign_with_kit(entries, kit, "module", slug, version, "any")
-    result = signing.verify(entries, doc, kind="module", id_=slug, version=version, platform="any", roots=roots)
-    if result.status != "signed":
-        sys.exit(f"{slug}: the signing kit is not valid for modules: {result.status}: {result.reason or 'see website/content/developers/modules/signing.md'}")
-    return {"path": pkg, "declaration": {"path": f"{slug}-{version}.bleepmod", "sha256": sha256(pkg), "bytes": pkg.stat().st_size,
-                                         "platform": "any", "contentDigest": signing.content_digest(entries).hex(), "signature": doc}}
-
-
-def release_modules(args, registry: "Registry", kit: dict | None) -> int:
+def release_modules(args, registry: "Registry") -> int:
     pdir = args.packages
     if args.package:
         r = subprocess.run([sys.executable, str(ROOT / "scripts" / "release" / "package-module.py"), "--out", str(pdir), *args.plugins])
@@ -323,23 +278,15 @@ def release_modules(args, registry: "Registry", kit: dict | None) -> int:
     try:
         if registry.token:
             registry.check_token()
-        roots = pinned_roots() if kit is not None else []
         for slug in names:
             pkg = pdir / f"{slug}.bleepmod"
-            digest = signing.content_digest(signing.read_entries(pkg)).hex()
+            digest = sha256(pkg)  # the package zip is reproducible: the same inputs give the same bytes
             published = sorted(registry.versions(slug, "module"), key=parse_version)
             newest = registry.entry(slug, published[-1], "module") if published else None
-            same = newest is not None and any(f.get("contentDigest") == digest for f in newest["files"])
+            same = newest is not None and any(f.get("sha256") == digest for f in newest["files"])
             plan.append((slug, pkg, published[-1] if published else None, None if same and not args.force else next_version(args.level, published)))
     except RegistryError as e:
         sys.exit(str(e))
-    if kit is not None:
-        probe = signing.entries_for_file("probe", b"\0" * 32)
-        who = signing.verify(probe, signing.sign_with_kit(probe, kit, "module", names[0], "0.0.1", "any"), kind="module",
-                             id_=names[0], version="0.0.1", platform="any", roots=roots)
-        if who.status != "signed":
-            sys.exit(f"The signing kit is not valid for modules: {who.status}: {who.reason or 'see website/content/developers/modules/signing.md'}")
-        print(f"Signing as {who.publisher} (key {who.key_id})")
     todo = [p for p in plan if p[3]]
     print(f"Library {args.registry}, modules, channel {args.channel}, level {args.level}: {len(todo)} to release, {len(plan) - len(todo)} unchanged")
     for slug, pkg, old, new in plan:
@@ -354,7 +301,7 @@ def release_modules(args, registry: "Registry", kit: dict | None) -> int:
     for slug, pkg, old, version in todo:
         try:
             meta = json.loads(zipfile.ZipFile(pkg).read("module.json"))
-            registry.release(slug, version, args.channel, meta.get("name", slug), args.notes, [sign_package(pkg, slug, version, kit, roots)],
+            registry.release(slug, version, args.channel, meta.get("name", slug), args.notes, [package_declaration(pkg, slug, version)],
                              kind="module", summary=meta.get("summary", ""), category=meta.get("category", ""), image=module_image(pkg, slug),
                              license=meta.get("license", "MIT"), origin=meta.get("origin"))
         except RegistryError as e:
@@ -400,7 +347,6 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--registry", default=settings.get("registry"),
                     help="the website's URL (or registry in config/bleep.local.json, $BLEEP_REGISTRY_URL; default: libraryUrl of config/library.json)")
     ap.add_argument("--token-file", help="file holding the release token (or releaseTokenFile in the config, $BLEEP_RELEASE_TOKEN)")
-    ap.add_argument("--kit", help="the developer's signing kit (or signingKit in the config, $BLEEP_SIGNING_KIT)")
     ap.add_argument("--channel", choices=("stable", "beta"), default=settings.get("channel", "stable"))
     ap.add_argument("--notes", default="", help="release notes")
     ap.add_argument("--build-dir", type=Path, default=ROOT / "build" / "patch")
@@ -427,10 +373,7 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as e:
             ap.error(str(e))
         registry = Registry(args.registry, None if args.dry_run else read_token(args))
-        kit = load_kit(args.kit)
-        if kit is None and not args.dry_run:
-            sys.exit("A signing kit is required: pass --kit FILE, set signingKit in config/bleep.local.json or $BLEEP_SIGNING_KIT (an admin makes one: python -m app.cli developer-create)")
-        return release_modules(args, registry, kit)
+        return release_modules(args, registry)
     names = list(PLUGINS) if args.all else args.plugins
     if not names or (args.all and args.plugins):
         ap.error("name the plugins to release, or use --all")
@@ -458,10 +401,6 @@ def main(argv: list[str] | None = None) -> int:
     if args.build:
         subprocess.run([str(ROOT / "bleep"), "build", "plugins", "--plugins-only"], check=True)
     registry = Registry(args.registry, None if args.dry_run else read_token(args))
-    kit = load_kit(args.kit)
-    if kit is None and not args.dry_run:
-        sys.exit("A signing kit is required: pass --kit FILE, set signingKit in config/bleep.local.json or $BLEEP_SIGNING_KIT (an admin makes one: python -m app.cli developer-create)")
-
     plan = []
     try:
         if registry.token:
@@ -478,17 +417,8 @@ def main(argv: list[str] | None = None) -> int:
                 plan.append((slug, artefact, published, target))
             else:
                 plan.append((slug, artefact, published, next_version(args.level, published)))
-        roots = pinned_roots() if kit is not None else []
     except RegistryError as e:
         sys.exit(str(e))
-    if kit is not None:  # fail before anything is built or uploaded: is this kit valid, and for plugins?
-        probe = signing.entries_for_file("probe", b"\0" * 32)
-        who = signing.verify(probe, signing.sign_with_kit(probe, kit, "plugin", names[0], "0.0.1", "any"), kind="plugin",
-                             id_=names[0], version="0.0.1", platform="any", roots=roots)
-        if who.status != "signed":
-            sys.exit(f"The signing kit is not valid for plugins: {who.status}: {who.reason or 'see website/content/developers/modules/signing.md'}")
-        print(f"Signing as {who.publisher} (key {who.key_id})")
-
     plat = platform_id()
     print(f"Registry {args.registry}, " + (f"adding platform {plat} to {args.add_platform}" if args.add_platform
           else f"channel {args.channel}, level {args.level}, platform {plat}"))
@@ -508,7 +438,7 @@ def main(argv: list[str] | None = None) -> int:
         zip_path = out_dir / f"{slug}-{version}-{plat}.zip"
         try:
             make_zip(artefact, zip_path)
-            files = [sign_file(zip_path, slug, version, plat, kit, roots)]
+            files = [plugin_declaration(zip_path, plat)]
             if args.add_platform:
                 registry.add_platform(slug, version, files)
             else:

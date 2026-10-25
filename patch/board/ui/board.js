@@ -663,7 +663,7 @@
     seal();  // from here on the page runs code that is not the app's own: take the bridge and the privileged globals out of reach
     const loaded = new Set([...document.scripts].map((s) => s.src.split("/").pop()));
     // Bleep Play with a local development build (local-modules/, build-web.sh --modules-only): its view scripts go first, so they win
-    // over the page's own copies (the first registration of a type stays). Only while unsigned modules are allowed, as for the modules.
+    // over the page's own copies (the first registration of a type stays). Only while the page is served from this computer, as for the modules.
     try {
       if (window.BleepLibrary && (await BleepLibrary.localIndex())) {
         const r = await fetch("local-modules/views.json", { cache: "no-store" });

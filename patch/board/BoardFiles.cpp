@@ -99,7 +99,7 @@ std::optional<juce::WebBrowserComponent::Resource> resource(const juce::String& 
 #if defined(BLEEP_WASM_MODULES)
 /// The default plugin bundle (developers/modules/library.md 5a). An offline installer carries the plugins in the app (Contents/Resources/Plugins
 /// on macOS, Plugins next to the app elsewhere): those are copied into the user's VST3 folder. Otherwise they are downloaded from the
-/// library, which checks their signatures. Live must be closed: replacing a plugin that Live has loaded can crash it.
+/// library. Live must be closed: replacing a plugin that Live has loaded can crash it.
 juce::var installPluginBundle() {
     auto* r = new juce::DynamicObject();
     juce::var result(r);

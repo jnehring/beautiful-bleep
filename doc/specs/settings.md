@@ -25,7 +25,6 @@ Settings live where the thing they control lives. A setting is never offered in 
 | Tempo, Link, transport | **app** | Live | the page's own transport (side menu) |
 | Web link (hub) | **app**: on/off, port, allowed pages | none: the plugin reaches the hub through the app (`bridges.md` §2). A port's *Board*, *Latency* and *Lookahead* are settings of the port node | **page**: connect, status |
 | Library channel, address | **app** | **plugin** | **page**: channel only (the address is the site it is served from) |
-| Unsigned code (Security) | **app** | **plugin** | **page**: modules only (there are no plugins in a browser) |
 | Local data | app data folder | plugin data folder (shared with the app) | the browser's storage |
 
 ## 3. Tabs by host
@@ -37,7 +36,6 @@ Settings live where the thing they control lives. A setting is never offered in 
 | Web | yes (hub) | | **new**, named *App* (§4.4) |
 | Recordings | yes (§4.7) | yes (§4.7) | |
 | Library | yes, plus *Check for module updates at start* (§4.1) | **moved here** (§5) | **new** (§4.5) |
-| Security | yes | **moved here** (§5) | **new** (§4.5), modules only |
 | Data | | | **new** (§4.6) |
 
 ## 4. The new tabs
@@ -65,11 +63,9 @@ Settings live where the thing they control lives. A setting is never offered in 
 - The state of the link to Bleep App as the side menu's *Connect to app* shows it (`bridge-ui.js`), with the same button. *Connected / not connected*, mode (low latency or safe), the explanation when it failed.
 - No port field. The page served by the app talks to its own host; any other page talks to the default port (`bridges.md` §4.1). The port is a setting of the app.
 
-### 4.5 Web: Library and Security
+### 4.5 Web: Library
 
 - **Channel** *stable* / *beta*: `BleepLibrary.configure({ channel })`, applied at the next page load (the index is read once).
-- **Allow unsigned modules**: off by default. It concerns modules with no signature (a development build, a file copied in); community modules from the library are signed by the library and load without it. Turning it on asks first with the same warning as the app, because a module runs in the browser's wasm sandbox with the page's CPU. A broken or revoked signature is never loaded, whatever this says.
-- No unsigned *plugins* switch: Bleep Play does not install plugins.
 - Remembered in `localStorage`. A page that cannot store (private window) keeps the choice for the visit and says so.
 
 ### 4.6 Web: Data
@@ -89,11 +85,10 @@ tab, because it has no folder.
 
 ## 5. Plugin: one Settings, no Audio
 
-A plugin has no audio, MIDI or sync settings of its own: Live owns them. What it has is the library. Today the plugin's Library window carries a Security tab; the app keeps Security in Settings and removes it from the Library window (`library.js`, `host.settings`). The plugin does the same:
+A plugin has no audio, MIDI or sync settings of its own: Live owns them. What it has is the library. The plugin keeps it in Settings, like the app:
 
-- File → Settings… exists in the plugin with the **Library** and **Security** tabs, the same two as the app's, over the same data: both use `ModuleLibrary`, so a channel or a switch set in a plugin is the app's too (one data folder).
+- File → Settings… exists in the plugin with the **Library** tab, the same as the app's, over the same data: both use `ModuleLibrary`, so a channel or a switch set in a plugin is the app's too (one data folder).
 - The plugin has no `settings` object beyond `{ host: "plugin" }`, so the other tabs are absent.
-- The Library window loses its Security tab, as in the app.
 
 ## 6. Native interface
 
@@ -101,21 +96,21 @@ A plugin has no audio, MIDI or sync settings of its own: Live owns them. What it
 
 | fn | Hosts | Does |
 |---|---|---|
-| `get` | all | Returns the state. The app adds `host: "app"`; the plugin answers `{ host: "plugin" }` and nothing else; the web answers `host: "web"` with one object per tab: `webAudio`, `webMidi`, `webApp`, `webLib` (channel, unsigned modules) and `webData`, and `stored` (false when the browser refuses storage). |
+| `get` | all | Returns the state. The app adds `host: "app"`; the plugin answers `{ host: "plugin" }` and nothing else; the web answers `host: "web"` with one object per tab: `webAudio`, `webMidi`, `webApp`, `webLib` (channel) and `webData`, and `stored` (false when the browser refuses storage). |
 | `audio`, `midiInput`, … | app | Unchanged. |
 | `webAudio` | web | `{ output, latency, reload }` |
 | `webMidi` | web | `{ allow }` or `{ name, on }` |
 | `webApp` | web | `{ connect }` |
-| `webLibrary` | web | `{ channel, allowUnsigned: { module }, reload }` |
+| `webLibrary` | web | `{ channel, reload }` |
 | `webClear` | web | `{ what: "board" \| "presets" \| "settings" \| "all" }` |
 | `recordings` | app, plugin | `{ folder }`, `{ reset: true }`, `{ choose: true }` or `{ reveal: true }`; the state has `recordings: { folder, defaultFolder, isDefault, freeBytes, choosing, error }` |
 
-The library tabs of the app and the plugin use the existing `libraryStatus` and `librarySettings` (the new field is `updateCheck`). The plugin's BoardWindow offers Settings when the build has the library (`BLEEP_WASM_MODULES`); the Library window then drops its Security tab, as in the app.
+The library tabs of the app and the plugin use the existing `libraryStatus` and `librarySettings` (the new field is `updateCheck`). The plugin's BoardWindow offers Settings when the build has the library (`BLEEP_WASM_MODULES`).
 
 ## 7. Rules
 
 - **Applied as changed**, with the answer carrying the new state and an `error` when refused (as `audio` today).
-- **Nothing sensitive is stored in the clear that was not already.** The web settings hold device ids, a channel name and one switch.
+- **Nothing sensitive is stored in the clear that was not already.** The web settings hold device ids and a channel name.
 - **Honest absence.** A tab for a feature the host does not have is not shown; a feature the host has but cannot use right now (no output selection in Safari, no Web MIDI) is shown with the reason.
 - **No fake state in a real host.** The demo state in `board-demo.js` (`demoSettingsState`) is for the UI server only (`ui-server.py`); Bleep Play answers from the browser.
 
@@ -123,7 +118,7 @@ The library tabs of the app and the plugin use the existing `libraryStatus` and 
 
 - `patch/web/test/web-settings-test.mjs` (13 cases, in CI): defaults, output routing and its refusal, a vanished device, latency and the reload flag, MIDI switches, library choices applied only at load, the app link, junk and blocked storage, `clear`.
 - `bleep_library_test`: `updateCheck` defaults on and comes back from `settings.json`.
-- Not covered by a test: the plugin's `get` answer and the Security tab leaving the plugin's Library window (needs the JUCE web view; checked by reading the code and, for the page, by the fake engine only), and Settings inside Live.
+- Not covered by a test: the plugin's `get` answer (needs the JUCE web view; checked by reading the code and, for the page, by the fake engine only), and Settings inside Live.
 
 ## 9. What was built
 

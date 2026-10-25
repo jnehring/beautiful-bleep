@@ -18,7 +18,6 @@ The file holds secrets and is git-ignored: never commit it. Lines starting with 
 
 - `POSTGRES_PASSWORD` and `S3_SECRET_KEY` set to long random values.
 - `BLEEP_COOKIE_SECURE=true` and `BLEEP_PUBLIC_URL` set to the real `https://` address.
-- `BLEEP_ROOT_PUBLIC_KEYS` set and `BLEEP_REQUIRE_SIGNATURES=true`, so the library only accepts signed releases.
 - `BLEEP_ADMIN_PASSWORD` removed again after the first start.
 - Optionally `BLEEP_BASIC_AUTH_HASH` set, to keep an installation private while it is online.
 
@@ -57,17 +56,6 @@ Registration confirmation, password reset and the contact form send email. Witho
 | `BLEEP_CONTACT_TO` | the SMTP user | Where the contact form delivers messages. |
 | `BLEEP_EMAIL_VERIFICATION` | `true` | `true`: registering sends a confirmation link. `false`: nobody is asked to confirm (password reset still works). |
 
-## Code signing
-
-The library only accepts signed releases (see [signing](../modules/signing.md) and [the library](../modules/library.md)). Create the values once with `scripts/release/signing.py init-registry ~/bleep-registry-keys` and paste the lines it writes to `registry.env`.
-
-| Variable | Default | Meaning |
-|---|---|---|
-| `BLEEP_ROOT_PUBLIC_KEYS` | empty | Root **public** key(s) in hex, comma separated (two during a key rotation). They decide which releases are accepted. The root private key never belongs in this file; keep it offline. |
-| `BLEEP_ISSUER_KEY` | empty | Private key (PEM) of the issuer. Only needed to create developer keys with `python -m app.cli developer-create`. |
-| `BLEEP_ISSUER_CERT` | empty | The issuer's certificate (JSON), signed by the root key. Goes with `BLEEP_ISSUER_KEY`. |
-| `BLEEP_REQUIRE_SIGNATURES` | `true` | Refuse a release without a valid signature. Turn off only for local experiments. |
-
 ## Password for the whole site
 
 Keeps an online installation private: Caddy asks for a user name and password (HTTP basic auth) before it serves anything. It is off while the hash is empty.
@@ -97,5 +85,4 @@ These are not in `.env.example`. They are read by the API or by scripts, mostly 
 | Variable | Default | Meaning |
 |---|---|---|
 | `BLEEP_DATABASE_URL` | local PostgreSQL URL | Database connection. Compose builds it from `POSTGRES_PASSWORD`; set it yourself only when running the API directly (`uvicorn`, tests use in-memory SQLite). |
-| `BLEEP_KEY_PASSPHRASE` | unset | Passphrase for an encrypted developer or issuer key, read by the signing tools. |
 | `BLEEP_RELEASE_TOKEN`, `BLEEP_REGISTRY_URL` | unset | Used by the release script to publish to a library. See [build and release](build-and-release.md). |

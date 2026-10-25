@@ -21,21 +21,6 @@ class Settings(BaseSettings):
     s3_bucket: str = "bleep-registry"
     s3_access_key: str = ""
     s3_secret_key: str = ""
-    # Code signing (website/content/developers/modules/signing.md). The root PUBLIC keys (hex, comma separated; two during a rotation) are all the
-    # library needs to check releases: the root private key must never be here. The issuer key (PEM) and its certificate
-    # (JSON) are only for `python -m app.cli developer-create`.
-    root_public_keys: str = ""
-    issuer_key: str | None = None
-    issuer_key_file: str | None = None  # the issuer key from a file (a Docker secret) instead of the environment
-    issuer_cert: str | None = None
-    # The library's own key for community modules (signing.md section 2a), made by `python -m app.cli community-init`: it signs what the
-    # community uploads, after the library has checked it. Its certificate (JSON) is issued by the issuer key and allows modules only.
-    # Unset: community uploads are off.
-    community_key: str | None = None
-    community_key_file: str | None = None
-    community_cert: str | None = None
-    # A release without a valid signature is refused. Only turn this off for local experiments.
-    require_signatures: bool = True
 
     # Outgoing email (registration confirmation, password reset). Without smtp_host nothing is sent: the message is logged instead.
     # Gmail: smtp.gmail.com:587 with an app password (STARTTLS). smtp_from defaults to smtp_user.
@@ -79,14 +64,6 @@ class Settings(BaseSettings):
     @property
     def allowed_origin_hosts(self) -> list[str]:
         return [h.strip() for h in self.allowed_origins.split(",") if h.strip()]
-
-    @property
-    def community_enabled(self) -> bool:
-        return bool((self.community_key or self.community_key_file) and self.community_cert and self.issuer_cert and self.root_public_keys.strip())
-
-    @property
-    def roots(self) -> list[bytes]:
-        return [bytes.fromhex(k.strip()) for k in self.root_public_keys.split(",") if k.strip()]
 
 
 settings = Settings()

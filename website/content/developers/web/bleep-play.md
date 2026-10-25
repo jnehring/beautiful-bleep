@@ -24,7 +24,7 @@ The UI is the same as in the plugins and the app. The engine is a JavaScript por
 
 Each module folder is compiled, with a small shim, to **one standalone `.wasm`**: no JUCE glue, no Emscripten JS loader, no shared memory. `module-host.js` instantiates it with plain `WebAssembly.Module` and `Instance`, so the same code runs in an AudioWorklet and in Node (the tests). The file's contract is the [Module ABI](../modules/module-abi.md).
 
-`build_modules.py` builds every folder, reads each file's node types back out, and writes `manifest.json`. The page loads a module the first time a board contains one of its types, from the [Bleep Library](../modules/library.md) of the site, and checks its signature in the browser before running it ([Signing](../modules/signing.md)).
+`build_modules.py` builds every folder, reads each file's node types back out, and writes `manifest.json`. The page loads a module the first time a board contains one of its types, from the [Bleep Library](../modules/library.md) of the site, and checks it in the browser before running it.
 
 ## Build
 
@@ -67,10 +67,10 @@ bridge.requestTempo(128);
 
 ## Settings
 
-The board's Settings section is answered by `BleepWeb.settings` (`patch/web/js/web-settings.js`), so a page that embeds the board gets the Audio, MIDI, App, Library, Security and Data tabs without code of its own. The script loads before `bleep-web.js`, after `library-client.js` and `library-roots.js`.
+The board's Settings section is answered by `BleepWeb.settings` (`patch/web/js/web-settings.js`), so a page that embeds the board gets the Audio, MIDI, App, Library and Data tabs without code of its own. The script loads before `bleep-web.js`, after `library-client.js`.
 
-- **Stored** in `localStorage` under `bleep.web.settings`: `output` (a device id), `latency` (`interactive`, `balanced` or `playback`, the `AudioContext`'s `latencyHint`), `midiOff` (input names to ignore), `channel` and `allowUnsignedModule`. Saved junk is ignored, and a browser that refuses storage keeps the choices for the visit.
-- **Applied at load:** the library choices go to `BleepLibrary.configure({ channel, allowUnsigned })` once, before the library is first used, so a change needs a reload. `allowUnsigned.plugin` is always `false`.
+- **Stored** in `localStorage` under `bleep.web.settings`: `output` (a device id), `latency` (`interactive`, `balanced` or `playback`, the `AudioContext`'s `latencyHint`), `midiOff` (input names to ignore), and `channel`. Saved junk is ignored, and a browser that refuses storage keeps the choices for the visit.
+- **Applied at load:** the library choices go to `BleepLibrary.configure({ channel })` once, before the library is first used, so a change needs a reload.
 - **Output** uses `AudioContext.setSinkId` where the browser has it; a saved device that has gone falls back to the default.
 - **Data → Clear** removes keys by prefix: the board and presets (`bleep-demo-…`), these settings (`bleep.web.…`) and the library's caches (`bleep.library.…`). Other sites' keys are never touched.
 - **Test:** `node patch/web/test/web-settings-test.mjs` (plain Node, no build).

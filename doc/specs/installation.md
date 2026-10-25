@@ -72,7 +72,7 @@ drag. The developer path accepts `BLEEP_LIVE_USER_LIBRARY`.
   would be blocked. This is why the plugins ship inside the app.
 - **The plugins are ad-hoc signed at build time.** Apple Silicon will not load unsigned native code; an ad-hoc signature is enough.
 - **Modules are wasm data**, not native code. The app downloads them itself over HTTPS and checks each against a hash in the
-  catalog (or with the module signing kit, which is separate from code signing).
+  catalog.
 - **Windows:** an unsigned admin prompt shows "unknown publisher". The alternative is a user folder for the plugins and a one-line
   instruction to add it in Live.
 - **Not possible without signing:** the Mac App Store, and a prompt-free first launch.

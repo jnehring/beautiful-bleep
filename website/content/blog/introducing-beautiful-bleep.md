@@ -14,7 +14,7 @@ The same engine, the same modules and the same project files run in three places
 
 ### In your browser
 
-Bleep Play needs no install and no account. Open [the board](/board/), pick an instrument or start from an empty canvas, and you are making sound within seconds. When the board needs a module it has not seen yet, it fetches the module from the Bleep Library, checks its signature and runs it, so a visitor needs nothing installed.
+Bleep Play needs no install and no account. Open [the board](/board/), pick an instrument or start from an empty canvas, and you are making sound within seconds. When the board needs a module it has not seen yet, it fetches the module from the Bleep Library, checks it and runs it, so a visitor needs nothing installed.
 
 That makes the browser the easiest way to try Beautiful Bleep and to share a project: send a link and the other person hears what you hear. It does not have every module yet, and the board page lists what is missing. If you are curious, [play now](/board/) or browse the [instruments](/instruments/) and [effects](/effects/) that open directly in it.
 
@@ -62,7 +62,7 @@ You stay in control. Every change is a visible changeset that the board applies 
 
 Beautiful Bleep ships with over a hundred modules in categories from oscillators, envelopes and filters to sequencers, drum machines, logic and metering. Each one has a manual, with demo patches and presets that show what it does, and the manuals are the same pages the board shows behind each module's **?** button.
 
-Modules, plugins and presets live in the [Bleep Library](/library/), where anyone can browse and download without logging in. Modules are WebAssembly packages signed by their developer, and the apps refuse unsigned code unless you allow it, so the library is also how third parties can add modules. Sharing a preset needs a free account. [How the library works](/docs/developers/modules/library/) explains packages, signatures and releases, and [Write a module](/docs/developers/modules/overview/) shows how to contribute one.
+Modules, plugins and presets live in the [Bleep Library](/library/), where anyone can browse and download without logging in. Modules are WebAssembly packages that run in a sandbox, so the library is also how third parties can add modules. Sharing a preset needs a free account. [How the library works](/docs/developers/modules/library/) explains packages and releases, and [Write a module](/docs/developers/modules/overview/) shows how to contribute one.
 
 ## Under the hood: Bleep Bus
 

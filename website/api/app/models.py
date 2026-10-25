@@ -74,27 +74,12 @@ class ApiToken(Base):
     prefix: Mapped[str] = mapped_column(String(12))  # first characters, to recognise it in the list
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     scope: Mapped[str] = mapped_column(String(16), default="release")
-    # The publisher this token may release for (the namespace of the developer certificate); none: only "bleep".
+    # The publisher this token may release for (its namespace); none: only "bleep".
     publisher: Mapped[str | None] = mapped_column(String(40))
     created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-
-
-class Developer(Base):
-    """A developer key an admin issued (website/content/developers/modules/signing.md). Revoking it stops releases signed with it."""
-
-    __tablename__ = "developers"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    publisher: Mapped[str] = mapped_column(String(40), index=True)
-    key_id: Mapped[str] = mapped_column(String(32), unique=True)
-    scopes: Mapped[list] = mapped_column(JSON, default=list)
-    first_party: Mapped[bool] = mapped_column(Boolean, default=False)
-    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
-    not_after: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Release(Base):

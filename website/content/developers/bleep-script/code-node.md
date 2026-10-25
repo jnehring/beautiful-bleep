@@ -46,7 +46,7 @@ A script you want to keep using does not have to live in a Code node. **Convert 
 
 The button on the module's window says **Convert to code**. It turns that node back into a Code node with the module's source, UI, help page and metadata, so you can change it and convert it again: the two modes are two views of the same thing, to try either.
 
-- The module is stored in the browser (IndexedDB) and is yours alone: it is your own code, so it is not signed and runs in the same sandbox as every module. Its type id is `<publisher>/<name>` (see the Metadata tab; *mine* until you have a library name).
+- The module is stored in the browser (IndexedDB) and is yours alone: it is your own code and runs in the same sandbox as every module. Its type id is `<publisher>/<name>` (see the Metadata tab; *mine* until you have a library name).
 - Converting again replaces the stored module with the Code node's current source. Other nodes of it get the new version after a reload.
 - A module is not part of a patch file: someone who opens your patch needs the module too, so share it (see [Share](#share)).
 - Modules written in Bleep Script and released in the library (the vintage modules, in *Add › Effects*) carry their source, so **Convert to code** opens them too. The converted copy is yours (publisher *mine*); the original stays as it is.
@@ -57,7 +57,7 @@ The **Metadata** tab holds what the module says about itself: the *publisher* (y
 
 ## Share
 
-**Share…** publishes the module in the Bleep Library as a community module, for everyone to install. It asks for the summary, category, licence, version and the help page, builds the package in the browser and uploads it under your library name (`<your name>/<module name>`); you must be logged in to the library. The library checks it and signs it. Each share needs a higher version than the last. With **Share the source code** on (the default, in the Metadata tab and in the dialog) the script goes with it too, under the same licence: anyone who installs the module can press **Convert to code** on it, read it, change it and make their own. Turn it off to share only the compiled module. The module's own UI goes with it (as `view.sandbox.js`) and runs only in the same sandbox as in your Code node, so a module from the library can show its picture, and its help page, like one you made.
+**Share…** publishes the module in the Bleep Library as a community module, for everyone to install. It asks for the summary, category, licence, version and the help page, builds the package in the browser and uploads it under your library name (`<your name>/<module name>`); you must be logged in to the library. The library checks it. Each share needs a higher version than the last. With **Share the source code** on (the default, in the Metadata tab and in the dialog) the script goes with it too, under the same licence: anyone who installs the module can press **Convert to code** on it, read it, change it and make their own. Turn it off to share only the compiled module. The module's own UI goes with it (as `view.sandbox.js`) and runs only in the same sandbox as in your Code node, so a module from the library can show its picture, and its help page, like one you made.
 
 ## Panels
 

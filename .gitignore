@@ -27,12 +27,5 @@ website/.env
 __pycache__/
 .pytest_cache/
 
-# Signing keys and registry secrets
-*.key
-*.kit.json
-registry.env
-root.key
-issuer.key
-
-# This machine's settings for ./bleep (signing kit path, token file, JUCE, Live set)
+# This machine's settings for ./bleep (token file, JUCE, Live set)
 config/bleep.local.json

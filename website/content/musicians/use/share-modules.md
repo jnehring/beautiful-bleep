@@ -31,7 +31,7 @@ A module you wrote in a **Code node** can be published in the Bleep Library, whe
 
 4. Press **Share**. Bleep compiles the module, packs it, uploads it and tells you the result, for example `Shared as yourname/wobble 1.0.0`.
 
-The library checks the upload and signs it. It appears in the library list shortly afterwards, marked *community*. Your module's id is `<your name>/<module name>`.
+The library checks the upload. It appears in the library list shortly afterwards, marked *community*. Your module's id is `<your name>/<module name>`.
 
 Whatever you typed in the dialog is kept, even if the upload fails, so you can fix the problem and press **Share** again.
 

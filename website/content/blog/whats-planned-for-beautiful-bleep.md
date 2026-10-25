@@ -57,7 +57,7 @@ Rendering a Bleep sound into an audio file is easy in a DAW, which can bounce or
 A synthesizer is only as good as what you can patch with, so a large part of the plan is to grow the [Bleep Library](/library/):
 
 - **More modules**, from us and from other developers, with a manual, demo patches and presets for each one.
-- **Easier sharing.** Signed modules already let third parties publish safely. We want to make it simpler to take a patch from your board, turn it into a module and share it, with a picture, a description and its source.
+- **Easier sharing.** Sandboxed modules already let third parties publish safely. We want to make it simpler to take a patch from your board, turn it into a module and share it, with a picture, a description and its source.
 - **A better Bleep Assistant.** The assistant is measured with a benchmark, and the benchmark is how we decide what to improve: harder tasks, more kinds of sounds, and fewer wrong turns. Other models and ways to run it, including offline, are things we want to try.
 - **More of Bleep Script.** More built-in helpers, more tutorials, and better error messages.
 

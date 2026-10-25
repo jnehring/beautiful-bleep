@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // user-modules.js — the modules made from a Code node ("Convert to module"): kept in this browser (IndexedDB), offered in the Add menu like any
-// module and loaded by the library client without a signature. They run in the same WebAssembly sandbox as every module; their own UI runs in the
+// module and loaded by the library client. They run in the same WebAssembly sandbox as every module; their own UI runs in the
 // same sandboxed worker frame as a Code node's.
 //
 //   BleepUserModules.load()      Promise<Map slug → entry>: reads the store once (an in-memory store where the browser has none)

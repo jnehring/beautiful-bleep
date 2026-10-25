@@ -43,7 +43,7 @@ def _with_ratings(db: Session, items: list[LibraryItemOut]) -> list[LibraryItemO
 def _item(r: Release) -> LibraryItemOut:
     return LibraryItemOut(
         kind=r.kind, slug=r.slug, version=r.version, channel=r.channel, title=r.title or r.slug, notes=r.notes,
-        summary=r.summary, category=r.category, image_url=_image_url(r), trust=registry._trust(r),
+        summary=r.summary, category=r.category, image_url=_image_url(r),
         files=len(r.files), bytes=sum(f["bytes"] for f in r.files), published_at=r.published_at,
     )
 
@@ -110,8 +110,7 @@ def detail(kind: Literal["plugin", "module", "preset"], slug: str, db: Session =
                           image_url=_image_url(rows[0]), rating_average=rating[0] if rating else None,
                           rating_count=rating[1] if rating else 0, license=rows[0].license, origin=rows[0].origin or {}, releases=[
         LibraryReleaseOut(**_item(r).model_dump(exclude={"kind", "slug", "title"}), license=r.license, requires=r.requires,
-                        file_list=[LibraryFileOut(**{k: f[k] for k in ("path", "bytes", "sha256", "platform", "uploaded")},
-                                                signer=f.get("signer"))
+                        file_list=[LibraryFileOut(**{k: f[k] for k in ("path", "bytes", "sha256", "platform", "uploaded")})
                                    for f in r.files])
         for r in rows
     ])

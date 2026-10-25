@@ -64,6 +64,8 @@ def meta_of(path: Path) -> dict:
 def build() -> list:
     articles = []
     for f in sorted(CONTENT.rglob("*.md")):
+        if f.relative_to(CONTENT).parts[0] == "blog":  # posts are not help articles
+            continue
         rel = f.relative_to(CONTENT).with_suffix("")
         folder = "/".join(rel.parts[:-1])
         key = max((k for k in GROUPS if folder == k or folder.startswith(k + "/")), key=len, default=None)  # the deepest folder wins

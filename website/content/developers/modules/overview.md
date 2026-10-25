@@ -15,13 +15,12 @@ The same source is built for every host. The result is **one standalone `.wasm` 
 1. **Write it.** [Writing a module](writing-a-module.md): the folder layout, `BLEEP_REGISTER_MODULE`, shared DSP in `patch/common/dsp/`, engine features (stepped knobs, groups, buttons, node data, media, voices, custom views).
 2. **Test it.** DSP tests per module, plus `bleep_module_harness`, which runs every module with every input fed at several sample rates and checks that outputs stay finite and bounded.
 3. **Document it.** A manual in `doc/<type>.md` with a screenshot. The board shows it behind the view's `?` button and this website shows it under Modules.
-4. **Package and sign it.** [Publishing a module](publishing.md): a `.bleepmod` package, signed by your developer key.
+4. **Package it.** [Publishing a module](publishing.md): a `.bleepmod` package.
 5. **Release it.** To the [Bleep Library](library.md), where users and the apps install it.
 
 ## What a module must satisfy
 
 - [Module ABI](module-abi.md): the exports, memory limits, determinism rules and versioning a host expects of the `.wasm` file.
-- [Signing](signing.md): the chain of trust the apps check before they run a module.
 - [Recorder service](recorder-service.md): how a module writes audio to files without a disk: sessions, takes, the Recordings folder and the imports that reach it.
 - [Licensing](licensing.md): modules may be open source, closed source or paid; the module exception explains what that needs.
 - Licences of ported code: a module ported from other code keeps the original's licence and says so in `module.json`; copyleft ports ship only through the library, never inside the apps. [Writing a module](writing-a-module.md) has the rules.

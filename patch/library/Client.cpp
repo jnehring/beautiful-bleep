@@ -71,13 +71,6 @@ bool safeVersion(const std::string& v) {  // exactly "1.2.3"
 
 bool isInside(const juce::File& child, const juce::File& root) { return child != root && child.isAChildOf(root); }
 
-std::string signedId(const std::string& slug) {  // "acme.fuzz" in URLs is "acme/fuzz" in signatures
-    std::string id = slug;
-    const auto dot = id.find('.');
-    if (dot != std::string::npos) id[dot] = '/';
-    return id;
-}
-
 std::vector<std::string> typesOf(const Package& p) {
     std::vector<std::string> out;
     auto it = p.files.find("module.json");
@@ -87,23 +80,6 @@ std::vector<std::string> typesOf(const Package& p) {
         for (const auto& t : *a) out.push_back(str(t));
     return out;
 }
-
-/// The signature of an installed package: the file beside it (the library keeps signatures in the entry, not in the package),
-/// else what the package carries. Void if there is none.
-juce::var sidecarSignature(const juce::File& package) {
-    const juce::File f = package.withFileExtension("sig.json");
-    return f.existsAsFile() ? bleep::safejson::parse(f) : juce::var();
-}
-
-/// The library's publication receipt of an installed package, beside it like the signature (signing.md section 6a): <name>.publication.json.
-/// Void if there is none; the package is then judged by the device clock.
-juce::var sidecarReceipt(const juce::File& package) {
-    const juce::File f = package.withFileExtension("publication.json");
-    return f.existsAsFile() ? juce::JSON::parse(f) : juce::var();
-}
-
-/// A document from the entry or a sidecar, or null if it is absent (void). Anything present is judged, so a malformed one is invalid.
-const juce::var* present(const juce::var& v) { return v.isVoid() ? nullptr : &v; }
 
 bool readFile(const juce::File& f, std::vector<uint8_t>& out) {
     juce::MemoryBlock block;
@@ -188,21 +164,15 @@ Settings Settings::load(const juce::File& dataDir) {
     if (!v.isObject()) return s;
     if (v["libraryUrl"].isString()) s.libraryUrl = str(v["libraryUrl"]);
     if (v["channel"].isString()) s.channel = str(v["channel"]);
-    s.allowUnsigned.module = v["allowUnsigned"]["module"].isBool() && (bool)v["allowUnsigned"]["module"];
-    s.allowUnsigned.plugin = v["allowUnsigned"]["plugin"].isBool() && (bool)v["allowUnsigned"]["plugin"];
     s.firstRunDone = v["firstRunDone"].isBool() && (bool)v["firstRunDone"];
     if (v["updateCheck"].isBool()) s.updateCheck = (bool)v["updateCheck"];
     return s;
 }
 
 bool Settings::save(const juce::File& dataDir) const {
-    auto* allow = new juce::DynamicObject();
-    allow->setProperty("module", allowUnsigned.module);
-    allow->setProperty("plugin", allowUnsigned.plugin);
     auto* o = new juce::DynamicObject();
     o->setProperty("libraryUrl", juce::String(libraryUrl));
     o->setProperty("channel", juce::String(channel));
-    o->setProperty("allowUnsigned", juce::var(allow));
     o->setProperty("firstRunDone", firstRunDone);
     o->setProperty("updateCheck", updateCheck);
     dataDir.createDirectory();
@@ -225,55 +195,8 @@ const IndexModule* Index::providing(const std::string& type) const {
 
 // ---- client ------------------------------------------------------------------------------------------------
 
-Client::Client(Settings settings, juce::File dataDir, std::vector<std::vector<uint8_t>> roots, int64_t now)
-    : settings_(std::move(settings)), dataDir_(std::move(dataDir)), roots_(std::move(roots)),
-      now_(now ? now : (int64_t)std::time(nullptr)) {
-    revocations_ = loadRevocations();
-}
-
-/// The highest serial ever accepted, kept apart from the list itself (cache/revocations.serial): putting an older, validly signed
-/// list back into the cache must not take revocations back.
-int64_t Client::highestRevocationSerial() const {
-    const auto file = dataDir_.getChildFile("cache").getChildFile("revocations.serial");
-    if (!file.existsAsFile()) return 0;
-    return std::max<int64_t>(0, file.loadFileAsString().trim().getLargeIntValue());
-}
-
-void Client::keepRevocationSerial(int64_t serial) const {
-    if (serial <= highestRevocationSerial()) return;
-    const auto file = dataDir_.getChildFile("cache").getChildFile("revocations.serial");
-    file.getParentDirectory().createDirectory();
-    file.replaceWithText(juce::String(serial));
-}
-
-std::optional<Revocations> Client::loadRevocations() const {
-    const auto file = dataDir_.getChildFile("cache").getChildFile("revocations.json");
-    if (!file.existsAsFile()) return std::nullopt;
-    Revocations list;
-    std::string error;
-    if (!verifyRevocations(bleep::safejson::parse(file), roots_, list, error)) return std::nullopt;  // a saved list that no longer checks (other roots) is no list
-    if (list.serial < highestRevocationSerial()) return std::nullopt;                          // an older list put back: rolled back, not trusted
-    keepRevocationSerial(list.serial);
-    return list;
-}
-
-bool Client::fetchRevocations(bool& changed, std::string& error) const {
-    changed = false;
-    juce::var doc;
-    if (!fetchJson(url("revocations.json"), doc, error)) return false;
-    Revocations list;
-    if (!verifyRevocations(doc, roots_, list, error)) return false;
-    if (list.serial <= revocationSerial() || list.serial < highestRevocationSerial()) return true;   // not newer than the list in use, or older than one seen: ignored
-    const auto file = dataDir_.getChildFile("cache").getChildFile("revocations.json");
-    if (!file.getParentDirectory().createDirectory().wasOk() || !file.replaceWithText(juce::JSON::toString(doc))) {
-        error = "cannot save the revocation list";
-        return false;
-    }
-    keepRevocationSerial(list.serial);
-    revocations_ = std::move(list);
-    changed = true;
-    return true;
-}
+Client::Client(Settings settings, juce::File dataDir, int64_t now)
+    : settings_(std::move(settings)), dataDir_(std::move(dataDir)), now_(now ? now : (int64_t)std::time(nullptr)) {}
 
 juce::String Client::url(const std::string& path) const {
     juce::String base(settings_.libraryUrl);
@@ -349,30 +272,20 @@ bool Client::loadCachedIndex(Index& out, int64_t& fetchedAt, std::string& error)
     return parseIndex(doc["index"], settings_.channel, out, error);
 }
 
-bool Client::check(const std::vector<uint8_t>& bytes, const std::string& slug, const std::string& version, const juce::var* signatureDoc,
-                   const juce::var* receiptDoc, InstalledModule& out, std::string& error) const {
+bool Client::check(const std::vector<uint8_t>& bytes, const std::string& slug, const std::string& version, bool uploaded, InstalledModule& out, std::string& error) const {
     Package pkg;
     if (!readPackage(bytes.data(), bytes.size(), pkg, error)) return false;
-    Digest digest;
-    if (!contentDigest(pkg.entries, digest, error)) return false;
-    Context c;
-    c.kind = "module";
-    c.id = signedId(slug);
-    c.version = version;
-    c.roots = roots_;
-    c.now = now_;
-    c.revocations = revocations_ ? &*revocations_ : nullptr;
-    const juce::var* doc = signatureDoc && !signatureDoc->isVoid() ? signatureDoc : (pkg.hasSignature ? &pkg.signature : nullptr);
-    out.result = verify(digest, doc, c, receiptDoc && !receiptDoc->isVoid() ? receiptDoc : nullptr);
-    std::string extra;
-    if (out.result.status == "signed" && out.result.trust == "community" && !communityFilesOk(pkg, extra)) {
-        out.result.status = "invalid";   // the community key never signs scripts or anything else outside the list
-        out.result.reason = extra;
-    }
-    out.allowed = decide(out.result, "module", settings_.allowUnsigned, out.why);
     out.slug = slug;
     out.version = version;
     out.types = typesOf(pkg);
+    out.allowed = true;
+    out.why.clear();
+    // A module an account uploaded is data and a sandboxed .wasm, no page scripts; the library refuses the rest at upload, and a client checks again.
+    std::string extra;
+    if (uploaded && !communityFilesOk(pkg, extra)) {
+        out.allowed = false;
+        out.why = extra;
+    }
     return true;
 }
 
@@ -409,8 +322,7 @@ bool Client::installEntry(const std::string& slug, const std::string& entryPath,
     if (!fetchBytes(url(dir + path), bytes, error)) return false;
     const Digest sha = sha256(bytes.data(), bytes.size());
     if (toHex(sha.data(), 32) != str(file["sha256"])) { error = "the download is not the file the library lists"; return false; }
-    const juce::var publication = file["publication"];
-    if (!check(bytes, slug, version, &file["signature"], &publication, out, error)) return false;
+    if (!check(bytes, slug, version, file["uploaded"].isBool() && (bool)file["uploaded"], out, error)) return false;
     out.source = "registry";
     if (!out.allowed) { error = slug + " " + version + " is not installed: " + out.why; return false; }
 
@@ -420,16 +332,6 @@ bool Client::installEntry(const std::string& slug, const std::string& entryPath,
     if (!temp.createDirectory().wasOk()) { error = "cannot write to " + temp.getFullPathName().toStdString(); return false; }
     const juce::File tempFile = temp.getChildFile(juce::String(slug) + "-" + juce::String(version) + ".bleepmod");
     if (!tempFile.replaceWithData(bytes.data(), bytes.size())) { temp.deleteRecursively(); error = "cannot write the package"; return false; }
-    if (file["signature"].isObject() && !tempFile.withFileExtension("sig.json").replaceWithText(juce::JSON::toString(file["signature"]))) {
-        temp.deleteRecursively();
-        error = "cannot write the signature";
-        return false;
-    }
-    if (publication.isObject() && !tempFile.withFileExtension("publication.json").replaceWithText(juce::JSON::toString(publication))) {
-        temp.deleteRecursively();
-        error = "cannot write the publication receipt";
-        return false;
-    }
     finalDir.deleteRecursively();  // the same version again (a repair)
     finalDir.getParentDirectory().createDirectory();
     if (!temp.moveFileTo(finalDir)) { temp.deleteRecursively(); error = "cannot move the package into place"; return false; }
@@ -463,22 +365,6 @@ bool Client::installPlugin(const std::string& slug, const juce::File& folder, st
     if (!fetchBytes(url(p->entry.substr(0, p->entry.rfind('/') + 1) + path), bytes, error)) return false;
     const Digest sha = sha256(bytes.data(), bytes.size());
     if (toHex(sha.data(), 32) != str(file["sha256"])) { error = "the download is not the file the library lists"; return false; }
-    Digest digest;
-    if (!contentDigest(singleFile(path, sha), digest, error)) return false;
-    Context c;
-    c.kind = "plugin";
-    c.id = signedId(slug);
-    c.version = version;
-    c.platform = platform;
-    c.roots = roots_;
-    c.now = now_;
-    c.revocations = revocations_ ? &*revocations_ : nullptr;
-    const juce::var signature = file["signature"];
-    const juce::var publication = file["publication"];
-    const Result result = verify(digest, signature.isObject() ? &signature : nullptr, c, present(publication));
-    std::string why;
-    if (!decide(result, "plugin", settings_.allowUnsigned, why)) { error = slug + " " + version + " is not installed: " + why; return false; }
-
     const juce::File temp = dataDir_.getChildFile("tmp").getChildFile(juce::String(slug) + "-" + juce::String::toHexString(juce::Random::getSystemRandom().nextInt()));
     if (!temp.createDirectory().wasOk()) { error = "cannot write to " + temp.getFullPathName().toStdString(); return false; }
     juce::MemoryInputStream in(bytes.data(), bytes.size(), false);
@@ -512,11 +398,10 @@ bool Client::remove(const std::string& slug, std::string& error) const {
 
 namespace {
 
-/// What installed() worked out about a package, kept so the Library view does not read and verify every module again on each look.
-/// Process-wide: a Client is made anew for every request. A hit needs the same file (size, modification times of it and its
-/// signature sidecar) and the same trust (roots, Settings → Security). An entry is served at any age; when cacheStale() says one
-/// is old, a worker thread repeats the checks with installed(true), so a signature that has expired is noticed without anyone
-/// waiting. contentOf() never uses the cache: loading a module is always checked in full.
+/// What installed() worked out about a package, kept so the Library view does not read and check every module again on each look.
+/// Process-wide: a Client is made anew for every request. A hit needs the same file (size, modification time). An entry is served at
+/// any age; when cacheStale() says one is old, a worker thread repeats the checks with installed(true). contentOf() never uses the
+/// cache: loading a module is always checked in full.
 struct CachedCheck {
     InstalledModule module;
     juce::Time at;
@@ -544,17 +429,9 @@ std::string fileStamp(const juce::File& f) {
 
 std::vector<InstalledModule> Client::installed(bool recheck, bool allVersions) const {
     std::vector<InstalledModule> out;
-    std::string trust = std::string(settings_.allowUnsigned.module ? "m" : "-") + (settings_.allowUnsigned.plugin ? "p" : "-");
-    trust += "|crl" + std::to_string(revocationSerial());  // a new revocation list makes every earlier verdict stale
-    for (const auto& r : roots_) {
-        uint64_t h = 1469598103934665603ull;
-        for (uint8_t b : r) h = (h ^ b) * 1099511628211ull;
-        trust += "|" + std::to_string(h);
-    }
     std::set<std::string> seen;
     auto consider = [&](const juce::File& file, const std::string& slug, const std::string& version, const std::string& source) {
-        const std::string key = file.getFullPathName().toStdString() + "|" + slug + "|" + version + "|" + fileStamp(file) + "|" +
-                                fileStamp(file.withFileExtension("sig.json")) + "|" + fileStamp(file.withFileExtension("publication.json")) + "|" + trust;
+        const std::string key = file.getFullPathName().toStdString() + "|" + slug + "|" + version + "|" + fileStamp(file);
         seen.insert(key);
         {
             std::lock_guard<std::mutex> l(cacheMutex);
@@ -570,14 +447,11 @@ std::vector<InstalledModule> Client::installed(bool recheck, bool allVersions) c
         std::vector<uint8_t> bytes;
         InstalledModule m;
         std::string error;
-        const juce::var sig = sidecarSignature(file), receipt = sidecarReceipt(file);
-        if (!readFile(file, bytes) || !check(bytes, slug, version, &sig, &receipt, m, error)) {
+        if (!readFile(file, bytes) || !check(bytes, slug, version, false, m, error)) {
             m.slug = slug;
             m.version = version;
-            m.result.status = "invalid";
-            m.result.reason = error.empty() ? "unreadable" : error;
             m.allowed = false;
-            m.why = "invalid: " + m.result.reason;
+            m.why = "invalid: " + (error.empty() ? std::string("unreadable") : error);
         }
         m.source = source;
         m.file = file;
@@ -602,7 +476,7 @@ std::vector<InstalledModule> Client::installed(bool recheck, bool allVersions) c
         const std::string version = best.getFileName().toStdString();
         consider(best.getChildFile(juce::String(slug) + "-" + juce::String(version) + ".bleepmod"), slug, version, "registry");
     }
-    // copied by hand: <slug>-<version>.bleepmod (a file that does not say its version cannot be checked against its signature)
+    // copied by hand: <slug>-<version>.bleepmod (a file that does not say its version is taken as 0.0.0)
     for (const auto& f : modulesFolder("local").findChildFiles(juce::File::findFiles, false, "*.bleepmod")) {
         const std::string name = f.getFileNameWithoutExtension().toStdString();
         const auto dash = name.rfind('-');
@@ -620,8 +494,7 @@ bool Client::filesOf(const InstalledModule& module, Package& pkg, std::string& e
     std::vector<uint8_t> bytes;
     if (!readFile(module.file, bytes)) { error = "cannot read " + module.file.getFullPathName().toStdString(); return false; }
     InstalledModule again;
-    const juce::var sig = sidecarSignature(module.file), receipt = sidecarReceipt(module.file);
-    if (!check(bytes, module.slug, module.version, &sig, &receipt, again, error)) return false;
+    if (!check(bytes, module.slug, module.version, false, again, error)) return false;
     if (!again.allowed) { error = again.why; return false; }
     return readPackage(bytes.data(), bytes.size(), pkg, error);
 }

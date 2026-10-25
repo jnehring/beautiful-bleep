@@ -58,7 +58,7 @@ compile(source, { children: { gains: { wasm, spec, typeIndex } } })
 
 | Field | What it is |
 |---|---|
-| `wasm` | The bytes of the module's `.wasm` file. A host gets them from the library by id and version and **checks the hash and signature as it does for any module**, before it passes them in. |
+| `wasm` | The bytes of the module's `.wasm` file. A host gets them from the library by id and version and **checks it as it does for any module**, before it passes them in. |
 | `spec` | The node type description of the type to use: its params, inputs and outputs. |
 | `typeIndex` | Which node type of the file it is (default 0). |
 

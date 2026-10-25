@@ -12,7 +12,7 @@ These pages are for working on Beautiful Bleep itself and the things that run on
 |---|---|
 | See how board, engine, modules and hosts fit together | [Architecture overview](architecture.md) |
 | Add a sound, effect or utility to the board | [Modules](../modules/overview.md), [Writing a module](../modules/writing-a-module.md) |
-| Publish a module in the library | [Publishing](../modules/publishing.md), [Signing](../modules/signing.md), [Library](../modules/library.md) |
+| Publish a module in the library | [Publishing](../modules/publishing.md), [Library](../modules/library.md) |
 | Know what a `.wasm` module must export | [Module ABI](../modules/module-abi.md) |
 | Change the Bleep plugins in Live | [Plugins](../plugins/overview.md), [Bleep plugins](../plugins/bleep-plugins.md) |
 | Change the standalone app | [Standalone app](../app/standalone-app.md) |

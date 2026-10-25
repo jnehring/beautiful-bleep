@@ -14,7 +14,7 @@ The engine, board and apps in `patch/` are GPL-3.0-only with a [module exception
 ## Scripts
 
 One command does the everyday work: `./bleep` (see [`scripts/README.md`](scripts/README.md)). It works from any directory.
-This machine's settings (JUCE checkout, signing kit, release token file, registry, Live set) go into `config/bleep.local.json`
+This machine's settings (JUCE checkout, release token file, registry, Live set) go into `config/bleep.local.json`
 (copy [`config/bleep.local.example.json`](config/bleep.local.example.json); `./bleep config` shows what is in effect).
 
 | Command | What it does |
@@ -24,10 +24,10 @@ This machine's settings (JUCE checkout, signing kit, release token file, registr
 | `./bleep test [py\|js\|script\|presets\|bus\|native\|check\|all]` | The unit tests: default is `py js presets check` (seconds, no compiler); `bus` and `native` are the C++ suites, `all` runs everything |
 | `./bleep check [repo\|api-docs\|account]` | Dependency rules, SPDX headers and LICENSE files; documented bus API; the app's sign-in against a real API |
 | `./bleep docs [build\|help-index\|screenshots]` | The single-file docs and `llms.txt`; the board's Help index; the module screenshots |
-| `./bleep package` / `./bleep release plugins\|modules\|community` | Packages modules and installs them for the app and the plugins (`--no-install` only packages); signs and publishes plugins or modules to the library ([release.md](doc/operations/release.md)) |
+| `./bleep package` / `./bleep release plugins\|modules\|community` | Packages modules and installs them for the app and the plugins (`--no-install` only packages); publishes plugins or modules to the library ([release.md](doc/operations/release.md)) |
 
 Behind it: [`scripts/bleep.py`](scripts/bleep.py) (the command), [`scripts/settings.py`](scripts/settings.py) (the settings), and the tools it calls:
-`build/build-web.sh`, `run/ui-server.py`, `docs/*.py`, `check/*.py`, `release/release.py`, `package-module.py`, `signing.py`, `community-publish.py`.
+`build/build-web.sh`, `run/ui-server.py`, `docs/*.py`, `check/*.py`, `release/release.py`, `package-module.py`, `community-publish.py`.
 `experiments/wasm-spike.sh` runs the Verb module's `.wasm` in Wasmtime and wasm3 ([patch/wasm-host](patch/wasm-host/README.md)).
 
 ```bash

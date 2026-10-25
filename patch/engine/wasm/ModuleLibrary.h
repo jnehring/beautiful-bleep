@@ -33,7 +33,7 @@ public:
     juce::var status();
 
     void refreshIndexAsync(std::function<void()> done = {});
-    /// Repeats the signature checks of the installed modules on a worker thread (the Library view serves the earlier result meanwhile).
+    /// Repeats the checks of the installed modules on a worker thread (the Library view serves the earlier result meanwhile).
     void recheckInstalledAsync();
     /// Installs (or updates) a module and registers its node types. `done(ok, message)` on the message thread.
     void installAsync(const std::string& slug, std::function<void(bool, std::string)> done = {});
@@ -64,12 +64,10 @@ public:
     /// How work gets back to the message thread (the app sets juce::MessageManager::callAsync); without it, work runs where it is.
     std::function<void(std::function<void()>)> postToMessageThread;
 
-    /// For tests and tools: another data folder and root keys before start().
-    void configure(juce::File dataDir, std::vector<std::vector<uint8_t>> extraRoots);
+    /// For tests and tools: another data folder before start().
+    void configure(juce::File dataDir);
 
 private:
-    /// Looks for a newer signed revocation list (signing.md section 8) and has the installed modules checked again if there is one.
-    void fetchRevocations(const library::Client& c);
     ModuleLibrary() = default;
     std::unique_ptr<library::Client> client() const;
     void registerInstalled(const std::string& slug, const std::string& version = {});   // message thread; no version: the newest installed
@@ -79,7 +77,6 @@ private:
     mutable std::mutex mutex_;
     juce::File dataDir_;
     library::Settings settings_;
-    std::vector<std::vector<uint8_t>> roots_;
     std::vector<LoadReport> reports_;
     library::Index index_;
     std::string indexError_;
@@ -93,7 +90,7 @@ private:
     std::atomic<bool> started_{false};
     std::atomic<bool> rechecking_{false};
     /// The view scripts and docs of the installed modules by file name, read from the packages once (every request to the
-    /// window used to verify and unpack all of them). Dropped when the set of installed modules changes.
+    /// window used to read and unpack all of them). Dropped when the set of installed modules changes.
     void buildViewCache() const;
     void dropViewCache();
     mutable std::mutex viewMutex_;

@@ -5,229 +5,25 @@
    "bytes": 363,
    "path": "test-plugin-0.4.0-macos-arm64.zip",
    "platform": "macos-arm64",
-   "sha256": "bdcf4b20b00ec54814e6ccf35f856b49cdc2c034a0404c1b2928e3daa44dcff2",
-   "signature": {
-    "algorithm": "ed25519",
-    "chain": [
-     {
-      "issuer": "34750f98bd59fcfc946da45aaabe933b",
-      "signature": "Fx9HJpswGzF6NsFD9MFZYZmy7aK9YOWTIIpNZnbzbOUcqacNoqrbkjMvbPd3E92kBQrGJHlE2Lb5fhaOY4gdCQ==",
-      "tbs": {
-       "firstParty": false,
-       "format": 1,
-       "keyId": "6a3803d5f059902a1c6dafbc9ba47292",
-       "name": "Fixture issuer",
-       "notAfter": 1791536000,
-       "notBefore": 1760000000,
-       "publicKey": "gTl3Dqh9F19Wo1Rmw0x+zMuNipG07jeiXfYPW4/Js5Q=",
-       "publisher": "bleep",
-       "scopes": [
-        "issue"
-       ],
-       "serial": 1,
-       "type": "issuer"
-      }
-     },
-     {
-      "issuer": "6a3803d5f059902a1c6dafbc9ba47292",
-      "signature": "9RAY1qgwZiEilD8fTJZ+CffOSEVpzXQKJ93bunzKWoM29uGkJuR3XqtfQpIadu19swrH/tiGrbvq/E4MQxjRAg==",
-      "tbs": {
-       "firstParty": true,
-       "format": 1,
-       "keyId": "c5b940ed3f65c391965de8295fc5d25f",
-       "name": "Bleep",
-       "notAfter": 1791536000,
-       "notBefore": 1760000000,
-       "publicKey": "ypOsFwUYcHHWe4PH/w7+gQjo7EUwV113JoeTM9vavnw=",
-       "publisher": "bleep",
-       "scopes": [
-        "module",
-        "plugin"
-       ],
-       "serial": 1,
-       "type": "developer"
-      }
-     }
-    ],
-    "format": 1,
-    "keyId": "c5b940ed3f65c391965de8295fc5d25f",
-    "signature": "DczgTkj3BKUu6aJQjaL1vDyiBlit6QestlNECUYJHCO5FnaI9P2Y92ADkKsx16b5OEfUjgBoX/becUFxTARiDA=="
-   },
-   "signer": {
-    "keyId": "c5b940ed3f65c391965de8295fc5d25f",
-    "publisher": "bleep"
-   }
+   "sha256": "bdcf4b20b00ec54814e6ccf35f856b49cdc2c034a0404c1b2928e3daa44dcff2"
   },
   {
    "bytes": 363,
    "path": "test-plugin-0.4.0-macos-x86_64.zip",
    "platform": "macos-x86_64",
-   "sha256": "bdcf4b20b00ec54814e6ccf35f856b49cdc2c034a0404c1b2928e3daa44dcff2",
-   "signature": {
-    "algorithm": "ed25519",
-    "chain": [
-     {
-      "issuer": "34750f98bd59fcfc946da45aaabe933b",
-      "signature": "Fx9HJpswGzF6NsFD9MFZYZmy7aK9YOWTIIpNZnbzbOUcqacNoqrbkjMvbPd3E92kBQrGJHlE2Lb5fhaOY4gdCQ==",
-      "tbs": {
-       "firstParty": false,
-       "format": 1,
-       "keyId": "6a3803d5f059902a1c6dafbc9ba47292",
-       "name": "Fixture issuer",
-       "notAfter": 1791536000,
-       "notBefore": 1760000000,
-       "publicKey": "gTl3Dqh9F19Wo1Rmw0x+zMuNipG07jeiXfYPW4/Js5Q=",
-       "publisher": "bleep",
-       "scopes": [
-        "issue"
-       ],
-       "serial": 1,
-       "type": "issuer"
-      }
-     },
-     {
-      "issuer": "6a3803d5f059902a1c6dafbc9ba47292",
-      "signature": "9RAY1qgwZiEilD8fTJZ+CffOSEVpzXQKJ93bunzKWoM29uGkJuR3XqtfQpIadu19swrH/tiGrbvq/E4MQxjRAg==",
-      "tbs": {
-       "firstParty": true,
-       "format": 1,
-       "keyId": "c5b940ed3f65c391965de8295fc5d25f",
-       "name": "Bleep",
-       "notAfter": 1791536000,
-       "notBefore": 1760000000,
-       "publicKey": "ypOsFwUYcHHWe4PH/w7+gQjo7EUwV113JoeTM9vavnw=",
-       "publisher": "bleep",
-       "scopes": [
-        "module",
-        "plugin"
-       ],
-       "serial": 1,
-       "type": "developer"
-      }
-     }
-    ],
-    "format": 1,
-    "keyId": "c5b940ed3f65c391965de8295fc5d25f",
-    "signature": "61fVlq/uDSfsd+JQeif6/WNa7ptuoCPVLw+A3zvFKLQXx8GIx5Aav0Mt1GbY+GyC1v/Qa96PZiABKSu7uG/TBg=="
-   },
-   "signer": {
-    "keyId": "c5b940ed3f65c391965de8295fc5d25f",
-    "publisher": "bleep"
-   }
+   "sha256": "bdcf4b20b00ec54814e6ccf35f856b49cdc2c034a0404c1b2928e3daa44dcff2"
   },
   {
    "bytes": 363,
    "path": "test-plugin-0.4.0-windows-x86_64.zip",
    "platform": "windows-x86_64",
-   "sha256": "bdcf4b20b00ec54814e6ccf35f856b49cdc2c034a0404c1b2928e3daa44dcff2",
-   "signature": {
-    "algorithm": "ed25519",
-    "chain": [
-     {
-      "issuer": "34750f98bd59fcfc946da45aaabe933b",
-      "signature": "Fx9HJpswGzF6NsFD9MFZYZmy7aK9YOWTIIpNZnbzbOUcqacNoqrbkjMvbPd3E92kBQrGJHlE2Lb5fhaOY4gdCQ==",
-      "tbs": {
-       "firstParty": false,
-       "format": 1,
-       "keyId": "6a3803d5f059902a1c6dafbc9ba47292",
-       "name": "Fixture issuer",
-       "notAfter": 1791536000,
-       "notBefore": 1760000000,
-       "publicKey": "gTl3Dqh9F19Wo1Rmw0x+zMuNipG07jeiXfYPW4/Js5Q=",
-       "publisher": "bleep",
-       "scopes": [
-        "issue"
-       ],
-       "serial": 1,
-       "type": "issuer"
-      }
-     },
-     {
-      "issuer": "6a3803d5f059902a1c6dafbc9ba47292",
-      "signature": "9RAY1qgwZiEilD8fTJZ+CffOSEVpzXQKJ93bunzKWoM29uGkJuR3XqtfQpIadu19swrH/tiGrbvq/E4MQxjRAg==",
-      "tbs": {
-       "firstParty": true,
-       "format": 1,
-       "keyId": "c5b940ed3f65c391965de8295fc5d25f",
-       "name": "Bleep",
-       "notAfter": 1791536000,
-       "notBefore": 1760000000,
-       "publicKey": "ypOsFwUYcHHWe4PH/w7+gQjo7EUwV113JoeTM9vavnw=",
-       "publisher": "bleep",
-       "scopes": [
-        "module",
-        "plugin"
-       ],
-       "serial": 1,
-       "type": "developer"
-      }
-     }
-    ],
-    "format": 1,
-    "keyId": "c5b940ed3f65c391965de8295fc5d25f",
-    "signature": "C//CfHitUNzodeDLhZac/18kkxPTmbw8byR6KOC4/g0J5+EhA2AnY10DdaYUB3nsxZbYaGr31m344kIEUyxbBQ=="
-   },
-   "signer": {
-    "keyId": "c5b940ed3f65c391965de8295fc5d25f",
-    "publisher": "bleep"
-   }
+   "sha256": "bdcf4b20b00ec54814e6ccf35f856b49cdc2c034a0404c1b2928e3daa44dcff2"
   },
   {
    "bytes": 363,
    "path": "test-plugin-0.4.0-linux-x86_64.zip",
    "platform": "linux-x86_64",
-   "sha256": "bdcf4b20b00ec54814e6ccf35f856b49cdc2c034a0404c1b2928e3daa44dcff2",
-   "signature": {
-    "algorithm": "ed25519",
-    "chain": [
-     {
-      "issuer": "34750f98bd59fcfc946da45aaabe933b",
-      "signature": "Fx9HJpswGzF6NsFD9MFZYZmy7aK9YOWTIIpNZnbzbOUcqacNoqrbkjMvbPd3E92kBQrGJHlE2Lb5fhaOY4gdCQ==",
-      "tbs": {
-       "firstParty": false,
-       "format": 1,
-       "keyId": "6a3803d5f059902a1c6dafbc9ba47292",
-       "name": "Fixture issuer",
-       "notAfter": 1791536000,
-       "notBefore": 1760000000,
-       "publicKey": "gTl3Dqh9F19Wo1Rmw0x+zMuNipG07jeiXfYPW4/Js5Q=",
-       "publisher": "bleep",
-       "scopes": [
-        "issue"
-       ],
-       "serial": 1,
-       "type": "issuer"
-      }
-     },
-     {
-      "issuer": "6a3803d5f059902a1c6dafbc9ba47292",
-      "signature": "9RAY1qgwZiEilD8fTJZ+CffOSEVpzXQKJ93bunzKWoM29uGkJuR3XqtfQpIadu19swrH/tiGrbvq/E4MQxjRAg==",
-      "tbs": {
-       "firstParty": true,
-       "format": 1,
-       "keyId": "c5b940ed3f65c391965de8295fc5d25f",
-       "name": "Bleep",
-       "notAfter": 1791536000,
-       "notBefore": 1760000000,
-       "publicKey": "ypOsFwUYcHHWe4PH/w7+gQjo7EUwV113JoeTM9vavnw=",
-       "publisher": "bleep",
-       "scopes": [
-        "module",
-        "plugin"
-       ],
-       "serial": 1,
-       "type": "developer"
-      }
-     }
-    ],
-    "format": 1,
-    "keyId": "c5b940ed3f65c391965de8295fc5d25f",
-    "signature": "pn4puBjgA+Sbx8CXJXX5nBLmKpLlJoNupzKnZFF0v9WtpSaFAYGeRZb67uRKIMErXeB4PpCHp9Doa9W9+AF4BA=="
-   },
-   "signer": {
-    "keyId": "c5b940ed3f65c391965de8295fc5d25f",
-    "publisher": "bleep"
-   }
+   "sha256": "bdcf4b20b00ec54814e6ccf35f856b49cdc2c034a0404c1b2928e3daa44dcff2"
   }
  ],
  "id": "test-plugin",

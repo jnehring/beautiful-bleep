@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
-// Client.h — the Bleep Library from the app and the plugins (developers/modules/library.md, signing.md): read its index, install and remove
+// Client.h — the Bleep Library from the app and the plugins (developers/modules/library.md): read its index, install and remove
 // modules on this machine, list what is installed. Everything here blocks (network, disk): call it from a worker thread,
 // never from the audio thread.
 #pragma once
 
-#include "Verify.h"
-
-#include <optional>
+#include "Package.h"
 
 #include <juce_core/juce_core.h>
 
@@ -28,7 +26,6 @@ bool libraryUrlAllowed(const std::string& url, std::string& why);
 struct Settings {
     std::string libraryUrl = BLEEP_LIBRARY_URL;  ///< the site's address; the library lives under /registry/v1/
     std::string channel = "stable";
-    AllowUnsigned allowUnsigned;                           ///< Settings → Security
     bool firstRunDone = false;                             ///< the setup assistant has been answered (developers/modules/library.md 5a)
     bool updateCheck = true;                               ///< the app asks the library for updates at every start (Settings → Library)
 
@@ -69,16 +66,15 @@ struct Index {
 struct InstalledModule {
     std::string slug, version, source;      ///< source: "registry" or "local"
     juce::File file;
-    Result result;                          ///< what verification said
-    bool allowed = false;                   ///< may it load, given the settings
-    std::string why;                        ///< why it may or may not
+    bool allowed = false;                   ///< does the package pass the checks, so that it may load
+    std::string why;                        ///< why not
     std::vector<std::string> types;
 };
 
 class Client {
 public:
-    /// `roots`: the pinned root public keys. `now`: unix seconds (the device clock; tests pass a fixed one).
-    Client(Settings settings, juce::File dataDir, std::vector<std::vector<uint8_t>> roots, int64_t now = 0);
+    /// `now`: unix seconds (the device clock; tests pass a fixed one).
+    Client(Settings settings, juce::File dataDir, int64_t now = 0);
 
     /// Fetches the index from the library. Every index that was fetched is kept in the data folder (cache/index.json), so the
     /// library works offline: see loadCachedIndex.
@@ -91,26 +87,19 @@ public:
     /// version it published; an older one stays on this machine until a newer one is installed (install() removes older versions).
     bool installVersion(const std::string& slug, const std::string& version, InstalledModule& out, std::string& error) const;
     bool remove(const std::string& slug, std::string& error) const;
-    /// Downloads a plugin from the library for this platform, checks its signature (kind "plugin") and the settings, and puts the
+    /// Downloads a plugin from the library for this platform, and puts the
     /// .vst3 bundle(s) it holds into `folder`, replacing what is there. `names` receives the bundle names. Live must be closed (the caller checks).
     bool installPlugin(const std::string& slug, const juce::File& folder, std::vector<std::string>& names, std::string& error) const;
-    /// The library's signed revocation list (signing.md section 8): fetched from v1/revocations.json, checked against the pinned roots, and
-    /// kept in cache/revocations.json if its serial is higher than that of the list in use. `changed` says that it was. A list with
-    /// a lower or equal serial is not an error: it is ignored, so a mirror cannot take revocations back. Every Client made afterwards
-    /// applies the kept list when it verifies, with no network, and installed() notices it (the cache is keyed on its serial).
-    bool fetchRevocations(bool& changed, std::string& error) const;
-    /// The serial of the revocation list in use; 0 when the library has never given one.
-    int64_t revocationSerial() const { return revocations_ ? revocations_->serial : 0; }
-    /// Every module in the data folder (the newest version of each), verified. Nothing is loaded.
-    /// From the cache where the package is unchanged; `recheck` verifies every package again (a worker thread's job: see cacheStale).
+    /// Every module in the data folder (the newest version of each), checked. Nothing is loaded.
+    /// From the cache where the package is unchanged; `recheck` checks every package again (a worker thread's job: see cacheStale).
     /// `allVersions`: every version of a module from the library, not only the newest (older ones were fetched for boards that pin them).
     std::vector<InstalledModule> installed(bool recheck = false, bool allVersions = false) const;
     /// Has a cached check grown old enough to be repeated with installed(true)?
     static bool cacheStale();
-    /// The module.wasm and spec.json of an installed module, for the engine; checked again against its signature here.
+    /// The module.wasm and spec.json of an installed module, for the engine; checked again here.
     /// `spec` stays empty if the package has none.
     bool contentOf(const InstalledModule& module, std::vector<uint8_t>& wasm, std::string& spec, std::string& error) const;
-    /// Every file of an installed module (ui/, doc/, ...), from the bytes that were checked against its signature just now.
+    /// Every file of an installed module (ui/, doc/, ...), from the bytes that were checked just now.
     /// Anything that serves or runs a file of a package takes it from here, not from installed(): that may answer from the cache.
     bool filesOf(const InstalledModule& module, Package& out, std::string& error) const;
 
@@ -122,18 +111,12 @@ public:
 
 private:
     bool installEntry(const std::string& slug, const std::string& entryPath, const std::string& expectVersion, bool pruneOlder, InstalledModule& out, std::string& error) const;
-    bool check(const std::vector<uint8_t>& bytes, const std::string& slug, const std::string& version, const juce::var* signatureDoc,
-               const juce::var* receiptDoc, InstalledModule& out, std::string& error) const;
-
-    std::optional<Revocations> loadRevocations() const;
-    int64_t highestRevocationSerial() const;
-    void keepRevocationSerial(int64_t serial) const;
+    /// Reads a package and fills `out`; `uploaded`: the library says an account uploaded it, so it may only hold what a community module may.
+    bool check(const std::vector<uint8_t>& bytes, const std::string& slug, const std::string& version, bool uploaded, InstalledModule& out, std::string& error) const;
 
     Settings settings_;
     juce::File dataDir_;
-    std::vector<std::vector<uint8_t>> roots_;
     int64_t now_;
-    mutable std::optional<Revocations> revocations_;  ///< the kept list, checked again against the roots whenever a Client is made
 };
 
 }  // namespace bleep::library

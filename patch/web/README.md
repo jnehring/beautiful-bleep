@@ -160,7 +160,7 @@ node patch/web/test/bridge-engine-test.mjs     # remote nodes in the graph runne
 
 ## Developing a module in Bleep Play
 
-Bleep Play installs its modules from the Library as signed packages. To try a module change without packaging, signing or
+Bleep Play installs its modules from the Library as packages. To try a module change without packaging or
 releasing it:
 
 ```
@@ -169,10 +169,8 @@ scripts/build/build-web.sh --modules-only      # or: scripts/build/build-web.sh 
 
 Besides `build/web/modules`, this copies the `.wasm` files and the modules' view scripts (`ui/*.js`) to
 `website/app/public/play/local-modules/`, which the website's dev site serves next to Bleep Play (skipped when that folder does
-not exist; `BLEEP_LOCAL_MODULES=<dir>` picks another one, `off` skips it). Turn on **Settings, Library, Allow unsigned modules**
-once and reload the page (it only works when the page is served from `localhost`, `127.0.0.1` or `[::1]`; a deployed site never uses `local-modules/`): the modules and views from `local-modules/` replace the Library's of the same name, unsigned, and
-the status line says "loaded <module> from the local build". Modules not built locally still come from the Library. With
-the switch off, or without the folder, nothing changes.
+not exist; `BLEEP_LOCAL_MODULES=<dir>` picks another one, `off` skips it). Reload the page (it only works when the page is served from `localhost`, `127.0.0.1` or `[::1]`; a deployed site never uses `local-modules/`): the modules and views from `local-modules/` replace the Library's of the same name, and
+the status line says "loaded <module> from the local build". Modules not built locally still come from the Library. Without the folder, nothing changes.
 
 ## Hosting
 

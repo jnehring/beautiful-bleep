@@ -4,7 +4,7 @@
 // native plugin behind the board UI: board-demo.js keeps the document (undo,
 // presets, …) and tells BleepWeb about every change; BleepWeb loads the
 // module wasm files a board needs, one by one and on demand, from the Bleep
-// Library (library-client.js: signed packages, checked here before they run), and
+// Library (library-client.js: packages, read here before they run), and
 // sends the board to the AudioWorklet (worklet.js), which makes the sound.
 //
 // Audio starts on the first click (browsers require a gesture); until then
@@ -68,7 +68,7 @@
   }) : null;
   if (S) { S.applyLibrary(); W.settings = S.call; }
 
-  /// The module's package from the library, verified. The bytes are compiled inside the worklet (a Module does not cross to it everywhere).
+  /// The module's package from the library, checked. The bytes are compiled inside the worklet (a Module does not cross to it everywhere).
   function fetchModule(slug, version) {
     const key = version ? `${slug}@${version}` : slug;
     if (!loading.has(key)) loading.set(key, BleepLibrary.fetchModule(slug, version));
@@ -134,8 +134,8 @@
           onVersionTypes();
         } else
         post({ cmd: "module", slug, bytes: m.wasm.slice(0), types: manifest.modules[slug].types });
-        setStatus(m.local ? `loaded ${slug} from the local build (unsigned, ${Math.round(m.bytes / 1024)} KB)`
-                         : `installed ${slug} ${m.version} from the Bleep Library (signed by ${m.publisher}, ${Math.round(m.bytes / 1024)} KB)`);
+        setStatus(m.local ? `loaded ${slug} from the local build (${Math.round(m.bytes / 1024)} KB)`
+                         : `installed ${slug} ${m.version} from the Bleep Library (${Math.round(m.bytes / 1024)} KB)`);
       } catch (e) {
         sent.delete(slug);
         loading.delete(slug);
@@ -155,7 +155,7 @@
       const ui = [];   // library modules that bring their own picture (view.sandbox.js) or help page: { type, spec, view, help, source, version, meta }, for the board's views
       const found = await Promise.all(slugs.map((slug) => fetchModule(slug).then((r) => {
         const specs = (r.spec || []).filter((t) => !have.has(t.type));
-        if (r.view || r.source || (r.help && (r.trust === "community" || r.trust === "local"))) for (const t of specs) ui.push({ type: t.type, spec: t, view: r.view || "", help: r.help || "", source: r.source || "", version: r.version, meta: r.meta || {} });
+        if (r.view || r.source || (r.help && (r.community || r.localBuild))) for (const t of specs) ui.push({ type: t.type, spec: t, view: r.view || "", help: r.help || "", source: r.source || "", version: r.version, meta: r.meta || {} });
         return specs;
       }, () => [])));
       W.libraryUi = ui;

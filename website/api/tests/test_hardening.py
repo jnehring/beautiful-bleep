@@ -1,13 +1,10 @@
 # SPDX-License-Identifier: MIT
 import io
-import os
-import stat
 import zipfile
 
 import pytest
 
-from app import signing
-from app.config import settings
+from app import community
 from app.main import MAX_BODY, MAX_PRESET_BODY, body_limit
 
 
@@ -45,63 +42,31 @@ def _zip(members):
 
 
 def test_zip_member_over_limit_refused_before_reading(monkeypatch):
-    monkeypatch.setattr(signing, "MAX_MEMBER_BYTES", 100)
-    z = _zip({"a.bin": b"x" * 101})
+    monkeypatch.setattr(community, "MAX_MEMBER_BYTES", 100)
+    infos = zipfile.ZipFile(_zip({"a.bin": b"x" * 101})).infolist()
     with pytest.raises(ValueError, match="more than the limit"):
-        signing.read_entries(z)
-    assert signing.read_entries(_zip({"a.bin": b"x" * 100}))
+        community.check_member(infos[0])
+    assert community.check_member(zipfile.ZipFile(_zip({"a.bin": b"x" * 100})).infolist()[0]) == 100
 
 
 def test_zip_total_over_limit_refused(monkeypatch):
-    monkeypatch.setattr(signing, "MAX_TOTAL_BYTES", 150)
+    monkeypatch.setattr(community, "MAX_TOTAL_BYTES", 150)
+    total = 0
     with pytest.raises(ValueError, match="larger than"):
-        signing.read_entries(_zip({"a": b"x" * 100, "b": b"y" * 100}))
+        for info in zipfile.ZipFile(_zip({"a": b"x" * 100, "b": b"y" * 100})).infolist():
+            total = community.check_member(info, total)
 
 
 def test_zip_bomb_ratio_refused(monkeypatch):
-    monkeypatch.setattr(signing, "RATIO_FROM", 1000)
+    monkeypatch.setattr(community, "RATIO_FROM", 1000)
     with pytest.raises(ValueError, match="ratio"):
-        signing.read_entries(_zip({"zeros": b"\0" * 5_000_000}))
+        community.check_member(zipfile.ZipFile(_zip({"zeros": b"\0" * 5_000_000})).infolist()[0])
 
 
 def test_oversize_module_json_is_422_not_500(monkeypatch):
-    z = zipfile.ZipFile(_zip({"module.json": b"{" + b" " * (signing.MAX_META_BYTES + 1) + b"}"}))
+    z = zipfile.ZipFile(_zip({"module.json": b"{" + b" " * (community.MAX_META_BYTES + 1) + b"}"}))
     with pytest.raises(ValueError):
-        signing.read_member(z, "module.json")
-
-
-def test_save_key_is_private_from_the_start(tmp_path, monkeypatch):
-    seen = []
-    real = os.open
-    monkeypatch.setattr(os, "open", lambda p, f, m=0o777, **kw: (seen.append(m), real(p, f, m, **kw))[1])
-    key = signing.Ed25519PrivateKey.generate()
-    path = tmp_path / "k.key"
-    signing.save_key(key, path)
-    assert seen == [0o600] and stat.S_IMODE(path.stat().st_mode) == 0o600
-    path.chmod(0o644)  # overwriting an older, looser file tightens it
-    signing.save_key(key, path)
-    assert stat.S_IMODE(path.stat().st_mode) == 0o600
-    assert signing.load_key(str(path)).private_bytes_raw() == key.private_bytes_raw()
-
-
-def test_write_secret_mode(tmp_path):
-    p = tmp_path / "registry.env"
-    signing.write_secret(p, "A=1\n")
-    assert p.read_text() == "A=1\n" and stat.S_IMODE(p.stat().st_mode) == 0o600
-
-
-def test_issuer_key_from_file(tmp_path, monkeypatch):
-    pem = "-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----\n"
-    f = tmp_path / "issuer.pem"
-    f.write_text(pem)
-    monkeypatch.setattr(settings, "issuer_key", None)
-    monkeypatch.setattr(settings, "issuer_key_file", str(f))
-    assert signing.issuer_key_pem() == pem
-    monkeypatch.setattr(settings, "issuer_key_file", str(tmp_path / "missing"))
-    with pytest.raises(ValueError):
-        signing.issuer_key_pem()
-    monkeypatch.setattr(settings, "issuer_key", "A\\nB")  # unreadable file but the variable is set: it is used
-    assert signing.issuer_key_pem() == "A\nB"
+        community.read_member(z, "module.json")
 
 
 def test_production_start_refuses_placeholder_secrets(monkeypatch):

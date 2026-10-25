@@ -48,8 +48,8 @@ await test("the store: put, get, replace, remove, listeners (in memory where the
   assert.deepEqual(Users.index()["mine.a"].types, ["mine/a"]);
 });
 
-await test("the library client lists the user's modules with their spec, without a library or a setting", async () => {
-  Library.configure({ base: "/registry/v1/", roots: [], localBase: "", allowUnsigned: {} });
+await test("the library client lists the user's modules with their spec, without a library", async () => {
+  Library.configure({ base: "/registry/v1/", localBase: "" });
   const realFetch = globalThis.fetch;
   globalThis.fetch = async () => { throw new TypeError("offline"); };   // no library at all
   try {
@@ -58,7 +58,6 @@ await test("the library client lists the user's modules with their spec, without
     assert.equal(m.modules["mine.a"].version, "user");
     assert.equal(m.modules["mine.a"].spec[0].type, "mine/a");
     const pkg = await Library.fetchModule("mine.a");
-    assert.equal(pkg.status, "unsigned");
     assert.equal(pkg.local, true);
     assert.equal(pkg.wasm.byteLength, 16);
     assert.equal(pkg.spec[0].name, "A again");

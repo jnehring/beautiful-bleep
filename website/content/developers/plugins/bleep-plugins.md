@@ -52,7 +52,7 @@ A plugin's **Board** setting chooses the board on its other side. The wire forma
 
 ## Release
 
-Plugins are signed with your developer key and released to the [Bleep Library](../modules/library.md) with `scripts/release/release.py`. The rules are in [Signing](../modules/signing.md). The operating-system signing (macOS Developer ID and notarisation) is separate and not automated.
+Plugins are released to the [Bleep Library](../modules/library.md) with `scripts/release/release.py`. The operating-system signing (macOS Developer ID and notarisation) is separate and not automated.
 
 ## Licences
 

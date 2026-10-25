@@ -67,8 +67,8 @@ when it meets two conditions:
 - It does not cover **changes to Bleep itself**, only modules that plug in.
 - It does not give you the **name or logo**. You may say your module is
   "for Beautiful Bleep", but not use the name or logo as your own.
-- It does not make a module **safe or trusted**. To run in the apps, a module
-  must still be [signed](signing.md) and meet the ABI.
+- It does not make a module **safe**. To run in the apps, a module
+  must still pass the library's checks and meet the [ABI](module-abi.md).
 
 ## Selling a module
 

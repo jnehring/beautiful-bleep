@@ -488,7 +488,7 @@ int main(int argc, char** argv) {
     juce::File dir = juce::File::getCurrentWorkingDirectory().getChildFile("build/web/modules");
     double seconds = 4.0;
     bool strict = false;
-    std::string installedDir, rootFile;
+    std::string installedDir;
     std::set<std::string> only;
     for (int i = 1; i < argc; ++i) {
         const std::string a = argv[i];
@@ -496,7 +496,6 @@ int main(int argc, char** argv) {
         else if (a == "--seconds" && i + 1 < argc) seconds = std::atof(argv[++i]);
         else if (a == "--strict") strict = true;
         else if (a == "--installed" && i + 1 < argc) installedDir = argv[++i];
-        else if (a == "--root" && i + 1 < argc) rootFile = argv[++i];
         else only.insert(a);
     }
     {  // a sample for the modules that play one: two seconds of a decaying tone with a click at every slice
@@ -530,9 +529,7 @@ int main(int argc, char** argv) {
     if (!installedDir.empty()) {
         // The path the apps take: modules installed in a data folder, checked, registered, created through the registry.
         const juce::File data = juce::File::getCurrentWorkingDirectory().getChildFile(installedDir);
-        std::vector<std::vector<uint8_t>> roots;
-        if (!rootFile.empty()) roots.push_back(bleep::library::fromHex(juce::File::getCurrentWorkingDirectory().getChildFile(rootFile).loadFileAsString().trim().toStdString()));
-        const bleep::library::Client client(bleep::library::Settings::load(data), data, roots);
+        const bleep::library::Client client(bleep::library::Settings::load(data), data);
         // native twins first: once the registry has the installed module, create() makes that one
         struct Pair { std::unique_ptr<Module> native, twin; const ModuleSpec* spec; };
         std::map<std::string, Pair> natives;
@@ -540,7 +537,7 @@ int main(int argc, char** argv) {
             if (s->port == PortKind::None && s->userCreatable) natives[s->type] = Pair{Registry::get().create(s->type), Registry::get().create(s->type), s};
         const auto reports = loadInstalledModules(Registry::instance(), client);
         for (const auto& r : reports) {
-            if (!r.loaded) { std::printf("%-22s %-26s  %s\n", r.slug.c_str(), ("NOT LOADED (" + r.status + ")").c_str(), r.why.c_str()); ++total; bad.push_back(r.slug + " (not loaded)"); continue; }
+            if (!r.loaded) { std::printf("%-22s %-26s  %s\n", r.slug.c_str(), "NOT LOADED", r.why.c_str()); ++total; bad.push_back(r.slug + " (not loaded)"); continue; }
             for (const auto& type : r.types) {
                 if (!only.empty() && !only.count(type) && !only.count(r.slug)) continue;
                 auto it = natives.find(type);

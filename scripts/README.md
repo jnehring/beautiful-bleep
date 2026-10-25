@@ -5,8 +5,8 @@ Everything for building, running, testing and releasing goes through one command
 [README](../README.md#scripts) has the table.
 
 **Settings** are read by `settings.py`, later layers winning: `config/bleep.json` (shared defaults, committed), then
-`config/bleep.local.json` (this machine's: `signingKit`, `releaseTokenFile`, `registry`, `juceDir`, `liveSet`, `webDocker`,
-git-ignored; start from `config/bleep.local.example.json`), then the environment (`BLEEP_JUCE_DIR`, `BLEEP_SIGNING_KIT`,
+`config/bleep.local.json` (this machine's: `releaseTokenFile`, `registry`, `juceDir`, `liveSet`, `webDocker`,
+git-ignored; start from `config/bleep.local.example.json`), then the environment (`BLEEP_JUCE_DIR`,
 `BLEEP_RELEASE_TOKEN`, `BLEEP_REGISTRY_URL`, ...), then the command line. `./bleep config` prints the result. Secrets stay in
 the files the settings name; the config holds paths only.
 
@@ -17,7 +17,7 @@ the files the settings name; the config holds paths only.
 | [`run/`](run/) | `ui-server.py`: the board UI against a fake engine (`./bleep run ui`) |
 | [`docs/`](docs/) | `build-docs.py`, `build-help-index.py`, `module-screenshots.py` (`./bleep docs`) |
 | [`check/`](check/) | `check-repo.py`, `check-api-docs.py`, `account-live.py` (`./bleep check`) |
-| [`release/`](release/) | `release.py`, `package-module.py`, `signing.py`, `community-publish.py`, with their tests (`./bleep release`, `package`) |
+| [`release/`](release/) | `release.py`, `package-module.py`, `community-publish.py`, with their tests (`./bleep release`, `package`) |
 | [`experiments/`](experiments/) | `wasm-spike.sh`: a spike that is not part of the build |
 
 A new tool goes in the folder of what it is for and gets a subcommand in `bleep.py`; the tools find the repository root as their

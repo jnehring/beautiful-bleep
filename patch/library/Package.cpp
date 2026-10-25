@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
-#include "Verify.h"
-#include "../common/SafeJson.h"
+#include "Package.h"
 
 #include <juce_cryptography/juce_cryptography.h>
 
@@ -57,29 +56,6 @@ std::vector<uint8_t> fromHex(const std::string& hex) {
     return out;
 }
 
-Entries singleFile(const std::string& name, const Digest& sha) {
-    Entries e;
-    e[name] = FileInfo{sha, false};
-    return e;
-}
-
-bool contentDigest(const Entries& entries, Digest& out, std::string& error) {
-    std::vector<uint8_t> msg;
-    const std::string domain = "BLEEP-CONTENT-1\n";
-    msg.insert(msg.end(), domain.begin(), domain.end());
-    auto put32 = [&](uint32_t n) { for (int s = 24; s >= 0; s -= 8) msg.push_back((uint8_t)(n >> s)); };
-    put32((uint32_t)entries.size());
-    for (const auto& [path, info] : entries) {  // std::map orders std::string bytewise
-        if (!safePath(path)) { error = "bad path in package: " + path; return false; }
-        put32((uint32_t)path.size());
-        msg.insert(msg.end(), path.begin(), path.end());
-        msg.insert(msg.end(), info.sha.begin(), info.sha.end());
-        msg.push_back(info.executable ? 1 : 0);
-    }
-    out = sha256(msg.data(), msg.size());
-    return true;
-}
-
 bool readPackage(const uint8_t* data, size_t size, Package& out, std::string& error) {
     out = Package{};
     if (size < 22) { error = "not a zip file"; return false; }
@@ -107,7 +83,9 @@ bool readPackage(const uint8_t* data, size_t size, Package& out, std::string& er
         total += usize;
         if (total > kMaxTotalBytes) { error = "the package unpacks to too much"; return false; }
         if ((madeBy >> 8) == 3 && (ext >> 28) == 0xA) { error = "symlink in package: " + name; return false; }
-        if (out.files.count(name) || (name == "META/signature.json" && out.hasSignature)) { error = "duplicate file in package: " + name; return false; }
+        if (!safePath(name)) { error = "bad path in package: " + name; return false; }
+        if (name == "META/signature.json") continue;  // packages of an older library carry one; nothing looks at it any more
+        if (out.files.count(name)) { error = "duplicate file in package: " + name; return false; }
         if ((size_t)local + 30 > size || u32(data + local) != 0x04034b50) { error = "bad zip entry: " + name; return false; }
         const size_t start = (size_t)local + 30 + u16(data + local + 26) + u16(data + local + 28);
         if (start + csize > size) { error = "bad zip entry: " + name; return false; }
@@ -125,15 +103,6 @@ bool readPackage(const uint8_t* data, size_t size, Package& out, std::string& er
             return false;
         }
         if (body.size() != usize) { error = "size mismatch in " + name; return false; }
-        if (name == "META/signature.json") {
-            out.hasSignature = true;
-            out.signature = bleep::safejson::parse(juce::String::fromUTF8(reinterpret_cast<const char*>(body.data()), (int)body.size()));
-            continue;
-        }
-        FileInfo info;
-        info.sha = sha256(body.data(), body.size());
-        info.executable = (madeBy >> 8) == 3 && ((ext >> 16) & 0111) != 0;
-        out.entries[name] = info;
         out.files[name] = std::move(body);
     }
     return true;
@@ -142,7 +111,8 @@ bool readPackage(const uint8_t* data, size_t size, Package& out, std::string& er
 bool communityFilesOk(const Package& pkg, std::string& why) {
     for (const auto& [path, bytes] : pkg.files) {
         (void)bytes;
-        bool ok = path == "module.json" || path == "module.wasm" || path == "spec.json" || path == "LICENSE";
+        bool ok = path == "module.json" || path == "module.wasm" || path == "spec.json" || path == "LICENSE" || path == "view.sandbox.js" ||
+                  path == "source.dsp.ts" || path == "image.png" || path == "image.jpg" || path == "image.webp";
         if (!ok && path.compare(0, 4, "doc/") == 0 && path.size() > 7) {
             const std::string name = path.substr(4);
             const bool text = name.size() > 3 && name.compare(name.size() - 3, 3, ".md") == 0;

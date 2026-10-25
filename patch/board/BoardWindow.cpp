@@ -329,7 +329,7 @@ public:
                 done({});
             }))
             .withNativeFunction("librarySettings", gated([](const juce::Array<juce::var>& a, Completion done) {
-                // Module UI scripts run in this page and can call this too. What weakens the library's checks (signatures off, a
+                // Module UI scripts run in this page and can call this too. What changes where modules come from (a
                 // different library, which also receives the account token) is therefore confirmed in a native dialog the page cannot answer.
                 const auto before = ModuleLibrary::instance().settings();
                 auto s = before;
@@ -338,14 +338,7 @@ public:
                 if (a[0]["channel"].isString()) s.channel = a[0]["channel"].toString().toStdString();
                 if (a[0]["libraryUrl"].isString() && a[0]["libraryUrl"].toString().isNotEmpty())
                     s.libraryUrl = a[0]["libraryUrl"].toString().toStdString();
-                const juce::var allow = a[0]["allowUnsigned"];
-                if (allow.isObject()) {
-                    s.allowUnsigned.module = (bool)allow["module"];
-                    s.allowUnsigned.plugin = (bool)allow["plugin"];
-                }
                 juce::String risk;
-                if (s.allowUnsigned.module && !before.allowUnsigned.module) risk << "Allow unsigned modules: code nobody has vouched for will run.\n";
-                if (s.allowUnsigned.plugin && !before.allowUnsigned.plugin) risk << "Allow unsigned plugins: unverified native code can be installed.\n";
                 if (s.libraryUrl != before.libraryUrl) risk << "Use another library: " << juce::String(s.libraryUrl) << "\n";
                 std::string urlProblem;
                 if (!library::libraryUrlAllowed(s.libraryUrl, urlProblem)) {

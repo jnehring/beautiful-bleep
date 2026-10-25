@@ -57,13 +57,13 @@ The apps and plugins can be built **without modules** (that is the default when 
 
 The [Bleep Library](../modules/library.md) is the central place for plugins, modules and presets. Everything that installs, updates or loads one of them talks to the library and nothing else.
 
-A module is published as a **`.bleepmod`** package: a zip with `module.json`, `module.wasm`, optional custom views, and its documentation and screenshot. Published versions are immutable: a fix is a new version, and files are stored under their hash so a cache never goes stale. The library's `index.json` lists the packages; each carries what it needs (`requires.engineAbi`, other modules) and its signature.
+A module is published as a **`.bleepmod`** package: a zip with `module.json`, `module.wasm`, optional custom views, and its documentation and screenshot. Published versions are immutable: a fix is a new version, and files are stored under their hash so a cache never goes stale. The library's `index.json` lists the packages; each carries what it needs (`requires.engineAbi`, other modules).
 
-Code is **signed**. First-party modules are signed by their developer's key under the project's root key. A module that someone shares through their account is checked by the library (its files, its imports and exports, its node types and its licence) and then signed by the library's community key, so authors do not need a key of their own. Every host checks the signature before it loads anything. See [Signing](../modules/signing.md) for the details, and [Publishing a module](../modules/publishing.md) for the author's side.
+Nothing is signed; modules run in a sandbox. A module that someone shares through their account is checked by the library (its files, its imports and exports, its node types and its licence) before it is published, and every host checks the file list, the imports and the ABI version before it loads anything. See [Publishing a module](../modules/publishing.md) for the author's side.
 
 Modules reach people in three ways:
 
-- **On demand.** The Library section of the app, or of the plugin window, installs and updates modules one by one. In the browser, the page fetches a module the first time a board contains one of its node types, and checks its signature before running it.
+- **On demand.** The Library section of the app, or of the plugin window, installs and updates modules one by one. In the browser, the page fetches a module the first time a board contains one of its node types, and checks it before running it.
 - **In bundles.** The first-run setup offers a *default modules* bundle (every first-party module, about 25 MB of wasm) and a *default plugins* bundle, so a new user does not install eighty modules by hand. An offline installer carries both.
 - **By hand**, as described next.
 
@@ -73,7 +73,7 @@ A **plugin in Live never downloads anything by itself.** A download inside an au
 
 Modules can also be copied into a folder. Modules installed from the library live in `<data>/modules/registry/<id>/<version>/`, which the Library section manages. Your own modules go in `<data>/modules/local/`, as a `.bleepmod`, or as a `<name>.wasm` with a `<name>.json` (the `module.json`) next to it. The folder is read at start and again when it changes. `<data>` is `~/Library/Application Support/Bleep` on macOS, `%APPDATA%\Bleep` on Windows and `~/.local/share/Bleep` on Linux.
 
-Local files go through the same checks as a download. An unsigned module loads only when *Allow unsigned modules* is switched on in **Settings → Security**, which the app, the plugins and the Library section all read from the same settings file. When several copies provide the same node type, the engine picks the highest compatible version, then a signed one over an unsigned one, then the manual folder over the library.
+Local files go through the same checks as a download. When several copies provide the same node type, the engine picks the highest compatible version, then the manual folder over the library.
 
 ### Bleep Script modules
 
@@ -97,7 +97,7 @@ The first-party script modules in `patch/modules/` (they have `"language": "blee
 | **Module host** | Wasmtime | Wasmtime | WebAssembly in the AudioWorklet |
 | **Who owns the audio** | Live. Ports (MIDI In/Out, Audio In/Out, Instrument, FX) connect a track to the board | The app's own audio device, and *System* audio from the computer; while a Live bridge is connected, Live's blocks drive the app | The browser's AudioContext |
 | **MIDI** | Live's tracks, through the ports | The app's own MIDI ports (*Bleep App 1…n*) | Web MIDI and the computer keyboard |
-| **Modules arrive from** | The set installed on the machine by the app or the plugin window; never downloaded inside Live | The Library section, local files, bundles | Fetched from the site's library on first use, signature checked in the browser |
+| **Modules arrive from** | The set installed on the machine by the app or the plugin window; never downloaded inside Live | The Library section, local files, bundles | Fetched from the site's library on first use, checked in the browser |
 | **Code nodes** | Run; compiler not shipped yet | Run; compiler not shipped yet | Compile and run |
 | **Sync** | Live's transport | Ableton Link, and Live's transport while bridged | The app's tempo and beat, when connected |
 | **Latency between ports** | With Bleep Board in the set, its own track has no latency and each crossing to or from another track takes exactly one block, whatever order Live runs the tracks in (input port to output port: two) | Not applicable | Not applicable |
@@ -120,6 +120,6 @@ The Bleep Bus is a different thing with a similar name. It lets *any* plugins, w
 |---|---|
 | Write a module in C++ | [Writing a module](../modules/writing-a-module.md), [Module ABI](../modules/module-abi.md) |
 | Write a module as a script | [Bleep Script](../bleep-script/overview.md), [Module scripts](../bleep-script/module-scripts.md) |
-| Publish a module | [Publishing](../modules/publishing.md), [Signing](../modules/signing.md), [Library](../modules/library.md) |
+| Publish a module | [Publishing](../modules/publishing.md), [Library](../modules/library.md) |
 | Change how plugins share an engine | [Engine ABI](engine-abi.md), [Bleep plugins](../plugins/bleep-plugins.md) |
 | Change the app or the browser version | [Standalone app](../app/standalone-app.md), [Web](../web/bleep-play.md) |

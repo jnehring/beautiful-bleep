@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // web-settings.js — what Bleep Play's Settings section (board/ui/settings.js) shows and changes in the browser: the output device and
-// latency mode, which MIDI inputs play, the link to the app, the library's channel and the unsigned-modules switch, and the data this
+// latency mode, which MIDI inputs play, the link to the app, the library's channel, and the data this
 // page keeps (doc/specs/settings.md §4). The page asks through the board's native "settings" call; board-demo.js hands it to
 // BleepWeb.settings, which is `create(env).call` below.
 //
@@ -43,7 +43,6 @@
       latency: LATENCY.includes(o.latency) ? o.latency : "interactive",
       midiOff: strings(o.midiOff),
       channel: CHANNELS.includes(o.channel) ? o.channel : "stable",
-      allowUnsignedModule: o.allowUnsignedModule === true,
     };
   }
 
@@ -54,7 +53,7 @@
     const s = sanitise(saved);
     if (!env.storage) stored = false;
     // What the library was configured with at this page load: changing it needs a reload (the index is read once).
-    const applied = { channel: s.channel, allowUnsignedModule: s.allowUnsignedModule };
+    const applied = { channel: s.channel };
     let note = "";         // the last problem, shown once
 
     const persist = () => {
@@ -64,7 +63,7 @@
 
     /// Applies the saved library choices. Called once, before the library is first used.
     const applyLibrary = () => {
-      if (env.library) env.library.configure({ channel: s.channel, allowUnsigned: { module: s.allowUnsignedModule, plugin: false } });
+      if (env.library) env.library.configure({ channel: s.channel });
     };
 
     const outputs = async () => {
@@ -102,8 +101,8 @@
           : { supported: !!env.midiSupported, asked: false, inputs: [] },
         webApp: b ? { available: true, connected: !!b.connected, busy: !!b.busy, text: b.text || "", bad: !!b.bad } : { available: false },
         webLib: {
-          channel: s.channel, channels: CHANNELS, allowUnsigned: { module: s.allowUnsignedModule },
-          reload: s.channel !== applied.channel || s.allowUnsignedModule !== applied.allowUnsignedModule,
+          channel: s.channel, channels: CHANNELS,
+          reload: s.channel !== applied.channel,
         },
         webData: { kinds: ["board", "presets", "settings", "all"] },
       };
@@ -149,7 +148,6 @@
         }
         case "webLibrary":
           if (CHANNELS.includes(arg.channel)) s.channel = arg.channel;
-          if (arg.allowUnsigned && typeof arg.allowUnsigned.module === "boolean") s.allowUnsignedModule = arg.allowUnsigned.module;
           persist();
           if (arg.reload === true) env.reload();
           break;

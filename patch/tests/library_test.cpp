@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
-// The library's checks in C++ (patch/library, developers/modules/signing.md): every package in patch/tests/library-fixtures must get the
-// verdict the Python reference gave it (scripts/release/signing.py fixture), and the pieces underneath (content hash,
-// canonical JSON) must give Python's exact bytes. patch/web/test/library-client-test.mjs runs the same cases in JavaScript.
+// The library client in C++ (patch/library): every package in patch/tests/library-fixtures must be read or refused the way
+// patch/web/test/library-client-test.mjs reads it in JavaScript, and the client installs and lists modules from the fixture library.
 #include "common/SafeJson.h"
 #include "library/Account.h"
 #include "library/Client.h"
-#include "library/Verify.h"
 
 #include <cstdio>
 #include <cstring>
@@ -64,42 +62,6 @@ void testPackageLimits() {  // a zip's own sizes must not make us allocate
     CHECK(readPackage(zip.data(), zip.size(), pkg, error) && pkg.files.count("module.wasm") == 1, "a small honest package still reads: %s", error.c_str());
 }
 
-void testVector() {  // signing.md section 14: the content hash of three fixed files
-    Entries e;
-    auto add = [&](const char* path, const std::string& content) { e[path] = FileInfo{sha256((const uint8_t*)content.data(), content.size()), false}; };
-    add("module.json", "{\"name\":\"Fuzz\"}\n");
-    add("module.wasm", std::string("\0asm\1\0\0\0", 8));
-    add("ui/fuzz.js", "// view\n");
-    Digest d;
-    std::string error;
-    CHECK(contentDigest(e, d, error), "%s", error.c_str());
-    CHECK(toHex(d.data(), 32) == "39f61d45e3115066a934dabca6cf83c346420153e85d6d58841033d62d0c1f08", "digest %s", toHex(d.data(), 32).c_str());
-    e["../x"] = FileInfo{};
-    CHECK(!contentDigest(e, d, error), "an unsafe path must be refused");
-}
-
-void testCanonical() {
-    const juce::var v = juce::JSON::parse(juce::String::fromUTF8(R"({"b":[1,{"z":"é€😀\n\"q\"\\","a":null,"t":true}],"a":0,"ü":"x","_":-3})"));
-    const std::string expected = juce::String::fromUTF8(R"EXPECT({"_":-3,"a":0,"b":[1,{"a":null,"t":true,"z":"é€😀\n\"q\"\\"}],"ü":"x"})EXPECT").toStdString();
-    CHECK(canonical(v) == expected, "canonical JSON differs:\n   got      %s\n   expected %s", canonical(v).c_str(), expected.c_str());
-}
-
-void testCanonicalRefuses() {
-    auto obj = [](const juce::var& v) { auto* o = new juce::DynamicObject(); o->setProperty("n", v); return juce::var(o); };
-    CHECK(canonical(obj(juce::var(1.5))).empty(), "a fraction is refused, not written as 0");
-    CHECK(canonical(obj(juce::var(9.5e15))).empty(), "a number above 9e15 is refused");
-    CHECK(canonical(obj(juce::var(std::nan("")))).empty(), "NaN is refused");
-    CHECK(canonical(obj(juce::var(3.0))) == "{\"n\":3}", "a whole double still reads as an integer");
-    CHECK(canonical(juce::var()) == "null", "null stays null");
-    // a signed certificate with a fractional field is invalid, never verified as if the field were 0
-    Digest d{};
-    juce::var sig = juce::JSON::parse(R"({"format":1,"algorithm":"ed25519","keyId":"x","chain":[{"issuer":"x","tbs":{"n":1.5},"signature":""},{"issuer":"x","tbs":{"n":1},"signature":""}],"signature":""})");
-    Context ctx;
-    ctx.kind = "module"; ctx.id = "x";
-    const Result r = verify(d, &sig, ctx);
-    CHECK(r.status == "invalid", "an unusable certificate is invalid: %s", r.status.c_str());
-}
-
 void testLibraryUrl() {
     std::string why;
     for (const char* ok : {"https://store.example", "http://localhost:8080", "http://127.0.0.1", "http://[::1]:8080/x", "http://a.localhost", "HTTP://LOCALHOST"})
@@ -110,40 +72,20 @@ void testLibraryUrl() {
 
 void testFixtures(const juce::File& dir) {
     const juce::var spec = juce::JSON::parse(dir.getChildFile("cases.json"));
-    std::map<std::string, std::vector<std::vector<uint8_t>>> roots;
-    roots["main"] = {fromHex(spec["roots"]["main"].toString().toStdString())};
-    roots["other"] = {fromHex(spec["roots"]["other"].toString().toStdString())};
-    roots["none"] = {};
     auto* cases = spec["cases"].getArray();
-    CHECK(cases && cases->size() > 20, "no cases");
+    CHECK(cases && cases->size() >= 6, "no cases");
     int n = 0;
     for (const auto& c : *cases) {
         const std::string name = c["name"].toString().toStdString(), expect = c["expect"].toString().toStdString();
         const auto bytes = readFile(dir.getChildFile(c["file"].toString()));
         Package pkg;
-        Digest digest;
-        std::string error, got;
-        if (!readPackage(bytes.data(), bytes.size(), pkg, error) || !contentDigest(pkg.entries, digest, error)) got = "refused";
-        else {
-            Context ctx;
-            ctx.kind = c["kind"].toString().toStdString();
-            ctx.id = c["id"].toString().toStdString();
-            ctx.version = c["version"].toString().toStdString();
-            ctx.platform = c["platform"].toString().toStdString();
-            ctx.roots = roots[c["roots"].toString().toStdString()];
-            ctx.now = (juce::int64)c["now"];
-            Revocations crl;
-            if (c["crl"].isObject()) { crl = Revocations::fromJson(c["crl"]); ctx.revocations = &crl; }
-            const Result r = pkg.hasSignature ? verify(digest, &pkg.signature, ctx) : verify(digest, nullptr, ctx);
-            got = r.status;
-            if (c["publisher"].isString()) CHECK(r.publisher == c["publisher"].toString().toStdString(), "%s: publisher %s", name.c_str(), r.publisher.c_str());
-            if (c.hasProperty("communityFiles")) {  // the file rule a client applies to a community-signed package
+        std::string error;
+        const std::string got = readPackage(bytes.data(), bytes.size(), pkg, error) ? "ok" : "refused";
+        if (got == "ok") {
+            CHECK(pkg.files.count("META/signature.json") == 0, "%s: a signature of an older package is left out", name.c_str());
+            if (c.hasProperty("communityFiles")) {  // the file rule a client applies to a package an account uploaded
                 std::string why;
                 CHECK(communityFilesOk(pkg, why) == (bool)c["communityFiles"], "%s: community file rule (%s)", name.c_str(), why.c_str());
-            }
-            if (r.status == "signed") {
-                const std::string publisher = c["publisher"].toString().toStdString();
-                CHECK(r.trust == (publisher == "community" ? "community" : publisher == "bleep" ? "official" : "developer"), "%s: trust %s", name.c_str(), r.trust.c_str());
             }
         }
         CHECK(got == expect, "%s: got %s, expected %s", name.c_str(), got.c_str(), expect.c_str());
@@ -152,104 +94,41 @@ void testFixtures(const juce::File& dir) {
     std::printf("  %d fixture packages checked\n", n);
 }
 
-void testReceipts(const juce::File& dir) {  // signing.md section 6a
-    const juce::var spec = juce::JSON::parse(dir.getChildFile("cases.json"));
-    const std::vector<std::vector<uint8_t>> roots = {fromHex(spec["roots"]["main"].toString().toStdString())};
-    auto* cases = spec["receiptCases"].getArray();
-    CHECK(cases && cases->size() > 15, "no receipt cases");
-    int n = 0;
-    for (const auto& c : *cases) {
-        const std::string name = c["name"].toString().toStdString(), expect = c["expect"].toString().toStdString();
-        const auto bytes = readFile(dir.getChildFile(c["file"].toString()));
-        Package pkg;
-        Digest digest;
-        std::string error;
-        CHECK(readPackage(bytes.data(), bytes.size(), pkg, error) && contentDigest(pkg.entries, digest, error) && pkg.hasSignature, "%s: package: %s", name.c_str(), error.c_str());
-        Context ctx;
-        ctx.kind = c["kind"].toString().toStdString();
-        ctx.id = c["id"].toString().toStdString();
-        ctx.version = c["version"].toString().toStdString();
-        ctx.platform = c["platform"].toString().toStdString();
-        ctx.roots = roots;
-        ctx.now = (juce::int64)c["now"];
-        Revocations crl;
-        if (c["crl"].isObject()) { crl = Revocations::fromJson(c["crl"]); ctx.revocations = &crl; }
-        const juce::var receipt = c["receipt"];
-        const Result r = verify(digest, &pkg.signature, ctx, receipt.isVoid() ? nullptr : &receipt);
-        CHECK(r.status == expect, "%s: got %s (%s), expected %s", name.c_str(), r.status.c_str(), r.reason.c_str(), expect.c_str());
-        ++n;
-    }
-    std::printf("  %d receipt cases checked\n", n);
-
-    {   // installing: the receipt is kept beside the package, and keeps it signed after the certificate has lapsed
-        const int64_t lapsed = (juce::int64)spec["siteNow"] + 5 * 365 * 86400;
-        const juce::File data = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("bleep-receipt-test-" + juce::String::toHexString(juce::Random::getSystemRandom().nextInt()));
-        Settings s;
-        s.libraryUrl = juce::URL(dir.getChildFile("site")).toString(false).toStdString();
-        const Client client(s, data, roots, lapsed);
-        InstalledModule m;
-        std::string error;
-        CHECK(client.install("acme.fuzz", m, error), "installs five years after the certificate lapsed: %s", error.c_str());
-        CHECK(m.result.status == "signed" && m.result.publishedAt == (juce::int64)spec["siteNow"], "signed, dated by the receipt (%s)", m.result.status.c_str());
-        CHECK(m.file.withFileExtension("publication.json").existsAsFile(), "the receipt is kept beside the package");
-        auto find = [&](bool recheck) {
-            for (const auto& i : client.installed(recheck)) if (i.slug == "acme.fuzz") return i;
-            return InstalledModule{};
-        };
-        CHECK(find(true).allowed && find(true).result.status == "signed", "and it is still signed when the folder is read again");
-        std::vector<uint8_t> wasm;
-        std::string specJson;
-        CHECK(client.contentOf(find(true), wasm, specJson, error), "its content loads: %s", error.c_str());
-        m.file.withFileExtension("publication.json").deleteFile();  // without the receipt, only the device clock counts
-        const InstalledModule without = find(true);
-        CHECK(without.result.status == "expired" && !without.allowed, "without the receipt it is expired (%s)", without.result.status.c_str());
-        m.file.withFileExtension("publication.json").replaceWithText("{\"format\":1}");
-        CHECK(find(true).result.status == "invalid", "a damaged receipt makes it invalid");
-        data.deleteRecursively();
-    }
-}
-
 void testClient(const juce::File& fixtures) {
     const juce::var spec = juce::JSON::parse(fixtures.getChildFile("cases.json"));
-    const std::vector<std::vector<uint8_t>> roots = {fromHex(spec["roots"]["main"].toString().toStdString())};
     const int64_t now = (juce::int64)spec["siteNow"];
     const juce::File data = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("bleep-library-test-" + juce::String::toHexString(juce::Random::getSystemRandom().nextInt()));
-    auto client = [&](const char* site, bool allowUnsigned = false) {
+    auto client = [&](const char* site) {
         Settings s;
         s.libraryUrl = juce::URL(fixtures.getChildFile(site)).toString(false).toStdString();
-        s.allowUnsigned.module = allowUnsigned;
-        s.allowUnsigned.plugin = allowUnsigned;
-        return Client(s, data, roots, now);
+        return Client(s, data, now);
     };
     InstalledModule m;
     std::string error;
 
-    {  // plugins: downloaded, checked against the same rules, unpacked into the plugin folder
+    {  // plugins: downloaded, unpacked into the plugin folder
         const juce::File vst3 = data.getChildFile("vst3");
         std::vector<std::string> names;
         CHECK(client("site").installPlugin("test-plugin", vst3, names, error) && names.size() == 1 && names[0] == "Test Plugin.vst3", "install a plugin: %s", error.c_str());
         CHECK(vst3.getChildFile("Test Plugin.vst3/Contents/Info.plist").existsAsFile(), "the bundle is unpacked");
         names.clear();
-        CHECK(!client("site").installPlugin("test-plugin-unsigned", vst3, names, error) && error.find("Allow unsigned plugins") != std::string::npos, "an unsigned plugin is refused: %s", error.c_str());
-        CHECK(!vst3.getChildFile("Unsigned Plugin.vst3").exists(), "and not unpacked");
-        CHECK(!client("site", true).installPlugin("test-plugin-tampered", vst3, names, error) && error.find("invalid") != std::string::npos, "a tampered plugin is refused even if unsigned is allowed: %s", error.c_str());
         CHECK(!client("site").installPlugin("no-such-plugin", vst3, names, error), "an unknown plugin: %s", error.c_str());
         Index withPlugins;
-        CHECK(client("site").fetchIndex(withPlugins, error) && withPlugins.plugins.size() == 3, "the index lists the plugins");
+        CHECK(client("site").fetchIndex(withPlugins, error) && withPlugins.plugins.size() == 1, "the index lists the plugin");
     }
     Index index;
     CHECK(client("site").fetchIndex(index, error), "index: %s", error.c_str());
-    CHECK(index.modules.size() == 6 && index.find("good") && index.find("good")->version == "1.2.0", "the index lists six modules");
+    CHECK(index.modules.size() == 5 && index.find("good") && index.find("good")->version == "1.2.0", "the index lists five modules");
     CHECK(index.providing("acme/fuzz") && index.providing("acme/fuzz")->slug == "acme.fuzz" && !index.providing("nothing"), "a type finds its module");
 
     {  // the index is kept on disk, so the library still lists its modules when it can't be reached
         Index saved;
         int64_t at = 0;
         CHECK(client("site").loadCachedIndex(saved, at, error), "a fetched index is saved: %s", error.c_str());
-        CHECK(saved.modules.size() == 6 && saved.find("good") && saved.find("good")->version == "1.2.0" && at == now, "the saved copy is the index, with the time");
+        CHECK(saved.modules.size() == 5 && saved.find("good") && saved.find("good")->version == "1.2.0" && at == now, "the saved copy is the index, with the time");
         Settings gone;   // the same data folder, a library that does not answer
         gone.libraryUrl = juce::URL(fixtures.getChildFile("no-such-site")).toString(false).toStdString();
-        Client offline(gone, data, roots, now);
+        Client offline(gone, data, now);
         Index none, fromDisk;
         CHECK(!offline.fetchIndex(none, error), "an unreachable library gives no index");
         CHECK(!offline.loadCachedIndex(fromDisk, at, error) && error.find("another library") != std::string::npos,
@@ -257,65 +136,46 @@ void testClient(const juce::File& fixtures) {
         Settings beta;
         beta.libraryUrl = client("site").settings().libraryUrl;
         beta.channel = "beta";
-        CHECK(!Client(beta, data, roots, now).loadCachedIndex(fromDisk, at, error), "nor one saved for another channel");
-        CHECK(client("site").loadCachedIndex(fromDisk, at, error) && fromDisk.modules.size() == 6, "a new client of the same library reads it");
+        CHECK(!Client(beta, data, now).loadCachedIndex(fromDisk, at, error), "nor one saved for another channel");
+        CHECK(client("site").loadCachedIndex(fromDisk, at, error) && fromDisk.modules.size() == 5, "a new client of the same library reads it");
         Settings same;
         same.libraryUrl = client("site").settings().libraryUrl;
-        CHECK(!Client(same, data.getChildFile("elsewhere"), roots, now).loadCachedIndex(fromDisk, at, error), "no copy, no index");
+        CHECK(!Client(same, data.getChildFile("elsewhere"), now).loadCachedIndex(fromDisk, at, error), "no copy, no index");
     }
 
     CHECK(client("site").install("good", m, error), "install good: %s", error.c_str());
-    CHECK(m.result.status == "signed" && m.result.publisher == "bleep" && m.version == "1.2.0" && m.file.existsAsFile() && m.file.withFileExtension("sig.json").existsAsFile(),
-          "good is installed with its signature kept beside it");
-    CHECK(client("site").install("acme.fuzz", m, error) && m.result.publisher == "acme", "install acme.fuzz: %s", error.c_str());
-
-    CHECK(!client("site").install("unsigned-one", m, error) && error.find("Allow unsigned modules") != std::string::npos, "unsigned is refused: %s", error.c_str());
-    CHECK(client("site", true).install("unsigned-one", m, error) && m.result.status == "unsigned", "unsigned installs when the setting allows it: %s", error.c_str());
-    CHECK(!client("site", true).install("bad-download", m, error) && error.find("not the file the library lists") != std::string::npos, "a corrupted download: %s", error.c_str());
-    CHECK(!client("site", true).install("tampered", m, error) && error.find("invalid") != std::string::npos, "a package that is not what was signed is refused even if unsigned is allowed: %s", error.c_str());
-    CHECK(!client("site", true).install("forged", m, error) && error.find("invalid") != std::string::npos, "a signature by another root: %s", error.c_str());
+    CHECK(m.allowed && m.version == "1.2.0" && m.file.existsAsFile(), "good is installed");
+    CHECK(client("site").install("acme.fuzz", m, error), "install acme.fuzz: %s", error.c_str());
+    CHECK(client("site").install("acme.clean", m, error), "a package an account uploaded and that holds only what is allowed installs: %s", error.c_str());
+    CHECK(!client("site").install("acme.scripts", m, error) && error.find("not allowed in a community module") != std::string::npos, "one that brings a page script does not: %s", error.c_str());
+    CHECK(!client("site").install("bad-download", m, error) && error.find("not the file the library lists") != std::string::npos, "a corrupted download: %s", error.c_str());
     CHECK(!client("site").install("missing", m, error) && error.find("no module") != std::string::npos, "an unknown module: %s", error.c_str());
-    CHECK(!data.getChildFile("modules/registry/tampered").exists() && !data.getChildFile("modules/registry/forged").exists() && !data.getChildFile("modules/registry/bad-download").exists(),
-          "nothing refused was written");
+    CHECK(!data.getChildFile("modules/registry/acme.scripts").exists() && !data.getChildFile("modules/registry/bad-download").exists(), "nothing refused was written");
 
     {
-        const auto list = client("site", true).installed();
+        const auto list = client("site").installed();
         std::map<std::string, const InstalledModule*> by;
         for (const auto& i : list) by[i.slug] = &i;
-        CHECK(list.size() == 3 && by["good"] && by["good"]->allowed && by["acme.fuzz"] && by["unsigned-one"] && by["unsigned-one"]->result.status == "unsigned", "installed() lists what is there");
-        CHECK(!client("site", false).installed().empty() && [&] { for (const auto& i : client("site", false).installed()) if (i.slug == "unsigned-one") return !i.allowed; return false; }(),
-              "the same module is not allowed to load once the setting is off again");
+        CHECK(list.size() == 3 && by["good"] && by["good"]->allowed && by["acme.fuzz"] && by["acme.clean"], "installed() lists what is there");
         std::vector<uint8_t> wasm;
         std::string spec;
         CHECK(client("site").contentOf(*by["good"], wasm, spec, error) && wasm.size() == 8 && wasm[1] == 'a', "the wasm of an installed module: %s", error.c_str());
-        // a package changed on disk is caught when it is loaded
-        juce::MemoryBlock block;
-        by["good"]->file.loadFileAsData(block);
-        ((uint8_t*)block.getData())[block.getSize() / 2] ^= 0x55;
-        by["good"]->file.replaceWithData(block.getData(), block.getSize());
-        CHECK(!client("site").contentOf(*by["good"], wasm, spec, error), "a package changed on disk is not loaded");
 
-        // the same, but with the size and the modification time put back: installed() answers from its cache and still says
-        // "allowed", so what serves the files of a package (ui/, doc/) must not rely on it
+        // a package that stops being a zip on disk, with the size and the modification time put back: installed() answers from its cache
+        // and still says "allowed", so what serves the files of a package (ui/, doc/) must not rely on it
         const InstalledModule fuzz = *by["acme.fuzz"];
         Package files;
         CHECK(fuzz.allowed && client("site").filesOf(fuzz, files, error) && files.files.count("module.wasm"), "the files of an installed module: %s", error.c_str());
         const juce::Time stamp = fuzz.file.getLastModificationTime();
         juce::MemoryBlock fuzzBytes;
         fuzz.file.loadFileAsData(fuzzBytes);
-        {   // rename ui/view.js to ui/view.jt in the local header and the central directory: same size, other content (the paths are signed)
-            auto* data = (uint8_t*)fuzzBytes.getData();
-            int renamed = 0;
-            for (size_t at = 0; at + 7 <= fuzzBytes.getSize(); ++at)
-                if (std::memcmp(data + at, "view.js", 7) == 0) { data[at + 6] = 't'; ++renamed; }
-            CHECK(renamed == 2, "the file name is in the zip twice");
-        }
-        CHECK(fuzz.file.replaceWithData(fuzzBytes.getData(), fuzzBytes.getSize()) && fuzz.file.setLastModificationTime(stamp), "tamper with acme.fuzz");
+        ((uint8_t*)fuzzBytes.getData())[0] ^= 0x55;   // the signature of the first local file header
+        CHECK(fuzz.file.replaceWithData(fuzzBytes.getData(), fuzzBytes.getSize()) && fuzz.file.setLastModificationTime(stamp), "damage acme.fuzz");
         bool cachedAllowed = false;
         for (const auto& i : client("site").installed()) if (i.slug == "acme.fuzz") cachedAllowed = i.allowed;
         CHECK(cachedAllowed, "installed() still answers from its cache (the premise of this test)");
-        Package tampered;
-        CHECK(!client("site").filesOf(fuzz, tampered, error) && tampered.files.empty(), "a tampered package gives no files, whatever the cache says");
+        Package damaged;
+        CHECK(!client("site").filesOf(fuzz, damaged, error) && damaged.files.empty(), "a damaged package gives no files, whatever the cache says");
         CHECK(!client("site").contentOf(fuzz, wasm, spec, error), "nor wasm");
     }
 
@@ -352,27 +212,27 @@ void testClient(const juce::File& fixtures) {
         outside.deleteRecursively();
     }
 
-    // copied by hand: the file name says the version the signature is checked for
+    // copied by hand: the file name says the version (none: 0.0.0)
     const juce::File local = data.getChildFile("modules/local");
     local.createDirectory();
-    fixtures.getChildFile("signed.bleepmod").copyFileTo(local.getChildFile("acme.fuzz-1.0.0.bleepmod"));
-    fixtures.getChildFile("unsigned.bleepmod").copyFileTo(local.getChildFile("handmade-0.1.0.bleepmod"));
-    fixtures.getChildFile("signed.bleepmod").copyFileTo(local.getChildFile("renamed.bleepmod"));  // no version in its name: cannot be checked
+    fixtures.getChildFile("valid.bleepmod").copyFileTo(local.getChildFile("acme.fuzz-1.0.0.bleepmod"));
+    fixtures.getChildFile("valid.bleepmod").copyFileTo(local.getChildFile("handmade-0.1.0.bleepmod"));
+    fixtures.getChildFile("valid.bleepmod").copyFileTo(local.getChildFile("renamed.bleepmod"));
+    fixtures.getChildFile("symlink.bleepmod").copyFileTo(local.getChildFile("broken-0.1.0.bleepmod"));
     {
         std::map<std::string, InstalledModule> by;
         for (const auto& i : client("site").installed())
             if (i.source == "local") by[i.slug] = i;
-        CHECK(by["acme.fuzz"].allowed && by["acme.fuzz"].result.publisher == "acme", "a signed package copied into the local folder loads");
-        CHECK(!by["handmade"].allowed, "an unsigned one does not, by default");
-        CHECK(!by["renamed"].allowed, "one without its version in the name cannot be checked, so it is not loaded");
+        CHECK(by["acme.fuzz"].allowed && by["handmade"].allowed, "a package copied into the local folder loads");
+        CHECK(by["renamed"].allowed && by["renamed"].version == "0.0.0", "one without its version in the name loads as 0.0.0");
+        CHECK(!by["broken"].allowed && !by["broken"].why.empty(), "one that is not a safe package does not: %s", by["broken"].why.c_str());
     }
 
     Settings s;
     s.libraryUrl = "http://example.test";
-    s.allowUnsigned.plugin = true;
     CHECK(s.save(data), "save settings");
     const Settings back = Settings::load(data);
-    CHECK(back.libraryUrl == s.libraryUrl && back.allowUnsigned.plugin && !back.allowUnsigned.module && back.channel == "stable", "settings come back");
+    CHECK(back.libraryUrl == s.libraryUrl && back.channel == "stable", "settings come back");
     CHECK(Settings::load(data.getChildFile("nowhere")).libraryUrl == Settings().libraryUrl, "defaults when there is no file");
     CHECK(back.updateCheck && Settings::load(data.getChildFile("nowhere")).updateCheck, "the update check is on by default");
     s.updateCheck = false;
@@ -380,60 +240,8 @@ void testClient(const juce::File& fixtures) {
     data.deleteRecursively();
 }
 
-void testRevocations(const juce::File& fixtures) {  // signing.md section 8: the library's signed list reaches the client and is applied offline
-    const juce::var spec = juce::JSON::parse(fixtures.getChildFile("cases.json"));
-    const std::vector<std::vector<uint8_t>> roots = {fromHex(spec["roots"]["main"].toString().toStdString())};
-    const int64_t now = (juce::int64)spec["siteNow"];
-    const juce::File tmp = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("bleep-crl-test-" + juce::String::toHexString(juce::Random::getSystemRandom().nextInt()));
-    const juce::File data = tmp.getChildFile("data"), served = tmp.getChildFile("site/registry/v1");
-    served.createDirectory();
-    auto client = [&](const juce::File& site) {
-        Settings s;
-        s.libraryUrl = juce::URL(site).toString(false).toStdString();
-        return Client(s, data, roots, now);
-    };
-    auto serve = [&](const char* list) { fixtures.getChildFile("crl").getChildFile(list).copyFileTo(served.getChildFile("revocations.json")); };
-    auto acme = [&] {
-        for (const auto& i : client(fixtures.getChildFile("site")).installed()) if (i.slug == "acme.fuzz") return i;
-        return InstalledModule{};
-    };
-    InstalledModule m;
-    std::string error;
-    bool changed = false;
-    CHECK(client(fixtures.getChildFile("site")).install("acme.fuzz", m, error) && acme().allowed, "acme.fuzz installs: %s", error.c_str());
-    CHECK(client(fixtures.getChildFile("site")).revocationSerial() == 0, "no list yet");
 
-    Client c = client(tmp.getChildFile("site"));
-    CHECK(!c.fetchRevocations(changed, error) && !changed, "no list in the library is not a list");
-    serve("forged.json");  // the highest serial, but an issuer of another root
-    CHECK(!c.fetchRevocations(changed, error) && !changed && error.find("not trusted") != std::string::npos, "a list of another root is refused: %s", error.c_str());
-    CHECK(c.revocationSerial() == 0 && acme().allowed, "and changes nothing");
-
-    serve("revokes-acme.json");
-    CHECK(c.fetchRevocations(changed, error) && changed && c.revocationSerial() == 7, "the list is taken: %s", error.c_str());
-    const InstalledModule revoked = acme();
-    CHECK(!revoked.allowed && revoked.result.status == "revoked", "a module signed with a revoked key is not allowed any more (the check cache does not hide it): %s", revoked.why.c_str());
-    std::vector<uint8_t> wasm;
-    std::string text;
-    Package files;
-    CHECK(!c.contentOf(m, wasm, text, error) && !c.filesOf(m, files, error), "and is not loaded or served");
-    CHECK(client(fixtures.getChildFile("site")).revocationSerial() == 7 && !acme().allowed, "a new Client applies the kept list without any network");
-    CHECK(!client(fixtures.getChildFile("site")).install("acme.fuzz", m, error) && error.find("revoked") != std::string::npos, "and does not install it again: %s", error.c_str());
-    CHECK(client(fixtures.getChildFile("site")).install("good", m, error), "other publishers are not affected: %s", error.c_str());
-
-    serve("older-empty.json");  // a mirror holding back an old list
-    CHECK(c.fetchRevocations(changed, error) && !changed && c.revocationSerial() == 7 && !acme().allowed, "an older list does not take revocations back");
-    // a local rollback: an older, validly signed list copied over the cache is not trusted either
-    fixtures.getChildFile("crl").getChildFile("older-empty.json").copyFileTo(data.getChildFile("cache").getChildFile("revocations.json"));
-    CHECK(client(fixtures.getChildFile("site")).revocationSerial() == 0, "a list put back over the cache with a lower serial is not loaded");
-    serve("revokes-acme.json");
-    Client c2 = client(tmp.getChildFile("site"));
-    CHECK(c2.fetchRevocations(changed, error) && changed && c2.revocationSerial() == 7 && !acme().allowed, "the real list is taken again: %s", error.c_str());
-    tmp.deleteRecursively();
-}
-
-
-/// The sign-in against a pretend library: the device flow, the token in the token store, authenticated calls, revocation.
+/// The sign-in against a pretend library: the device flow, the token in the token store, authenticated calls, revocation of the sign-in.
 void testAccount() {
     const juce::File dir = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("bleep-account-test-" + juce::String(juce::Time::currentTimeMillis()) + "-" + juce::String(juce::Random::getSystemRandom().nextInt(1 << 30)));   // one folder per run: two test runs at once must not share it
     dir.deleteRecursively();
@@ -604,25 +412,9 @@ void testAccount() {
     CHECK(account.startSignIn("Bleep")["error"].toString().startsWith("cannot reach"), "no library, no code");
     dir.deleteRecursively();
 }
-
-void testPolicy() {
-    std::string why;
-    Result signedBy, unsignedR, bad, expired;
-    signedBy.status = "signed"; signedBy.publisher = "acme";
-    bad.status = "invalid"; bad.reason = "x";
-    expired.status = "expired"; expired.reason = "old";
-    AllowUnsigned off, modules;
-    modules.module = true;
-    CHECK(decide(signedBy, "module", off, why), "signed loads");
-    CHECK(!decide(unsignedR, "module", off, why) && why.find("Allow unsigned modules") != std::string::npos, "unsigned refused: %s", why.c_str());
-    CHECK(decide(unsignedR, "module", modules, why), "unsigned loads when allowed");
-    CHECK(!decide(unsignedR, "plugin", modules, why), "the two settings are separate");
-    CHECK(!decide(bad, "module", modules, why), "invalid never loads");
-    CHECK(!decide(expired, "module", off, why) && decide(expired, "module", modules, why), "expired needs the setting");
-}
 }  // namespace
 
-/// bleep_library_test --live URL ROOT_HEX: the client against a running library (not part of ctest): installs a module and a plugin into a temp folder.
+/// bleep_library_test --live URL: the client against a running library (not part of ctest): installs a module and a plugin into a temp folder.
 
 /// Against a running library API: the real HTTP stack, a real device sign-in that someone confirms on the site. Prints
 /// `CODE <user code>` and waits (up to 60 s) for the confirmation, then shares a preset, rates and comments, signs out.
@@ -664,11 +456,11 @@ int accountLive(const std::string& url, const std::string& dataDir) {
     return failures == 0 ? 0 : 1;
 }
 
-int live(const std::string& url, const std::string& rootHex) {
+int live(const std::string& url) {
     const juce::File data = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("bleep-library-live-" + juce::String::toHexString(juce::Random::getSystemRandom().nextInt()));
     Settings s;
     s.libraryUrl = url;
-    Client client(s, data, {fromHex(rootHex)}, (juce::int64)std::time(nullptr));
+    Client client(s, data);
     Index index;
     std::string error;
     CHECK(client.fetchIndex(index, error), "index: %s", error.c_str());
@@ -676,8 +468,8 @@ int live(const std::string& url, const std::string& rootHex) {
     InstalledModule m;
     for (const char* slug : {"oscillator", "filter", "wavetable-osc"}) {
         const bool ok = client.install(slug, m, error);
-        CHECK(ok && m.allowed && m.result.status == "signed", "install %s: %s (%s)", slug, error.c_str(), m.result.status.c_str());
-        if (ok) std::printf("%s %s: %s by %s, %zu types\n", slug, m.version.c_str(), m.result.status.c_str(), m.result.publisher.c_str(), m.types.size());
+        CHECK(ok && m.allowed, "install %s: %s", slug, error.c_str());
+        if (ok) std::printf("%s %s: %zu types\n", slug, m.version.c_str(), m.types.size());
     }
     std::vector<std::string> names;
     const juce::File vst3 = data.getChildFile("vst3");
@@ -724,20 +516,14 @@ void testSafeJson() {
 }
 
 int main(int argc, char** argv) {
-    if (argc == 4 && std::string(argv[1]) == "--live") return live(argv[2], argv[3]);
+    if (argc == 3 && std::string(argv[1]) == "--live") return live(argv[2]);
     if (argc == 4 && std::string(argv[1]) == "--account-live") return accountLive(argv[2], argv[3]);
     const juce::File dir(BLEEP_LIBRARY_FIXTURES);
     testSafeJson();
-    testVector();
     testPackageLimits();
-    testCanonical();
-    testCanonicalRefuses();
     testLibraryUrl();
     testFixtures(dir);
-    testReceipts(dir);
     testClient(dir);
-    testRevocations(dir);
-    testPolicy();
     testAccount();
     std::printf("library test: %d checks, %d failures\n", checks, failures);
     return failures == 0 ? 0 : 1;

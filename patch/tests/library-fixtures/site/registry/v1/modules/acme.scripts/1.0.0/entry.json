@@ -1,0 +1,23 @@
+{
+ "channel": "stable",
+ "files": [
+  {
+   "bytes": 396,
+   "path": "acme.scripts-1.0.0.bleepmod",
+   "platform": "any",
+   "sha256": "bc190dc5e92584b413b2ff63cf4bb735cb2b81f15ce4d22562991e8a8b478022",
+   "uploaded": true
+  }
+ ],
+ "id": "acme/scripts",
+ "kind": "module",
+ "notes": "",
+ "requires": {
+  "engineAbi": 1
+ },
+ "title": "acme.scripts",
+ "types": [
+  "acme/scripts"
+ ],
+ "version": "1.0.0"
+}

@@ -30,10 +30,10 @@ class Layers(unittest.TestCase):
         self.assertEqual(settings.load()["channel"], "stable")
 
     def test_comments_are_dropped_and_paths_expanded(self):
-        self.local.write_text(json.dumps({"_comment": "x", "signingKit": "~/kit.json", "juceDir": "libs/JUCE"}))
+        self.local.write_text(json.dumps({"_comment": "x", "releaseTokenFile": "~/token", "juceDir": "libs/JUCE"}))
         s = settings.load()
         self.assertNotIn("_comment", s)
-        self.assertEqual(s["signingKit"], str(Path("~/kit.json").expanduser()))
+        self.assertEqual(s["releaseTokenFile"], str(Path("~/token").expanduser()))
         self.assertEqual(s["juceDir"], str(settings.ROOT / "libs" / "JUCE"))
 
     def test_registry_falls_back_to_the_library_config(self):
@@ -41,7 +41,7 @@ class Layers(unittest.TestCase):
         self.assertEqual(settings.load()["registry"], "https://lib")
 
     def test_missing_files_are_fine_and_broken_ones_are_named(self):
-        self.assertEqual(settings.get("signingKit"), None)
+        self.assertEqual(settings.get("releaseTokenFile"), None)
         self.local.write_text("{nope")
         with self.assertRaises(SystemExit):
             settings.load()

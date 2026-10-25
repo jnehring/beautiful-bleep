@@ -11,7 +11,6 @@ import json
 import re
 import tempfile
 import zipfile
-from datetime import datetime, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
@@ -20,12 +19,11 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from .. import signing
-from ..config import settings
 from ..db import get_db
 from ..deps import require_release_token
-from ..models import ApiToken, Developer, Release, now
+from ..models import ApiToken, Release, now
 from ..schemas import FileIn, OriginIn, PlatformIn, ReleaseIn, ReleaseOut
+from ..community import read_member
 from ..storage import Storage, get_storage
 
 router = APIRouter(prefix="/api/registry", tags=["registry"])
@@ -37,166 +35,21 @@ VersionPath = Path(pattern=r"^\d{1,4}\.\d{1,5}\.\d{1,6}$")
 MAX_FILE_BYTES = 1024 * 1024 * 1024
 
 
-def _signed_id(slug: str) -> str:
+def _id(slug: str) -> str:
     return slug.replace(".", "/", 1)
 
 
-def _revocations(db: Session) -> dict:
-    """What clients must refuse: revoked developer keys, and the releases an admin took down (`status` "taken_down": a community module
-    that turned out to be abusive). A taken-down release is listed by its content digest, so a copy installed earlier stops loading too."""
-    keys = db.scalars(select(Developer.key_id).where(Developer.revoked_at.is_not(None)))
-    taken = db.scalars(select(Release).where(Release.status == "taken_down"))
-    artifacts = [{"kind": r.kind, "id": _signed_id(r.slug), "version": r.version, "digest": f["contentDigest"]}
-                 for r in taken for f in r.files if f.get("contentDigest")]
-    return {"revokedKeys": [{"keyId": k} for k in keys], "revokedArtifacts": artifacts}
-
-
-def write_revocations(db: Session, storage: Storage) -> dict | None:
-    """v1/revocations.json: the revoked developer keys, signed with the issuer key (signing.md section 8). The serial rises with every
-    change, so a client keeps the newest and a mirror cannot hand back an older list. Nothing is written when the library has no issuer key."""
-    if not (settings.issuer_key or settings.issuer_key_file) or not settings.issuer_cert:
-        return None
-    revoked = _revocations(db)
-    keys = sorted(revoked["revokedKeys"], key=lambda k: k["keyId"])
-    artifacts = sorted(revoked["revokedArtifacts"], key=lambda a: (a["kind"], a["id"], a["version"], a["digest"]))
-    prev = storage.get("v1/revocations.json")
-    old = json.loads(prev) if prev else {}
-    if prev and [k["keyId"] for k in keys] == [k["keyId"] for k in old.get("revokedKeys", [])] and artifacts == old.get("revokedArtifacts", []):
-        return old  # nothing changed: the list stays, with its serial
-    stamp = int(now().timestamp())
-    crl = signing.make_crl(signing.key_from_pem(signing.issuer_key_pem()), json.loads(settings.issuer_cert),
-                           serial=max(stamp, int(old.get("serial", 0)) + 1), issued=stamp, revoked_keys=[k["keyId"] for k in keys],
-                           revoked_artifacts=artifacts)
-    storage.put("v1/revocations.json", io.BytesIO(json.dumps(crl, indent=1).encode()), "application/json")
-    return crl
-
-
-def _check_files(db: Session, token: ApiToken, kind: str, slug: str, version: str, files: list[FileIn]) -> list[dict]:
-    """The files of a release as stored: every one signed by a developer this token may release for, or the request fails.
-
-    The signature must verify for (kind, id, version, platform, content hash) against the root keys in the settings and
-    the revocations; the signer's publisher must be the token's (a token without one releases for "bleep" only); and
-    all files of one release have one publisher. Records who signed, and which token declared each file.
-    """
-    if not settings.require_signatures:
-        return [{**f.model_dump(), "uploaded": False, "token": token.id} for f in files]
-    roots = settings.roots
-    if not roots:
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "The registry has no root key configured (BLEEP_ROOT_PUBLIC_KEYS)")
+def _check_files(token: ApiToken, kind: str, slug: str, files: list[FileIn]) -> list[dict]:
+    """The files of a release as stored. The token decides who may release: it may release for its own namespace (a token without one
+    releases for "bleep": the bare ids and "bleep/…"). Records which token declared each file."""
     allowed = token.publisher or "bleep"
-    crl = _revocations(db)
-    out = []
-    publishers = set()
+    owner = slug.partition(".")[0] if "." in slug else "bleep"
+    if owner != allowed:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, f"This token may release for {allowed!r}, not for {_id(slug)!r}")
     for f in files:
-        if f.signature is None:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"{f.path}: a signature is required")
         if kind == "module" and not f.path.endswith((".bleepmod", ".zip")):
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"{f.path}: a module is a .bleepmod package")
-        digest = bytes.fromhex(f.contentDigest) if kind == "module" and f.contentDigest else None
-        if kind == "module" and digest is None:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"{f.path}: contentDigest is required")
-        content = digest if digest is not None else signing.entries_for_file(f.path, bytes.fromhex(f.sha256))
-        result = signing.verify(content, f.signature, kind=kind, id_=_signed_id(slug), version=version, platform=f.platform,
-                                roots=roots, now=int(now().timestamp()), crl=crl)
-        if result.status != "signed":
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"{f.path}: signature {result.status}: {result.reason or 'not valid'}")
-        if result.trust == "community":
-            raise HTTPException(status.HTTP_403_FORBIDDEN, "Community signatures are made by the library itself; upload the unsigned package to /api/registry/community")
-        if result.publisher != allowed:
-            raise HTTPException(status.HTTP_403_FORBIDDEN, f"This token may release for {allowed!r}, the signature is by {result.publisher!r}")
-        publishers.add(result.publisher)
-        out.append({**f.model_dump(exclude={"signature"}), "contentDigest": f.contentDigest, "signature": f.signature,
-                    "signer": {"publisher": result.publisher, "keyId": result.key_id, "trust": result.trust}, "uploaded": False, "token": token.id})
-    if len(publishers) > 1:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "All files of a release must be signed by one publisher")
-    return out
-
-
-def _content(kind: str, f: dict):
-    """What a file's signature is over: the package's content digest (modules) or the single file (plugins)."""
-    if kind == "module" and f.get("contentDigest"):
-        return bytes.fromhex(f["contentDigest"])
-    return signing.entries_for_file(f["path"], bytes.fromhex(f["sha256"]))
-
-
-def _receipts_enabled() -> bool:
-    return bool(settings.require_signatures and (settings.issuer_key or settings.issuer_key_file) and settings.issuer_cert and settings.roots)
-
-
-def _newest_receipt(db: Session) -> int:
-    """The latest publishedAt this registry has issued: a receipt is never dated earlier (signing.md section 6a)."""
-    return max((f["publication"]["publishedAt"] for files in db.scalars(select(Release.files)) for f in files if f.get("publication")), default=0)
-
-
-def _date_files(db: Session, kind: str, slug: str, version: str, files: list[dict], paths: set[str] | None = None) -> list[dict]:
-    """Gives the files that have none a publication receipt, after verifying each as of this server's clock (signing.md section 6a).
-    A file whose certificate has lapsed, whose key was revoked or whose signature does not hold gets none and the request fails."""
-    if not _receipts_enabled():
-        return files
-    issuer = signing.key_from_pem(signing.issuer_key_pem())
-    crl, newest = _revocations(db), _newest_receipt(db)
-    out = []
-    for f in files:
-        if f.get("publication") or (paths is not None and f["path"] not in paths) or not f.get("signature"):
-            out.append(f)
-            continue
-        try:
-            receipt = signing.issue_receipt(issuer, _content(kind, f), f["signature"], kind=kind, id_=_signed_id(slug), version=version,
-                                            platform=f["platform"], roots=settings.roots, now=int(now().timestamp()), crl=crl, newest=newest)
-        except signing.ClockError as e:
-            raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, f"{f['path']}: {e}")
-        except ValueError as e:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"{f['path']}: {e}")
-        newest = receipt["publishedAt"]
-        out.append({**f, "publication": receipt})
-    return out
-
-
-def backfill_receipts(db: Session, storage: Storage, *, dry_run: bool = False) -> tuple[list[str], list[str]]:
-    """Gives the files of releases published before receipts existed a receipt dated at the release's recorded publish time
-    (signing.md section 16). Returns (dated, skipped), one line each.
-
-    Each file is verified as of that time, not now: a file whose certificate was not valid then, whose key is revoked, or that
-    was certified by another issuer than this registry's gets no receipt and is listed; its developer re-signs it once. Files
-    that have a receipt are left alone, so the job can be repeated. Rewrites entry.json of every release it changed."""
-    if not _receipts_enabled():
-        raise ValueError("Set BLEEP_ISSUER_KEY, BLEEP_ISSUER_CERT and BLEEP_ROOT_PUBLIC_KEYS (and leave BLEEP_REQUIRE_SIGNATURES on)")
-    issuer = signing.key_from_pem(signing.issuer_key_pem())
-    issuer_id = signing.key_id(signing.public_bytes(issuer))
-    crl = _revocations(db)
-    dated, skipped = [], []
-    for row in _published(db):
-        changed, files = False, []
-        for f in row.files:
-            label = f"{row.kind} {row.slug} {row.version} {f['path']}"
-            if not f["uploaded"] or f.get("publication") or not f.get("signature"):
-                files.append(f)
-                continue
-            at = row.published_at if row.published_at.tzinfo else row.published_at.replace(tzinfo=timezone.utc)
-            at = int(at.timestamp())
-            res = signing.verify(_content(row.kind, f), f["signature"], kind=row.kind, id_=_signed_id(row.slug), version=row.version,
-                                 platform=f["platform"], roots=settings.roots, now=at, crl=crl)
-            if res.status != "signed":
-                skipped.append(f"{label}: {res.status} when it was published{': ' + res.reason if res.reason else ''}")
-            elif f["signature"]["chain"][0]["tbs"]["keyId"] != issuer_id:
-                skipped.append(f"{label}: certified by another issuer than this registry's")
-            else:
-                f = {**f, "publication": signing.make_receipt(issuer, kind=row.kind, id_=_signed_id(row.slug), version=row.version, platform=f["platform"],
-                                                              signer_key_id=f["signature"]["keyId"], digest=bytes(_digest(row.kind, f)), published_at=at)}
-                dated.append(f"{label}: published {datetime.fromtimestamp(at, timezone.utc):%Y-%m-%d %H:%M} UTC")
-                changed = True
-            files.append(f)
-        if changed and not dry_run:
-            row.files = files
-            storage.put(_key(row, "entry.json"), io.BytesIO(json.dumps(_entry(row), indent=1).encode()), "application/json")
-    if not dry_run:
-        db.commit()
-    return dated, skipped
-
-
-def _digest(kind: str, f: dict) -> bytes:
-    content = _content(kind, f)
-    return content if isinstance(content, (bytes, bytearray)) else signing.content_digest(content)
+    return [{**f.model_dump(), "uploaded": False, "token": token.id} for f in files]
 
 
 def _own_draft(row: Release, token: ApiToken) -> None:
@@ -212,18 +65,18 @@ def _module_meta(db: Session, slug: str, package) -> tuple[list[str], int]:
     """The node types and engine ABI a module package declares in its module.json, after the library's rules for them.
 
     A module may only provide node types nobody else provides, and a third-party module (id "acme/fuzz") only types in
-    its own namespace ("acme/…"): otherwise a signed module could take over "oscillator" on every board."""
+    its own namespace ("acme/…"): otherwise a module could take over "oscillator" on every board."""
     try:
-        meta = json.loads(signing.read_member(zipfile.ZipFile(package), "module.json"))
+        meta = json.loads(read_member(zipfile.ZipFile(package), "module.json"))
         types, abi = meta["types"], meta["requires"]["engineAbi"]
     except (KeyError, ValueError, TypeError, zipfile.BadZipFile) as e:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"module.json must list `types` and `requires.engineAbi`: {e}")
     if not isinstance(types, list) or not types or len(types) > 64 or not all(isinstance(t, str) and TYPE_ID.match(t) for t in types) \
             or len(set(types)) != len(types) or not isinstance(abi, int):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "module.json: `types` is a list of node type ids, `requires.engineAbi` an integer")
-    owner = _signed_id(slug).partition("/")[0] if "/" in _signed_id(slug) else None
+    owner = _id(slug).partition("/")[0] if "/" in _id(slug) else None
     if owner and not all(t.startswith(owner + "/") for t in types):
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"node types of {_signed_id(slug)!r} must start with '{owner}/'")
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"node types of {_id(slug)!r} must start with '{owner}/'")
     taken = {t for r in _published(db, "module") if r.slug != slug for f in r.files for t in f.get("types", [])}
     clash = sorted(set(types) & taken)
     if clash:
@@ -232,11 +85,11 @@ def _module_meta(db: Session, slug: str, package) -> tuple[list[str], int]:
 
 
 def _check_licence(row: Release, package) -> None:
-    """The licence and origin a module release declares must be the ones in the signed package's module.json (a missing
+    """The licence and origin a module release declares must be the ones in the package's module.json (a missing
     licence there is MIT, like package-module.py): the library's detail view must not say something else than the package."""
     package.seek(0)
     try:
-        meta = json.loads(signing.read_member(zipfile.ZipFile(package), "module.json"))
+        meta = json.loads(read_member(zipfile.ZipFile(package), "module.json"))
     except (KeyError, ValueError, zipfile.BadZipFile) as e:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"module.json cannot be read: {e}")
     try:  # the same shape the release's origin was stored in (defaults filled in)
@@ -248,14 +101,6 @@ def _check_licence(row: Release, package) -> None:
                             "The release's license and origin must match the package's module.json "
                             f"(release: {row.license or 'none'}, package: {meta.get('license', 'MIT')})")
     package.seek(0)
-
-
-def _trust(r: Release) -> str:
-    """Who vouches for a release, for the tiles and the entry: official (first-party key), community (the library's community key after
-    its checks) or developer (a developer's own key). Releases signed before the field existed are told by their publisher."""
-    signer = next((f["signer"] for f in r.files if f.get("signer")), {})
-    return signer.get("trust") or ("community" if signer.get("publisher") == signing.COMMUNITY_PUBLISHER else
-                                   "official" if signer.get("publisher") == "bleep" else "developer")
 
 
 def _types(r: Release) -> list[str]:
@@ -280,12 +125,6 @@ def _published(db: Session, kind: str | None = None, slug: str | None = None) ->
     if slug:
         q = q.where(Release.slug == slug)
     return list(db.scalars(q.order_by(Release.major, Release.minor, Release.patch)))
-
-
-@router.get("/roots")
-def roots():
-    """The root public keys this registry trusts (public; scripts/release/release.py checks a signing kit against them before uploading)."""
-    return {"roots": [k.hex() for k in settings.roots], "requireSignatures": settings.require_signatures}
 
 
 @router.get("/token")
@@ -318,7 +157,7 @@ def create_release(kind: Kind, body: ReleaseIn, slug: str = Slug, db: Session = 
     row.channel, row.title, row.notes, row.requires = body.channel, body.title, body.notes, body.requires
     row.summary, row.category = body.summary, body.category
     row.license, row.origin = body.license, body.origin.model_dump() if body.origin else {}
-    row.files = _check_files(db, token, kind, slug, body.version, body.files)
+    row.files = _check_files(token, kind, slug, body.files)
     row.created_by_token = token.id
     try:
         db.commit()
@@ -350,24 +189,15 @@ async def upload_file(kind: Kind, request: Request, path: str, slug: str = Slug,
             spool.write(chunk)
         if size != declared["bytes"] or digest.hexdigest() != declared["sha256"]:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Size or SHA-256 does not match the declaration")
-        if declared.get("contentDigest") and settings.require_signatures:
-            spool.seek(0)  # the files inside a module package must be the ones that were signed
-            try:
-                actual = signing.content_digest(signing.read_entries(spool)).hex()
-            except (ValueError, zipfile.BadZipFile) as e:
-                raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Not a valid package: {e}")
-            if actual != declared["contentDigest"]:
-                raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "The files in the package are not the ones that were signed")
-            if kind == "module":
-                spool.seek(0)
-                declared = {**declared, "types": (meta := _module_meta(db, slug, spool))[0]}
-                row.requires = {**row.requires, "engineAbi": meta[1]}
-                _check_licence(row, spool)
+        if kind == "module":
+            spool.seek(0)
+            declared = {**declared, "types": (meta := _module_meta(db, slug, spool))[0]}
+            row.requires = {**row.requires, "engineAbi": meta[1]}
+            _check_licence(row, spool)
         spool.seek(0)
         storage.put(_key(row, path), spool)
     row.files = [{**declared, "uploaded": True} if f["path"] == path else f for f in row.files]
-    if row.status == "published":  # a platform added later: dated now, when the library accepts the file
-        row.files = _date_files(db, kind, slug, version, row.files, {path})
+    if row.status == "published":  # a platform added later
         storage.put(_key(row, "entry.json"), io.BytesIO(json.dumps(_entry(row), indent=1).encode()), "application/json")
     db.commit()
 
@@ -380,8 +210,8 @@ MAX_IMAGE_BYTES = 1024 * 1024
 async def upload_image(kind: Kind, request: Request, slug: str = Slug, version: str = VersionPath,
                        db: Session = Depends(get_db), storage: Storage = Depends(get_storage),
                        token: ApiToken = Depends(require_release_token)):
-    """The screenshot of an entry's tile (PNG, JPEG or WebP, up to 1 MB). Display metadata, not code, so it is not signed
-    and may be replaced, also after publishing, by the token that created the release."""
+    """The screenshot of an entry's tile (PNG, JPEG or WebP, up to 1 MB). Display metadata, not code, so it
+    may be replaced, also after publishing, by the token that created the release."""
     row = _find(db, kind, slug, version)
     if row.created_by_token != token.id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "This release was created with another token")
@@ -422,10 +252,7 @@ def add_platform(kind: Kind, body: PlatformIn, slug: str = Slug, version: str = 
         if f.path in paths:
             raise HTTPException(status.HTTP_409_CONFLICT, f"File {f.path} already exists in this release")
     pending = {f.path for f in body.files}
-    declared = _check_files(db, token, kind, slug, version, body.files)
-    owner = next((f["signer"]["publisher"] for f in row.files if f.get("signer")), None)
-    if owner and any(f["signer"]["publisher"] != owner for f in declared if f.get("signer")):
-        raise HTTPException(status.HTTP_403_FORBIDDEN, f"A platform of this release must be signed by {owner!r}, like its other files")
+    declared = _check_files(token, kind, slug, body.files)
     row.files = [f for f in row.files if f["uploaded"] or f["path"] not in pending] + declared
     db.commit()
     return row
@@ -434,8 +261,8 @@ def add_platform(kind: Kind, body: PlatformIn, slug: str = Slug, version: str = 
 def _entry(r: Release) -> dict:
     return {
         "kind": r.kind, "id": r.slug, "version": r.version, "channel": r.channel, "title": r.title or r.slug,
-        "summary": r.summary, "category": r.category, "license": r.license, "origin": r.origin or None, "image": r.image or None, "notes": r.notes, "requires": r.requires, "types": _types(r), "trust": _trust(r), "published": r.published_at.isoformat(),
-        "files": [{k: f[k] for k in ("path", "sha256", "bytes", "platform", "contentDigest", "signer", "signature", "publication") if f.get(k) is not None}
+        "summary": r.summary, "category": r.category, "license": r.license, "origin": r.origin or None, "image": r.image or None, "notes": r.notes, "requires": r.requires, "types": _types(r), "published": r.published_at.isoformat(),
+        "files": [{k: f[k] for k in ("path", "sha256", "bytes", "platform") if f.get(k) is not None}
                   for f in r.files if f["uploaded"]],
     }
 
@@ -448,14 +275,13 @@ def write_index(db: Session, storage: Storage) -> dict:
             channels[channel][r.kind + "s"][r.slug] = {
                 "version": r.version, "entry": f"{r.kind}s/{r.slug}/{r.version}/entry.json",
                 # what the apps' library tiles show, so one request to the index is enough
-                "title": r.title or r.slug, "summary": r.summary, "category": r.category, "trust": _trust(r),
+                "title": r.title or r.slug, "summary": r.summary, "category": r.category,
                 **({"image": f"{r.kind}s/{r.slug}/{r.version}/{r.image}"} if r.image else {}),
             }
             if r.kind == "module":  # which node types a module provides: clients find the package for a type without downloading any
                 channels[channel]["modules"][r.slug]["types"] = _types(r)
     index = {"format": 1, "generated": now().isoformat(), "channels": channels}
     storage.put("v1/index.json", io.BytesIO(json.dumps(index, indent=1).encode()), "application/json")
-    write_revocations(db, storage)  # the list changes when a key is revoked; it is only written again then
     return index
 
 
@@ -472,7 +298,6 @@ def publish(kind: Kind, slug: str = Slug, version: str = VersionPath, db: Sessio
     newest = max(((r.major, r.minor, r.patch) for r in _published(db, kind, slug)), default=None)
     if newest is not None and (row.major, row.minor, row.patch) <= newest:
         raise HTTPException(status.HTTP_409_CONFLICT, f"A version up to {'.'.join(map(str, newest))} was published meanwhile")
-    row.files = _date_files(db, kind, slug, version, row.files)  # before anything changes: a failure leaves the draft as it was
     row.status, row.published_at = "published", now()
     storage.put(_key(row, "entry.json"), io.BytesIO(json.dumps(_entry(row), indent=1).encode()), "application/json")
     db.commit()

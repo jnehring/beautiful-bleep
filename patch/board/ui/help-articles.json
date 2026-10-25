@@ -30,6 +30,12 @@
   "path": "/docs/musicians/start/unsigned-builds/"
  },
  {
+  "group": "Start",
+  "title": "Ableton Live goes modular",
+  "description": "What Live can do with Beautiful Bleep that it could not do before, and what each connection costs in latency.",
+  "path": "/docs/musicians/start/ableton-live-goes-modular/"
+ },
+ {
   "group": "Learn",
   "title": "Your first patch",
   "description": "Five minutes on the board: add a filter, modulate its cutoff and modulate the modulator.",
@@ -78,6 +84,18 @@
   "path": "/docs/musicians/use/settings/"
  },
  {
+  "group": "Use",
+  "title": "Share a module",
+  "description": "Turn a script into a module and upload it to the Bleep Library so anyone can install it.",
+  "path": "/docs/musicians/use/share-modules/"
+ },
+ {
+  "group": "Use",
+  "title": "Recording",
+  "description": "Record many channels at once with the Audio Console: arming, takes, follow transport, and where the files go.",
+  "path": "/docs/musicians/use/recording/"
+ },
+ {
   "group": "Connect",
   "title": "Connecting plugin, app and web",
   "description": "Send audio, MIDI and tempo between Live, the Bleep App and Bleep Play, and what each connection costs in delay.",
@@ -91,8 +109,14 @@
  },
  {
   "group": "Connect",
+  "title": "Control Live from the board",
+  "description": "Move a knob of any Live device, switch a device on and off or pick a choice in a menu from the board, with the Live Params node and the Bleep Live Link device.",
+  "path": "/docs/musicians/connect/live-control/"
+ },
+ {
+  "group": "Connect",
   "title": "Modulating any Live parameter (loopback workaround)",
-  "description": "Modulate any Live parameter with a virtual MIDI port until the Max for Live bridge exists.",
+  "description": "Modulate any Live parameter with a virtual MIDI port, without Max for Live.",
   "path": "/docs/musicians/connect/loopback-cc/"
  },
  {
@@ -100,6 +124,12 @@
   "title": "Process what your computer plays",
   "description": "Take the sound of your music player, browser or video call into the Bleep App with the System node, on macOS, Windows and Linux.",
   "path": "/docs/musicians/connect/system-audio/"
+ },
+ {
+  "group": "Connect",
+  "title": "Play with a MIDI controller",
+  "description": "Connect a MIDI keyboard or pad controller to the Bleep App, to Bleep Play in your browser, or to Live, and map its knobs.",
+  "path": "/docs/musicians/connect/midi-controllers/"
  },
  {
   "group": "Reference",
@@ -124,6 +154,12 @@
   "title": "Bleep Bus",
   "description": "What Bleep Bus is, who it is for, and a map of the quickstart, API reference, specification, conformance suite and RFC process.",
   "path": "/docs/developers/bleep-bus/overview/"
+ },
+ {
+  "group": "Bleep Bus",
+  "title": "Architecture overview",
+  "description": "Diagrams of how Bleep Bus plugins share one memory segment, how a signal travels from an output to a parameter, and how a reader picks the block to read.",
+  "path": "/docs/developers/bleep-bus/architecture/"
  },
  {
   "group": "Bleep Bus",
@@ -331,6 +367,12 @@
  },
  {
   "group": "Development",
+  "title": "Architecture overview",
+  "description": "How the Bleep board, engine and modules fit together: what a wasm module is, how it reaches the engine from the library, local files or a script, and how the plugins, the standalone app and Bleep Play differ.",
+  "path": "/docs/developers/development/architecture/"
+ },
+ {
+  "group": "Development",
   "title": "Engine ABI",
   "description": "How Bleep plugins in one process share a single engine, and the rules for changing its interface.",
   "path": "/docs/developers/development/engine-abi/"
@@ -379,9 +421,9 @@
  },
  {
   "group": "Module developers",
-  "title": "Signing",
-  "description": "How modules and plugins are signed and verified: chain of trust, content hash, certificates, test vector.",
-  "path": "/docs/developers/modules/signing/"
+  "title": "Recorder service",
+  "description": "How a module records audio to files without a disk: the service, its imports, the Recordings folder and what the browser does.",
+  "path": "/docs/developers/modules/recorder-service/"
  },
  {
   "group": "Module developers",
@@ -398,20 +440,194 @@
  {
   "group": "Module developers",
   "title": "Publishing a module",
-  "description": "Package a built module, sign it with your developer key and release it to the Bleep Library.",
+  "description": "Share a module with the community, or package and release it as a developer.",
   "path": "/docs/developers/modules/publishing/"
  },
  {
   "group": "Bleep Script",
+  "title": "Implementation",
+  "description": "How Bleep Script is built in the repo: the parts, where each lives, and a map of the pages in this section.",
+  "path": "/docs/developers/bleep-script/implementation/overview/"
+ },
+ {
+  "group": "Bleep Script",
   "title": "Bleep Script",
-  "description": "Write modules, message routing and generated patches in code: what Bleep Script is, how it compiles, and where it stands.",
+  "description": "Write modules, message routing and generated patches in code: what Bleep Script is, how it works, and a map of these pages.",
   "path": "/docs/developers/bleep-script/overview/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Tutorials",
+  "description": "Worked examples for Bleep Script: a step sequencer, drive with anti-aliasing, smoothing, sample and hold, every kind of input, and the usual DSP building blocks.",
+  "path": "/docs/developers/bleep-script/tutorials/overview/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "A simple sine oscillator",
+  "description": "Write an oscillator from scratch: the phase accumulator, a pitch input in volts, tuning, a click-free level, and a lookup table version.",
+  "path": "/docs/developers/bleep-script/tutorials/sine-oscillator/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "The compiler",
+  "description": "How a module script becomes a .wasm file: asc running in memory, the Bleep transform, the subset checker, the library and the browser bundle.",
+  "path": "/docs/developers/bleep-script/implementation/compiler/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Quickstart",
+  "description": "Write, compile and use your first Bleep Script module, then your first patch script.",
+  "path": "/docs/developers/bleep-script/quickstart/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "An 8-step, 4-lane step sequencer",
+  "description": "Build a step sequencer with four lanes of eight steps and four gate outputs, that runs from the host tempo or from a clock input, step by step.",
+  "path": "/docs/developers/bleep-script/tutorials/step-sequencer/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "The Code node",
+  "description": "The editor, compiling, settings, saving and undo, panel wiring, and where the compiler is available.",
+  "path": "/docs/developers/bleep-script/code-node/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Patch script runner",
+  "description": "How a patch script runs in a QuickJS sandbox and how the description it returns becomes nodes and cables.",
+  "path": "/docs/developers/bleep-script/implementation/patch-runner/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Preventing pops and clicks",
+  "description": "Why a knob can make a click, and how to smooth it: one-pole smoothing, linear ramps, muting, and the reset.",
+  "path": "/docs/developers/bleep-script/tutorials/smoothing/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "The board and the engine",
+  "description": "The Code node, the Worker that holds the compiler, what is saved on a node, and how a compiled module is loaded in the browser and in the app.",
+  "path": "/docs/developers/bleep-script/implementation/board-and-engine/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Module scripts",
+  "description": "Reference for module scripts: the class, decorators, signal types, parameters, probes, buttons, settings and counted jacks.",
+  "path": "/docs/developers/bleep-script/module-scripts/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Drive with anti-aliasing",
+  "description": "Build a distortion module and understand aliasing: why a waveshaper makes inharmonic noise, and how anti-derivative anti-aliasing and oversampling reduce it.",
+  "path": "/docs/developers/bleep-script/tutorials/drive/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Rates and timing",
+  "description": "When each part of a module script runs: once, per block, per sample, per event, per chunk of transport, and for the view. Which rate to use for what.",
+  "path": "/docs/developers/bleep-script/rates/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "An advanced oscillator",
+  "description": "Four waveforms with PolyBLEP anti-aliasing, pulse width, audio-rate FM and hard sync, and a sync output for chaining oscillators.",
+  "path": "/docs/developers/bleep-script/tutorials/advanced-oscillator/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Events and routing",
+  "description": "Notes jacks and @on handlers: react to note events and control edges at their exact sample, with a router example.",
+  "path": "/docs/developers/bleep-script/events/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "The lifecycle of a script",
+  "description": "What happens to a script from typing to sound, when a patch is saved and opened again, and how a module instance lives and dies in the engine.",
+  "path": "/docs/developers/bleep-script/implementation/lifecycle/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Sample and hold",
+  "description": "Build a sample and hold module, first with the generated UI and a widget layout, then with a self-made canvas UI that draws what it holds.",
+  "path": "/docs/developers/bleep-script/tutorials/sample-and-hold/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Custom UIs and widgets",
+  "description": "Give a Code node a panel of knobs, faders and meters with a layout, or draw a fully self-made UI in JavaScript.",
+  "path": "/docs/developers/bleep-script/custom-ui/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Patch scripts",
+  "description": "Reference for patch scripts: build a cell of modules and cables from TypeScript or JavaScript, with loops, settings and checks against the real module types.",
+  "path": "/docs/developers/bleep-script/patch-scripts/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Processing different inputs",
+  "description": "How to read each signal type: audio, control, pitch, gate, trigger and notes, with a small complete module for each.",
+  "path": "/docs/developers/bleep-script/tutorials/inputs/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Limits and safety",
+  "description": "What the checker refuses in a module script, how the cost bound works, the patch-script sandbox, and what to know before running someone else's script.",
+  "path": "/docs/developers/bleep-script/implementation/limits/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Library",
+  "description": "The bleep/ libraries a module script can import: oscillators, filters, delays, envelopes, dynamics, noise, effects, an FFT, helpers and note events.",
+  "path": "/docs/developers/bleep-script/library/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "The DSP toolbox",
+  "description": "The typical building blocks of audio code and how to write them in a module script: oscillators, noise, delays, crossfades, filters, counters and tempo sync.",
+  "path": "/docs/developers/bleep-script/tutorials/dsp-toolbox/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Using other modules",
+  "description": "Import a module of the library, such as Delay, into a module script and use it like an object. The compiler links the two into one file.",
+  "path": "/docs/developers/bleep-script/child-modules/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Running the tests",
+  "description": "How to run the Bleep Script unit tests: the whole suite, a single file, the Wasmtime and browser checks, and what each test covers.",
+  "path": "/docs/developers/bleep-script/implementation/testing/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Programming with AI",
+  "description": "One prompt that teaches a coding AI Bleep Script. Paste it into a chat, then ask for any module: an effect, an oscillator, an envelope, a sequencer, a router.",
+  "path": "/docs/developers/bleep-script/ai-programming/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "\"Tutorial: a synth voice\"",
+  "description": "Build a monophonic supersaw voice from the library, step by step: oscillator, filter, envelope, notes, chorus.",
+  "path": "/docs/developers/bleep-script/tutorials/synth-voice/"
+ },
+ {
+  "group": "Bleep Script",
+  "title": "Reference",
+  "description": "Every built-in of a module script, one by one: the lifecycle methods, each decorator, @transport, notes and events, with the signature, what it does and a complete example.",
+  "path": "/docs/developers/bleep-script/reference/"
  },
  {
   "group": "Setup and release",
   "title": "Developer setup",
   "description": "Set up your computer to write modules, change the plugins, the app or Bleep Play, or work on the website: tools, one-time steps and a check that everything works.",
   "path": "/docs/developers/setup/overview/"
+ },
+ {
+  "group": "Setup and release",
+  "title": "Running unit tests",
+  "description": "How to run every test suite in the repository (C++ with CTest, Python with pytest and unittest, JavaScript with Node) and which one covers which part.",
+  "path": "/docs/developers/setup/running-tests/"
  },
  {
   "group": "Setup and release",

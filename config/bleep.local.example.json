@@ -1,6 +1,5 @@
 {
   "_comment": "Copy to config/bleep.local.json (git-ignored) and keep what you need. Secrets stay in the files named here, never in this file.",
-  "signingKit": "~/.bleep-signing-kit.json",
   "releaseTokenFile": "~/.bleep-release-token",
   "registry": "http://localhost:8080",
   "juceDir": "~/JUCE",

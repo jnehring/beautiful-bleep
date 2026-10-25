@@ -22,7 +22,7 @@ Bleep is GPL-3.0-only with a module exception, so your modules can be closed sou
 |---|---|
 | Send or receive a per-sample signal from my own plugin | [Bleep Bus quickstart](bleep-bus/quickstart.md) |
 | Add a sound, effect or utility to the board | [Modules](modules/overview.md) |
-| Check an exact contract (module ABI, signing, library) | [Module ABI](modules/module-abi.md), [Signing](modules/signing.md), [Library](modules/library.md) |
+| Check an exact contract (module ABI, library) | [Module ABI](modules/module-abi.md), [Library](modules/library.md) |
 | Write a module or a patch in code, in the browser | [Bleep Script](bleep-script/overview.md) |
 | Change the Bleep plugins in Live | [Plugins](plugins/overview.md) |
 | Change the standalone app | [Standalone app](app/standalone-app.md) |

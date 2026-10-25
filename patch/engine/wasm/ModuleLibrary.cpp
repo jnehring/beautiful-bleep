@@ -6,27 +6,14 @@
 #include <cstdio>
 #include <thread>
 
-#ifndef BLEEP_LIBRARY_ROOTS
-#define BLEEP_LIBRARY_ROOTS ""   // the root public keys, hex, comma separated: patch/library/root-keys.txt, put in at build time
-#endif
-
 namespace bleep::engine {
 namespace {
-
-std::vector<std::vector<uint8_t>> bakedRoots() {
-    std::vector<std::vector<uint8_t>> roots;
-    for (const auto& h : juce::StringArray::fromTokens(juce::String(BLEEP_LIBRARY_ROOTS), ",", ""))
-        if (auto k = library::fromHex(h.trim().toStdString()); k.size() == 32) roots.push_back(std::move(k));
-    return roots;
-}
 
 juce::var module(const library::InstalledModule& m, const LoadReport* r) {
     auto* o = new juce::DynamicObject();
     o->setProperty("slug", juce::String(m.slug));
     o->setProperty("version", juce::String(m.version));
     o->setProperty("source", juce::String(m.source));
-    o->setProperty("status", juce::String(m.result.status));
-    o->setProperty("publisher", juce::String(m.result.publisher));
     o->setProperty("allowed", m.allowed);
     o->setProperty("why", juce::String(r && !r->why.empty() ? r->why : m.why));
     o->setProperty("loaded", r && r->loaded);
@@ -43,10 +30,9 @@ ModuleLibrary& ModuleLibrary::instance() {
     return library;
 }
 
-void ModuleLibrary::configure(juce::File dataDir, std::vector<std::vector<uint8_t>> extraRoots) {
+void ModuleLibrary::configure(juce::File dataDir) {
     std::lock_guard<std::mutex> l(mutex_);
     dataDir_ = std::move(dataDir);
-    roots_ = std::move(extraRoots);
 }
 
 library::Settings ModuleLibrary::settings() const {
@@ -64,7 +50,7 @@ bool ModuleLibrary::setSettings(const library::Settings& s, std::string& error) 
 
 std::unique_ptr<library::Client> ModuleLibrary::client() const {
     std::lock_guard<std::mutex> l(mutex_);
-    return std::make_unique<library::Client>(settings_, dataDir_, roots_);
+    return std::make_unique<library::Client>(settings_, dataDir_);
 }
 
 void ModuleLibrary::start() {
@@ -77,33 +63,13 @@ void ModuleLibrary::start() {
             std::fprintf(stderr, "[library] %s: %s; using the default library\n", settings_.libraryUrl.c_str(), why.c_str());
             settings_.libraryUrl = library::Settings().libraryUrl;
         }
-        for (auto& r : bakedRoots()) roots_.push_back(std::move(r));
-        // a developer's own root (signing.md section 11: "Trusted developers"): added in the data folder, never in the code
-        const juce::var extra = juce::JSON::parse(dataDir_.getChildFile("settings.json"));
-        if (auto* a = extra["extraRoots"].getArray())
-            for (const auto& h : *a)
-                if (auto k = library::fromHex(h.toString().toStdString()); k.size() == 32) roots_.push_back(std::move(k));
     }
     const auto started = juce::Time::getMillisecondCounter();
     const auto c = client();
     const auto reports = loadInstalledModules(Registry::instance(), *c);
     std::fprintf(stderr, "[library] %zu installed modules checked and registered in %u ms\n", reports.size(), juce::Time::getMillisecondCounter() - started);
-    std::thread([this] { fetchRevocations(*client()); }).detach();  // the list kept from the last time was applied above; this looks for a newer one
     std::lock_guard<std::mutex> l(mutex_);
     reports_ = reports;
-}
-
-void ModuleLibrary::fetchRevocations(const library::Client& c) {
-    bool changed = false;
-    std::string error;
-    if (!c.fetchRevocations(changed, error)) {
-        std::fprintf(stderr, "[library] no revocation list: %s\n", error.c_str());  // offline, or the library has none yet: what was kept stays in force
-        return;
-    }
-    if (changed) {
-        std::fprintf(stderr, "[library] revocation list %lld: installed modules are checked again\n", (long long)c.revocationSerial());
-        recheckInstalledAsync();  // already registered node types stay until the next start; nothing revoked loads or installs from now on
-    }
 }
 
 void ModuleLibrary::registerInstalled(const std::string& slug, const std::string& version) {
@@ -117,7 +83,7 @@ void ModuleLibrary::registerInstalled(const std::string& slug, const std::string
         const bool older = m.version != newest;   // a version a board pins: found by its number, next to the newest
         if (older && !registered_.insert(slug + " " + m.version).second) return;
         LoadReport r;
-        r.slug = m.slug; r.version = m.version; r.source = m.source; r.status = m.result.status; r.why = m.why;
+        r.slug = m.slug; r.version = m.version; r.source = m.source; r.why = m.why;
         std::vector<uint8_t> wasm;
         std::string spec, error;
         if (m.allowed && c->contentOf(m, wasm, spec, error)) {
@@ -157,7 +123,6 @@ void ModuleLibrary::refreshIndexAsync(std::function<void()> done) {
         library::Index index;
         std::string error;
         const bool ok = c->fetchIndex(index, error);
-        if (ok) fetchRevocations(*c);
         library::Index saved;
         int64_t savedAt = 0;
         std::string savedError;
@@ -355,15 +320,10 @@ juce::var ModuleLibrary::status() {
     auto* s = new juce::DynamicObject();
     s->setProperty("libraryUrl", juce::String(settings_.libraryUrl));
     s->setProperty("channel", juce::String(settings_.channel));
-    auto* allow = new juce::DynamicObject();
-    allow->setProperty("module", settings_.allowUnsigned.module);
-    allow->setProperty("plugin", settings_.allowUnsigned.plugin);
-    s->setProperty("allowUnsigned", juce::var(allow));
     s->setProperty("firstRunDone", settings_.firstRunDone);
     s->setProperty("updateCheck", settings_.updateCheck);
     o->setProperty("settings", juce::var(s));
     o->setProperty("dataDir", dataDir_.getFullPathName());
-    o->setProperty("hasRoots", !roots_.empty());
     juce::Array<juce::var> installed;
     for (const auto& m : c->installed()) {
         const LoadReport* r = nullptr;
@@ -442,7 +402,7 @@ void ModuleLibrary::buildViewCache() const {
         library::Package pkg;
         std::string error;
         // installed() may answer from its cache (keyed on size and time of the file): the files served to the board's web view
-        // come from bytes checked against the signature now, like the wasm does.
+        // come from bytes read and checked now, like the wasm does.
         if (!c->filesOf(m, pkg, error)) continue;
         for (const auto& [path, data] : pkg.files) {
             const bool ui = path.rfind("ui/", 0) == 0, doc = path.rfind("doc/", 0) == 0;

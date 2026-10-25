@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""Shares a module with the Bleep Library as a community module (website/content/developers/modules/signing.md section 2a).
+"""Shares a module with the Bleep Library as a community module (website/content/developers/modules/library.md).
 
     scripts/release/community-publish.py PACKAGE --name wobble --version 1.0.0 --registry https://library.example --token-file my.token
     scripts/release/community-publish.py PACKAGE --name wobble --version 1.0.0 --check      only the library's checks, nothing is sent
 
-PACKAGE is an unsigned .bleepmod, or a folder with module.json, module.wasm, spec.json and optionally LICENSE and doc/*.md, doc/*.png (it is
-zipped the way the library stores packages). No signing key is needed: the library checks the package, signs it and publishes it as
+PACKAGE is a .bleepmod, or a folder with module.json, module.wasm, spec.json and optionally LICENSE and doc/*.md, doc/*.png (it is
+zipped the way the library stores packages). The library checks the package and publishes it as
 <your name>/<name>. The same checks run here first, so a refusal does not cost an upload. The token is a personal access token of your account
 (the website's account page), from --token-file or $BLEEP_TOKEN.
 """

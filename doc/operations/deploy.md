@@ -8,7 +8,7 @@ Three workflows in `.github/workflows/`:
 | `deploy.yml` | after CI is green on a push to `main`; manually on `main` | self-hosted runner on the server | rebuilds and restarts the website stack, waits for the API |
 | `release.yml` | manually (Actions tab → Run workflow, with the version level) | GitHub-hosted runners | builds the plugins on macOS, Windows and Linux and releases them to the library; the macOS job publishes the version, the others add their platform |
 
-No Windows server is needed: the Windows and macOS builds come from GitHub's `windows-latest` and `macos-14` runners. The builds are not code-signed (Authenticode, Apple notarization); the library's own signature (`release.py`) is separate and always applied.
+No Windows server is needed: the Windows and macOS builds come from GitHub's `windows-latest` and `macos-14` runners. The builds are not code-signed (Authenticode, Apple notarization).
 
 ## One-time: the deploy runner on the server
 
@@ -35,7 +35,7 @@ If a deploy fails, the job prints `docker compose ps` and the last log lines. Th
 
 ## Releasing plugins
 
-See [release.md](release.md). One-time setup of `release.yml`: Settings → Environments → New environment `release` (required reviewers), with the variable `BLEEP_REGISTRY_URL` (the website's https address) and the secrets `BLEEP_RELEASE_TOKEN` and `BLEEP_SIGNING_KIT` (the whole kit JSON). Run it, enter the level (`patch`, `1.x`, …), approve the environment. The Linux binaries (VST3 and standalone) are built by the second job and added to the same version.
+See [release.md](release.md). One-time setup of `release.yml`: Settings → Environments → New environment `release` (required reviewers), with the variable `BLEEP_REGISTRY_URL` (the website's https address) and the secret `BLEEP_RELEASE_TOKEN`. Run it, enter the level (`patch`, `1.x`, …), approve the environment. The Linux binaries (VST3 and standalone) are built by the second job and added to the same version.
 
 ## Not covered
 

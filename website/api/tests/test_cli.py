@@ -64,9 +64,9 @@ def test_set_password_rejects_bad_input(client, monkeypatch, answers):
 
 
 @pytest.mark.parametrize("cmd,days", [("token-create", "0"), ("token-create", "-5"), ("token-create", "3651"),
-                                      ("developer-create", "0"), ("developer-create", "826"), ("developer-create", "x")])
+                                      ("token-create", "x")])
 def test_days_are_bounded(client, cmd, days, capsys):
-    argv = [cmd, "acme" if cmd == "developer-create" else "laptop", "--days", days]
+    argv = [cmd, "laptop", "--days", days]
     with pytest.raises(SystemExit) as e:
         cli.main(argv)
     assert e.value.code == 2

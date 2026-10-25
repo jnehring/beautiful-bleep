@@ -3,11 +3,11 @@
 
 Layers, later ones win:
     config/bleep.json          shared defaults, committed
-    config/bleep.local.json    this machine's: signing kit, token file, JUCE checkout, Live set (git-ignored)
-    environment                $BLEEP_JUCE_DIR, $BLEEP_SIGNING_KIT, $BLEEP_RELEASE_TOKEN (the token itself), $BLEEP_REGISTRY_URL, ...
+    config/bleep.local.json    this machine's: token file, JUCE checkout, Live set (git-ignored)
+    environment                $BLEEP_JUCE_DIR, $BLEEP_RELEASE_TOKEN (the token itself), $BLEEP_REGISTRY_URL, ...
     command line               whatever the command takes
 
-`config/library.json` stays what the apps are built with (library URL and pinned root keys); its libraryUrl is the
+`config/library.json` stays what the apps are built with (library URL); its libraryUrl is the
 registry default when nothing else names one.
 """
 import json
@@ -24,13 +24,12 @@ ENV = {
     "juceDir": "BLEEP_JUCE_DIR",
     "liveSet": "BLEEP_LIVE_SET",
     "registry": "BLEEP_REGISTRY_URL",
-    "signingKit": "BLEEP_SIGNING_KIT",
     "releaseTokenFile": "BLEEP_RELEASE_TOKEN_FILE",
     "webOnly": "BLEEP_WEB_ONLY",
     "localModules": "BLEEP_LOCAL_MODULES",
 }
 # Keys that name files and may start with ~
-PATHS = {"juceDir", "liveSet", "signingKit", "releaseTokenFile", "localModules"}
+PATHS = {"juceDir", "liveSet", "releaseTokenFile", "localModules"}
 
 
 def _read(path: Path) -> dict:

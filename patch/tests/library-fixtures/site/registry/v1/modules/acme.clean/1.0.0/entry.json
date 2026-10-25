@@ -1,0 +1,23 @@
+{
+ "channel": "stable",
+ "files": [
+  {
+   "bytes": 612,
+   "path": "acme.clean-1.0.0.bleepmod",
+   "platform": "any",
+   "sha256": "3076791f08f3f58da0820faa773f10c872d7371f84d16227463663a1766910db",
+   "uploaded": true
+  }
+ ],
+ "id": "acme/clean",
+ "kind": "module",
+ "notes": "",
+ "requires": {
+  "engineAbi": 1
+ },
+ "title": "acme.clean",
+ "types": [
+  "acme/clean"
+ ],
+ "version": "1.0.0"
+}

@@ -61,7 +61,7 @@ await test("defaults", async () => {
   assert.deepEqual(st.webAudio.outputs.map((o) => o.id), ["spk", "hp"], "default and inputs are not offered; the default is the empty choice");
   assert.equal(st.webAudio.outputs[1].name, "Output 2", "a device without a label is numbered");
   assert.equal(st.webLib.channel, "stable");
-  assert.equal(st.webLib.allowUnsigned.module, false);
+  assert.ok(!("allowUnsigned" in st.webLib));
   assert.equal(st.webLib.reload, false);
   assert.equal(st.stored, true);
 });
@@ -134,15 +134,15 @@ await test("MIDI inputs: switches are remembered by name; not asked yet is repor
   assert.equal(later.calls.askMidi, 1);
 });
 
-await test("library: channel and unsigned modules are applied at load, never unsigned plugins", async () => {
+await test("library: the channel is applied at load", async () => {
   const { e, calls } = env();
   const s = WS.create(e);
-  let st = await s.call("webLibrary", { channel: "beta", allowUnsigned: { module: true } });
+  let st = await s.call("webLibrary", { channel: "beta" });
   assert.equal(st.webLib.reload, true, "the index is read once: a reload is needed");
   assert.equal(calls.configure.length, 0, "nothing is changed under a running page");
   const next = env({ storage: e.storage });
   WS.create(next.e).applyLibrary();
-  assert.deepEqual(next.calls.configure, [{ channel: "beta", allowUnsigned: { module: true, plugin: false } }]);
+  assert.deepEqual(next.calls.configure, [{ channel: "beta" }]);
   st = await WS.create(next.e).call("get");
   assert.equal(st.webLib.reload, false);
   await s.call("webLibrary", { channel: "nightly" });
@@ -164,12 +164,11 @@ await test("the app link is shown and connect is passed on once", async () => {
 });
 
 await test("saved junk is ignored", async () => {
-  const { e } = env({ storage: fakeStorage({ [WS.KEY]: JSON.stringify({ latency: 7, output: 3, midiOff: "x", channel: "evil", allowUnsignedModule: "yes" }) }) });
+  const { e } = env({ storage: fakeStorage({ [WS.KEY]: JSON.stringify({ latency: 7, output: 3, midiOff: "x", channel: "evil" }) }) });
   const s = WS.create(e);
   assert.equal(s.latencyHint(), "interactive");
   const st = await s.call("get");
   assert.equal(st.webLib.channel, "stable");
-  assert.equal(st.webLib.allowUnsigned.module, false, "only a real true turns it on");
   const broken = env({ storage: fakeStorage({ [WS.KEY]: "{not json" }) });
   assert.equal((await WS.create(broken.e).call("get")).webLib.channel, "stable");
 });

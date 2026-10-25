@@ -22,7 +22,6 @@ std::vector<LoadReport> loadInstalledModules(Registry& registry, const library::
         r.slug = m.slug;
         r.version = m.version;
         r.source = m.source;
-        r.status = m.result.status;
         r.why = m.why;
         if (m.allowed) {
             std::vector<uint8_t> wasm;

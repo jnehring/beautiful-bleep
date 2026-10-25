@@ -2,7 +2,7 @@
 
 Short version for the three things we ship. Details: [build-standalone-app.md](build-standalone-app.md), [rebuild-live-plugins.md](rebuild-live-plugins.md), [release.md](release.md). All commands run from the repository root (`bleep-patch/`).
 
-"Release" and "upload" are one step: `scripts/release/release.py` zips the build, signs it, uploads it to the library and publishes it. Versions are immutable, so a fix is a new version.
+"Release" and "upload" are one step: `scripts/release/release.py` zips the build, uploads it to the library and publishes it. Versions are immutable, so a fix is a new version.
 
 ## Contents
 
@@ -16,21 +16,19 @@ Short version for the three things we ship. Details: [build-standalone-app.md](b
 
 ## One-time setup (all three)
 
-- A **release token** (shown once) and a **signing kit** from the website stack; see "Releasing plugins to the library" in [release.md](release.md). Do this once: if `~/.bleep-release-token` and `~/.bleep-signing-kit.json` already exist, skip it (the token lasts 90 days, the kit's certificate 365 by default):
+- A **release token** (shown once) from the website stack; see "Releasing plugins to the library" in [release.md](release.md). Do this once: if `~/.bleep-release-token` already exists, skip it (the token lasts 90 days):
 
   ```bash
   cd website
   docker compose exec api python -m app.cli token-create "my laptop" --days 90 > ~/.bleep-release-token
-  (umask 077; docker compose exec -T api python -m app.cli developer-create bleep --scopes module,plugin --first-party --confirm > ~/.bleep-signing-kit.json)
-  chmod 600 ~/.bleep-release-token ~/.bleep-signing-kit.json
+  chmod 600 ~/.bleep-release-token
   ```
 
-- `pip install cryptography` (release.py and signing.py need it).
 - **In every new shell**, before a release, put the shared options in the environment so the commands below stay short. The `export` only lasts for that shell. The token is passed with `--token-file` (it picks the `blp_…` token out of the file, so the two-line output of `token-create` works as saved); without it `release.py` stops with "A release token is required":
 
   ```bash
-  # the library (website address; the API is under /api) and the signing kit
-  export BLEEP_REGISTRY_URL=http://localhost:8080 BLEEP_SIGNING_KIT=~/.bleep-signing-kit.json
+  # the library (website address; the API is under /api)
+  export BLEEP_REGISTRY_URL=http://localhost:8080
   ```
 
 - Always rehearse first: add `--dry-run` (no token needed, changes nothing).
@@ -38,7 +36,7 @@ Short version for the three things we ship. Details: [build-standalone-app.md](b
 
 ## Fast loop: board and module development
 
-The best way to work on the board UI or on a module is the local website with Bleep Play, not the standalone app. Editing a module and hearing it takes seconds to a minute, against a full CMake build of the app, and nothing has to be signed, released or installed. The same `.wasm` and the same board UI run in the app and the plugins later, so what works here works there.
+The best way to work on the board UI or on a module is the local website with Bleep Play, not the standalone app. Editing a module and hearing it takes seconds to a minute, against a full CMake build of the app, and nothing has to be released or installed. The same `.wasm` and the same board UI run in the app and the plugins later, so what works here works there.
 
 **1. Start the dev stack once** (Docker Compose 2.24+; first time only: `cp website/.env.example website/.env`):
 
@@ -48,16 +46,14 @@ docker compose -f website/docker-compose.yml -f website/docker-compose.dev.yml -
 
 Open http://localhost:8080/play/. The `play` service builds the board UI at start; `dev` is `next dev` with hot reload behind the same Caddy routes as production. Leave it running.
 
-**2. Allow unsigned modules, once.** In Bleep Play: Settings > Library > "Allow unsigned modules" on (it asks first and is remembered in the browser). Without it the page ignores the locally built modules and installs the released ones from the library.
-
-**3. After every change, one command:**
+**2. After every change, one command:**
 
 ```bash
 source ../emsdk/emsdk_env.sh        # every new shell, once (the local emsdk, see Modules)
 ./bleep run play
 ```
 
-It runs `build-web.sh --modules-only`, which publishes the modules unsigned to `website/app/public/play/local-modules/`, then the `play` service, which rebuilds the board UI (`patch/board`, `patch/web`) into `website/app/public/play/`. Reload the page (hard reload if the old UI stays). Without a local emsdk use `./bleep run play --docker` (slow on Apple Silicon).
+It runs `build-web.sh --modules-only`, which publishes the modules to `website/app/public/play/local-modules/`, then the `play` service, which rebuilds the board UI (`patch/board`, `patch/web`) into `website/app/public/play/`. Reload the page (hard reload if the old UI stays). Without a local emsdk use `./bleep run play --docker` (slow on Apple Silicon).
 
 **Faster still, for one module:** `BLEEP_WEB_ONLY=reverb ./bleep run play` rebuilds only that module folder; the others stay as they are. For a change to the board UI only, skip the module build and run just the `play` service:
 
@@ -69,7 +65,7 @@ Docs or website content (`website/content`, a module's `doc/`) need `... restart
 
 Notes:
 
-- Unsigned local modules are for development only. Users get modules through the signed release steps in [Modules](#modules); run those, and test with "Allow unsigned modules" off, before you release.
+- Local modules are for development only (the page uses them on `localhost` only). Users get modules through the release steps in [Modules](#modules); run those before you release.
 - Only Bleep Play takes `local-modules/`. The standalone app and the plugins still load installed `.bleepmod` packages, so check a module there only after packaging and releasing it (or installing it into the app's library).
 - Use one build method (local emsdk or Docker) consistently, so the per-module cache in `build/web/modules/.cache` keeps working.
 - Build the standalone app ([below](#standalone-app-bleep-app)) only when the change is in the app itself (`patch/app`, `patch/engine`, the bridges, the hosts).
@@ -127,7 +123,7 @@ The full build (the plugins and the app, then the DSP, engine and bridge tests):
 
 **Skip the tests:** `--no-test` only skips running them; `--plugins-only` does not build them either. `release.py --build` runs `./bleep build plugins --plugins-only` (no tests, no test targets), so after a `./bleep build plugins --plugins-only` run it has nothing left to compile. Run the tests separately with plain `./bleep build plugins` before a release.
 
-**Modules are not part of the plugins.** With the wasm module host (`BLEEP_WASMTIME_DIR`, found by default in `build/wasm-spike/wasmtime`) and `BLEEP_BUNDLE_MODULES=OFF`, the plugins carry no modules. They load the signed `.bleepmod` packages installed on the machine, from the same data folder the standalone app installs into (`library::defaultDataDir()`, `~/Library/Application Support/Bleep` on macOS). The app and the plugins share one module installation. What compiles every module in is the test targets (`bleep_module_harness`, `bleep_wasm_parity`, ...), which are the reference the wasm builds are checked against. `--no-test` only skips running them; `--plugins-only` does not build them either (the command at the top of this section).
+**Modules are not part of the plugins.** With the wasm module host (`BLEEP_WASMTIME_DIR`, found by default in `build/wasm-spike/wasmtime`) and `BLEEP_BUNDLE_MODULES=OFF`, the plugins carry no modules. They load the `.bleepmod` packages installed on the machine, from the same data folder the standalone app installs into (`library::defaultDataDir()`, `~/Library/Application Support/Bleep` on macOS). The app and the plugins share one module installation. What compiles every module in is the test targets (`bleep_module_harness`, `bleep_wasm_parity`, ...), which are the reference the wasm builds are checked against. `--no-test` only skips running them; `--plugins-only` does not build them either (the command at the top of this section).
 
 If `BLEEP_WASMTIME_DIR` is empty (no Wasmtime under `build/wasm-spike`), the plugins fall back to compiling all modules in. Check with `grep BLEEP_WASMTIME_DIR build/patch/CMakeCache.txt`.
 
@@ -220,7 +216,7 @@ scripts/release/release.py --modules reverb --level minor --token-file ~/.bleep-
 
 ## Web board
 
-The board UI and web engine are built by `build-web.sh` (the modules too, unless you skip them). The board doesn't load the `.wasm` files from its own folder: it installs its modules from the library as signed packages, so a module reaches the web only through the release steps above.
+The board UI and web engine are built by `build-web.sh` (the modules too, unless you skip them). The board doesn't load the `.wasm` files from its own folder: it installs its modules from the library as packages, so a module reaches the web only through the release steps above.
 
 ```bash
 # the whole site: UI, web engine and modules, into build/web/site
@@ -237,9 +233,9 @@ The website is deployed by rebuilding its containers (see [website.md](website.m
 
 ## Website (dev and production)
 
-The site is the docs and homepage (`website/app`, Next.js, static export), the board UI, and the library backend: Caddy, the API (FastAPI), PostgreSQL and the library's storage (SeaweedFS). All of it runs with Docker Compose from `website/`. The image has the board UI but **no modules**; they come from the library (see [Modules](#modules)). Details, the admin user and the signing keys: [website.md](website.md).
+The site is the docs and homepage (`website/app`, Next.js, static export), the board UI, and the library backend: Caddy, the API (FastAPI), PostgreSQL and the library's storage (SeaweedFS). All of it runs with Docker Compose from `website/`. The image has the board UI but **no modules**; they come from the library (see [Modules](#modules)). Details, the admin user: [website.md](website.md).
 
-One-time: copy the config and fill it in (database password, first admin, storage keys, signing keys):
+One-time: copy the config and fill it in (database password, first admin, storage keys):
 
 ```bash
 cp website/.env.example website/.env

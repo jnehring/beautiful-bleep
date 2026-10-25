@@ -1,10 +1,9 @@
 # SPDX-License-Identifier: MIT
-"""Community modules: anyone with an account publishes a module (signing.md section 2a).
+"""Community modules: anyone with an account publishes a module (website/content/developers/modules/library.md).
 
-The author uploads an UNSIGNED .bleepmod. The library checks it (app/community.py: the files it may contain, the .wasm's imports and
-exports, its node types and licence), then signs it with its own community key, dates it with a publication receipt and publishes it in
-one step. The id is always `<handle>/<name>` with the author's own handle, so a namespace belongs to the account that holds the handle.
-Takedowns (an admin, or the author for their own release) put the release on the signed revocation list.
+The author uploads a .bleepmod. The library checks it (app/community.py: the files it may contain, the .wasm's imports and
+exports, its node types and licence) and publishes it in one step. The id is always `<handle>/<name>` with the author's own handle, so a
+namespace belongs to the account that holds the handle. Takedowns (an admin, or the author for their own release) remove the release from the index.
 """
 import hashlib
 import io
@@ -16,11 +15,10 @@ from pydantic import ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from .. import community, ratelimit, signing
-from ..config import settings
+from .. import community, ratelimit
 from ..db import get_db
 from ..deps import get_library_user
-from ..models import Developer, Release, Report, User, now
+from ..models import ApiToken, Release, Report, User, now
 from ..schemas import LICENSE_PATTERN, OriginIn, ReportIn
 from ..storage import Storage, get_storage
 from . import registry
@@ -29,7 +27,7 @@ from .presets import ensure_handle
 router = APIRouter(prefix="/api/registry/community", tags=["community"])
 
 NamePath = Path(pattern=r"^[a-z0-9][a-z0-9-]{0,62}$")
-# Namespaces nobody may take as an author handle, besides every developer publisher (checked against the table).
+# Namespaces nobody may take as an author handle, besides every publisher a release token is made for (checked against the table).
 RESERVED = {"bleep", "community", "official", "admin", "beautiful-bleep"}
 MODULES_PER_AUTHOR = 100
 PUBLISHES_PER_HOUR = ratelimit.limiter(10, 3600)
@@ -43,8 +41,8 @@ def _string(meta: dict, key: str, limit: int, default: str = "") -> str:
 
 
 def _check_namespace(db: Session, handle: str) -> None:
-    """A community author's namespace must not be one a developer holds (a developer's key signs `acme/…` too) or one of ours."""
-    if handle in RESERVED or db.scalar(select(Developer.id).where(Developer.publisher == handle)) is not None:
+    """A community author's namespace must not be one a release token is made for (it releases `acme/…` too) or one of ours."""
+    if handle in RESERVED or db.scalar(select(ApiToken.id).where(ApiToken.publisher == handle)) is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, f"The name {handle!r} is reserved for a developer of the library; change your name in the profile")
 
 
@@ -63,11 +61,9 @@ def make_handle(db: Session = Depends(get_db), user: User = Depends(get_library_
 @router.put("/modules/{name}/{version}", status_code=status.HTTP_201_CREATED)
 async def publish_module(request: Request, name: str = NamePath, version: str = registry.VersionPath, db: Session = Depends(get_db),
                          storage: Storage = Depends(get_storage), user: User = Depends(get_library_user)):
-    """Publishes the uploaded (unsigned) `.bleepmod` as `<your handle>/<name>` at `version`, after the library's checks.
+    """Publishes the uploaded `.bleepmod` as `<your handle>/<name>` at `version`, after the library's checks.
 
-    The version must be higher than every earlier one of this module. Answers with the id, the version and what the library signed."""
-    if not settings.community_enabled or not settings.roots or not (settings.issuer_key or settings.issuer_key_file):
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Community modules are not enabled on this library")
+    The version must be higher than every earlier one of this module. Answers with the id and the version."""
     handle = ensure_handle(db, user)
     _check_namespace(db, handle)
     if not PUBLISHES_PER_HOUR.hit(str(user.id)):
@@ -109,25 +105,11 @@ async def publish_module(request: Request, name: str = NamePath, version: str = 
     image = next((n for n in files if community.IMAGE_NAME.match(n)), "")   # the tile's picture: also kept next to entry.json, like a developer's screenshot
     row.image = image
 
-    # Sign. The library checks its own signature against the pinned roots before it publishes anything.
-    try:
-        community_key = signing.key_from_pem(signing.community_key_pem())
-        chain = [json.loads(settings.issuer_cert), json.loads(settings.community_cert)]
-    except (TypeError, ValueError) as e:
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, f"The community key is not usable: {e}")
-    entries = community.entries_of(files)
-    doc = signing.sign(entries, community_key, chain, "module", id_, version, "any")
-    result = signing.verify(entries, doc, kind="module", id_=id_, version=version, roots=settings.roots, now=int(now().timestamp()),
-                            crl=registry._revocations(db))
-    if result.status != "signed" or result.trust != "community":
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, f"The library's community key is {result.status}: {result.reason or 'not valid'}")
-    package = community.build_zip(files, doc)
+    package = community.build_zip(files)
     path = f"{name}.bleepmod"
-    file = {"path": path, "sha256": hashlib.sha256(package).hexdigest(), "bytes": len(package), "platform": "any",
-            "contentDigest": signing.content_digest(entries).hex(), "signature": doc, "uploaded": True, "types": types,
-            "signer": {"publisher": result.publisher, "keyId": result.key_id, "trust": "community", "author": handle},
-            "uploadedBy": user.id}
-    row.files = registry._date_files(db, "module", slug, version, [file])
+    file = {"path": path, "sha256": hashlib.sha256(package).hexdigest(), "bytes": len(package), "platform": "any", "uploaded": True,
+            "types": types, "author": handle, "uploadedBy": user.id}
+    row.files = [file]
     row.published_at = now()
     db.add(row)
     storage.put(registry._key(row, path), io.BytesIO(package))
@@ -137,24 +119,24 @@ async def publish_module(request: Request, name: str = NamePath, version: str = 
     storage.put(registry._key(row, "entry.json"), io.BytesIO(json.dumps(registry._entry(row), indent=1).encode()), "application/json")
     db.commit()
     registry.write_index(db, storage)
-    return {"id": id_, "version": version, "trust": "community", "types": types, "contentDigest": file["contentDigest"]}
+    return {"id": id_, "version": version, "types": types}
 
 
 def _owned_release(db: Session, slug: str, version: str, user: User) -> Release:
     row = registry._find(db, "module", slug, version)
-    signer = next((f["signer"] for f in row.files if f.get("signer")), {})
-    if signer.get("trust") != "community":
+    author = next((f["author"] for f in row.files if f.get("author")), None)
+    if author is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No such community module")
-    if user.role != "admin" and signer.get("author") != user.handle:
+    if user.role != "admin" and author != user.handle:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No such community module")
     return row
 
 
 def take_down(db: Session, storage: Storage, row: Release) -> None:
-    """Withdraws a release: it leaves the index and its digest goes on the signed revocation list, so clients that have it stop loading it."""
+    """Withdraws a release: it leaves the index."""
     row.status = "taken_down"
     db.commit()
-    registry.write_index(db, storage)  # also writes the revocation list, which changed
+    registry.write_index(db, storage)
 
 
 @router.post("/modules/{slug}/{version}/takedown", status_code=status.HTTP_204_NO_CONTENT)

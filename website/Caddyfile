@@ -35,7 +35,7 @@
 	# sha256 of exactly its inline scripts (website/app/scripts/csp-hashes.mjs, run by the build). A browser applies header and meta
 	# together, so a script-src in the header would have to allow the hashes too, which only 'unsafe-inline' could do. Every other
 	# fetch directive is therefore listed here instead of coming from default-src. The export also writes inline styles, so style-src
-	# keeps 'unsafe-inline'. wasm-unsafe-eval (in the meta) is for Bleep Play compiling the signed modules; frame-src 'self' is for the sandboxed frame a Code node's own UI runs in (board-code-view.html, which sets its own policy: no network); ws://127.0.0.1 is its
+	# keeps 'unsafe-inline'. wasm-unsafe-eval (in the meta) is for Bleep Play compiling the modules; frame-src 'self' is for the sandboxed frame a Code node's own UI runs in (board-code-view.html, which sets its own policy: no network); ws://127.0.0.1 is its
 	# bridge to the Bleep App on the same computer.
 	@pages not path /registry/*
 	header @pages Content-Security-Policy "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; object-src 'none'; frame-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
@@ -49,7 +49,7 @@
 	header @markdown Content-Type "text/markdown; charset=utf-8"
 	header /llms.txt Content-Type "text/plain; charset=utf-8"
 
-	# Bleep Play (patch/web): its modules come from the Bleep Library below (signed packages, checked in the browser).
+	# Bleep Play (patch/web): its modules come from the Bleep Library below (packages).
 
 	@wasm path *.wasm
 	header @wasm Content-Type "application/wasm"

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // library.js — the Library section of the board window (developers/modules/library.md section 9): what is installed on this machine, what the
-// Bleep Library offers, and the Security settings. The board is the other section. Not in Bleep Play: it installs by itself.
+// Bleep Library offers, and the account. The board is the other section. Not in Bleep Play: it installs by itself.
 //
 //   P.BleepLibraryView.init({ onTypes })   once, when the native side has a library (native "init" says so)
 //   show() / hide()                    the header's Board and Library buttons
@@ -21,10 +21,6 @@
     if (cls) e.className = cls;
     if (text !== undefined) e.textContent = text;
     return e;
-  };
-
-  const STATUS = {
-    signed: ["signed", "ok"], unsigned: ["unsigned", "warn"], expired: ["expired", "warn"], revoked: ["revoked", "bad"], invalid: ["invalid", "bad"],
   };
 
   async function refresh() {
@@ -101,13 +97,6 @@
     return out;
   }
 
-  function badge(m) {
-    const [text, cls] = STATUS[m.status] || [m.status, "warn"];
-    const b = el("span", "st-badge " + cls, m.status === "signed" ? (m.publisher === "community" ? "community module" : "signed by " + m.publisher) : text);
-    b.title = m.status === "signed" && m.publisher === "community" ? "Shared by a community author. The library checked it and signed it; it runs in the sandbox." : (m.why || "");
-    return b;
-  }
-
   function renderModules() {
     const top = el("div", "st-bar");
     const search = el("input", "st-search");
@@ -136,8 +125,6 @@
       body.appendChild(el("div", "st-note", `The Bleep Library was not reached. This is the list saved ${status.index.cachedAt ? new Date(status.index.cachedAt * 1000).toLocaleString() : "earlier"}.`));
     if (!status.installed.length && status.index.ok)
       body.appendChild(el("div", "st-note warn", "The default modules are not installed. Boards show placeholders until they are."));
-    if (!status.hasRoots)
-      body.appendChild(el("div", "st-note warn", "This build trusts no developer keys, so nothing from the library can be verified. Add the library's root key (see doc/operations/website.md)."));
     const cats = [...new Set(status.index.modules.map((m) => m.category).filter(Boolean))].sort();
     if (category && !cats.includes(category)) category = "";
     if (cats.length) {
@@ -173,7 +160,6 @@
       const info = el("div", "st-info");
       info.appendChild(el("span", "st-ver", (r.installed ? "installed " + r.installed.version + (r.installed.source === "local" ? " (local)" : "") : "not installed") +
                                               (e ? " · library " + e.version : "")));
-      if (r.installed) info.appendChild(badge(r.installed));
       if (r.installed && !r.installed.loaded && r.installed.allowed === false) info.appendChild(el("span", "st-why", r.installed.why));
       b.appendChild(info);
       const actions = el("div", "st-actions");
@@ -314,36 +300,6 @@
     P.BleepAccount.status(true).then(draw);
   }
 
-  function renderSecurity() {
-    const s = status.settings;
-    body.appendChild(el("div", "st-note", "Plugins and official modules from the Bleep Library are signed by their developer. Modules shared by the community are checked and signed by the library, and run in the sandbox like the rest. Only what has no signature (your own builds, files you copied in) stays off unless you allow it here. A broken or revoked signature is never loaded."));
-    const toggle = (key, title, warning) => {
-      const row = el("label", "st-toggle");
-      const box = el("input");
-      box.type = "checkbox";
-      box.checked = !!s.allowUnsigned[key];
-      box.addEventListener("change", async () => {
-        if (box.checked && !window.confirm(warning)) { box.checked = false; return; }
-        await act("librarySettings", { allowUnsigned: Object.assign({}, s.allowUnsigned, { [key]: box.checked }) });
-      });
-      row.appendChild(box);
-      row.appendChild(el("span", "", title));
-      body.appendChild(row);
-    };
-    toggle("module", "Allow unsigned modules",
-      "Unsigned modules run in a sandbox: they cannot read your files or use the network, but they can use a lot of CPU and make noise.\n\nOnly enable this for modules you trust or have built yourself. Turn it on?");
-    toggle("plugin", "Allow unsigned plugins",
-      "Unsigned plugins are programs that run with all your rights inside your DAW.\n\nOnly enable this for software you trust. Turn it on?");
-    body.appendChild(el("h3", "", "Developers you have installed from"));
-    const seen = new Map();
-    for (const m of status.installed) if (m.status === "signed") seen.set(m.publisher, (seen.get(m.publisher) || 0) + 1);
-    if (!seen.size) body.appendChild(el("div", "st-empty", "None yet."));
-    for (const [publisher, n] of seen) body.appendChild(el("div", "st-row single", `${publisher}: ${n} module${n === 1 ? "" : "s"}`));
-    body.appendChild(el("h3", "", "Where things are"));
-    body.appendChild(el("div", "st-row single", "Library: " + s.libraryUrl + " (channel " + s.channel + ")"));
-    body.appendChild(el("div", "st-row single", "Data folder: " + status.dataDir));
-  }
-
   function render() {
     if (!root || !status) return;
     body.innerHTML = "";
@@ -351,7 +307,7 @@
     const n = status.installed.length;
     summaryEl.textContent = `${n} module${n === 1 ? "" : "s"} installed · ${status.index.ok ? status.index.modules.length + (status.index.cached ? " in the saved library list" : " in the library") : "library not reached"}`;
     noteEl.textContent = message;
-    ({ modules: renderModules, plugins: renderPlugins, presets: renderPresets, account: renderAccount, security: renderSecurity })[tab]();
+    ({ modules: renderModules, plugins: renderPlugins, presets: renderPresets, account: renderAccount })[tab]();
   }
 
   function build() {
@@ -364,7 +320,7 @@
     head.appendChild(summaryEl);
     root.appendChild(head);
     tabsEl = el("div", "st-tabs");
-    for (const [id, label] of [["modules", "Modules"], ["plugins", "Plugins"], ["presets", "Presets"], ["account", "Account"], ["security", "Security"]]) {
+    for (const [id, label] of [["modules", "Modules"], ["plugins", "Plugins"], ["presets", "Presets"], ["account", "Account"]]) {
       const b = el("button", "", label);
       b.dataset.tab = id;
       b.addEventListener("click", () => { tab = id; render(); });
@@ -778,8 +734,6 @@
         await firstRun();
         await updatesPrompt();
       }, 600);
-      // The standalone app has Security in its Settings section; plugin windows keep it here.
-      if (host.settings) tabsEl.querySelector('[data-tab="security"]').remove();
     },
     async show() {
       if (P.BleepSettingsView && document.getElementById("settings")) P.BleepSettingsView.hide();

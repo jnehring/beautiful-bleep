@@ -14,7 +14,7 @@ What to install before you build anything in this repository. You do not need al
 | Change the **plugins** or the **standalone app** | Git, CMake 3.22+, a C++ compiler, JUCE 8.0.9 | [Plugins and app](#plugins-and-app) |
 | Change **Bleep Play** (the board UI, the web engine) | Git, Python 3, Node 22 | [Bleep Play](#bleep-play) |
 | Work on the **website**, the API or the library | Git, Docker with Compose 2.24+ | [Website](#website) |
-| **Release** anything | Python 3 with `cryptography`, the website stack | [Build, release and upload](build-and-release.md) |
+| **Release** anything | Python 3, the website stack | [Build, release and upload](build-and-release.md) |
 
 The commands in these pages are written for macOS and Linux and run from the repository root (`bleep-patch/`).
 
@@ -147,4 +147,4 @@ Every part has its own unit tests (CTest, pytest, Node scripts). Which command r
 
 ## Releasing
 
-Releasing needs a signing kit and a release token from your own website stack, plus `pip install cryptography`. The one-time steps and every release command are in [Build, release and upload](build-and-release.md).
+Releasing needs a release token from your own website stack. The one-time steps and every release command are in [Build, release and upload](build-and-release.md).

@@ -246,11 +246,10 @@ if (BLEEP_BUILD_TESTS)
     target_link_libraries(bleep_audio_console_record_test PRIVATE bleep_dsp juce::juce_core juce::juce_recommended_config_flags)
     add_test(NAME patch.audio-console-record COMMAND bleep_audio_console_record_test)
 
-    # The library's checks (signing.md): the packages of patch/tests/library-fixtures get the verdicts Python gave them.
+    # The library client: the packages of patch/tests/library-fixtures get the verdicts the web client gives them.
     juce_add_console_app(bleep_library_test PRODUCT_NAME "Bleep Library Test")
-    target_sources(bleep_library_test PRIVATE tests/library_test.cpp library/Verify.cpp library/Package.cpp library/Client.cpp library/Account.cpp
-        third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
-    target_include_directories(bleep_library_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
+    target_sources(bleep_library_test PRIVATE tests/library_test.cpp library/Package.cpp library/Client.cpp library/Account.cpp)
+    target_include_directories(bleep_library_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
     target_compile_definitions(bleep_library_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0
         "BLEEP_LIBRARY_FIXTURES=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/library-fixtures\"")
     target_link_libraries(bleep_library_test PRIVATE juce::juce_core juce::juce_cryptography juce::juce_recommended_config_flags)
@@ -269,8 +268,7 @@ if (BLEEP_BUILD_TESTS)
             set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_LINK_LIBRARIES "-framework CoreFoundation;-framework Security")
         endif ()
         set(BLEEP_WASM_HOST_SOURCES engine/wasm/WasmRuntime.cpp engine/wasm/WasmRecorder.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp engine/wasm/WasmRegistry.cpp engine/wasm/CodeNodes.cpp
-            engine/wasm/InstalledModules.cpp engine/wasm/ModuleLibrary.cpp library/Verify.cpp library/Package.cpp library/Client.cpp library/Account.cpp
-            third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
+            engine/wasm/InstalledModules.cpp engine/wasm/ModuleLibrary.cpp library/Package.cpp library/Client.cpp library/Account.cpp)
         # Every module twice, native and as its .wasm, on the same input (tests/wasm_parity.cpp). Not a ctest: it needs the
         # wasm files (scripts/build/build-web.sh --modules-only).
         juce_add_console_app(bleep_wasm_parity PRODUCT_NAME "Bleep Wasm Parity")
@@ -280,7 +278,7 @@ if (BLEEP_BUILD_TESTS)
             file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
             target_sources(bleep_wasm_parity PRIVATE ${s})
         endforeach ()
-        target_include_directories(bleep_wasm_parity PRIVATE ${BLEEP_ENGINE_INCLUDES} engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
+        target_include_directories(bleep_wasm_parity PRIVATE ${BLEEP_ENGINE_INCLUDES} engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}")
         target_compile_definitions(bleep_wasm_parity PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
         # WebAssembly never fuses a multiply and an add; the native reference must not either, or a phase accumulator drifts
         # by rounding alone and every oscillator "differs".
@@ -295,7 +293,7 @@ if (BLEEP_BUILD_TESTS)
             file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
             target_sources(bleep_wasm_host_control_test PRIVATE ${s})
         endforeach ()
-        target_include_directories(bleep_wasm_host_control_test PRIVATE ${BLEEP_ENGINE_INCLUDES} engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
+        target_include_directories(bleep_wasm_host_control_test PRIVATE ${BLEEP_ENGINE_INCLUDES} engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}")
         target_compile_definitions(bleep_wasm_host_control_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
         target_link_libraries(bleep_wasm_host_control_test PRIVATE bleep_dsp juce::juce_core juce::juce_cryptography bleep_wasmtime
             juce::juce_recommended_config_flags)
@@ -316,7 +314,7 @@ if (BLEEP_BUILD_TESTS)
             file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
             target_sources(bleep_wasm_console_record_test PRIVATE ${s})
         endforeach ()
-        target_include_directories(bleep_wasm_console_record_test PRIVATE ${BLEEP_ENGINE_INCLUDES} engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
+        target_include_directories(bleep_wasm_console_record_test PRIVATE ${BLEEP_ENGINE_INCLUDES} engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}")
         target_compile_definitions(bleep_wasm_console_record_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
         target_link_libraries(bleep_wasm_console_record_test PRIVATE bleep_dsp juce::juce_core juce::juce_cryptography bleep_wasmtime
             juce::juce_recommended_config_flags)
@@ -329,7 +327,7 @@ if (BLEEP_BUILD_TESTS)
             file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
             target_sources(bleep_code_node_test PRIVATE ${s})
         endforeach ()
-        target_include_directories(bleep_code_node_test PRIVATE ${BLEEP_ENGINE_INCLUDES} engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
+        target_include_directories(bleep_code_node_test PRIVATE ${BLEEP_ENGINE_INCLUDES} engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}")
         target_compile_definitions(bleep_code_node_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
         target_link_libraries(bleep_code_node_test PRIVATE bleep_dsp juce::juce_core juce::juce_cryptography bleep_wasmtime
             juce::juce_recommended_config_flags)
@@ -510,38 +508,20 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/module-views.json" "[${module_views}]\n"
 list(APPEND BLEEP_BOARD_UI "${CMAKE_CURRENT_BINARY_DIR}/module-views.json")
 juce_add_binary_data(bleep_board_web HEADER_NAME BoardWeb.h NAMESPACE BoardWeb SOURCES ${BLEEP_BOARD_UI})
 
-# Modules installed from the Bleep Library (developers/modules/library.md): the wasm module host, the library client and signature checks.
+# Modules installed from the Bleep Library (developers/modules/library.md): the wasm module host and the library client.
 # With BLEEP_WASMTIME_DIR set, a target loads the modules found on the machine and gets the Library section.
-# Where the library is and whom it trusts: config/library.json, the one place (read by the apps' build and by scripts/release).
-# BLEEP_LIBRARY_URL and BLEEP_LIBRARY_ROOTS (hex, comma separated) override it for one build.
+# Where the library is: config/library.json, the one place (read by the apps' build and by scripts/release).
+# BLEEP_LIBRARY_URL overrides it for one build.
 set(BLEEP_LIBRARY_CONFIG "${CMAKE_CURRENT_SOURCE_DIR}/../config/library.json" CACHE FILEPATH "The library configuration the apps and plugins are built with")
 set(BLEEP_LIBRARY_URL "" CACHE STRING "Overrides libraryUrl of the library configuration")
-set(BLEEP_LIBRARY_ROOTS "" CACHE STRING "Root public keys (hex, comma separated) besides rootKeys of the library configuration")
 set(BLEEP_LIBRARY_URL_BAKED "")
-set(BLEEP_LIBRARY_ROOTS "")
 if (EXISTS "${BLEEP_LIBRARY_CONFIG}")
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${BLEEP_LIBRARY_CONFIG}")
     file(READ "${BLEEP_LIBRARY_CONFIG}" library_config)
     string(JSON BLEEP_LIBRARY_URL_BAKED ERROR_VARIABLE err GET "${library_config}" libraryUrl)
-    string(JSON n ERROR_VARIABLE err LENGTH "${library_config}" rootKeys)
-    if (NOT err AND n GREATER 0)
-        math(EXPR last "${n} - 1")
-        foreach (i RANGE ${last})
-            string(JSON key GET "${library_config}" rootKeys ${i})
-            list(APPEND BLEEP_LIBRARY_ROOT_LIST "${key}")
-        endforeach ()
-        list(JOIN BLEEP_LIBRARY_ROOT_LIST "," BLEEP_LIBRARY_ROOTS)
-    endif ()
 endif ()
 if (BLEEP_LIBRARY_URL)
     set(BLEEP_LIBRARY_URL_BAKED "${BLEEP_LIBRARY_URL}")
-endif ()
-if (BLEEP_LIBRARY_ROOTS)
-    if (BLEEP_LIBRARY_ROOTS)
-        set(BLEEP_LIBRARY_ROOTS "${BLEEP_LIBRARY_ROOTS},${BLEEP_LIBRARY_ROOTS}")
-    else ()
-        set(BLEEP_LIBRARY_ROOTS "${BLEEP_LIBRARY_ROOTS}")
-    endif ()
 endif ()
 function(bleep_use_library target)
     if (NOT BLEEP_WASMTIME_DIR)
@@ -556,16 +536,16 @@ function(bleep_use_library target)
         endif ()
     endif ()
     target_sources(${target} PRIVATE engine/wasm/WasmRuntime.cpp engine/wasm/WasmRecorder.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp
-        engine/wasm/WasmRegistry.cpp engine/wasm/CodeNodes.cpp engine/wasm/InstalledModules.cpp engine/wasm/ModuleLibrary.cpp library/Verify.cpp
-        library/Package.cpp library/Client.cpp library/Account.cpp third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
+        engine/wasm/WasmRegistry.cpp engine/wasm/CodeNodes.cpp engine/wasm/InstalledModules.cpp engine/wasm/ModuleLibrary.cpp
+        library/Package.cpp library/Client.cpp library/Account.cpp)
     if (WIN32)
         target_link_libraries(${target} PRIVATE advapi32)  # the Credential Manager (library/Account.cpp)
     endif ()
-    target_include_directories(${target} PRIVATE engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
+    target_include_directories(${target} PRIVATE engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}")
     if (NOT BLEEP_APP_BUNDLES_MODULES)
         target_compile_definitions(${target} PRIVATE BLEEP_NO_BUNDLED_MODULES=1)
     endif ()
-    target_compile_definitions(${target} PRIVATE BLEEP_WASM_MODULES=1 "BLEEP_LIBRARY_ROOTS=\"${BLEEP_LIBRARY_ROOTS}\"")
+    target_compile_definitions(${target} PRIVATE BLEEP_WASM_MODULES=1)
     if (BLEEP_LIBRARY_URL_BAKED)
         target_compile_definitions(${target} PRIVATE "BLEEP_LIBRARY_URL=\"${BLEEP_LIBRARY_URL_BAKED}\"")
     endif ()

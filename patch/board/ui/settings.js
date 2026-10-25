@@ -2,9 +2,9 @@
 // settings.js — the Settings section of the board window, in the standalone app, the plugins and Bleep Play (doc/specs/settings.md).
 // The host names itself in the first answer of native "settings" "get" (state.host: "app", "plugin" or "web"; no host = "app") and
 // that decides the tabs:
-//   app     Audio, MIDI and sync, Web, Recordings, Library, Security
-//   plugin  Latency, Recordings, Library, Security (Live owns the audio device and MIDI)
-//   web     Audio, MIDI, App, Library, Security, Data (answered by the browser: patch/web/js/web-settings.js)
+//   app     Audio, MIDI and sync, Web, Recordings, Library
+//   plugin  Latency, Recordings, Library (Live owns the audio device and MIDI)
+//   web     Audio, MIDI, App, Library, Data (answered by the browser: patch/web/js/web-settings.js)
 // Settings are applied as they are changed; there is no Save button.
 //
 //   P.BleepSettingsView.init({ library })   once, when the native side offers settings (native "init" says so)
@@ -20,11 +20,11 @@
   let host = "";              // "app" | "plugin" | "web", known after the first "get"
   let root, body, tabsEl, noteEl, poll = null, hasLibrary = false;
   const TABS = {
-    app: [["audio", "Audio"], ["midi", "MIDI and sync"], ["web", "Web"], ["recordings", "Recordings"], ["library", "Library"], ["security", "Security"]],
-    plugin: [["latency", "Latency"], ["recordings", "Recordings"], ["library", "Library"], ["security", "Security"]],
-    web: [["audio", "Audio"], ["midi", "MIDI"], ["app", "App"], ["library", "Library"], ["security", "Security"], ["data", "Data"]],
+    app: [["audio", "Audio"], ["midi", "MIDI and sync"], ["web", "Web"], ["recordings", "Recordings"], ["library", "Library"]],
+    plugin: [["latency", "Latency"], ["recordings", "Recordings"], ["library", "Library"]],
+    web: [["audio", "Audio"], ["midi", "MIDI"], ["app", "App"], ["library", "Library"], ["data", "Data"]],
   };
-  const tabsOf = () => (TABS[host] || []).filter(([id]) => hasLibrary || host === "web" || id === "latency" || (id !== "library" && id !== "security"));
+  const tabsOf = () => (TABS[host] || []).filter(([id]) => hasLibrary || host === "web" || id === "latency" || id !== "library");
   const el = (tag, cls, text) => {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
@@ -279,29 +279,6 @@
     body.appendChild(el("div", "st-row single", library.index.ok ? `${library.index.modules.length} modules in the library · ${library.installed.length} installed` : "The library has not been reached yet" + (library.index.error ? ": " + library.index.error : "")));
   }
 
-  function renderSecurity() {
-    if (!hasLibrary || !library) { body.appendChild(el("div", "st-empty", "This build has no Bleep Library.")); return; }
-    const s = library.settings;
-    body.appendChild(el("div", "st-note", "Plugins and official modules from the Bleep Library are signed by their developer. Modules shared by the community are checked and signed by the library, and run in the sandbox like the rest. Only what has no signature (your own builds, files you copied in) stays off unless you allow it here. A broken or revoked signature is never loaded."));
-    const toggle = (key, title, warning) => {
-      const r = checkbox(title, s.allowUnsigned[key], (on) => {
-        if (on && !window.confirm(warning)) { load(true); return; }
-        libraryChange({ allowUnsigned: Object.assign({}, s.allowUnsigned, { [key]: on }) });
-      });
-      r.classList.add("st-toggle");
-      body.appendChild(r);
-    };
-    toggle("module", "Allow unsigned modules",
-      "Unsigned modules run in a sandbox: they cannot read your files or use the network, but they can use a lot of CPU and make noise.\n\nOnly enable this for modules you trust or have built yourself. Turn it on?");
-    toggle("plugin", "Allow unsigned plugins",
-      "Unsigned plugins are programs that run with all your rights inside your DAW.\n\nOnly enable this for software you trust. Turn it on?");
-    body.appendChild(el("h3", "", "Developers you have installed from"));
-    const seen = new Map();
-    for (const m of library.installed) if (m.status === "signed") seen.set(m.publisher, (seen.get(m.publisher) || 0) + 1);
-    if (!seen.size) body.appendChild(el("div", "st-empty", "None yet."));
-    for (const [publisher, n] of seen) body.appendChild(el("div", "st-row single", `${publisher}: ${n} module${n === 1 ? "" : "s"}`));
-  }
-
   // ---- Bleep Play: what the browser can do (patch/web/js/web-settings.js) ----------------------------------------------------
 
   const LATENCY_TEXT = { interactive: "Interactive (lowest delay)", balanced: "Balanced", playback: "Playback (fewest dropouts)" };
@@ -367,19 +344,6 @@
     webReload(l);
   }
 
-  function renderWebSecurity() {
-    const l = state.webLib;
-    body.appendChild(el("div", "st-note", "Official modules from the Bleep Library are signed by their developer. Modules shared by the community are checked and signed by the library, and run in the sandbox like the rest. Only what has no signature (your own builds) stays off unless you allow it here. A broken or revoked signature is never loaded."));
-    const r = checkbox("Allow unsigned modules", l.allowUnsigned.module, (on) => {
-      if (on && !window.confirm("Unsigned modules run in the browser's sandbox: they cannot read your files or use the network, but they can use a lot of CPU and make noise.\n\nOnly enable this for modules you trust or have built yourself. Turn it on?")) { load(true); return; }
-      change("webLibrary", { allowUnsigned: { module: on } });
-    });
-    r.classList.add("st-toggle");
-    body.appendChild(r);
-    body.appendChild(el("div", "st-note", "Bleep Play has no plugins, so there is no switch for unsigned plugins."));
-    webReload(l);
-  }
-
   function webReload(l) {
     if (!l.reload) return;
     body.appendChild(el("div", "st-note", "The library is read when the page loads: reload to use this."));
@@ -416,8 +380,8 @@
     for (const b of tabsEl.children) b.classList.toggle("on", b.dataset.tab === tab);
     if (state.stored === false) body.appendChild(el("div", "st-note", "This browser does not let the page store anything: settings last until the page is closed."));
     const shown = host === "web"
-      ? { audio: renderWebAudio, midi: renderWebMidi, app: renderWebApp, library: renderWebLibrary, security: renderWebSecurity, data: renderWebData }
-      : { audio: renderAudio, midi: renderMidi, web: renderWeb, library: renderLibrary, security: renderSecurity, latency: renderLatency, recordings: renderRecordings };
+      ? { audio: renderWebAudio, midi: renderWebMidi, app: renderWebApp, library: renderWebLibrary, data: renderWebData }
+      : { audio: renderAudio, midi: renderMidi, web: renderWeb, library: renderLibrary, latency: renderLatency, recordings: renderRecordings };
     (shown[tab] || (() => {}))();
   }
 
@@ -455,7 +419,7 @@
       P.BleepModal.mount(root, () => P.BleepSettingsView.hide());
       onNative("openSettings", () => P.BleepSettingsView.show());
     },
-    /// `which`: the tab to show ("audio", "midi", "web", "recordings", "library", "security", "app", "data"); without it the last one. A tab this host
+    /// `which`: the tab to show ("audio", "midi", "web", "recordings", "library", "app", "data"); without it the last one. A tab this host
     /// does not have (the audio button in a plugin) shows the first one.
     async show(which) {
       if (P.BleepLibraryView) P.BleepLibraryView.hide();

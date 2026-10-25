@@ -8,10 +8,10 @@
     ./bleep check   [repo|api-docs|account]                        default: repo api-docs
     ./bleep docs    [build|help-index|screenshots]
     ./bleep release plugins|modules|community [...]
-    ./bleep package [module ...]                                   packages, signs with your kit and installs (--no-install: only package)
+    ./bleep package [module ...]                                   packages and installs into the data folder (--no-install: only package)
     ./bleep config                                                 show the effective settings
 
-Settings (JUCE checkout, signing kit, token file, registry, Live set) come from config/bleep.json, then
+Settings (JUCE checkout, token file, registry, Live set) come from config/bleep.json, then
 config/bleep.local.json, then the environment, then the command line: scripts/settings.py.
 `./bleep <command> --help` shows the options of one command. Every command works from any directory.
 """
@@ -352,7 +352,7 @@ def run_play(args, s):
     build_web(args, s, ui=False)
     run(["docker", "compose", "-f", "website/docker-compose.yml", "-f", "website/docker-compose.dev.yml", "--env-file", "website/.env",
          "run", "--rm", "play"], cwd=ROOT)
-    print("Bleep Play updated: modules and board UI. Reload the page (Settings > Library > Allow unsigned modules, once).")
+    print("Bleep Play updated: modules and board UI. Reload the page.")
 
 
 def cmd_run(args, s):
@@ -364,7 +364,7 @@ def cmd_run(args, s):
 # ---- test / check / docs ------------------------------------------------------------------------------------------
 
 def test_py(args, s):
-    """The unit tests of the scripts: release and signing (they need `pip install cryptography`), the settings and this command."""
+    """The unit tests of the scripts: release, the settings and this command."""
     failed = [f for f in ("release", "tests")
               if subprocess.run([PY, "-m", "unittest", "discover", "-s", f, "-p", "test_*.py"], cwd=SCRIPTS).returncode]
     if failed:
@@ -469,16 +469,11 @@ def default_data_dir():
 
 
 def cmd_package(args, s):
-    """Packages the modules and, by default, signs them with the kit and installs them into the data folder (modules/local), where the app
+    """Packages the modules and, by default, installs them into the data folder (modules/local), where the app
     and the plugins read modules from. --no-install only packages; --install DATA installs somewhere else."""
     cmd = [PY, SCRIPTS / "release" / "package-module.py", *args.modules]
     if not args.no_install:
-        if s.get("signingKit"):
-            cmd += ["--install", str(args.install or default_data_dir()), "--kit", s["signingKit"]]
-        elif args.install:
-            sys.exit("--install needs a signing kit: signingKit in config/bleep.local.json")
-        else:
-            print("Packaged only: no signing kit is configured (signingKit in config/bleep.local.json), so nothing was installed.")
+        cmd += ["--install", str(args.install or default_data_dir())]
     run(cmd)
 
 
@@ -488,7 +483,7 @@ def cmd_release(args, s):
         run([PY, SCRIPTS / "release" / "community-publish.py", *args.extra])
         return
     base = [PY, SCRIPTS / "release" / "release.py"]
-    common = []  # registry, kit, token file and channel are read from the settings by release.py itself
+    common = []  # registry, token file and channel are read from the settings by release.py itself
     if args.dry_run:
         common.append("--dry-run")
     if args.yes:
@@ -580,7 +575,7 @@ def parser():
     p = sub.add_parser("package", help="package built modules as .bleepmod files")
     p.add_argument("modules", nargs="*")
     p.add_argument("--install", metavar="DATA", help="install into DATA/modules/local instead of the default data folder (the app's and the plugins')")
-    p.add_argument("--no-install", action="store_true", help="only package: do not sign with the kit or install (the default is to install)")
+    p.add_argument("--no-install", action="store_true", help="only package: do not install (the default is to install)")
     p.set_defaults(fn=cmd_package)
 
     rl = sub.add_parser("release", help="release plugins or modules to the library, or share a community module")

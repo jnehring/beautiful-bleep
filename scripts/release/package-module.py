@@ -5,8 +5,8 @@
     scripts/release/package-module.py                       every module that has a built .wasm
     scripts/release/package-module.py reverb filter         just these
     scripts/release/package-module.py --out DIR --web DIR   other folders (defaults: build/library/modules, build/web/modules, else build/web/site)
-    scripts/release/package-module.py --install DATA --kit KIT [--version 0.1.0]
-                                                            also sign each package with the kit and put it into DATA/modules/local,
+    scripts/release/package-module.py --install DATA [--version 0.1.0]
+                                                            also put each package into DATA/modules/local,
                                                             the folder the apps read modules copied by hand from (for tests and development)
 
 A package is a zip of: module.json (the module folder's, plus `types`, `requires.engineAbi`, and the `summary` and `category` of the library's tile), module.wasm (built by
@@ -20,6 +20,7 @@ Before packaging, the .wasm is checked against website/content/developers/module
 ABI present. The zip is reproducible (sorted files, fixed dates), so packaging the same inputs twice gives the same bytes.
 """
 import argparse
+import hashlib
 import json
 import subprocess
 import sys
@@ -28,7 +29,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "website" / "api"))
-from app import signing  # noqa: E402
 # the ABI checks are shared with the library's community upload (website/api/app/community.py), so both apply the same rules
 from app.community import ALLOWED_IMPORTS, REQUIRED_EXPORTS, check_abi, read_wasm  # noqa: E402,F401
 
@@ -89,17 +89,12 @@ def write_zip(files: dict[str, bytes], out: Path) -> None:
             z.writestr(info, files[path], compresslevel=9)
 
 
-def entries_of(files: dict[str, bytes]) -> dict[str, tuple[bytes, bool]]:
-    import hashlib
-    return {p: (hashlib.sha256(c).digest(), False) for p, c in files.items()}
-
-
 DEFAULT_WEB = ROOT / "build" / "web" / "modules"  # build-web.sh --modules-only
 DEFAULT_SITE = ROOT / "build" / "web" / "site"    # build-web.sh
 
 
 def package(slug: str, web: Path, out: Path) -> tuple[Path, str]:
-    """Writes out/<slug>.bleepmod; returns it and its content hash (hex). Raises ValueError with the reason if it cannot."""
+    """Writes out/<slug>.bleepmod; returns it and its sha256 (hex). Raises ValueError with the reason if it cannot."""
     folder = ROOT / "patch" / "modules" / slug
     if not (folder / "module.json").exists():
         raise ValueError("no such module folder")
@@ -115,19 +110,15 @@ def package(slug: str, web: Path, out: Path) -> tuple[Path, str]:
     files = collect(folder, wasm, spec_json(wasm_file))
     target = out / f"{slug}.bleepmod"
     write_zip(files, target)
-    return target, signing.content_digest(entries_of(files)).hex()
+    return target, hashlib.sha256(target.read_bytes()).hexdigest()
 
 
-def install_local(package: Path, slug: str, data: Path, kit_file: Path | None, version: str) -> Path:
-    """A signed copy of the package in DATA/modules/local/<slug>-<version>.bleepmod, the way a developer would copy a module by hand."""
-    if kit_file is None:
-        raise ValueError("--install needs --kit")
+def install_local(package: Path, slug: str, data: Path, version: str) -> Path:
+    """A copy of the package in DATA/modules/local/<slug>-<version>.bleepmod, the way a developer would copy a module by hand."""
     import shutil
-    kit = json.loads(kit_file.read_text())
     target = data / "modules" / "local" / f"{slug}-{version}.bleepmod"
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(package, target)
-    signing.write_doc(target, signing.sign_with_kit(signing.read_entries(target), kit, "module", slug, version))
     return target
 
 
@@ -136,13 +127,12 @@ def main(argv=None) -> int:
     ap.add_argument("modules", nargs="*", metavar="SLUG", help="module folders (default: every one with a built .wasm)")
     ap.add_argument("--out", type=Path, default=ROOT / "build" / "library" / "modules")
     ap.add_argument("--web", type=Path, default=DEFAULT_WEB, help="the output of build-web.sh --modules-only (default: build/web/modules, else the full build's build/web/site)")
-    ap.add_argument("--install", type=Path, metavar="DATA", help="also install the signed packages into DATA/modules/local")
-    ap.add_argument("--kit", type=Path, help="the signing kit for --install")
-    ap.add_argument("--version", default="0.1.0", help="the version --install signs for (it is part of the file name)")
+    ap.add_argument("--install", type=Path, metavar="DATA", help="also install the packages into DATA/modules/local")
+    ap.add_argument("--version", default="0.1.0", help="the version --install names the file with")
     a = ap.parse_args(argv)
     slugs = a.modules or sorted(p.parent.name for p in (ROOT / "patch" / "modules").glob("*/module.json"))
     failed = 0
-    print(f"{'module':22} {'KB':>6}  types  content hash")
+    print(f"{'module':22} {'KB':>6}  types  sha256")
     for slug in slugs:
         try:
             target, digest = package(slug, a.web, a.out)
@@ -152,7 +142,7 @@ def main(argv=None) -> int:
             continue
         if a.install:
             try:
-                install_local(target, slug, a.install, a.kit, a.version)
+                install_local(target, slug, a.install, a.version)
             except (ValueError, OSError) as e:
                 print(f"{slug:22} NOT INSTALLED: {e}", file=sys.stderr)
                 failed += 1

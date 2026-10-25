@@ -21,7 +21,6 @@ Play. Bleep never offers a setting it cannot change.
 | [Web](#web-the-app) / [App](#app-bleep-play) | Web | | App |
 | [Recordings](#recordings) | yes | yes | |
 | [Library](#library) | yes | yes | yes |
-| [Security](#security) | yes | yes | yes, modules only |
 | [Data](#data-bleep-play) | | | yes |
 
 ## Audio
@@ -133,33 +132,15 @@ in all three places, except where noted.
   confirm before it uses another library.
 - **Check for updates** and **Show data folder** (app and plugin).
 
-The **app and the plugins share one data folder**. The channel and the Security
-switches you set in a plugin are the app's too, and the other way round.
+The **app and the plugins share one data folder**. The channel and the other
+library settings you set in a plugin are the app's too, and the other way round.
 
 In Bleep Play the library is the website you are on, so there is no address
 field. A change of channel is read when the page loads: the tab offers **Reload
 now**.
 
-In a plugin, Settings has only the Library and Security tabs. The Library
+In a plugin, Settings has only the Library tab. The Library
 window itself (where you install modules) is under the *Library* menu.
-
-## Security
-
-Plugins and official modules from the Bleep Library are signed by their
-developer. Modules shared by the community are checked and signed by the
-library, and run in the same sandbox, so they need no setting. What has no
-signature at all (your own builds, files you copied in) stays off unless you
-allow it here. A broken or revoked signature is never loaded, whatever you choose.
-
-- **Allow unsigned modules** (off): for modules with no signature, such as ones you built yourself. They run in a sandbox. They cannot read
-  your files or use the network, but they can use a lot of CPU and make noise.
-  Enable it for modules you trust or built yourself.
-- **Allow unsigned plugins** (off, app and plugins): plugins are programs that
-  run with all your rights inside your DAW. Enable it only for software you trust.
-
-Switching either on asks you to confirm. Bleep Play has only the modules switch,
-because a browser installs no plugins. The tab also lists the developers you have
-installed from.
 
 ## Data (Bleep Play)
 

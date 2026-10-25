@@ -279,16 +279,16 @@
   // ---- a pretend Library (add ?library to the address): what the apps' Library section shows, for working on its looks ------------
   const demoLibrary = new URLSearchParams(location.search).has("library") ? (() => {
     const slugs = () => types.filter((t) => !t.internal).map((t) => t.type).slice(0, 60);
-    const st = { installed: null, busy: {}, indexOk: false, allow: { module: false, plugin: false }, firstRunDone: store.get("bleep-demo-library-first-run", false) };
+    const st = { installed: null, busy: {}, indexOk: false, firstRunDone: store.get("bleep-demo-library-first-run", false) };
     const offered = (slug) => (slug.length % 4 === 0 ? "0.2.0" : "0.1.0");
-    const pick = (slug, i, version = "0.1.0") => ({ slug, version, source: i % 11 === 10 ? "local" : "registry", status: i % 11 === 10 ? "unsigned" : "signed", publisher: "bleep",
-                                 allowed: i % 11 !== 10, why: i % 11 === 10 ? "unsigned: allowed only with Security → Allow unsigned modules" : "", loaded: i % 11 !== 10, types: [slug] });
+    const pick = (slug, i, version = "0.1.0") => ({ slug, version, source: i % 11 === 10 ? "local" : "registry",
+                                 allowed: i % 11 !== 10, why: i % 11 === 10 ? "invalid: not a safe package" : "", loaded: i % 11 !== 10, types: [slug] });
     const work = (slug, what, then) => { st.busy[slug] = what; setTimeout(() => { delete st.busy[slug]; then(); }, 900); };
     return {
       status() {
         if (!st.installed) st.installed = slugs().slice(0, 14).map((slug, i) => pick(slug, i));
-        return { settings: { libraryUrl: "https://library.example", channel: st.channel || "stable", updateCheck: st.updateCheck !== false, allowUnsigned: st.allow, firstRunDone: st.firstRunDone }, dataDir: "~/Library/Application Support/Bleep",
-                 hasRoots: true, installed: st.installed,
+        return { settings: { libraryUrl: "https://library.example", channel: st.channel || "stable", updateCheck: st.updateCheck !== false, firstRunDone: st.firstRunDone }, dataDir: "~/Library/Application Support/Bleep",
+                 installed: st.installed,
                  index: { ok: st.indexOk, error: "", modules: st.indexOk ? slugs().map((slug) => ({ slug, version: offered(slug), types: [slug] })) : [] },
                  busy: st.busy, pluginJob: st.job || { state: "idle", message: "", ok: false } };
       },
@@ -303,7 +303,7 @@
         setTimeout(() => delete st.busy["*"], 1100);
       },
       remove(slug) { work(slug, "removing", () => { st.installed = st.installed.filter((m) => m.slug !== slug); }); },
-      settings(v) { if (v && typeof v.updateCheck === "boolean") st.updateCheck = v.updateCheck; if (v && v.channel) st.channel = v.channel; if (v && v.allowUnsigned) st.allow = v.allowUnsigned; if (v && v.firstRunDone !== undefined) { st.firstRunDone = v.firstRunDone; store.set("bleep-demo-library-first-run", v.firstRunDone); } },
+      settings(v) { if (v && typeof v.updateCheck === "boolean") st.updateCheck = v.updateCheck; if (v && v.channel) st.channel = v.channel; if (v && v.firstRunDone !== undefined) { st.firstRunDone = v.firstRunDone; store.set("bleep-demo-library-first-run", v.firstRunDone); } },
       installPlugins() { st.job = { state: "running", message: "Installing bleep-board…", ok: false }; setTimeout(() => { st.job = { state: "done", message: "7 plugins installed into ~/Library/Audio/Plug-Ins/VST3. Rescan plugins in your DAW.", ok: true }; }, 1500); },
       plugins() { return ["Bleep Board", "Bleep MIDI In", "Bleep MIDI Out", "Bleep Audio In", "Bleep Audio Out", "Bleep Instrument", "Bleep FX"].map((name, i) => ({ name, installed: i < 5, path: i < 5 ? "/Library/Audio/Plug-Ins/VST3/" + name + ".vst3" : undefined })); },
     };

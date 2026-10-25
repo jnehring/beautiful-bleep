@@ -282,7 +282,7 @@ The model is: share source, compile locally, run sandboxed.
 3. **WASM sandbox as the second wall.** Memory is capped, time is limited by epoch interruption, and a trapping instance is bypassed to silence. The current audio-thread budget (100 ms) is a dropout; for script-compiled code the limit should be much closer to the chunk deadline.
 4. **Layer 1 is sandboxed too.** It runs in a JS sandbox with a fuel (time) limit and memory cap, and can only call the cell-building API (no `fetch`, no storage, no DOM). Its output goes through the sanitiser, with caps on node count, cable count and size.
 5. **The compiler is sandboxed.** The AssemblyScript compiler parses untrusted source. It runs in a worker (browser) or a restricted process (plugin) with time and memory limits, and reads files only through the API's `readFile` hook, which serves the script's own sources and the standard library from memory.
-6. **Source is the shared artifact.** Short and readable. The viewer's app compiles it with its own compiler version, so no foreign binary is trusted. Publishing a script as a library module is a community upload: the library checks the compiled module and signs it with its community key, so the author needs no key of their own (`signing.md` section 2a). The library's `trust` field says the module is a community one; "who made this" is the author's handle in the id.
+6. **Source is the shared artifact.** Short and readable. The viewer's app compiles it with its own compiler version, so no foreign binary is trusted. Publishing a script as a library module is a community upload: the library checks the compiled module and publishes it under the author's handle (`<handle>/<name>`); "who made this" is that handle in the id.
 7. **Determinism.** WebAssembly output is bit-reproducible (the wasm-host spike matched native within about 1e-6), so a script sounds the same on every machine.
 8. **UI code.** See 9.5.
 
@@ -463,7 +463,7 @@ Every module, native or script, exposes the same machine-readable spec (the shap
 
 - `import` for AssemblyScript and TypeScript code; library modules by pinned id, e.g. `use "bleep/filter@3"`, resolved through the library.
 - A shared script records the dependencies' version and content hash (like a lock file), so a dependency cannot change underneath it.
-- Opening a script whose modules are missing prompts to install them, like a missing plugin, following the library's signing and trust rules.
+- Opening a script whose modules are missing prompts to install them, like a missing plugin, with the same checks as any install.
 - A loaded module is another sandboxed module with the same limits. Loading gives a script no extra capabilities.
 - `import ... as Name` avoids name clashes.
 

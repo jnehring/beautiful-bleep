@@ -16,13 +16,13 @@ Plugins, modules and presets are managed in one place, the **Bleep Library**. Ev
 
 *Naming:* the library was first called the registry, and its technical names keep that word: the URL path `/registry/v1/`, `BLEEP_REGISTRY_URL`, `/api/registry`, the `bleep-registry` bucket. In prose it is the Bleep Library, "the library" after the first mention.
 
-Plugins and modules are **code**: signed, immutable. Plugins and first-party modules are signed by their developer; a module anyone shares through their account is signed by the library after its checks (a *community* module). Presets are **data**: published by anyone with an account. How code is signed and checked is in [`signing.md`](signing.md); what a module is to the engine, in [`module-abi.md`](module-abi.md).
+Plugins and modules are **code**, immutable once published. Plugins and first-party modules are released by a developer with a release token; a module anyone shares through their account is checked by the library on upload (a *community* module). Presets are **data**: published by anyone with an account. Nothing in the library is signed: what protects the user is the sandbox the modules run in and the checks the library makes on upload. What a module is to the engine is in [`module-abi.md`](module-abi.md).
 
 ## Decisions
 
 - **Modules are WebAssembly everywhere** (web and native), hosted by an embedded wasm runtime in the engine. See 4.2.
 - **The library is part of the website stack** (Caddy, the FastAPI `website/api` and its Postgres), hosted locally for now and moved with the stack later. No separate infrastructure.
-- **Everything the shop distributes as code is signed.** Plugins and first-party modules by their developer's own key under our root; **community modules** by the library's community key, after it has checked the package (files, the `.wasm`'s imports and exports, node types, licence), so an author needs no key. Closed-source community modules are allowed: the sandbox is the defence, not readable source (see [`signing.md`](signing.md) section 2a). Apps refuse code with no signature unless the user switches on *Allow unsigned modules* or *Allow unsigned plugins* in the settings; community modules are signed and need neither. Every entry carries `trust`: `official`, `community` or `developer`.
+- **Modules are sandboxed, and nothing is signed.** A module is WebAssembly that can only do what the host's imports allow, so the sandbox is the defence, not knowing the author. A release is authorised by the API token that uploads it (bound to a publisher, the namespace of its ids); a community module by the account that uploads it, after the library has checked the package (files, the `.wasm`'s imports and exports, node types, licence). Closed-source community modules are allowed. The apps load every module that passes the same checks on their side (file list, imports, ABI version), with no setting to switch. A community module's id is `<handle>/<name>`.
 - **Modules and plugins reach the user three ways:** from the library on demand, through two **bundles** the setup offers (*default modules*, *default plugins*), or by copying files into a folder (section 5a).
 - **Everything is free.** There is no licence-key or entitlement logic anywhere.
 - **Downloading needs no login**: browsing, installing plugins, modules and presets, and update checks are anonymous. **Sharing a preset needs an account** (the existing `website/api` accounts).
@@ -49,15 +49,14 @@ Every entry in the library has the same envelope:
   "author": "brilliant-bleep",
   "license": "MIT",
   "requires": { "engineAbi": 3, "bus": ">=0.1", "modules": { "lfo": ">=1.0" } },
-  "files": [ { "path": "dual-filter.bleepmod", "sha256": "…", "bytes": 48213, "platform": "any",
-               "signature": { "keyId": "…", "chain": [ … ], "signature": "…" } } ],
+  "files": [ { "path": "dual-filter.bleepmod", "sha256": "…", "bytes": 48213, "platform": "any" } ],
   "published": "2026-10-09T10:00:00Z"
 }
 ```
 
 - **Immutable and content-addressed.** A published `id@version` never changes; a fix is a new version. Files are named by sha256 in storage, so caches never go stale.
 - **`engineAbi`** is an integer bumped when the module ABI (specified in [`module-abi.md`](module-abi.md); the C interface in `patch/web/src/WebShim.cpp`) changes incompatibly. Hosts refuse modules they cannot run and the Library section explains why.
-- **Signing.** Every file of a plugin or module entry has a developer signature (`files[].signature`: a chain root > library issuer > developer, over the content hash, kind, id, version and platform), checked by the library on upload and by every host before it loads or installs. `index.json` and the revocation list carry the library issuer's signature, a rising `serial` and an expiry. Details, the settings and a test vector in [`signing.md`](signing.md).
+- **Download check.** Every file of an entry has a `sha256`, the checksum of the download; hosts compare it after fetching. There are no signatures, certificates or revocation list: taking a release down removes it from `index.json`.
 
 ## 3. The library
 
@@ -66,7 +65,7 @@ It lives in the website stack. Published files are objects in a **SeaweedFS** bu
 ```
 S3 bucket `bleep-registry` (SeaweedFS)  →  Caddy proxies it read-only at /registry/v1/…
 /registry/v1/
-├── index.json                 plugins and modules per channel, signed
+├── index.json                 plugins and modules per channel
 ├── plugins/<id>/<version>/    installers + entry.json
 ├── modules/<id>/<version>/    <id>.bleepmod + entry.json (+ doc, screenshot)
 └── presets/<author>/<slug>/<version>.bleeppreset
@@ -98,7 +97,7 @@ S3 bucket `bleep-registry` (SeaweedFS)  →  Caddy proxies it read-only at /regi
 | Preset files | Same bucket under `presets/` | The API after validation |
 | Preset metadata (title, tags, author, versions, downloads, reports, state) | Postgres, new Alembic migration | The API |
 
-**What a tile shows.** Every plugin, module and preset has a title, a `summary` (up to 280 characters), a `category` and an optional screenshot, as metadata of its release: `entry.json` carries `summary`, `category` and `image` (the file name next to it, `image.png`, `.jpg` or `.webp`). `release.py` takes them from the module package (its `module.json` and `doc/<slug>.png`) and, for plugins, from `PLUGIN_TILES` and `doc/library/<slug>.png`, and uploads the image with `PUT /api/registry/<kind>/<id>/releases/<version>/image` (PNG, JPEG or WebP up to 1 MB; display data, so not signed, and replaceable by the token that made the release). Without a screenshot the library draws a placeholder in the colour of the kind. `GET /api/library` returns them with `image_url` and the `categories` of the matching entries, and filters by `category`.
+**What a tile shows.** Every plugin, module and preset has a title, a `summary` (up to 280 characters), a `category` and an optional screenshot, as metadata of its release: `entry.json` carries `summary`, `category` and `image` (the file name next to it, `image.png`, `.jpg` or `.webp`). `release.py` takes them from the module package (its `module.json` and `doc/<slug>.png`) and, for plugins, from `PLUGIN_TILES` and `doc/library/<slug>.png`, and uploads the image with `PUT /api/registry/<kind>/<id>/releases/<version>/image` (PNG, JPEG or WebP up to 1 MB; display data, replaceable by the token that made the release). Without a screenshot the library draws a placeholder in the colour of the kind. `GET /api/library` returns them with `image_url` and the `categories` of the matching entries, and filters by `category`.
 
 `GET /registry/v1/index.json` is the one call a client needs at start. It lists, per id, the newest version per channel, so an update check is one small request with an `ETag`. The API only ever sees preset search and publishing, so a stopped API doesn't stop installs of plugins and modules.
 
@@ -148,21 +147,21 @@ A board file lists the node types it uses. On load, a host resolves each type: b
 
 Plugins are installed from the Library section of the app, not hot-loaded:
 
-- Artifacts: a signed and notarised installer per OS (`.pkg`, `.msi`, `.zip` for Linux) containing all formats of one plugin, or the whole bundle.
+- Artifacts: an installer per OS (`.pkg`, `.msi`, `.zip` for Linux) containing all formats of one plugin, or the whole bundle.
 - Install paths are the system's (`/Library/Audio/Plug-Ins/VST3`, …). **Live must not be running** while a loaded plugin is replaced (the README warns of crashes); the app checks for Live and asks the user to quit it first.
 - The library entry says which formats and OS versions each file supports. Third-party Bus receiver plugins can be listed with a download link (not hosted by us) so the Library section is one place for everything that works with the Bus.
 - A plugin states the module `engineAbi` range it can host, so the app can warn when a module needs a newer plugin.
 
 ## 5a. Bundles, first run, and manual installs
 
-**Bundles.** A bundle is an entry of `kind: "bundle"`: no files, a signed list of members with their versions and content hashes (`signing.md`, section 12). Two exist, both published by `bleep`:
+**Bundles.** A bundle is an entry of `kind: "bundle"`: no files, a list of members with their versions. Two exist, both published by `bleep`:
 
 | Bundle | Members | Why |
 |---|---|---|
 | `default-modules` | Every first-party module (80 today, about 25 MB of wasm) | What the board offers out of the box, one tick instead of 80 installs |
 | `default-plugins` | Every Bleep VST3: Bleep Board, the port plugins (MIDI In, MIDI Out, Audio In, Audio Out), Bleep Instrument and Audio Insert | The plugins Live needs; they must all be the same version, because they share one engine |
 
-Installing a bundle installs its members, each verified on its own. A bundle update is a new bundle version; the Library section shows "Update all" and installs only the members that changed.
+Installing a bundle installs its members, each on its own. A bundle update is a new bundle version; the Library section shows "Update all" and installs only the members that changed.
 
 **First run.** When the app is installed (the installer's last page, or the first launch for a download without an installer), a setup assistant asks, with sizes and both pre-ticked:
 
@@ -179,10 +178,10 @@ Declining either is fine: the app works, a missing module is a placeholder node 
 | Modules by hand | `<data>/modules/local/` | A `.bleepmod`, or `<name>.wasm` with a `<name>.json` (the `module.json`) beside it. Read at start and when the folder changes. |
 | Plugins | The system VST3 folders | Copied by hand as usual; the Library section lists them with their status |
 
-`<data>` is `~/Library/Application Support/Bleep` (macOS), `%APPDATA%\Bleep` (Windows), `~/.local/share/Bleep` (Linux); the settings can point at another folder. Every file in these folders goes through the same check as a download (signature, imports, ABI version); unsigned ones need *Allow unsigned modules* (or plugins) in **Settings → Security**, and the app, the plugins and the Library section all read that setting from the one settings file. When several copies provide the same node type, the choice is: highest compatible version, then signed over unsigned, then the manual folder over the library (`signing.md`, section 11).
+`<data>` is `~/Library/Application Support/Bleep` (macOS), `%APPDATA%\Bleep` (Windows), `~/.local/share/Bleep` (Linux); the settings can point at another folder. Every file in these folders goes through the same check as a download (file list, imports, ABI version); there is no setting to allow anything. When several copies provide the same node type, the choice is: highest compatible version, then the manual folder over the library.
 
 
-**Build options and the library configuration.** `config/library.json` is the one place that says where the library is (`libraryUrl`, the website's address; the library lives under `/registry/v1/`) and whom it trusts (`rootKeys`, hex root public keys). The apps' and plugins' build bakes it in (`BLEEP_LIBRARY_CONFIG` names another file, `BLEEP_LIBRARY_URL` and `BLEEP_LIBRARY_ROOTS` override it for one build) and `scripts/release/release.py` uses `libraryUrl` when no `--registry` or `$BLEEP_REGISTRY_URL` is given; the user can still change the address in `settings.json`. With `-DBLEEP_WASMTIME_DIR=<Wasmtime C API>` the apps and plugins are built **without modules** (`BLEEP_BUNDLE_MODULES=ON` puts them back). `BLEEP_DATA_DIR` moves the data folder (tests, development); a developer's own root goes into `settings.json` as `extraRoots`. The first-run assistant answers once (`firstRunDone` in `settings.json`). **The plugin download:** the app reads the plugin entries of the index, takes the build for its platform (`macos-arm64`, ...), checks the sha256 and the signature (kind `plugin`, the file as a one-file package) and the *Allow unsigned plugins* setting, and unpacks the `.vst3` bundles into the user's VST3 folder, with Live closed; an offline installer's `Plugins` folder (macOS: `Contents/Resources/Plugins` in the app) is copied instead. The pretend Library for working on the UI is the board dev server with `?library` in the address.
+**Build options and the library configuration.** `config/library.json` is the one place that says where the library is (`libraryUrl`, the website's address; the library lives under `/registry/v1/`). The apps' and plugins' build bakes it in (`BLEEP_LIBRARY_CONFIG` names another file, `BLEEP_LIBRARY_URL` overrides it for one build) and `scripts/release/release.py` uses `libraryUrl` when no `--registry` or `$BLEEP_REGISTRY_URL` is given; the user can still change the address in `settings.json`. With `-DBLEEP_WASMTIME_DIR=<Wasmtime C API>` the apps and plugins are built **without modules** (`BLEEP_BUNDLE_MODULES=ON` puts them back). `BLEEP_DATA_DIR` moves the data folder (tests, development). The first-run assistant answers once (`firstRunDone` in `settings.json`). **The plugin download:** the app reads the plugin entries of the index, takes the build for its platform (`macos-arm64`, ...), checks the sha256 and unpacks the `.vst3` bundles into the user's VST3 folder, with Live closed; an offline installer's `Plugins` folder (macOS: `Contents/Resources/Plugins` in the app) is copied instead. The pretend Library for working on the UI is the board dev server with `?library` in the address.
 
 ## 6. Presets
 
@@ -221,13 +220,13 @@ Single source: the repository. CI builds and publishes; nobody uploads by hand.
 
 1. **Version.** Every plugin and module has its own version, counted by the library: `scripts/release/release.py --level x|1.x|1.1.x|major|minor|patch` takes the newest published version and counts up at that level (built for plugins; see `doc/release.md`). A module's `module.json` carries the version once modules are released.
 2. **Detect what changed.** Hash the module's folder plus the `patch/common/dsp/` headers it includes (and `engine/` ABI). If the hash differs from the last release, the module needs a new version, and CI fails if its `version` was not bumped.
-3. **Build and test** (existing CI): the DSP tests, the module harness, the wasm build, then the harness against the wasm. Plugins: the macOS/Windows/Linux matrix, signing and notarisation.
-4. **Package and sign** (`scripts/package-module.py`, `scripts/package-plugin.sh`, `scripts/release/signing.py sign`): produce the artifacts and the `entry.json` files, each file signed with the publisher's key.
+3. **Build and test** (existing CI): the DSP tests, the module harness, the wasm build, then the harness against the wasm. Plugins: the macOS/Windows/Linux matrix and notarisation.
+4. **Package** (`scripts/package-module.py`, `scripts/package-plugin.sh`): produce the artifacts and the `entry.json` files.
 5. **Stage.** Upload to `…/staging/<release-id>/`. A smoke job loads every staged module in the node host test and in a headless browser.
-6. **Publish.** Copy staged files into the immutable paths, then write `index.json` last, signed, in one atomic replace. A release is visible only when the index changes; rollback is putting the previous index back.
+6. **Publish.** Copy staged files into the immutable paths, then write `index.json` last, in one atomic replace. A release is visible only when the index changes; rollback is putting the previous index back.
 7. **Channels.** `beta` index first for testers; promoting to `stable` is a new index, not a rebuild.
 
-`scripts/release/release.py` is built for plugins (steps 4 to 6 in a simpler form: a draft release, size- and hash-checked uploads, publish, index regenerated). It authenticates with an **admin-created release token** (`python -m app.cli token-create`), not with the storage credentials, so the machine that releases never holds S3 keys. Built since: adding the build of another platform to a published release (`--add-platform`), and **signing**: `release.py` signs every file with the developer's kit and checks it against the library's root keys before uploading; the library verifies every signature, binds a token to a publisher, records who uploaded and refuses a release without a valid key (`signing.md`, section 10). Not built yet: change detection, staging, a signed index and revocation list, modules.
+`scripts/release/release.py` is built for plugins (steps 4 to 6 in a simpler form: a draft release, size- and hash-checked uploads, publish, index regenerated). It authenticates with an **admin-created release token** (`python -m app.cli token-create`), not with the storage credentials, so the machine that releases never holds S3 keys. Built since: adding the build of another platform to a published release (`--add-platform`), and **publishers**: the library binds a token to a publisher (the namespace of its ids) and records who uploaded. Not built yet: change detection, staging.
 
 ## 8. Website
 
@@ -244,7 +243,7 @@ The board is always on screen. The Library, Settings and Help topics open as dia
 | Section | For | What is in it |
 |---|---|---|
 | **Board** | Creating patches | The board (nodes, cables, cells, panels, module views, undo), loading and saving projects and presets, the transport. What the app and the plugin show today |
-| **Library** | Managing what is on this machine | **Modules**, **Plugins** and **Presets** tabs: installed, available and updates; Install, Update, Remove; the two default bundles; the release channel; disk use. **Security**: *Allow unsigned modules*, *Allow unsigned plugins*, trusted developers. In the app also **Devices** (audio device, MIDI ports, Link, connected plugins), and the account for sharing presets and the library URL (for self-hosting) |
+| **Library** | Managing what is on this machine | **Modules**, **Plugins** and **Presets** tabs: installed, available and updates; Install, Update, Remove; the two default bundles; the release channel; disk use. In the app also **Devices** (audio device, MIDI ports, Link, connected plugins), and the account for sharing presets and the library URL (for self-hosting) |
 
 - **A missing module** on the board is a placeholder node with an *Install* button that opens the Library section at that module.
 - **In a plugin window**, the Library installs modules and presets (outside the audio thread); *Plugins* only lists what is installed and what is newer, and says "close Live, then update with the Bleep App", because replacing a plugin Live has loaded can crash it.
@@ -253,7 +252,7 @@ The board is always on screen. The Library, Settings and Help topics open as dia
 
 Not planned: a built-in shop, a patch library with payments.
 
-Local state in `~/Library/Application Support/Bleep/` (and equivalents), read by the app and by every plugin: `settings.json` (the Security settings, channel, library URL), `installed.json` (id, version, sha256, channel, source, signer), `modules/<source>/<id>/<version>/`, `presets/`, a cache of `index.json`. Remove deletes the version folder; the board's nodes of a removed type show as missing, a board is never changed by it.
+Local state in `~/Library/Application Support/Bleep/` (and equivalents), read by the app and by every plugin: `settings.json` (channel, library URL), `installed.json` (id, version, sha256, channel, source), `modules/<source>/<id>/<version>/`, `presets/`, a cache of `index.json`. Remove deletes the version folder; the board's nodes of a removed type show as missing, a board is never changed by it.
 
 ## 10. Repository layout
 
@@ -265,7 +264,7 @@ scripts/
 ├── package-module.py          folder → .bleepmod
 ├── package-plugin.sh          built plugin → installer
 ├── release.py                 detect, package, stage, publish (dry run by default)
-└── registry-client.py         fetch/verify, used by the website build and tests
+└── registry-client.py         fetch, used by the website build and tests
 patch/engine/WasmModuleHost.*  native host for .bleepmod
 patch/app/SoftwareCenter.*     the installer logic (UI is board-style web UI like the rest)
 ```
@@ -278,27 +277,26 @@ patch/app/SoftwareCenter.*     the installer logic (UI is board-style web UI lik
 2. **Library v0.** The SeaweedFS service and the Caddy route (done in the compose file); `release.py` publishes into the bucket. The website reads from it; remove the `web` stage from the Dockerfile; add `web-lock.json`.
 3. **Wasm host in the engine** and the CPU gate from 4.2. Decide per module: static-only or installable.
 4. **The Library section** in the app and the plugin window, with Modules, Plugins and Presets; the update check at start (13 has the steps).
-5. **Plugin release pipeline**: signing, notarisation, installers.
+5. **Plugin release pipeline**: notarisation, installers.
 6. **Presets**: the schema with `needs`, local Library, then the `/api/presets` endpoints, the Postgres migration, device-code login and *Share…*.
 
 ## 12. Open questions
 
 - **Hosts that forbid executable memory** (4.2, 13): with every module a wasm package, such a DAW can only run what wasm3 carries. Options: accept it (a message that names the DAW and the missing entitlement), keep a native build of the cheap-to-port modules as packages for that platform, or ship a second plugin build with the modules compiled in. Needs a decision before M6.
 - **Release credentials.** `release.py` uses a release token (revocable, expiring, listed with last use), so S3 credentials stay on the server.
-- **Third-party modules.** Opened by the signing design: any developer with an account can get a key and publish modules under their own namespace (`acme/fuzz`); modules are sandboxed, plugins are reviewed before the plugin scope is granted. Open: whether signed third-party modules sit in a separate `community` channel or in one list with the publisher shown.
-- **Signing keys.** The chain, key custody for the offline root and the online issuer, and the settings are in [`signing.md`](signing.md) (sections 2, 10 and 16). The root key ceremony is still to be decided.
+- **Third-party modules.** Any account can publish modules under its own handle (`acme/fuzz`); modules are sandboxed, plugins are reviewed before a token gets the plugin scope. Open: whether third-party modules sit in a separate `community` channel or in one list with the publisher shown.
 - **Naming:** the product name, package extensions and the `bleep://` scheme are placeholders like the rest of the project's names.
 
 ## 13. Moving the apps and plugins to library modules: work plan
 
-Done: the module packages (`package-module.py`), their release and signing, the library reading each module's node types, and the **Bleep Play**, which installs and verifies its modules from the library (`patch/web/js/library-client.js`, tested against the Python tools). Left: the standalone app and the plugins, which today compile the modules in.
+Done: the module packages (`package-module.py`), their release, the library reading each module's node types, and the **Bleep Play**, which installs its modules from the library (`patch/web/js/library-client.js`, tested against the Python tools). Left: the standalone app and the plugins, which today compile the modules in.
 
 What is known about the 80 modules, from their sources and the browser build: all 80 build to standalone wasm and pass the ABI check. **26** use `juce_core` and wasm exceptions (Wasmtime only; wasm3 cannot run them). **4** read the harmony bus (chord-quantizer, harmony-master, quantizer-suite, step-sequencer), **6** use the per-voice index (beat-oscillator, chart-recorder, macro-osc, pulse-generator, test-oscillator, wave-analyzer), **4** load sample files (grains, sampler, splice, wavetable-osc). Those 14 need an ABI addition before they can leave the apps (`module-abi.md`, section 9). Cells, Voice Cells and the port nodes stay in the engine: only the DSP nodes become wasm.
 
 | Step | What | Done when |
 |---|---|---|
 | **M1 The gate** | A `WasmModuleHost` (Wasmtime) in the engine, used first by `bleep_module_harness`: every module runs natively and as wasm on the same inputs and knob changes. ABI additions for harmony bus, voice index and media | Per module: maximum difference within rounding and CPU relative to native. All 80 pass, or the list of those that do not and why. The heaviest (Grains, Delay Network, Modal Voice; a 16-voice Voice Cell) are within about 2× native |
-| **M2 Library client in C++** | HTTP with `juce::URL`, Ed25519 and SHA-256 (Monocypher, vendored), the same checks as `signing.py` and `library-client.js`, the install folders and `installed.json`, the shared `settings.json` | The test vector and a package signed by the Python tools give the same verdicts; an install from a library on another port works end to end |
+| **M2 Library client in C++** | HTTP with `juce::URL` and SHA-256, the same checks as `library-client.js`, the install folders and `installed.json`, the shared `settings.json` | The packages in `patch/tests/library-fixtures` give the same verdicts in C++ and JavaScript; an install from a library on another port works end to end |
 | **M3 Dynamic registry** | `Registry` becomes append-only and thread-safe (modules keep references to their specs, so a spec never moves or goes away); the type list the UI shows refreshes after an install; installed modules load at start | Installing a module while a board is open adds its node type without a restart |
 | **M4 Library and Board** | The two sections in the board UI, shared by the app and the plugins, with native functions for install, update, remove, progress and the Security settings | Section 9 works in the app and in a plugin window in Live |
 | **M5 First run** | The setup assistant with the two default bundles, the installers, the plugin bundle install (app only, Live closed) | A clean machine reaches a working board with one click per bundle |

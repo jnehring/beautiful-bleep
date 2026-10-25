@@ -15,7 +15,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 import release  # noqa: E402
 from release import next_version  # noqa: E402
-from app import signing  # noqa: E402
 
 
 class NextVersion(unittest.TestCase):
@@ -43,14 +42,6 @@ if __name__ == "__main__":
 
 
 class Pinning(unittest.TestCase):
-    def test_roots_come_from_the_library_configuration(self):
-        key = "ab" * 32
-        with mock.patch.object(release, "library_config", lambda: {"rootKeys": [key]}), mock.patch.dict("os.environ", {"BLEEP_LIBRARY_ROOTS": ""}):
-            self.assertEqual(release.pinned_roots(), [bytes.fromhex(key)])
-        with mock.patch.object(release, "library_config", lambda: {}), mock.patch.dict("os.environ", {"BLEEP_LIBRARY_ROOTS": ""}):
-            with self.assertRaises(SystemExit):
-                release.pinned_roots()
-
     def test_plain_http_is_for_localhost_only(self):
         release.Registry("https://library.example", "t")
         release.Registry("http://localhost:8080", "t")
@@ -78,14 +69,8 @@ class FakeLibrary:
 
 class ReleaseModules(unittest.TestCase):
     def setUp(self):
-        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
         self.tmp = tempfile.TemporaryDirectory()
         self.dir = Path(self.tmp.name)
-        root, issuer = Ed25519PrivateKey.generate(), Ed25519PrivateKey.generate()
-        cert = signing.make_cert(root, None, signing.new_tbs("issuer", signing.public_bytes(issuer), publisher="bleep", scopes=["issue"],
-                                                             not_before=0, not_after=2**33))
-        self.kit = signing.issue_kit(issuer, cert, "bleep", scopes=("module",), first_party=True)
-        self.root_pub = signing.public_bytes(root)
         self.digests = {}
         for slug in ("alpha", "beta"):
             self.make(slug, b"code of " + slug.encode())
@@ -99,20 +84,19 @@ class ReleaseModules(unittest.TestCase):
             z.writestr("module.wasm", code)
             if slug == "alpha":
                 z.writestr("doc/alpha.png", b"\x89PNG\r\n\x1a\nalpha")
-        self.digests[slug] = signing.content_digest(signing.read_entries(self.dir / f"{slug}.bleepmod")).hex()
+        self.digests[slug] = release.sha256(self.dir / f"{slug}.bleepmod")
 
     def run_release(self, published, *names, force=False, dry=False, level="patch"):
         library = FakeLibrary(published)
-        library.root_pub = self.root_pub
         args = argparse.Namespace(packages=self.dir, package=False, plugins=list(names), level=level, channel="stable", notes="", force=force,
                                   dry_run=dry, yes=True, registry="http://library")
         out = io.StringIO()
-        with redirect_stdout(out), mock.patch.object(release, "pinned_roots", lambda: [self.root_pub]):
-            code = release.release_modules(args, library, self.kit)
+        with redirect_stdout(out):
+            code = release.release_modules(args, library)
         return code, library, out.getvalue()
 
     def entry(self, slug):
-        return {"files": [{"contentDigest": self.digests[slug]}]}
+        return {"files": [{"sha256": self.digests[slug]}]}
 
     def test_first_release_of_everything(self):
         code, library, out = self.run_release({}, level="x")
@@ -134,17 +118,14 @@ class ReleaseModules(unittest.TestCase):
         self.assertEqual(sorted((s, v) for s, v, *_ in library.released), [("alpha", "1.2.4"), ("beta", "1.0.1")])
 
     def test_the_newest_version_is_the_one_compared(self):
-        published = {"alpha": {"1.0.0": self.entry("alpha"), "2.0.0": {"files": [{"contentDigest": "old"}]}}}
+        published = {"alpha": {"1.0.0": self.entry("alpha"), "2.0.0": {"files": [{"sha256": "old"}]}}}
         _, library, _ = self.run_release(published, "alpha")
         self.assertEqual([(s, v) for s, v, *_ in library.released], [("alpha", "2.0.1")])  # 1.0.0 matches, but 2.0.0 is what clients get
 
-    def test_what_is_declared_signed_and_titled(self):
+    def test_what_is_declared_and_titled(self):
         _, library, _ = self.run_release({}, "alpha", level="x")
         slug, version, kind, title, decl = library.released[0]
-        self.assertEqual((kind, title, decl["path"], decl["platform"], decl["contentDigest"]), ("module", "Alpha", "alpha-0.1.0.bleepmod", "any", self.digests["alpha"]))
-        res = signing.verify(bytes.fromhex(decl["contentDigest"]), decl["signature"], kind="module", id_="alpha", version="0.1.0",
-                             roots=[self.root_pub])
-        self.assertEqual(res.status, "signed")
+        self.assertEqual((kind, title, decl["path"], decl["platform"]), ("module", "Alpha", "alpha-0.1.0.bleepmod", "any"))
         self.assertEqual(decl["sha256"], release.sha256(self.dir / "alpha.bleepmod"))
 
     def test_the_tile_is_summary_category_and_screenshot_of_the_package(self):

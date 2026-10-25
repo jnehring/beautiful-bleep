@@ -13,7 +13,6 @@ namespace bleep::engine {
 
 struct LoadReport {
     std::string slug, version, source;   ///< source: "registry" or "local"
-    std::string status;                  ///< what the signature check said: signed, unsigned, expired, revoked, invalid
     std::string why;                     ///< why it was or was not loaded, in words
     bool loaded = false;
     std::vector<std::string> types;      ///< the node types it added
