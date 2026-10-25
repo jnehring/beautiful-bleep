@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Function view: the four outputs drawn as in FunctionDsp: cycling, B..D are phase-shifted copies
-// of A (Spread × ¼ cycle each); as an envelope they stretch by (1 + Spread) each. A comet runs
-// along the traces (a free-running preview), the live output levels are the bars at the right.
+// of A (Spread × ¼ cycle each); as an envelope they stretch by (1 + Spread) each. A dot per trace
+// sits where its live output is on the curve (a free-running preview without live data), the live output levels are the bars at the right.
 (function () {
   "use strict";
   // Inverse of the Rise/Fall range (1 ms .. 10 s, centre 250 ms).
@@ -20,7 +20,7 @@
     ],
     template: '<div class="bv-panel"><h2>Slope · A B C D</h2><canvas class="fn-slope" style="height:130px"></canvas></div>',
     afterBuild(view) {
-      const S = view.fn = { st: null, t0: 0 };
+      const S = view.fn = { st: null, t0: 0, dir: [] };
       BleepView.loop(view.root, (t) => {
         const c = view.root.querySelector(".fn-slope");
         if (!c || !c.clientWidth) return;
@@ -44,9 +44,28 @@
         for (let i = 1; i < 8; i++) { const x = Math.round((i / 8) * pw) + 0.5; g.moveTo(x, 0); g.lineTo(x, h); }
         g.moveTo(0, base + 0.5); g.lineTo(pw, base + 0.5); g.moveTo(0, top + 0.5); g.lineTo(pw, top + 0.5);
         g.stroke(); g.globalAlpha = 1;
-        // playhead: cycles through the window; the envelope view repeats with a short rest
-        const period = cyc ? 3.2 : 4.2, ph = Math.min(1, frac(t / period) * (cyc ? 1 : 1.18));
-        const px = ph * pw;
+        // playhead per trace: where on its curve the live output sits (value + direction of travel);
+        // without live outputs it falls back to a free-running preview
+        const o = (st && st.outputs) || {};
+        const live = typeof o.a === "number";
+        const period = cyc ? 3.2 : 4.2, free = Math.min(1, frac(t / period) * (cyc ? 1 : 1.18)) * pw;
+        const pxs = [0, 1, 2, 3].map((k) => {
+          if (!live) return free;
+          const u = Math.max(0, Math.min(1, o["abcd"[k]]));
+          const m = S.dir[k] || (S.dir[k] = { last: u, dir: 1, x: 0 });
+          if (u > m.last + 1e-4) m.dir = 1; else if (u < m.last - 1e-4) m.dir = -1;
+          m.last = u;
+          if (!cyc && u < 1e-3) return (m.x = 0);
+          let best = m.x, err = 1e9;
+          for (let x = 0; x < pw; x += 2) {
+            const d = val(k, (x + 1) / pw) - val(k, x / pw);
+            if (Math.abs(d) > 1e-6 && d * m.dir < 0) continue;
+            const e = Math.abs(val(k, x / pw) - u) + Math.abs(x - m.x) * 1e-6;
+            if (e < err) { err = e; best = x; }
+          }
+          return (m.x = best);
+        });
+        const px = pxs[0];
         const traces = [3, 2, 1, 0];
         for (const k of traces) {
           const a = 1 - k * 0.22;
@@ -60,10 +79,10 @@
           }
           BleepView.glow(g, th.accent, k === 0 ? 10 : 5);
           g.lineWidth = k === 0 ? 2.4 : 1.6;
-          const tail = Math.round(pw * 0.35), seg = 6;
-          for (let x = Math.max(0, Math.floor(px - tail)); x < px; x += seg) {
-            g.globalAlpha = a * Math.pow(1 - (px - x) / tail, 1.5);
-            path(x, Math.min(px, x + seg)); g.stroke();
+          const kx = pxs[k], tail = Math.round(pw * 0.35), seg = 6;
+          for (let x = Math.max(0, Math.floor(kx - tail)); x < kx; x += seg) {
+            g.globalAlpha = a * Math.pow(1 - (kx - x) / tail, 1.5);
+            path(x, Math.min(kx, x + seg)); g.stroke();
           }
           g.shadowBlur = 0;
         }
@@ -73,11 +92,10 @@
         for (const k of [0, 1, 2, 3]) {
           if (k && spread < 0.02) break;
           g.globalAlpha = 1 - k * 0.22;
-          g.beginPath(); g.arc(px, y(val(k, px / pw)), k ? 3 : 4.5, 0, Math.PI * 2); g.fill();
+          g.beginPath(); g.arc(pxs[k], y(val(k, pxs[k] / pw)), k ? 3 : 4.5, 0, Math.PI * 2); g.fill();
         }
         g.shadowBlur = 0; g.globalAlpha = 1;
         // live output levels
-        const o = (st && st.outputs) || {};
         ["a", "b", "c", "d"].forEach((id, k) => {
           const x = pw + 8 + k * 7, u = typeof o[id] === "number" ? Math.max(0, Math.min(1, o[id])) : 0;
           g.fillStyle = th.line; g.fillRect(x, top, 4, base - top);
