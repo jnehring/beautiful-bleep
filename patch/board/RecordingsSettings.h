@@ -6,6 +6,9 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include <functional>
+#include <string>
+
 namespace bleep::engine {
 
 /// {folder, defaultFolder, isDefault, freeBytes, choosing, error}: what the page shows. `error` is what the last folder chooser or
@@ -15,5 +18,9 @@ juce::var recordingsState();
 /// What the page asks of "recordings": {folder: "/full/path"}, {reset: true}, {choose: true} (a folder chooser; the choice shows in
 /// the state a moment later) or {reveal: true} (shows the folder in the file manager). Returns the state, with `error` when refused.
 juce::var recordingsCall(const juce::var& arg);
+
+/// A folder chooser for a module that records to a folder of its own (the Audio Console): `done` gets the full path that was chosen,
+/// or an empty string when the dialog was cancelled or another chooser is open. [message thread] The dialog starts in `start`.
+void chooseFolder(const std::string& start, std::function<void(std::string)> done);
 
 }  // namespace bleep::engine

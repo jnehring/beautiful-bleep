@@ -58,7 +58,7 @@ The apps and the plugins install it (`recording::ensureDiskService()`, called by
 path that exists or can be made and that Bleep can write to (it is checked by writing and removing a file), or an empty path for
 the default. A refused path changes nothing and the page shows the reason. The choice is kept in `recordings.json` in the data folder
 the library's settings use (`~/Library/Application Support/Bleep`, `%APPDATA%\Bleep`, `~/.local/share/Bleep`; `BLEEP_DATA_DIR`
-overrides it), so the app and every plugin share it, and is read once when the service is installed. A running session keeps its
+overrides it), so the app and every plugin share it, and is read once when the service is installed. A module can name a folder of its own (the Audio Console keeps it in its node data, `folder`): `open(..., folder)` then records there instead, after the same checks, and refuses the session with the reason when the folder cannot be used. An empty folder means the Settings one. A running session keeps its
 folder. `recording::setFolder` sets it for one run only (tests). The page can also open a folder chooser and show the folder in the
 file manager.
 
@@ -95,12 +95,13 @@ host provides (`developers/modules/module-abi.md`, section 5b). In a wasm build,
 whose calls become these imports; on the host, `WasmModule` answers them with the same disk service.
 
 ```
-bleep_record_open(spec, specLength, sampleRate, format) → handle    spec: JSON {"name", "tracks": [{"name", "channels"}]}; format 0 = 16-bit, 1 = 24-bit, 2 = 32-bit float
+bleep_record_open(spec, specLength, sampleRate, format) → handle    spec: JSON {"name", "folder"?, "tracks": [{"name", "channels"}]}; format 0 = 16-bit, 1 = 24-bit, 2 = 32-bit float
 bleep_record_take(handle, begin) → ok
 bleep_record_write(handle, track, left, right, frames) → ok
 bleep_record_status(handle, frames*, take*) → flags
 bleep_record_text(handle, what, dst, capacity) → length             what: 0 folder, 1 message, 2 this session's folder
 bleep_record_free() → bytes
+bleep_record_room(folder, folderLength) → bytes                     the same for a module's own folder
 bleep_record_close(handle)
 ```
 
@@ -148,7 +149,7 @@ behind marks the session failed instead of blocking `write()`; no tracks and too
 reason; `freeBytes()` is positive.
 
 `tests/audio_console_record_test.cpp` drives the real Audio Console against the service with the audio on its own
-thread. `tests/wasm_record_test.cpp` checks every argument of the seven imports with a hand-assembled module, and
+thread. `tests/wasm_record_test.cpp` checks every argument of the eight imports with a hand-assembled module, and
 `web/test/web-recorder-test.mjs` (node) covers the browser side: the budget and the memory it reports, chunks across a boundary,
 takes, a session that runs out of budget keeping what it has, an instance destroyed with a session open, a zip that `unzip -t`
 accepts with WAV files holding the samples that were written, and the real Audio Console `.wasm` recording through

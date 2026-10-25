@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // The bleep_record_* imports of the wasm host (developers/modules/module-abi.md, section 5b): a hand-assembled module calls all seven
-// in a row; a fake handler checks every argument and result as they cross, and the real DiskRecorder writes the files.
+// in a row (a second one calls bleep_record_room); a fake handler checks every argument and result as they cross, and the real DiskRecorder writes the files.
 // The module (scripts to rebuild it: the bytes below were made with a 60-line assembler; node's WebAssembly.validate accepts it):
 //   go() { h = open(spec, 86, 48000.0, 1); take(h, 1); write(h, 0, 256, 512, 4); write(h, 1, 256, 512, 4); take(h, 0);
 //          mem[1100] = status(h, 1024, 1032); mem[1104] = text(h, 1, 2048, 100); mem[1112] = free();
@@ -70,6 +70,16 @@ static const uint8_t kModule[] = {
     0x99, 0x99, 0xbe, 0xcd, 0xcc, 0xcc, 0xbe,
 };
 
+// go() { mem[16] = bleep_record_room(0, 6); return 0; }, with "/tmp/x" at 0.
+static const uint8_t kRoomModule[] = {
+    0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x0b, 0x02, 0x60, 0x02, 0x7f, 0x7f, 0x01, 0x7c, 0x60, 0x00, 0x01, 0x7f,
+    0x02, 0x19, 0x01, 0x03, 0x65, 0x6e, 0x76, 0x11, 'b', 'l', 'e', 'e', 'p', '_', 'r', 'e', 'c', 'o', 'r', 'd', '_', 'r', 'o', 'o', 'm', 0x00, 0x00,
+    0x03, 0x02, 0x01, 0x01, 0x05, 0x03, 0x01, 0x00, 0x01,
+    0x07, 0x0f, 0x02, 0x06, 'm', 'e', 'm', 'o', 'r', 'y', 0x02, 0x00, 0x02, 'g', 'o', 0x00, 0x01,
+    0x0a, 0x11, 0x01, 0x0f, 0x00, 0x41, 0x10, 0x41, 0x00, 0x41, 0x06, 0x10, 0x00, 0x39, 0x03, 0x00, 0x41, 0x00, 0x0b,
+    0x0b, 0x0c, 0x01, 0x00, 0x41, 0x00, 0x0b, 0x06, '/', 't', 'm', 'p', '/', 'x',
+};
+
 struct Fake final : wasm::RecordHandler {
     std::string spec;
     double rate = 0;
@@ -86,7 +96,8 @@ struct Fake final : wasm::RecordHandler {
     }
     int32_t status(int32_t h, int64_t& frames, int32_t& take) override { if (h != 5) return 0; frames = 4; take = 1; return 3; }
     std::string text(int32_t h, int32_t what) override { return what == 1 && h == 5 ? "disk is slow" : what == 0 ? "/tmp/Recordings" : ""; }
-    double freeBytes() override { return 1234.5; }
+    std::string roomFolder = "unset";
+    double freeBytes(const std::string& folder) override { roomFolder = folder; return folder.empty() ? 1234.5 : 99.0; }
     void close(int32_t h) override { if (h == 5) ++closed; }
 };
 
@@ -126,6 +137,21 @@ static void marshalling() {
     CHECK(at<int32_t>(*inst, 1104) == 12 && std::memcmp(inst->memory() + 2048, "disk is slow", 12) == 0, "message text");
     CHECK(at<double>(*inst, 1112) == 1234.5, "free %f", at<double>(*inst, 1112));
     CHECK(at<int32_t>(*inst, 1120) == 10 && std::memcmp(inst->memory() + 3000, "/tmp/Recor", 10) == 0, "folder text is cut to the capacity");
+}
+
+static void roomOfAFolder() {
+    std::printf("bleep_record_room hands the module's folder to the host and returns the room there\n");
+    std::string error;
+    auto compiled = wasm::Compiled::compile(kRoomModule, sizeof kRoomModule, error);
+    CHECK(compiled != nullptr, "compile: %s", error.c_str());
+    if (!compiled) return;
+    auto inst = wasm::Instance::create(compiled, error);
+    CHECK(inst != nullptr, "instantiate: %s", error.c_str());
+    if (!inst) return;
+    Fake fake;
+    inst->setRecorder(&fake);
+    inst->call(inst->find("go"));
+    CHECK(fake.roomFolder == "/tmp/x" && at<double>(*inst, 16) == 99.0, "room: '%s' %f", fake.roomFolder.c_str(), at<double>(*inst, 16));
 }
 
 static void noRecorder() {
@@ -173,6 +199,7 @@ static void realFiles() {
 
 int main() {
     marshalling();
+    roomOfAFolder();
     noRecorder();
     realFiles();
     std::printf("wasm record: %d failures\n", failures);

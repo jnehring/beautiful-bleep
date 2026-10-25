@@ -52,6 +52,8 @@
           removeCable,
           command: (cmd, value) => native("command", id, cmd, value),
           isPatched: (jack) => s.board.cables.some((c) => c.to.node === id && c.to.jack === jack),
+          // A folder chooser (app and plugins): the full path chosen, or "" when cancelled. Bleep Play has no dialog (the Audio Console hides its folder there).
+          chooseFolder: async (start) => { try { return (await native("chooseFolder", start)) || ""; } catch (e) { return ""; } },
           importMedia: (name, base64) => native("importMedia", name, base64),
           exportMedia: (slot) => native("exportMedia", id, slot),
           revealMedia: (mediaId) => native("revealMedia", mediaId),

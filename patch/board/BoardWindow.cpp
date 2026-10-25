@@ -181,6 +181,11 @@ public:
                     engine_.setData(a[0].toString(), a[1]);
                     done({});
                 }))
+                .withNativeFunction("chooseFolder", gated([](const juce::Array<juce::var>& a, Completion done) {
+                    // a[0]: the folder to start in. The answer is the chosen full path, or "" when the dialog was cancelled.
+                    chooseFolder(a.isEmpty() ? std::string() : a[0].toString().toStdString(),
+                                 [done = std::move(done)](std::string path) { done(juce::String::fromUTF8(path.c_str())); });
+                }))
                 .withNativeFunction("command", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     engine_.command(a[0].toString(), a[1].toString(), (float)a[2]);
                     done({});
@@ -583,6 +588,12 @@ public:
         if (!window_) window_ = std::make_unique<BoardWindow>(engine_);
         window_->setVisible(true);
         window_->toFront(true);
+        // Opening a plugin window calls this from the editor's constructor, before the host has shown the editor:
+        // the editor then lands in front of the board. Raise the board again once the editor is up.
+        juce::Component::SafePointer<BoardWindow> safe(window_.get());
+        juce::Timer::callAfterDelay(200, [safe] {
+            if (safe != nullptr && safe->isVisible()) safe->toFront(false);
+        });
         if (focusNodeId.isNotEmpty()) window_->view().focus(focusNodeId);
     }
     bool isShowing() const override { return window_ && window_->isVisible(); }

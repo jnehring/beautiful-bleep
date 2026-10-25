@@ -100,16 +100,16 @@ media folder:
 - A full disk, a missing permission or a writer that falls behind ends the take and sets a message. What was
   written stays valid.
 
-The folder is chosen in **Settings → Recordings** (the app and the plugins): a full path that Bleep can write to, or the default.
+The default folder is chosen in **Settings → Recordings** (the app and the plugins): a full path that Bleep can write to, or the default.
 `recording::saveFolder(path, &error)` checks it (by making the folder and writing a file) and keeps it in `recordings.json` in the data
 folder the library's settings use, which the app and every plugin share (`BLEEP_DATA_DIR` moves it); `recording::setFolder` changes it
-for one run only. A session keeps the folder it started in.
+for one run only. A module can pass a folder of its own when it opens a session (the Audio Console's folder field); it is checked the same way, and an empty one means the folder from Settings. A session keeps the folder it started in.
 
 ## Reaching the service from a wasm module
 
 Shipped modules are WebAssembly files and cannot call the C++ service. In a wasm build the same `recording::service()`
-is a small client whose calls become **seven imports** the host provides (`bleep_record_open`, `bleep_record_take`,
-`bleep_record_write`, `bleep_record_status`, `bleep_record_text`, `bleep_record_free`, `bleep_record_close`). They
+is a small client whose calls become **eight imports** the host provides (`bleep_record_open`, `bleep_record_take`,
+`bleep_record_write`, `bleep_record_status`, `bleep_record_text`, `bleep_record_free`, `bleep_record_room`, `bleep_record_close`). They
 are specified in the [Module ABI](module-abi.md), section 5b. They only hand audio to the host and read its
 status back: there is no way to name a path or read a file through them, so the sandbox is as tight as before.
 

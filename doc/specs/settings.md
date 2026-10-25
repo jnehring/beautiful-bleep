@@ -75,7 +75,7 @@ Settings live where the thing they control lives. A setting is never offered in 
 
 ### 4.7 App and plugin: Recordings
 
-Where the recorder service writes (`doc/specs/recorder-service.md`, section 3): the **Recordings folder**. A text field with the full path
+Where the recorder service writes (`doc/specs/recorder-service.md`, section 3): the default **Recordings folder** (a module can choose its own; the Audio Console has a folder field in its Record panel). A text field with the full path
 (applied when it is left), **Choose…** (a folder chooser: `juce::FileChooser`, launched on the message thread; the page sees the result at its
 next refresh, 1.5 s), **Show in the file manager**, **Use the default folder** (shown when the folder is not the default), the free space of
 that disk and the reason when a choice was refused. A path is refused when it is not a full path, cannot be made or cannot be written to,

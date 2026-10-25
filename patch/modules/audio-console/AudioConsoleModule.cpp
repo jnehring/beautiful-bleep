@@ -82,6 +82,8 @@ std::string sanitiseData(const std::string& json) {
         shown->setProperty(key, v.isVoid() ? 1 : ((int)v != 0 ? 1 : 0));
     }
     out->setProperty("view", juce::var(shown));
+    // Where this console records: a full path, or nothing for the folder chosen in Settings.
+    out->setProperty("folder", in.isObject() && in["folder"].isString() ? in["folder"].toString().trim().substring(0, 1024) : juce::String());
     return juce::JSON::toString(result, true).toStdString();
 }
 
@@ -123,6 +125,7 @@ public:
         names_.clear();
         if (const auto* a = v.isObject() ? v["names"].getArray() : nullptr)
             for (const auto& s : *a) names_.push_back(s.toString().toStdString());
+        folder_ = v.isObject() && v["folder"].isString() ? v["folder"].toString().toStdString() : std::string();
     }
 
     // ---- the view -------------------------------------------------------------------------------------------------------
@@ -158,7 +161,7 @@ public:
     void liveText(std::vector<std::pair<std::string, std::string>>& out) const override {
         reap();
         const recording::Service* svc = recording::service();
-        out.push_back({"recFolder", svc ? svc->where() : std::string()});
+        out.push_back({"recFolder", svc ? svc->where(folder_) : std::string()});
         std::string message = openError_;
         if (session_ && !session_->closing.load()) {
             const recording::Status st = session_->session->status();
@@ -350,7 +353,7 @@ private:
         }
         box->bytesPerSecond = bytes;
         std::string error;
-        box->session = svc->open("Audio Console", specs, sampleRate_, format(), &error);
+        box->session = svc->open("Audio Console", specs, sampleRate_, format(), &error, folder_);
         if (!box->session) {
             openError_ = error.empty() ? "Recording could not start." : error;
             return;
@@ -383,6 +386,7 @@ private:
     mutable std::chrono::steady_clock::time_point closeAt_;
     std::string openError_;                // message thread
     std::vector<std::string> names_;       // message thread
+    std::string folder_;                   // message thread: where this console records; empty = the Settings folder
     bool takeOpen_ = false;                // audio thread
     float tapL_[kConsoleChannels][kChunk] = {}, tapR_[kConsoleChannels][kChunk] = {};
     float auxTapL_[kConsoleAux][kChunk] = {}, auxTapR_[kConsoleAux][kChunk] = {};

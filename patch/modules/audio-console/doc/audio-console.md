@@ -62,8 +62,8 @@ compact. A hidden section keeps working; only the view changes, and the choice i
 See [Recording](/docs/musicians/use/recording/) for the steps. In short:
 
 - Arm channels, aux buses (they record their send bus) and the master, then press **Record**.
-- Each armed track is its own file in the Recordings folder (`~/Music/Beautiful Bleep/Recordings` on a Mac; change it in
-  Settings → Recordings), in a
+- Each armed track is its own file in the Recordings folder (`~/Music/Beautiful Bleep/Recordings` on a Mac; change the default in
+  Settings → Recordings, or give this console its own folder in the field of the Record panel), in a
   folder named after the time you started.
 - **Start and Stop:** *Manual* is one take from Record to Stop, however often the transport starts and stops;
   *Follow Transport* makes one take for every play-to-stop.

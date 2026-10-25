@@ -315,6 +315,7 @@
       ".ac-title{font-size:12px;font-weight:600;color:var(--text)}.ac-sub{font-size:10px;color:var(--muted);text-transform:uppercase}" +
       ".ac-name{width:96px;box-sizing:border-box;text-align:center;font-size:12px;font-weight:600;color:var(--text);background:transparent;" +
       "border:1px solid transparent;border-radius:4px;padding:1px 2px}" +
+      ".ac-folder{width:100%;max-width:340px;box-sizing:border-box;font-size:11px;color:var(--text);background:var(--panel-3);border:1px solid var(--line);border-radius:4px;padding:3px 6px}" +
       ".ac-name:hover,.ac-name:focus{border-color:var(--line);background:var(--panel-3)}" +
       ".ac-sec{width:100%;display:flex;flex-wrap:wrap;gap:2px 2px;justify-content:center;border-top:1px solid var(--line);padding-top:5px}" +
       ".ac-sec.body{flex-direction:column;align-items:center}" +
@@ -402,7 +403,26 @@
       bar.append(barFill);
       const where = el("div", "ac-small"), msg = el("div", "ac-small ac-warn");
       const list = el("div", "ac-list");  // recordings the browser holds, to download (Bleep Play)
-      c2.append(leftLabel, left, bar, where, msg, list);
+      // Where this console records: empty uses the folder chosen in Settings (shown as the hint). Not in the browser, which keeps recordings in memory.
+      const folder = el("input", "ac-folder");
+      folder.type = "text";
+      folder.spellcheck = false;
+      folder.title = "The folder this console records to: a full path. Leave it empty to use the Recordings folder from Settings.";
+      folder.addEventListener("change", () => {
+        const d = Object.assign({}, nodeData());
+        d.folder = folder.value.trim();
+        saveData(d);
+      });
+      const folderRow = el("div", "ac-row");
+      const choose = el("button", "ac-btn", "Choose…");
+      choose.title = "Pick the folder this console records to";
+      choose.addEventListener("click", async () => {
+        const picked = await view.api.chooseFolder(nodeData().folder || folder.placeholder || "");
+        if (picked) { folder.value = picked; folder.dispatchEvent(new Event("change")); }
+      });
+      choose.style.display = view.api.chooseFolder ? "" : "none";
+      folderRow.append(folder, choose);
+      c2.append(leftLabel, left, bar, folderRow, where, msg, list);
       const viewGroup = el("div", "ac-col");
       viewGroup.append(el("div", "ac-gl", "View"));
       const chips = el("div", "ac-row");
@@ -495,6 +515,9 @@
         const held = view.api.recordings ? view.api.recordings() : null;   // an array in the browser, where recordings are kept in memory
         const web = held !== null && held !== undefined;
         if (web) showList(held);
+        folderRow.style.display = web ? "none" : "";
+        if (document.activeElement !== folder) folder.value = nodeData().folder || "";
+        folder.placeholder = nodeData().folder ? "" : (st.recFolder || "Folder, or empty for the Settings folder");
         recBtn.textContent = state === 0 ? "Record" : "Stop";
         recBtn.classList.toggle("on", state === 2);
         recBtn.classList.toggle("live", state === 1);

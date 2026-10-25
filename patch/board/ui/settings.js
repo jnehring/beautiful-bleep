@@ -137,8 +137,8 @@
   function renderRecordings() {
     const r = state.recordings;
     if (!r) { body.appendChild(el("div", "st-empty", "This build has no recorder.")); return; }
-    body.appendChild(el("h3", "", "Recordings folder"));
-    body.appendChild(el("div", "st-note", "Where the Audio Console and other recording modules save their files. Each recording gets a folder of its own, named after the time it started, so nothing is overwritten."));
+    body.appendChild(el("h3", "", "Default recordings folder"));
+    body.appendChild(el("div", "st-note", "The default folder for the Audio Console and other recording modules. A module can record to a folder of its own, set in the module. Each recording gets a folder of its own, named after the time it started, so nothing is overwritten."));
     const field = el("input");
     field.type = "text";
     field.value = r.folder;

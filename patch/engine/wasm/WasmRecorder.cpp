@@ -22,6 +22,7 @@ int32_t DiskRecorder::open(const std::string& specJson, double sampleRate, int32
             s.channels = (int)t["channels"];
             tracks.push_back(std::move(s));
         }
+    const std::string folder = v["folder"].toString().toStdString();
     int slot = -1;
     for (int i = 0; i < kSessions && slot < 0; ++i)
         if (!sessions_[i]) slot = i;
@@ -31,7 +32,7 @@ int32_t DiskRecorder::open(const std::string& specJson, double sampleRate, int32
     }
     const auto fmt = format == 0 ? recording::Format::Pcm16 : format == 1 ? recording::Format::Pcm24 : recording::Format::Float32;
     std::string error;
-    auto session = svc->open(v["name"].toString().toStdString(), tracks, sampleRate, fmt, &error);
+    auto session = svc->open(v["name"].toString().toStdString(), tracks, sampleRate, fmt, &error, folder);
     if (!session) {
         message_ = error.empty() ? "Recording could not start." : error;
         return -1;
@@ -67,9 +68,9 @@ std::string DiskRecorder::text(int32_t handle, int32_t what) {
     return s ? s->status().folder : std::string();
 }
 
-double DiskRecorder::freeBytes() {
+double DiskRecorder::freeBytes(const std::string& folder) {
     recording::ensureDiskService();
-    return recording::service() ? recording::service()->freeBytes() : 0.0;
+    return recording::service() ? recording::service()->freeBytes(folder) : 0.0;
 }
 
 void DiskRecorder::close(int32_t handle) {

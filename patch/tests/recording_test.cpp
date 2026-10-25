@@ -215,6 +215,28 @@ static void settingsChoice() {
     fs::remove_all(chosen.parent_path());
 }
 
+static void moduleFolder() {
+    TEST("a module's own folder wins over the Settings one, and a folder that cannot be used is refused");
+    const fs::path settings = fs::temp_directory_path() / "bleep-recording-test-settings";
+    const fs::path own = fs::temp_directory_path() / "bleep-recording-test-own" / "console takes";
+    fs::remove_all(settings);
+    fs::remove_all(own.parent_path());
+    rec::setFolder(settings.string());
+    EXPECT(rec::service()->where(own.string()) == own.string() && rec::service()->where("") == settings.string());
+    auto s = rec::service()->open("Own", {{"A", 1}}, 48000.0, rec::Format::Pcm16, nullptr, own.string());
+    EXPECT(s != nullptr);
+    s->beginTake();
+    writeRamp(*s, 0, 1, 100, 0.2f);
+    s->endTake();
+    s.reset();
+    EXPECT(!sessionDir(own).empty() && !fs::exists(settings));
+    std::string error;
+    EXPECT(rec::service()->open("Bad", {{"A", 1}}, 48000.0, rec::Format::Pcm16, &error, "relative/folder") == nullptr &&
+           error.find("full path") != std::string::npos);
+    rec::setFolder("");
+    fs::remove_all(own.parent_path());
+}
+
 int main() {
     const fs::path dataDir = fs::temp_directory_path() / "bleep-recording-test-data";
     fs::remove_all(dataDir);
@@ -231,6 +253,7 @@ int main() {
     tooSlowFails();
     refusals();
     settingsChoice();
+    moduleFolder();
     fs::remove_all(dataDir);
     return test::finish("recording");
 }

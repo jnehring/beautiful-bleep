@@ -23,6 +23,22 @@ void remember(const std::string& error) {
 
 }  // namespace
 
+void chooseFolder(const std::string& start, std::function<void(std::string)> done) {
+    if (g_choosing.exchange(true)) {
+        done({});
+        return;
+    }
+    juce::File from(juce::String::fromUTF8(start.c_str()));
+    while (from != juce::File() && !from.isDirectory()) from = from.getParentDirectory();
+    g_chooser = std::make_unique<juce::FileChooser>("Choose the folder to record to", from);
+    g_chooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories,
+                           [done = std::move(done)](const juce::FileChooser& c) {
+                               const juce::File chosen = c.getResult();
+                               g_choosing = false;
+                               done(chosen == juce::File() ? std::string() : chosen.getFullPathName().toStdString());
+                           });
+}
+
 juce::var recordingsState() {
     auto* o = new juce::DynamicObject();
     recording::ensureDiskService();

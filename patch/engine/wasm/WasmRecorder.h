@@ -25,7 +25,7 @@ public:
     bool write(int32_t handle, int32_t track, const float* left, const float* right, int32_t frames) override;
     int32_t status(int32_t handle, int64_t& frames, int32_t& take) override;
     std::string text(int32_t handle, int32_t what) override;
-    double freeBytes() override;
+    double freeBytes(const std::string& folder) override;
     void close(int32_t handle) override;
 
 private:

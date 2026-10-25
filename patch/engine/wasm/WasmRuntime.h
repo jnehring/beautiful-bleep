@@ -57,7 +57,8 @@ public:
     virtual int32_t status(int32_t handle, int64_t& frames, int32_t& take) = 0;
     /// 0 = where the files go, 1 = the last message, 2 = the session's folder.
     virtual std::string text(int32_t handle, int32_t what) = 0;
-    virtual double freeBytes() = 0;
+    /// Room for a recording in `folder` (a full path), or in the default folder when it is empty.
+    virtual double freeBytes(const std::string& folder) = 0;
     virtual void close(int32_t handle) = 0;
 };
 

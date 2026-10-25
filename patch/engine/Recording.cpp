@@ -311,10 +311,39 @@ private:
     std::thread writer_;
 };
 
+std::string trimmed(std::string path) {
+    while (!path.empty() && (path.back() == ' ' || path.back() == '\n')) path.pop_back();
+    while (!path.empty() && (path.front() == ' ' || path.front() == '\n')) path.erase(path.begin());
+    return path;
+}
+
+/// A folder to record to: a full path that exists or can be made and that Bleep can write to (checked by writing and removing a
+/// file). On success `out` is the trimmed path; otherwise `error` says why, worded for the page.
+bool usableFolder(const std::string& pathIn, std::string* out, std::string* error) {
+    auto fail = [&](const std::string& why) {
+        if (error) *error = why;
+        return false;
+    };
+    const std::string path = trimmed(pathIn);
+    const fs::path p(path);
+    if (!p.is_absolute()) return fail("Enter the full path of a folder: it starts with / (or with a drive letter on Windows).");
+    std::error_code ec;
+    fs::create_directories(p, ec);
+    if (ec || !fs::is_directory(p, ec)) return fail("That folder does not exist and could not be made: " + (ec ? ec.message() : std::string("it is a file")) + ".");
+    const fs::path probe = p / ".bleep-write-test";
+    {
+        std::ofstream probeOut(probe, std::ios::binary);
+        if (!probeOut || !(probeOut << "x")) return fail("Bleep cannot write to that folder. Choose another one.");
+    }
+    fs::remove(probe, ec);
+    if (out) *out = p.string();
+    return true;
+}
+
 class DiskService final : public Service {
 public:
     std::unique_ptr<Session> open(const std::string& name, const std::vector<TrackSpec>& tracks, double sampleRate, Format format,
-                                  std::string* error) override {
+                                  std::string* error, const std::string& folder) override {
         auto fail = [&](const char* why) -> std::unique_ptr<Session> {
             if (error) *error = why;
             return nullptr;
@@ -324,12 +353,17 @@ public:
         for (const auto& t : tracks)
             if (t.channels < 1 || t.channels > 2) return fail("A track has one or two channels.");
         const std::string title = safeName(name.empty() ? std::string("Recording") : name);
-        const fs::path root = fs::path(recording::folder()) / (stamp() + " " + title);
+        std::string base = recording::folder();
+        if (!trimmed(folder).empty()) {
+            std::string why;
+            if (!usableFolder(folder, &base, &why)) return fail(why.c_str());
+        }
+        const fs::path root = fs::path(base) / (stamp() + " " + title);
         return std::make_unique<DiskSession>(root, tracks, sampleRate, format);
     }
-    double freeBytes() const override {
+    double freeBytes(const std::string& folder) const override {
         std::error_code ec;
-        fs::path p = recording::folder();
+        fs::path p = baseOf(folder);
         while (!p.empty() && !fs::exists(p, ec)) {
             const fs::path up = p.parent_path();
             if (up == p) break;
@@ -338,7 +372,14 @@ public:
         const auto info = fs::space(p, ec);
         return ec ? 0.0 : std::max(0.0, (double)info.available - kReserveBytes);
     }
-    std::string where() const override { return recording::folder(); }
+    std::string where(const std::string& folder) const override { return baseOf(folder); }
+
+private:
+    /// The module's folder when it has one that is a full path, else the Settings one.
+    static std::string baseOf(const std::string& folder) {
+        const std::string t = trimmed(folder);
+        return !t.empty() && fs::path(t).is_absolute() ? t : recording::folder();
+    }
 };
 
 }  // namespace
@@ -422,33 +463,22 @@ void reloadSettings() {
 }
 
 bool saveFolder(const std::string& pathIn, std::string* error) {
-    auto fail = [&](const std::string& why) {
-        if (error) *error = why;
-        return false;
-    };
-    std::string path = pathIn;
-    while (!path.empty() && (path.back() == ' ' || path.back() == '\n')) path.pop_back();
-    while (!path.empty() && (path.front() == ' ' || path.front() == '\n')) path.erase(path.begin());
     std::error_code ec;
+    const std::string path = trimmed(pathIn);
     if (path.empty()) {
         setFolder({});
         fs::remove(settingsFile(), ec);
         return true;
     }
-    const fs::path p(path);
-    if (!p.is_absolute()) return fail("Enter the full path of a folder: it starts with / (or with a drive letter on Windows).");
-    fs::create_directories(p, ec);
-    if (ec || !fs::is_directory(p, ec)) return fail("That folder does not exist and could not be made: " + (ec ? ec.message() : std::string("it is a file")) + ".");
-    const fs::path probe = p / ".bleep-write-test";
-    {
-        std::ofstream out(probe, std::ios::binary);
-        if (!out || !(out << "x")) return fail("Bleep cannot write to that folder. Choose another one.");
-    }
-    fs::remove(probe, ec);
-    setFolder(p.string());
+    std::string usable;
+    if (!usableFolder(path, &usable, error)) return false;
+    setFolder(usable);
     fs::create_directories(dataDir(), ec);
     std::ofstream out(settingsFile(), std::ios::binary);
-    if (!out || !(out << jsonOfFolder(p.string()))) return fail("The folder is used now, but the choice could not be saved: it will be forgotten at the next start.");
+    if (!out || !(out << jsonOfFolder(usable))) {
+        if (error) *error = "The folder is used now, but the choice could not be saved: it will be forgotten at the next start.";
+        return false;
+    }
     return true;
 }
 
@@ -485,6 +515,8 @@ __attribute__((import_module("env"), import_name("bleep_record_text")))
 int32_t bleep_record_text(int32_t handle, int32_t what, char* dst, int32_t capacity);
 __attribute__((import_module("env"), import_name("bleep_record_free")))
 double bleep_record_free();
+__attribute__((import_module("env"), import_name("bleep_record_room")))
+double bleep_record_room(const char* folder, int32_t length);
 __attribute__((import_module("env"), import_name("bleep_record_close")))
 void bleep_record_close(int32_t handle);
 }
@@ -543,8 +575,8 @@ private:
 class WasmService final : public Service {
 public:
     std::unique_ptr<Session> open(const std::string& name, const std::vector<TrackSpec>& tracks, double sampleRate, Format format,
-                                  std::string* error) override {
-        std::string spec = "{\"name\":" + jsonString(name) + ",\"tracks\":[";
+                                  std::string* error, const std::string& folder) override {
+        std::string spec = "{\"name\":" + jsonString(name) + (folder.empty() ? std::string() : ",\"folder\":" + jsonString(folder)) + ",\"tracks\":[";
         std::vector<int> channels;
         for (size_t i = 0; i < tracks.size(); ++i) {
             spec += (i ? "," : "") + std::string("{\"name\":") + jsonString(tracks[i].name) + ",\"channels\":" + std::to_string(tracks[i].channels) + "}";
@@ -559,8 +591,10 @@ public:
         }
         return std::make_unique<WasmSession>(h, std::move(channels));
     }
-    double freeBytes() const override { return bleep_record_free(); }
-    std::string where() const override { return hostText(0, 0); }
+    double freeBytes(const std::string& folder) const override {
+        return folder.empty() ? bleep_record_free() : bleep_record_room(folder.data(), (int32_t)folder.size());
+    }
+    std::string where(const std::string& folder) const override { return folder.empty() ? hostText(0, 0) : folder; }
 };
 
 }  // namespace

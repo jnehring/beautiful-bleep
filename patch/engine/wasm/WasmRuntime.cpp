@@ -77,7 +77,7 @@ std::string trapText(wasm_trap_t* trap) {
 // ---- the imports a module may have (module-abi.md section 2), as stubs (section 8) ---------------------
 
 enum class Stub { Nop, FdWrite, FdClose, FdSeek, FdRead, FdFdstatGet, SizesGet, Zero, ClockTimeGet, ProcExit, MediaInfo, MediaRead,
-                  RecOpen, RecTake, RecWrite, RecStatus, RecText, RecFree, RecClose };
+                  RecOpen, RecTake, RecWrite, RecStatus, RecText, RecFree, RecClose, RecRoom };
 
 const std::pair<const char*, const char*> kNames[] = {
     {"env", "emscripten_notify_memory_growth"}, {"wasi_snapshot_preview1", "fd_close"}, {"wasi_snapshot_preview1", "fd_read"},
@@ -86,11 +86,11 @@ const std::pair<const char*, const char*> kNames[] = {
     {"wasi_snapshot_preview1", "args_sizes_get"}, {"wasi_snapshot_preview1", "clock_time_get"}, {"wasi_snapshot_preview1", "proc_exit"},
     {"env", "bleep_media_info"}, {"env", "bleep_media_read"}, {"env", "bleep_record_open"}, {"env", "bleep_record_take"},
     {"env", "bleep_record_write"}, {"env", "bleep_record_status"}, {"env", "bleep_record_text"}, {"env", "bleep_record_free"},
-    {"env", "bleep_record_close"}};
+    {"env", "bleep_record_close"}, {"env", "bleep_record_room"}};
 const Stub kStubs[] = {Stub::Nop, Stub::FdClose, Stub::FdRead, Stub::FdSeek, Stub::FdWrite, Stub::FdFdstatGet,
                        Stub::Zero, Stub::SizesGet, Stub::Zero, Stub::SizesGet, Stub::ClockTimeGet, Stub::ProcExit,
                        Stub::MediaInfo, Stub::MediaRead, Stub::RecOpen, Stub::RecTake, Stub::RecWrite, Stub::RecStatus, Stub::RecText,
-                       Stub::RecFree, Stub::RecClose};
+                       Stub::RecFree, Stub::RecClose, Stub::RecRoom};
 
 bool stubFor(const std::string& mod, const std::string& name, Stub& out) {
     for (size_t i = 0; i < std::size(kNames); ++i)
@@ -226,7 +226,17 @@ wasm_trap_t* stubCall(void* env, wasmtime_caller_t* caller, const wasmtime_val_t
             if (nresults == 1) {
                 RecordHandler* rec = recorderOf(caller);
                 results[0].kind = WASMTIME_F64;
-                results[0].of.f64 = rec ? rec->freeBytes() : 0.0;
+                results[0].of.f64 = rec ? rec->freeBytes({}) : 0.0;
+                return nullptr;
+            }
+            break;
+        case Stub::RecRoom:  // (folder ptr, folder length) → f64 bytes: the room in the module's own folder
+            if (nargs == 2 && nresults == 1 && (mem = callerMemory(caller, &size))) {
+                const uint32_t at = (uint32_t)args[0].of.i32, len = (uint32_t)args[1].of.i32;
+                RecordHandler* rec = recorderOf(caller);
+                results[0].kind = WASMTIME_F64;
+                results[0].of.f64 = rec && len <= kMaxRecordText && (size_t)at + len <= size
+                                        ? rec->freeBytes(std::string(reinterpret_cast<const char*>(mem + at), len)) : 0.0;
                 return nullptr;
             }
             break;

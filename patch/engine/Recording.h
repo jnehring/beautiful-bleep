@@ -68,14 +68,16 @@ public:
     virtual ~Service() = default;
 
     /// [message thread] A new session. Files are made when the first take begins, not here. Null with `error`
-    /// set when the service cannot record (no folder, too many tracks).
+    /// set when the service cannot record (no folder, too many tracks). `folder` is the module's own Recordings folder
+    /// (a full path); empty means the one chosen in Settings. A disk service refuses a folder it cannot write to.
     virtual std::unique_ptr<Session> open(const std::string& name, const std::vector<TrackSpec>& tracks, double sampleRate,
-                                          Format format, std::string* error) = 0;
+                                          Format format, std::string* error, const std::string& folder = {}) = 0;
     /// [any thread] How many bytes the service can still take (free disk space minus a reserve; the browser: what is left
     /// of its memory budget). For the "time left" display: bytes per second is tracks x channels x rate x bytes per sample.
-    virtual double freeBytes() const = 0;
-    /// [any thread] Where files go, for the view ("Recordings folder: ...").
-    virtual std::string where() const = 0;
+    /// `folder`: the module's own folder, as for open(); empty means the Settings one.
+    virtual double freeBytes(const std::string& folder = {}) const = 0;
+    /// [any thread] Where files go, for the view ("Recordings folder: ..."). `folder` as above.
+    virtual std::string where(const std::string& folder = {}) const = 0;
 };
 
 #ifdef __wasm__

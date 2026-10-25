@@ -127,7 +127,7 @@ function recordImports(getMemory, bound) {
   if (!bound) {
     return {
       bleep_record_open: () => 0, bleep_record_take: () => 0, bleep_record_write: () => 0, bleep_record_status: () => 0,
-      bleep_record_text: () => 0, bleep_record_free: () => 0, bleep_record_close: () => {},
+      bleep_record_text: () => 0, bleep_record_free: () => 0, bleep_record_room: () => 0, bleep_record_close: () => {},
     };
   }
   const MAX_FRAMES = 16384;
@@ -160,6 +160,7 @@ function recordImports(getMemory, bound) {
       return n;
     },
     bleep_record_free: () => bound.free,
+    bleep_record_room: () => bound.free,   // the browser has one memory budget, whatever folder a module names
     bleep_record_close: (handle) => bound.close(handle),
   };
 }
