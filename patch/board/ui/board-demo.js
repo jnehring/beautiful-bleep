@@ -18,7 +18,11 @@
     types = baseTypes;
     // [bridge] Remote Audio and Remote MIDI come with the web link (patch/web/js/bridge-types.js), not with the engine's list.
     // Released modules the list above does not know yet, and the user's own: their node types come from the packages' spec.json.
-    if (window.BleepWeb && BleepWeb.libraryTypes) types = types.concat(await BleepWeb.libraryTypes(types));
+    if (window.BleepWeb && BleepWeb.libraryTypes) {
+      const found = await BleepWeb.libraryTypes(types);
+      const byType = new Map(types.concat(found).map((t) => [t.type, t]));   // a module's own description replaces the list's (the same position)
+      types = [...byType.values()];
+    }
     // the views of the user's own modules, the built-in ones, and the library's that bring a picture or a help page
     if (priv.BleepCode) priv.BleepCode.registerInstalledViews((window.BleepWeb && BleepWeb.libraryUi) || []);
     if (window.BleepWeb && BleepWeb.remoteTypes) types = types.concat(await BleepWeb.remoteTypes().catch(() => []));

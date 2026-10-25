@@ -209,7 +209,8 @@ std::string describe(const ModuleSpec& s) {
         out += std::string(",\"kind\":\"") + kind + "\"";
         out += ",\"default\":" + num(p.defaultNormalised());
         out += ",\"steps\":" + std::to_string(p.numSteps());
-        out += std::string(",\"modulatable\":") + (p.modulatable ? "true" : "false");
+        out += std::string(",\"modulatable\":") + (p.drivable() ? "true" : "false");   // as BoardTypes.cpp: a knob, or a cableable setting
+        out += std::string(",\"cableable\":") + (p.cableable ? "true" : "false");
         if (!p.choices.empty()) {
             out += ",\"choices\":";
             stringList(out, p.choices);

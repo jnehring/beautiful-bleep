@@ -144,14 +144,16 @@
     }
   }
 
-  /// The node types of released modules that the board's own list (demo-types.json) does not have yet, from the packages' spec.json:
+  /// The node types of released modules that the board's own list (demo-types.json) does not have yet, from the packages' spec.json, and those of a local build:
   /// a module released to the library shows up in the Add-module picker without a new site build. Each package is downloaded and
   /// checked like any other (and kept for when a node needs it); one that fails to load is left out. Never throws.
   async function libraryTypes(known) {
     try {
       const m = await BleepLibrary.manifest();
       const have = new Set(known.map((t) => t.type));
-      const slugs = Object.keys(m.modules).filter((slug) => (m.modules[slug].types || []).some((t) => !have.has(t)));
+      // The modules of a local build (./bleep build modules) describe their own node types in the manifest: those replace the board's list, which can be older.
+      const fromBuild = Object.values(m.modules).filter((x) => x.local && x.spec).flatMap((x) => x.spec);
+      const slugs = Object.keys(m.modules).filter((slug) => !(m.modules[slug].local && m.modules[slug].spec) && (m.modules[slug].types || []).some((t) => !have.has(t)));
       const ui = [];   // library modules that bring their own picture (view.sandbox.js) or help page: { type, spec, view, help, source, version, meta }, for the board's views
       const found = await Promise.all(slugs.map((slug) => fetchModule(slug).then((r) => {
         const specs = (r.spec || []).filter((t) => !have.has(t.type));
@@ -159,7 +161,7 @@
         return specs;
       }, () => [])));
       W.libraryUi = ui;
-      return found.flat();
+      return fromBuild.concat(found.flat());
     } catch (e) {
       return [];
     }

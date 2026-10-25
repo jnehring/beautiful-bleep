@@ -20,7 +20,7 @@ board shows them but cannot run them.
 
 Output:
   <out>/modules/<slug>.wasm
-  <out>/manifest.json   {"modules": {slug: {"file", "bytes", "types": [type ids], "spec", "script": {view, source, help}}},   (spec and script: script modules only)
+  <out>/manifest.json   {"modules": {slug: {"file", "bytes", "types": [type ids], "spec": [node type descriptions], "script": {view, source, help}}},   (script: script modules only)
                          "types":   {type id: slug},
                          "unavailable": {slug: reason}}
 """
@@ -291,10 +291,12 @@ def main():
     node = subprocess.run(["node", "--experimental-wasm-exnref", str(PATCH / "web/test/list-types.mjs"), str(out)], capture_output=True, text=True)
     if node.returncode != 0:
         sys.exit(node.stderr or f"list-types.mjs failed with exit {node.returncode}" + (" (killed: out of memory, give Docker more)" if node.returncode in (-9, 137) else ""))
-    for slug, types in json.loads(node.stdout).items():
+    for slug, specs in json.loads(node.stdout).items():
         if slug not in manifest["modules"]:
             continue  # left over from an earlier, wider build
+        types = [s["type"] for s in specs]
         manifest["modules"][slug]["types"] = types
+        manifest["modules"][slug]["spec"] = specs  # the board lists its node types from the modules it loads, not from a file that can go stale
         for t in types:
             manifest["types"][t] = slug
     manifest["modules"] = dict(sorted(manifest["modules"].items()))
