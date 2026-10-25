@@ -73,6 +73,29 @@
   }
   const shapeAt = (view, beat) => data(view).shapes.find((s) => beat >= s.s - EPS && beat < s.s + s.n - EPS) || null;
 
+  // ---- the playhead --------------------------------------------------------------------------
+  // The engine reports the position about 30 times a second (and the board less often when it is busy). The playhead runs on
+  // its own between reports at the speed seen in the last two, and every report puts it back on the true position.
+  const MAX_AHEAD = 0.25;  // seconds: never run on further than this without a report
+  function noteState(sq, st) {
+    const now = performance.now() / 1000, prev = sq.live;
+    if (!st || !(st.active > 0.5)) { sq.live = null; return; }
+    let rate = prev ? prev.rate : 0;
+    if (prev && now > prev.t + 1e-3) {
+      let dp = st.phase - prev.phase;
+      if (dp < -0.5) dp += 1;  // the loop wrapped between the reports
+      if (dp >= 0 && dp < 0.5) rate = dp / (now - prev.t);  // a jump back (a restart) keeps the old speed
+    }
+    sq.live = { phase: st.phase, t: now, rate };
+  }
+  function playPhase(sq) {
+    const l = sq.live;
+    if (!l) return sq.state ? sq.state.phase : 0;
+    if (l.phase >= 0.9999) return 1;  // a one-shot pass that has ended
+    const p = l.phase + l.rate * Math.min(MAX_AHEAD, performance.now() / 1000 - l.t);
+    return p >= 1 ? p - Math.floor(p) : p;
+  }
+
   // ---- drawing -------------------------------------------------------------------------------
   function draw(view) {
     const sq = view.sq, c = sq.canvas;
@@ -149,7 +172,7 @@
     // The playhead.
     const st = sq.state;
     if (st && st.active > 0.5) {
-      const x = clamp(st.phase, 0, 1) * w;
+      const x = clamp(playPhase(sq), 0, 1) * w;
       g.strokeStyle = text; g.globalAlpha = 0.85; g.lineWidth = 1.4;
       g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); g.globalAlpha = 1;
     }
@@ -282,10 +305,12 @@
       act("Reset shape", "Straight curve", (s) => { s.c = 0; if (s.t === "plat") s.a = s.b = 0.6; });
       attach(view);
       updateInspector(view);
+      BleepView.loop(el, () => { if (sq.live) draw(view); });  // the playhead moves every frame, not only with a report
     },
     onState(st, view) {
       if (!view.sq) return;
       view.sq.state = st;
+      noteState(view.sq, st);
       updateInspector(view);
       draw(view);
     },
