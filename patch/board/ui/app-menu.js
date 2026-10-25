@@ -131,7 +131,7 @@
       { id: "view.keyboard", label: "Screen Keyboard", when: () => !!(window.BleepWeb && window.BleepPlayKeys) },   // Bleep Play: the piano under the board, on or off
     ]],
     ["Library", [
-      { id: "library.open", label: "Open Library…", when: () => !!document.getElementById("library") },
+      { id: "library.open", label: "Open Library…", when: () => !!(document.getElementById("library") || window.BleepWeb) },
       { id: "library.upload", label: "Upload Project to Library…", when: () => !!(document.getElementById("library") && P.BleepAccount && P.BleepAccount.enabled && P.BleepSideMenu) },
     ]],
     ["Help", [
@@ -150,7 +150,10 @@
     "project.download": () => P.BleepProjectBrowser && P.BleepProjectBrowser.download(),
     "edit.copyPatch": () => P.BleepProjectBrowser && P.BleepProjectBrowser.copyPatch(),
     "file.settings": () => P.BleepSettingsView && P.BleepSettingsView.show(),
-    "library.open": () => P.BleepLibraryView && P.BleepLibraryView.show(),
+    "library.open": () => {
+      if (window.BleepWeb) window.open("/library/", "_blank", "noopener");   // the browser board installs its modules itself; the library is the site's page
+      else if (P.BleepLibraryView) P.BleepLibraryView.show();
+    },
     "library.upload": () => P.BleepSideMenu && P.BleepSideMenu.upload(),
     "help.docs": () => showDocs(),
     "help.topics": () => P.BleepHelpView && P.BleepHelpView.show(),
