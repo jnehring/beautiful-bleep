@@ -34,8 +34,12 @@
     return v <= p.min + 0.05 ? "−∞" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(1);
   };
 
+  // Engine state arrives 30 times a second and can predate an edit: for this long after one, the view keeps its own value.
+  const HOLD_MS = 500;
+
   function setValue(view, id, v) {
     v = clamp01(v);
+    view.mixer.edited.set(id, performance.now());  // param id -> time of the last local edit
     view.node.params[id] = v;
     view.api.setParam(id, v);
   }
@@ -243,7 +247,7 @@
     partSizes: [[35, 10]],
     layout: [{ title: "Send bus", params: ["return"] }],
     hideParams: [].concat(
-      ...[1, 2, 3, 4, 5, 6, 7, 8].map((k) => ["level" + k, "pan" + k, "send" + k, "mute" + k, "solo" + k, "sendpoint" + k]),
+      ...[1, 2, 3, 4, 5, 6, 7, 8].map((k) => ["level" + k, "pan" + k, "send" + k, "mute" + k, "solo" + k, "sendpoint" + k, "stereo" + k]),
       ["master", "limiter", "mono", "channels"]),
     template:
       "<style>" +
@@ -295,7 +299,7 @@
       '<div class="am"></div>',
     afterBuild(view, el0) {
       const root = el0.querySelector(".am");
-      const m = (view.mixer = { root, strips: [], last: 0 });
+      const m = (view.mixer = { root, strips: [], last: 0, edited: new Map() });
       const bus = view.root.querySelector(".bv-controls .bv-sec");
       if (bus) {  // the send bus: its four points and the return in one row
         bus.style.flex = "1 1 100%";
@@ -311,16 +315,17 @@
         mute.box.classList.add("mute");
         const solo = button(view, "solo" + k, "S", "Solo");
         const pre = button(view, "sendpoint" + k, "Pre", "Send taken before the fader (Pre) or after it (Post)");
+        const stereo = button(view, "stereo" + k, "Stereo", "Stereo: In L and In R. Off: mono, the In R jack goes away");
         const row = el("div", "am-row");
         row.append(mute.box, solo.box);
         const fad = fader(view, "level" + k, 1);
         const col = el("div", "am-col");
-        col.append(pan.box, send.box, pre.box, row);
+        col.append(stereo.box, pan.box, send.box, pre.box, row);
         const body = el("div", "am-body");
         body.append(fad.box, col);
         strip.append(el("div", "am-name", "" + k), body);
         root.appendChild(strip);
-        m.strips.push({ box: strip, dials: [pan, send], buttons: [mute, solo, pre], fader: fad });
+        m.strips.push({ box: strip, dials: [pan, send], buttons: [mute, solo, pre, stereo], fader: fad });
       }
       const ms = el("div", "am-strip am-master");
       const lim = button(view, "limiter", "Limiter", "Peak limiter at −0.3 dBFS");
@@ -344,7 +349,12 @@
       inc.addEventListener("click", () => step(1));
       chs.append(dec, count, inc);
       const mcol = el("div", "am-col");
-      mcol.append(el("div", "am-cap", "Channels"), chs, opts, gr);
+      const chBox = el("div", "am-dial");  // the channel count sits with the send bus
+      chBox.append(el("div", "am-cap", "Channels"), chs);
+      const busBody = bus && bus.querySelector(".bv-sec-body");
+      if (busBody) busBody.appendChild(chBox);
+      else mcol.append(chBox);
+      mcol.append(opts, gr);
       const mbody = el("div", "am-body");
       mbody.append(mf.box, mcol);
       ms.append(el("div", "am-name", "Master"), mbody);
@@ -379,7 +389,8 @@
       }
       if (st.params && !m.down) {
         for (const [id, ps] of Object.entries(st.params))
-          if (/^(level|pan|send|mute|solo|sendpoint)\d$|^(master|limiter|mono|channels)$/.test(id)) view.node.params[id] = ps.v;
+          if (/^(level|pan|send|mute|solo|sendpoint|stereo)\d$|^(master|limiter|mono|channels)$/.test(id) &&
+              performance.now() - (m.edited.get(id) ?? -Infinity) > HOLD_MS) view.node.params[id] = ps.v;
         m.draw();
       }
       const now = performance.now() / 1000, dt = m.last ? Math.min(0.5, now - m.last) : 0;

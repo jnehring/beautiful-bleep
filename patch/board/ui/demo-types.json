@@ -1015,9 +1015,9 @@
         "modulatable": true,
         "cableable": false,
         "choices": [
-          "LP",
-          "BP",
-          "HP",
+          "Low-pass",
+          "Band-pass",
+          "High-pass",
           "Notch"
         ],
         "min": 0.0,
@@ -4046,6 +4046,158 @@
         "def": 4.0,
         "format": "integer",
         "decimals": 2
+      },
+      {
+        "id": "stereo1",
+        "name": "Stereo 1",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 1,
+          "max": 8
+        }
+      },
+      {
+        "id": "stereo2",
+        "name": "Stereo 2",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 2,
+          "max": 8
+        }
+      },
+      {
+        "id": "stereo3",
+        "name": "Stereo 3",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 3,
+          "max": 8
+        }
+      },
+      {
+        "id": "stereo4",
+        "name": "Stereo 4",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 4,
+          "max": 8
+        }
+      },
+      {
+        "id": "stereo5",
+        "name": "Stereo 5",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 5,
+          "max": 8
+        }
+      },
+      {
+        "id": "stereo6",
+        "name": "Stereo 6",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 6,
+          "max": 8
+        }
+      },
+      {
+        "id": "stereo7",
+        "name": "Stereo 7",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 7,
+          "max": 8
+        }
+      },
+      {
+        "id": "stereo8",
+        "name": "Stereo 8",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 8,
+          "max": 8
+        }
       }
     ],
     "inputs": [
@@ -4068,7 +4220,10 @@
         "show": {
           "param": "channels",
           "min": 1,
-          "max": 8
+          "max": 8,
+          "param2": "stereo1",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -4090,7 +4245,10 @@
         "show": {
           "param": "channels",
           "min": 2,
-          "max": 8
+          "max": 8,
+          "param2": "stereo2",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -4112,7 +4270,10 @@
         "show": {
           "param": "channels",
           "min": 3,
-          "max": 8
+          "max": 8,
+          "param2": "stereo3",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -4134,7 +4295,10 @@
         "show": {
           "param": "channels",
           "min": 4,
-          "max": 8
+          "max": 8,
+          "param2": "stereo4",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -4156,7 +4320,10 @@
         "show": {
           "param": "channels",
           "min": 5,
-          "max": 8
+          "max": 8,
+          "param2": "stereo5",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -4178,7 +4345,10 @@
         "show": {
           "param": "channels",
           "min": 6,
-          "max": 8
+          "max": 8,
+          "param2": "stereo6",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -4200,7 +4370,10 @@
         "show": {
           "param": "channels",
           "min": 7,
-          "max": 8
+          "max": 8,
+          "param2": "stereo7",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
@@ -4222,7 +4395,10 @@
         "show": {
           "param": "channels",
           "min": 8,
-          "max": 8
+          "max": 8,
+          "param2": "stereo8",
+          "min2": 1,
+          "max2": 1
         }
       },
       {
