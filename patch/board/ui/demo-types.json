@@ -2974,7 +2974,7 @@
     "name": "Audio Mixer",
     "category": "Audio/Mixing",
     "colour": "#fb7185",
-    "description": "Four stereo channels with level, pan, mute, solo and a send; return, master and limiter.",
+    "description": "One to eight stereo channels (default four) with level, pan, mute, solo and a send; return, master and limiter.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,
@@ -2994,7 +2994,12 @@
         "decimals": 1,
         "label": "dB",
         "map": "skew",
-        "centre": -12.0
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 1,
+          "max": 8
+        }
       },
       {
         "id": "pan1",
@@ -3008,7 +3013,12 @@
         "max": 1.0,
         "def": 0.0,
         "format": "number",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 1,
+          "max": 8
+        }
       },
       {
         "id": "send1",
@@ -3025,7 +3035,12 @@
         "decimals": 1,
         "label": "dB",
         "map": "skew",
-        "centre": -12.0
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 1,
+          "max": 8
+        }
       },
       {
         "id": "level2",
@@ -3042,7 +3057,12 @@
         "decimals": 1,
         "label": "dB",
         "map": "skew",
-        "centre": -12.0
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 2,
+          "max": 8
+        }
       },
       {
         "id": "pan2",
@@ -3056,7 +3076,12 @@
         "max": 1.0,
         "def": 0.0,
         "format": "number",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 2,
+          "max": 8
+        }
       },
       {
         "id": "send2",
@@ -3073,7 +3098,12 @@
         "decimals": 1,
         "label": "dB",
         "map": "skew",
-        "centre": -12.0
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 2,
+          "max": 8
+        }
       },
       {
         "id": "level3",
@@ -3090,7 +3120,12 @@
         "decimals": 1,
         "label": "dB",
         "map": "skew",
-        "centre": -12.0
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 3,
+          "max": 8
+        }
       },
       {
         "id": "pan3",
@@ -3104,7 +3139,12 @@
         "max": 1.0,
         "def": 0.0,
         "format": "number",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 3,
+          "max": 8
+        }
       },
       {
         "id": "send3",
@@ -3121,7 +3161,12 @@
         "decimals": 1,
         "label": "dB",
         "map": "skew",
-        "centre": -12.0
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 3,
+          "max": 8
+        }
       },
       {
         "id": "level4",
@@ -3138,7 +3183,12 @@
         "decimals": 1,
         "label": "dB",
         "map": "skew",
-        "centre": -12.0
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 4,
+          "max": 8
+        }
       },
       {
         "id": "pan4",
@@ -3152,7 +3202,12 @@
         "max": 1.0,
         "def": 0.0,
         "format": "number",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 4,
+          "max": 8
+        }
       },
       {
         "id": "send4",
@@ -3169,7 +3224,264 @@
         "decimals": 1,
         "label": "dB",
         "map": "skew",
-        "centre": -12.0
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 4,
+          "max": 8
+        }
+      },
+      {
+        "id": "level5",
+        "name": "Level 5",
+        "kind": "float",
+        "default": 0.812651991844177,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -60.0,
+        "max": 6.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB",
+        "map": "skew",
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 5,
+          "max": 8
+        }
+      },
+      {
+        "id": "pan5",
+        "name": "Pan 5",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -1.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 5,
+          "max": 8
+        }
+      },
+      {
+        "id": "send5",
+        "name": "Send 5",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -60.0,
+        "max": 6.0,
+        "def": -60.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB",
+        "map": "skew",
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 5,
+          "max": 8
+        }
+      },
+      {
+        "id": "level6",
+        "name": "Level 6",
+        "kind": "float",
+        "default": 0.812651991844177,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -60.0,
+        "max": 6.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB",
+        "map": "skew",
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 6,
+          "max": 8
+        }
+      },
+      {
+        "id": "pan6",
+        "name": "Pan 6",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -1.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 6,
+          "max": 8
+        }
+      },
+      {
+        "id": "send6",
+        "name": "Send 6",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -60.0,
+        "max": 6.0,
+        "def": -60.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB",
+        "map": "skew",
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 6,
+          "max": 8
+        }
+      },
+      {
+        "id": "level7",
+        "name": "Level 7",
+        "kind": "float",
+        "default": 0.812651991844177,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -60.0,
+        "max": 6.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB",
+        "map": "skew",
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 7,
+          "max": 8
+        }
+      },
+      {
+        "id": "pan7",
+        "name": "Pan 7",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -1.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 7,
+          "max": 8
+        }
+      },
+      {
+        "id": "send7",
+        "name": "Send 7",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -60.0,
+        "max": 6.0,
+        "def": -60.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB",
+        "map": "skew",
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 7,
+          "max": 8
+        }
+      },
+      {
+        "id": "level8",
+        "name": "Level 8",
+        "kind": "float",
+        "default": 0.812651991844177,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -60.0,
+        "max": 6.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB",
+        "map": "skew",
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 8,
+          "max": 8
+        }
+      },
+      {
+        "id": "pan8",
+        "name": "Pan 8",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -1.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 8,
+          "max": 8
+        }
+      },
+      {
+        "id": "send8",
+        "name": "Send 8",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -60.0,
+        "max": 6.0,
+        "def": -60.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB",
+        "map": "skew",
+        "centre": -12.0,
+        "show": {
+          "param": "channels",
+          "min": 8,
+          "max": 8
+        }
       },
       {
         "id": "return",
@@ -3217,7 +3529,12 @@
         "max": 1.0,
         "def": 0.0,
         "format": "toggle",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 1,
+          "max": 8
+        }
       },
       {
         "id": "mute2",
@@ -3231,7 +3548,12 @@
         "max": 1.0,
         "def": 0.0,
         "format": "toggle",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 2,
+          "max": 8
+        }
       },
       {
         "id": "mute3",
@@ -3245,7 +3567,12 @@
         "max": 1.0,
         "def": 0.0,
         "format": "toggle",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 3,
+          "max": 8
+        }
       },
       {
         "id": "mute4",
@@ -3259,7 +3586,88 @@
         "max": 1.0,
         "def": 0.0,
         "format": "toggle",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 4,
+          "max": 8
+        }
+      },
+      {
+        "id": "mute5",
+        "name": "Mute 5",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 5,
+          "max": 8
+        }
+      },
+      {
+        "id": "mute6",
+        "name": "Mute 6",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 6,
+          "max": 8
+        }
+      },
+      {
+        "id": "mute7",
+        "name": "Mute 7",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 7,
+          "max": 8
+        }
+      },
+      {
+        "id": "mute8",
+        "name": "Mute 8",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 8,
+          "max": 8
+        }
       },
       {
         "id": "solo1",
@@ -3273,7 +3681,12 @@
         "max": 1.0,
         "def": 0.0,
         "format": "toggle",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 1,
+          "max": 8
+        }
       },
       {
         "id": "solo2",
@@ -3287,7 +3700,12 @@
         "max": 1.0,
         "def": 0.0,
         "format": "toggle",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 2,
+          "max": 8
+        }
       },
       {
         "id": "solo3",
@@ -3301,7 +3719,12 @@
         "max": 1.0,
         "def": 0.0,
         "format": "toggle",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 3,
+          "max": 8
+        }
       },
       {
         "id": "solo4",
@@ -3315,7 +3738,88 @@
         "max": 1.0,
         "def": 0.0,
         "format": "toggle",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 4,
+          "max": 8
+        }
+      },
+      {
+        "id": "solo5",
+        "name": "Solo 5",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 5,
+          "max": 8
+        }
+      },
+      {
+        "id": "solo6",
+        "name": "Solo 6",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 6,
+          "max": 8
+        }
+      },
+      {
+        "id": "solo7",
+        "name": "Solo 7",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 7,
+          "max": 8
+        }
+      },
+      {
+        "id": "solo8",
+        "name": "Solo 8",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 8,
+          "max": 8
+        }
       },
       {
         "id": "sendpoint1",
@@ -3333,7 +3837,12 @@
         "max": 1.0,
         "def": 0.0,
         "format": "choice",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 1,
+          "max": 8
+        }
       },
       {
         "id": "sendpoint2",
@@ -3351,7 +3860,12 @@
         "max": 1.0,
         "def": 0.0,
         "format": "choice",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 2,
+          "max": 8
+        }
       },
       {
         "id": "sendpoint3",
@@ -3369,7 +3883,12 @@
         "max": 1.0,
         "def": 0.0,
         "format": "choice",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 3,
+          "max": 8
+        }
       },
       {
         "id": "sendpoint4",
@@ -3387,7 +3906,104 @@
         "max": 1.0,
         "def": 0.0,
         "format": "choice",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 4,
+          "max": 8
+        }
+      },
+      {
+        "id": "sendpoint5",
+        "name": "Send Point 5",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Post-Fader",
+          "Pre-Fader"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 5,
+          "max": 8
+        }
+      },
+      {
+        "id": "sendpoint6",
+        "name": "Send Point 6",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Post-Fader",
+          "Pre-Fader"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 6,
+          "max": 8
+        }
+      },
+      {
+        "id": "sendpoint7",
+        "name": "Send Point 7",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Post-Fader",
+          "Pre-Fader"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 7,
+          "max": 8
+        }
+      },
+      {
+        "id": "sendpoint8",
+        "name": "Send Point 8",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Post-Fader",
+          "Pre-Fader"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "show": {
+          "param": "channels",
+          "min": 8,
+          "max": 8
+        }
       },
       {
         "id": "limiter",
@@ -3416,6 +4032,20 @@
         "def": 0.0,
         "format": "toggle",
         "decimals": 2
+      },
+      {
+        "id": "channels",
+        "name": "Channels",
+        "kind": "int",
+        "default": 0.428571432828903,
+        "steps": 8,
+        "modulatable": false,
+        "cableable": false,
+        "min": 1.0,
+        "max": 8.0,
+        "def": 4.0,
+        "format": "integer",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -3423,49 +4053,177 @@
         "id": "in1l",
         "name": "In 1 L",
         "type": "audio",
-        "bipolar": true
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 1,
+          "max": 8
+        }
       },
       {
         "id": "in1r",
         "name": "In 1 R",
         "type": "audio",
-        "bipolar": true
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 1,
+          "max": 8
+        }
       },
       {
         "id": "in2l",
         "name": "In 2 L",
         "type": "audio",
-        "bipolar": true
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 2,
+          "max": 8
+        }
       },
       {
         "id": "in2r",
         "name": "In 2 R",
         "type": "audio",
-        "bipolar": true
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 2,
+          "max": 8
+        }
       },
       {
         "id": "in3l",
         "name": "In 3 L",
         "type": "audio",
-        "bipolar": true
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 3,
+          "max": 8
+        }
       },
       {
         "id": "in3r",
         "name": "In 3 R",
         "type": "audio",
-        "bipolar": true
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 3,
+          "max": 8
+        }
       },
       {
         "id": "in4l",
         "name": "In 4 L",
         "type": "audio",
-        "bipolar": true
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 4,
+          "max": 8
+        }
       },
       {
         "id": "in4r",
         "name": "In 4 R",
         "type": "audio",
-        "bipolar": true
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 4,
+          "max": 8
+        }
+      },
+      {
+        "id": "in5l",
+        "name": "In 5 L",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 5,
+          "max": 8
+        }
+      },
+      {
+        "id": "in5r",
+        "name": "In 5 R",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 5,
+          "max": 8
+        }
+      },
+      {
+        "id": "in6l",
+        "name": "In 6 L",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 6,
+          "max": 8
+        }
+      },
+      {
+        "id": "in6r",
+        "name": "In 6 R",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 6,
+          "max": 8
+        }
+      },
+      {
+        "id": "in7l",
+        "name": "In 7 L",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 7,
+          "max": 8
+        }
+      },
+      {
+        "id": "in7r",
+        "name": "In 7 R",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 7,
+          "max": 8
+        }
+      },
+      {
+        "id": "in8l",
+        "name": "In 8 L",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 8,
+          "max": 8
+        }
+      },
+      {
+        "id": "in8r",
+        "name": "In 8 R",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 8,
+          "max": 8
+        }
       },
       {
         "id": "returnl",
@@ -3483,25 +4241,89 @@
         "id": "mute1in",
         "name": "Mute 1",
         "type": "gate",
-        "bipolar": true
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 1,
+          "max": 8
+        }
       },
       {
         "id": "mute2in",
         "name": "Mute 2",
         "type": "gate",
-        "bipolar": true
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 2,
+          "max": 8
+        }
       },
       {
         "id": "mute3in",
         "name": "Mute 3",
         "type": "gate",
-        "bipolar": true
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 3,
+          "max": 8
+        }
       },
       {
         "id": "mute4in",
         "name": "Mute 4",
         "type": "gate",
-        "bipolar": true
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 4,
+          "max": 8
+        }
+      },
+      {
+        "id": "mute5in",
+        "name": "Mute 5",
+        "type": "gate",
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 5,
+          "max": 8
+        }
+      },
+      {
+        "id": "mute6in",
+        "name": "Mute 6",
+        "type": "gate",
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 6,
+          "max": 8
+        }
+      },
+      {
+        "id": "mute7in",
+        "name": "Mute 7",
+        "type": "gate",
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 7,
+          "max": 8
+        }
+      },
+      {
+        "id": "mute8in",
+        "name": "Mute 8",
+        "type": "gate",
+        "bipolar": true,
+        "show": {
+          "param": "channels",
+          "min": 8,
+          "max": 8
+        }
       }
     ],
     "outputs": [

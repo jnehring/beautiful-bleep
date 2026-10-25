@@ -325,7 +325,16 @@ juce::String addNode(juce::var& doc, const ModuleSpec& spec, double x, double y,
     const juce::String id = newId("n");
     o->setProperty("id", id);
     o->setProperty("type", juce::String(spec.type));
-    o->setProperty("name", juce::String(spec.name));
+    // A second node of the same kind is told apart by number ("Audio Out", "Audio Out 2", ...).
+    juce::String name(spec.name);
+    auto taken = [&](const juce::String& candidate) {
+        if (const auto* a = doc["nodes"].getArray())
+            for (const auto& n : *a)
+                if (n["name"].toString() == candidate) return true;
+        return false;
+    };
+    for (int k = 2; taken(name); ++k) name = juce::String(spec.name) + " " + juce::String(k);
+    o->setProperty("name", name);
     o->setProperty("x", x);
     o->setProperty("y", y);
     o->setProperty("parent", juce::String());

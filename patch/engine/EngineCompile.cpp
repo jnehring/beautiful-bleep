@@ -125,6 +125,7 @@ void Engine::reconcile(bool force) {
     if (!hasBoard()) return;
     bool changed = false;
     int inputs = 0, outputs = 0;
+    bool seededNow = false;
     // The standalone app starts an empty board with just In 1/2 and Out 1/2; the other ports (MIDI, Link, more audio
     // channels) are added from the Add menu, and may be deleted again.
     const bool emptyBoard = board_["nodes"].getArray() == nullptr || board_["nodes"].getArray()->isEmpty();
@@ -138,7 +139,7 @@ void Engine::reconcile(bool force) {
             if (const auto* audio = Registry::get().forPort(PortKind::AudioOut))
                 board::addNode(board_, *audio, 760.0, 40.0, juce::String(s->id + kBoardAudioSuffix));
             changed = true;
-            inputs = 1;  // the Macros node goes below the MIDI In
+            seededNow = true;  // the Macros node goes below the MIDI In (whatever its height)
         }
         if (s->kind == PortKind::Patch && (s->handle != mainHandle_ || standalone_)) continue;
         if (s->kind == PortKind::MidiDevice && !s->remote) continue;  // its node comes first; the app follows it
@@ -162,7 +163,7 @@ void Engine::reconcile(bool force) {
                              s->kind == PortKind::MidiOut;
         double x = toTrack ? 760.0 : 40.0;
         double y = 40.0 + 110.0 * (toTrack ? outputs++ : inputs++);
-        if (!emptyBoard) std::tie(x, y) = belowExisting(board_);  // a board with a patch: add below it, never over it
+        if (!emptyBoard || seededNow) std::tie(x, y) = belowExisting(board_);  // a board with a patch: add below it, never over it
         const auto id = board::addNode(board_, *spec, x, y, juce::String(s->id));
         if (auto* n = board::findNode(board_, id); n && s->trackName.size()) {
             n->setProperty("track", juce::String(s->trackName));
