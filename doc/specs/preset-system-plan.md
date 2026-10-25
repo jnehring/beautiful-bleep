@@ -225,7 +225,7 @@ Presets and projects are copies, so they take the audio their modules use along 
 - **Format:** an optional `media` map next to `nodes`: `{ "<16 hex>.wav": { name, data: base64 } }`. Inline in the preset, not a shared
   store: media ids are a 64-bit FNV hash of the file, so a store shared by all authors would let one file shadow another.
 - **Which files:** every string in a node's `data` that looks like a media id (`bleep-media.js` `ids()`); no module needs to declare it.
-- **Saving:** *Save as preset*, *Save to My Projects* and download attach the files (native `readMedia`); a file that cannot be read is left
+- **Saving:** *Save as preset*, *Save to Library* and download attach the files (native `readMedia`); a file that cannot be read is left
   out with a note. **Loading or placing:** the files are imported first (native `importMedia`); importing twice stores one file.
 - **Sharing:** up to 8 files, 5 MB together, WAV only; the API checks header and size (422 / 413). The 512 KB limit is for the patch alone.
 - **Factory presets and projects** carry samples the same way (`p.sample()` in the kit, files in `patch/presets/samples/`, with their provenance); the Instrument and FX plugins import a cell preset's `media` when they load it (`Engine::setCellPreset`).

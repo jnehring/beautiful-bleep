@@ -98,7 +98,7 @@
       null,
       { id: "project.save", label: "Save Project", appKey: cmdKey("S"), app: true },
       { id: "project.saveAs", label: "Save Project As…", appKey: shiftCmd("S"), app: true },
-      { id: "project.saveBrowser", label: "Save to My Projects…", when: has("BleepProjectBrowser"), enabled: () => P.BleepProjectBrowser.canSave() },
+      { id: "project.saveBrowser", label: "Save to Library…", when: has("BleepProjectBrowser"), enabled: () => P.BleepProjectBrowser.canSave() },
       { id: "project.download", label: "Download Project", when: () => !native_ && !!P.BleepProjectBrowser },
       null,
       { id: "library.open", label: "Open Library…", when: () => !!(document.getElementById("library") || window.BleepWeb) },

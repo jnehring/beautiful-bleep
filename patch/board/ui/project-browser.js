@@ -560,7 +560,7 @@
       renderList();
     });
     head.appendChild(searchEl);
-    saveBtn = el("button", "", "Save to My Projects…");
+    saveBtn = el("button", "", "Save to Library…");
     saveBtn.addEventListener("click", showSave);
     if (!host.cells) head.appendChild(saveBtn);
     if (web() && !host.cells) {
@@ -655,7 +655,7 @@
     },
     open,
     close,
-    /// File → Save to My Projects…: opens the browser with its Save row ready.
+    /// File → Save to Library…: opens the browser with its Save row ready.
     async save() { await open(); if (!host.cells) showSave(); },
     /// Download Project and Open from a file: the browser board only.
     download,
