@@ -443,7 +443,7 @@
   /// File → New Patch: an empty board that keeps only the port nodes (Audio In/Out, MIDI) of the current one.
   async function newPatch() {
     const cur = (host.board() || {}).nodes || [];
-    if (cur.some((n) => !n.port) && !window.confirm("Start a new patch? The current board is replaced; Undo brings it back.")) return;
+    // No confirm(): plugin WebViews do not support it and answer "no". Undo brings the old board back.
     const board = { format: 1, id: uuid(), nodes: clone(cur.filter((n) => n.port)), cables: [] };
     host.apply(await native("loadPatch", board, 0, "Untitled"));
     setCurrent({ name: "Untitled", source: "user", preset: board });
