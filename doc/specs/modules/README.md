@@ -90,7 +90,7 @@ The eurorack-inspired set:
 | Clock Div | [clock-divider.md](clock-divider.md) | Implemented |
 | Rotating Div | [rotating-divider.md](rotating-divider.md) | Implemented |
 | Segments | [segments.md](segments.md) | Implemented |
-| Shape Env | [shape-envelope.md](shape-envelope.md) | Implemented |
+| Contour | [shape-envelope.md](shape-envelope.md) | Implemented |
 | Shape Sequencer | [shape-sequencer.md](shape-sequencer.md) | Implemented |
 | Shift Register | [shift-register.md](shift-register.md) | Implemented |
 | Six Slopes | [six-slopes.md](six-slopes.md) | Implemented |

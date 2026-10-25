@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Shape Env: five demo patches. Each plays by itself with the transport.
+// Contour: five demo patches. Each plays by itself with the transport.
 import { patch, steps } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
@@ -11,7 +11,7 @@ function finish(p, at, src, jack = "l", trim = 0, verb = {}) {
 }
 
 function pluckLib() {
-  const p = patch("Shape Env: Pluck Library", {
+  const p = patch("Contour: Pluck Library", {
     module: "shape-env", tempo: 100,
     description: "Every note triggers a one-shot shape from the library, a soft 1:8 pluck, that opens both volume and filter. Try the other plucks, Bounce and Echoes shapes, or move Morph to change its curve.",
     tags: ["one-shot", "pluck", "shape library", "melody"],
@@ -29,7 +29,7 @@ function pluckLib() {
 }
 
 function wobbleBass() {
-  const p = patch("Shape Env: Looping Wobble Bass", {
+  const p = patch("Contour: Looping Wobble Bass", {
     module: "shape-env", tempo: 96,
     description: "In Loop mode the Wobble shape repeats once per beat and swings the cutoff of a held bass, locked to the tempo. Switch Sync to another note length for faster or slower wobble, or try Double wobble and Swing wobble.",
     tags: ["loop", "wobble", "bass", "synced"],
@@ -49,9 +49,9 @@ function wobbleBass() {
 }
 
 function breathing() {
-  const p = patch("Shape Env: Breathing Pad", {
+  const p = patch("Contour: Breathing Pad", {
     module: "shape-env", tempo: 66,
-    description: "A pad is held steady while one looped Shape Env breathes its volume over two bars and a second one slowly sways its filter over four. Choose Heartbeat or Sway shapes, or change Sync, and the whole pad takes on a new pulse.",
+    description: "A pad is held steady while one looped Contour breathes its volume over two bars and a second one slowly sways its filter over four. Choose Heartbeat or Sway shapes, or change Sync, and the whole pad takes on a new pulse.",
     tags: ["pad", "loop", "slow", "ambient"],
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 4, rate: "1/1", root: "D", scale: "Dorian", octave: 0, gatelength: 1 },
@@ -72,7 +72,7 @@ function breathing() {
 }
 
 function stabs() {
-  const p = patch("Shape Env: Drawn Rhythm Gate", {
+  const p = patch("Contour: Drawn Rhythm Gate", {
     module: "shape-env", tempo: 118,
     description: "The rhythm shapes are patterns drawn as amplitude: one looping shape chops a held chord into syncopated stabs, another carves a bass note into a different pattern. Pick any of the x.xx shapes, or change Sync, to make a new groove.",
     tags: ["rhythm shapes", "loop", "chop", "groove"],
@@ -102,7 +102,7 @@ function stabs() {
 }
 
 function reversed() {
-  const p = patch("Shape Env: Reversed Swells", {
+  const p = patch("Contour: Reversed Swells", {
     module: "shape-env", tempo: 84,
     description: "With Reverse on, a plucked shape plays backwards: each note swells up and is cut off at its peak, like a tape played in reverse. Switch Reverse off for normal plucks, or lengthen Time for slower swells.",
     tags: ["reverse", "swell", "backwards", "pluck"],

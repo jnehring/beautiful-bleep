@@ -263,4 +263,4 @@ and accepts only sync values from the list.
 - A *Random* segment type: a seeded random level per pass.
 - Up to 16 segments, and several chains in one module sharing a Gate.
 - Per-segment level inputs as `pitch`, for a looping melody with glide.
-- Drawing a segment's shape freehand (shared table code with *Shape Env*).
+- Drawing a segment's shape freehand (shared table code with *Contour*).

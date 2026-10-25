@@ -49621,7 +49621,7 @@
   },
   {
     "type": "shape-env",
-    "name": "Shape Env",
+    "name": "Contour",
     "category": "Modulation/Envelopes",
     "colour": "#fda4af",
     "description": "Envelope and LFO that plays shapes from a library of 96, plus 8 you draw: one-shot, gated or looped.",

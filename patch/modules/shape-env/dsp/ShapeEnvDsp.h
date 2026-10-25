@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Shape Env core (doc/specs/modules/shape-envelope.md): plays shapes from the
+// Contour core (doc/specs/modules/shape-envelope.md): plays shapes from the
 // shared library (96 factory shapes, dsp/Shapes.h) or 8 user-drawn slots as a
 // one-shot envelope, a gated envelope that holds at the shape's sustain point,
 // or a loop. Morph blends into the next shape, Skew warps time, Reverse reads

@@ -1,10 +1,10 @@
-# Shape Env
+# Contour
 
-![Shape Env in the module view](shape-env.png)
+![Contour in the module view](shape-env.png)
 
 ## Introduction
 
-Shape Env is an **envelope and LFO that plays shapes from a library**
+Contour is an **envelope and LFO that plays shapes from a library**
 instead of building them from stages. There are 96 ready-made shapes
 (percussive decays, plucks, swells, sustained envelopes, bounces, stairs,
 rhythmic gates, classic and unusual LFO waves, organic textures) and 8 slots
@@ -91,21 +91,21 @@ undo step. Drawn shapes are saved with the board.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Shape Env does. In the standalone app open **File → Presets…** (⌘P) and pick *Shape Env* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Contour does. In the standalone app open **File → Presets…** (⌘P) and pick *Contour* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Shape Env: Pluck Library** | Every note triggers a one-shot shape from the library, a soft 1:8 pluck, that opens both volume and filter. Try the other plucks, Bounce and Echoes shapes, or move Morph to change its curve. |
-| **Shape Env: Looping Wobble Bass** | In Loop mode the Wobble shape repeats once per beat and swings the cutoff of a held bass, locked to the tempo. Switch Sync to another note length for faster or slower wobble, or try Double wobble and Swing wobble. |
-| **Shape Env: Breathing Pad** | A pad is held steady while one looped Shape Env breathes its volume over two bars and a second one slowly sways its filter over four. Choose Heartbeat or Sway shapes, or change Sync, and the whole pad takes on a new pulse. |
-| **Shape Env: Drawn Rhythm Gate** | The rhythm shapes are patterns drawn as amplitude: one looping shape chops a held chord into syncopated stabs, another carves a bass note into a different pattern. Pick any of the x.xx shapes, or change Sync, to make a new groove. |
-| **Shape Env: Reversed Swells** | With Reverse on, a plucked shape plays backwards: each note swells up and is cut off at its peak, like a tape played in reverse. Switch Reverse off for normal plucks, or lengthen Time for slower swells. |
+| **Contour: Pluck Library** | Every note triggers a one-shot shape from the library, a soft 1:8 pluck, that opens both volume and filter. Try the other plucks, Bounce and Echoes shapes, or move Morph to change its curve. |
+| **Contour: Looping Wobble Bass** | In Loop mode the Wobble shape repeats once per beat and swings the cutoff of a held bass, locked to the tempo. Switch Sync to another note length for faster or slower wobble, or try Double wobble and Swing wobble. |
+| **Contour: Breathing Pad** | A pad is held steady while one looped Contour breathes its volume over two bars and a second one slowly sways its filter over four. Choose Heartbeat or Sway shapes, or change Sync, and the whole pad takes on a new pulse. |
+| **Contour: Drawn Rhythm Gate** | The rhythm shapes are patterns drawn as amplitude: one looping shape chops a held chord into syncopated stabs, another carves a bass note into a different pattern. Pick any of the x.xx shapes, or change Sync, to make a new groove. |
+| **Contour: Reversed Swells** | With Reverse on, a plucked shape plays backwards: each note swells up and is cut off at its peak, like a tape played in reverse. Switch Reverse off for normal plucks, or lengthen Time for slower swells. |
 <!-- /generated -->
 
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Shape Env view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Contour view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
 
 | Preset | What it does |
 |---|---|

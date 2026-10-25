@@ -1,5 +1,5 @@
 {
-  "name": "Shape Env",
+  "name": "Contour",
   "slug": "shape-env",
   "license": "GPL-3.0-only",
   "tagline": "Envelope and LFO that plays shapes from a library of 96, plus 8 you draw yourself.",

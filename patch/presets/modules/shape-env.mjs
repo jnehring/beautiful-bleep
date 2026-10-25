@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Shape Env: factory presets (see ../build-modules.mjs).
+// Contour: factory presets (see ../build-modules.mjs).
 export default [
   ["Short Pluck", { shape: "Pluck 1:8 soft", time: 0.3, mode: "One-shot" }, "Quick plucked decay for synth bass and leads."],
   ["Snappy Click", { shape: "Click", time: 0.03, mode: "One-shot" }, "Tiny transient: for percussive attacks or pitch snaps."],

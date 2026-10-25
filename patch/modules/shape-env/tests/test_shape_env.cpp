@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Shape Env (doc/specs/modules/shape-envelope.md §8): the library as the module
+// Contour (doc/specs/modules/shape-envelope.md §8): the library as the module
 // plays it, Morph, one-shot timing, the gated hold, retrigger crossfades,
 // the bar lock, Skew and Reverse, and user slots.
 #include "ShapeEnvDsp.h"

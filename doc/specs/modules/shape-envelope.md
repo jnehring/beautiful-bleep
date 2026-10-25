@@ -1,4 +1,4 @@
-# Shape Env
+# Contour
 
 Type id `shape-env` · category *Modulation* · colour proposal `#fda4af`
 
@@ -153,7 +153,7 @@ snappier or lazier feel without editing it.
 ## 5. Module view
 
 ```
- ┌ Shape Env ─────────────────────────────────────── [Browse ▦] [Draw ✎] ┐
+ ┌ Contour ─────────────────────────────────────── [Browse ▦] [Draw ✎] ┐
  │      ╭╮                                                           │
  │     ╱  ╲_╭╮_  ╭╮                                                  │
  │    ╱       ╲_╱ ╲__.__                       ● (playhead)         │

@@ -52,7 +52,7 @@ function pumpDuck() {
   const p = cell("Pump Duck", {
     description: "Sidechain-style ducking without a sidechain: a rising swell restarts on every quarter note, scaled so the level dips and recovers like a pumping compressor. Patch Duck into a VCA's gain or a mixer. Shared input Depth.",
     tags: ["pump", "ducking", "sidechain", "tempo", "dance"],
-    help: "A Shape Env in Loop mode, synced to quarter notes, plays a logarithmic swell on every beat: it starts at " +
+    help: "A Contour in Loop mode, synced to quarter notes, plays a logarithmic swell on every beat: it starts at " +
       "zero and rises quickly. A Utility scales it so that it never goes lower than a floor of about 20 percent. " +
       "At full height it is exactly one, so it can multiply a signal without changing its loudness.\n\n" +
       "There is no audio. Patch Duck into the Gain of a VCA after a pad, or into a mixer level, to make it pump " +

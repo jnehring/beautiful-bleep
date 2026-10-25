@@ -192,7 +192,7 @@ function heartbeatDrone() {
     description: "A dark drone of two fifths and a minor third whose level and filter beat like a slow heart, once a half note, under a bed of dark noise and a long reverb. Shared inputs Cutoff and Depth (shallow to deep beat).",
     tags: ["generative", "drone", "heartbeat", "dark", "pulse", "ambient"],
     help: "Three low oscillators (a root, a fifth and a minor third) and a little dark noise go through a ladder filter and a VCA. " +
-      "A looping Shape Env plays the Heartbeat shape once every half note: it opens the VCA and nudges the filter, so the drone " +
+      "A looping Contour plays the Heartbeat shape once every half note: it opens the VCA and nudges the filter, so the drone " +
       "swells with two quick pulses and sinks back. A slow organic LFO moves the cutoff and a long reverb " +
       "sits around it.\n\n" +
       "Press play: it plays on its own from Out L/R. Cutoff is added to the filter cutoff, Depth is added to the " +

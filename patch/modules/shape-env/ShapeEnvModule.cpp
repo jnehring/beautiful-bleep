@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Shape Env node (doc/specs/modules/shape-envelope.md): an envelope / LFO that
+// Contour node (doc/specs/modules/shape-envelope.md): an envelope / LFO that
 // plays shapes from the shared library or eight user-drawn slots (node data).
 #include "ShapeEnvDsp.h"
 #include "Handoff.h"
@@ -180,7 +180,7 @@ private:
 static void registerShapeEnvModule(Registry& r) {
     ModuleSpec s;
     s.type = "shape-env";
-    s.name = "Shape Env";
+    s.name = "Contour";
     s.category = "Modulation/Envelopes";
     s.colour = "#fda4af";
     s.description = "Envelope and LFO that plays shapes from a library of 96, plus 8 you draw: one-shot, gated or looped.";
