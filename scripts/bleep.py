@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 """One command for building, running, testing and releasing Bleep.
 
-    ./bleep build   [bus|plugins|app|web|modules|agent-data ...]   default: plugins
+    ./bleep build   [bus|plugins|app|web|modules|agent-data ...]   default: everything (bus plugins web)
     ./bleep run     app|ui|site|play|live [...]
     ./bleep test    [py|js|script|presets|bus|native|check ...]    default: py js check (fast, no compiler)
     ./bleep check   [repo|api-docs|account]                        default: repo api-docs
@@ -215,9 +215,14 @@ def ensure_hooks():
         print("git hooks: core.hooksPath = .githooks (pre-commit keeps patch/board/ui/demo-types.json current)")
 
 
+# What a bare `./bleep build` builds. The plugins build includes the standalone app and web includes the modules;
+# agent-data is left out: it calls paid model APIs.
+ALL_BUILD_TARGETS = ["bus", "plugins", "web"]
+
+
 def cmd_build(args, s):
     ensure_hooks()
-    targets = args.targets or ["plugins"]
+    targets = args.targets or ALL_BUILD_TARGETS
     for t in targets:
         print(f"\n== build {t}")
         if t == "bus":
@@ -527,7 +532,7 @@ def parser():
 
     b = sub.add_parser("build", help="build bus, plugins, app, web, modules or agent-data")
     b.add_argument("targets", nargs="*", choices=["bus", "plugins", "app", "web", "modules", "agent-data", []], metavar="TARGET",
-                   help="bus | plugins | app | web | modules | agent-data (default: plugins)")
+                   help="bus | plugins | app | web | modules | agent-data (default: bus plugins web)")
     native_opts(b)
     b.add_argument("--no-test", action="store_true", help="skip ctest after the build")
     b.add_argument("--plugins-only", action="store_true", help="no test targets (they compile every module in), no ctest")
