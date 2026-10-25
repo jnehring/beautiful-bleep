@@ -155,18 +155,61 @@
       meters.append(m, clip);
       bar.push({ lvl, holdEl: hold, clip, db: -200, hold: -200, holdAt: 0, clipped: false });
     }
-    track.append(fill, zero, knob);
+    // A cable dropped on the fader modulates it (the board finds .bv-target); the bar shows the modulated value.
+    box.classList.add("bv-target");
+    box.dataset.param = id;
+    const mod = el("div", "ac-fmod");
+    mod.hidden = true;
+    const amounts = el("div", "ac-amounts");
+    track.append(fill, mod, zero, knob);
     const text = el("div", "ac-val");
     const row = el("div", "ac-frow");
     row.append(track, meters);
-    box.append(row, text);
-    const f = { box, id };
+    box.append(row, text, amounts);
+    const f = { box, id, eff: null };
     f.draw = () => {
       const v = get(view, id);
       fill.style.height = v * 100 + "%";
       knob.style.bottom = v * 100 + "%";
       text.textContent = dbText(p, v);
+      mod.hidden = f.eff === null;
+      if (f.eff !== null) {
+        mod.style.bottom = Math.min(v, f.eff) * 100 + "%";
+        mod.style.height = Math.abs(f.eff - v) * 100 + "%";
+      }
     };
+    /// One chip per cable into the fader: drag to set its amount, × removes the cable.
+    f.renderAmounts = () => {
+      amounts.innerHTML = "";
+      if (!view.api.cablesInto) return;
+      for (const c of view.api.cablesInto(id)) {
+        const chip = el("div", "ac-amount");
+        chip.title = c.label + ": drag up/down to change the amount, double-click to reset";
+        const pct = el("span");
+        const show = () => (pct.textContent = Math.round(c.amount * 100) + "%");
+        show();
+        const x = el("button", "", "×");
+        x.title = "Remove cable";
+        x.addEventListener("pointerdown", (e) => e.stopPropagation());
+        x.addEventListener("click", (e) => { e.stopPropagation(); view.api.removeCable(c.id); });
+        chip.append(pct, x);
+        let y0 = null, a0 = 0;
+        chip.addEventListener("pointerdown", (e) => { y0 = e.clientY; a0 = c.amount; chip.setPointerCapture(e.pointerId); view.api.beginGesture(); });
+        chip.addEventListener("pointermove", (e) => {
+          if (y0 === null) return;
+          c.amount = Math.round(clamp01((a0 + 1) / 2 + (y0 - e.clientY) / (e.shiftKey ? 1000 : 100)) * 2000 - 1000) / 1000;
+          show();
+          view.api.setAmount(c.id, c.amount);
+        });
+        const end = () => { y0 = null; };
+        chip.addEventListener("pointerup", end);
+        chip.addEventListener("pointercancel", end);
+        chip.addEventListener("dblclick", () => { view.api.beginGesture(); c.amount = 1; show(); view.api.setAmount(c.id, 1); });
+        amounts.appendChild(chip);
+      }
+    };
+    f.renderAmounts();
+    (view.faders = view.faders || []).push(f);
     drag(track, view, (e) => {
       const r = track.getBoundingClientRect();
       setValue(view, id, 1 - (e.clientY - r.top) / r.height);
@@ -343,6 +386,13 @@
       ".ac-ftrack::before{content:'';position:absolute;left:9px;width:4px;top:0;bottom:0;background:var(--line);border-radius:2px}" +
       ".ac-ffill{position:absolute;left:9px;width:4px;bottom:0;background:var(--accent);border-radius:2px}" +
       ".ac-fzero{position:absolute;left:3px;right:3px;height:1px;background:var(--muted)}" +
+      ".ac-fmod{position:absolute;left:8px;width:6px;border-radius:3px;background:var(--mod);opacity:.85}" +
+      ".ac-fader.drop-ok{outline:1px solid var(--accent);border-radius:6px}" +
+      ".ac-fader.drop-hover{outline:2px solid var(--mod);border-radius:6px}" +
+      ".ac-amounts{display:flex;flex-direction:column;gap:2px;width:100%}" +
+      ".ac-amount{display:flex;align-items:center;justify-content:center;gap:3px;max-width:100%;overflow:hidden;font-size:9px;background:var(--panel);border-radius:4px;padding:0 3px;" +
+      "cursor:ns-resize;color:var(--mod);touch-action:none}" +
+      ".ac-amount button{background:none;border:0;color:var(--muted);cursor:pointer;padding:0;font-size:11px}" +
       ".ac-fknob{position:absolute;left:1px;right:1px;height:10px;margin-bottom:-5px;border-radius:3px;background:var(--text);border:1px solid var(--line)}" +
       ".ac-meters{display:flex;gap:2px;position:relative;padding-top:8px}" +
       ".ac-meter{position:relative;width:9px;background:var(--panel-3);border:1px solid var(--line);border-radius:2px;overflow:hidden;align-self:stretch}" +
@@ -537,6 +587,12 @@
       const ac = view.ac;
       if (!ac || !st) return;
       // Hidden params are not synced by the generic view: take them from the state.
+      if (st.params) {
+        for (const f of view.faders) {  // the modulated position of each fader (a = a cable drives it, e = its effective value)
+          const ps = st.params[f.id];
+          f.eff = ps && ps.a ? ps.e : null;
+        }
+      }
       if (st.params && !ac.down) {
         for (const [id, ps] of Object.entries(st.params)) if (HIDDEN.test(id)) view.node.params[id] = ps.v;
         ac.draw();
@@ -559,6 +615,10 @@
         if (secs.length) { for (const s of secs) ac.setups.appendChild(s); ac.moved = true; }
       }
     },
-    onRefresh(view) { if (view.ac) view.ac.draw(); },
+    onRefresh(view) {
+      if (!view.ac) return;
+      for (const f of view.faders) f.renderAmounts();
+      view.ac.draw();
+    },
   });
 })();

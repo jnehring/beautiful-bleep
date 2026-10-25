@@ -116,6 +116,9 @@ The channel's name in the strip is the name of the node patched into *In L*
 (or "1"…"4" when unpatched). The *Send Point* setting is in the strip's
 right-click menu.
 
+Every fader is a cable drop target like any knob: the cable's amount shows as a chip under the fader and the
+modulated position as a bar beside it.
+
 The first version uses the generic module view (knobs and settings); the
 displays described here come later.
 
