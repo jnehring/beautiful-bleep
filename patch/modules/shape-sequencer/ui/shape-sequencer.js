@@ -84,7 +84,9 @@
     if (prev && now > prev.t + 1e-3) {
       let dp = st.phase - prev.phase;
       if (dp < -0.5) dp += 1;  // the loop wrapped between the reports
-      if (dp >= 0 && dp < 0.5) rate = dp / (now - prev.t);  // a jump back (a restart) keeps the old speed
+      // A jump back (a restart) keeps the old speed, and so does a report that did not move: inside a Voice Cell the engine
+      // skips a voice that is not sounding, so its last position is repeated until it wakes up.
+      if (dp > 1e-6 && dp < 0.5) rate = dp / (now - prev.t);
     }
     sq.live = { phase: st.phase, t: now, rate };
   }
