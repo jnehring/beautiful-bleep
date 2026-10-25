@@ -1,0 +1,11 @@
+{
+  "name": "Shape Sequencer",
+  "slug": "shape-sequencer",
+  "license": "GPL-3.0-only",
+  "tagline": "Draws a looping control voltage from shapes: pick a length and a grid, place saws, curves, plateaus and pulses in the slots, and bend them with the mouse. On the transport, a trigger or a gate.",
+  "colour": "#5eead4",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/shape-sequencer.md"
+}

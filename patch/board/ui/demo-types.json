@@ -49864,6 +49864,219 @@
           "All",
           "Odd"
         ],
+  {
+    "type": "shape-sequencer",
+    "name": "Shape Sequencer",
+    "category": "Modulation/LFOs",
+    "colour": "#5eead4",
+    "description": "A looping control voltage drawn from shapes: pick a length and a grid, place saws, curves, plateaus and pulses in the slots, and bend them with the mouse.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "length",
+        "name": "Length",
+        "kind": "choice",
+        "default": 0.400000005960464,
+        "steps": 6,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "1/4 bar",
+          "1/2 bar",
+          "1 bar",
+          "2 bars",
+          "4 bars",
+          "8 bars"
+        ],
+        "min": 0.0,
+        "max": 5.0,
+        "def": 2.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "grid",
+        "name": "Grid",
+        "kind": "choice",
+        "default": 0.400000005960464,
+        "steps": 6,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "1/1",
+          "1/2",
+          "1/4",
+          "1/8",
+          "1/16",
+          "1/32"
+        ],
+        "min": 0.0,
+        "max": 5.0,
+        "def": 2.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "sync",
+        "name": "Sync",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Transport",
+          "Trigger",
+          "Gate"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "playback",
+        "name": "Playback",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Loop",
+          "Once"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "show": {
+          "param": "sync",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "polarity",
+        "name": "Polarity",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Unipolar",
+          "Bipolar"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "depth",
+        "name": "Depth",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "offset",
+        "name": "Offset",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -1.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 2
+      },
+      {
+        "id": "slew",
+        "name": "Slew",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "rate",
+        "name": "Rate",
+        "kind": "choice",
+        "default": 0.5,
+        "steps": 5,
+        "modulatable": true,
+        "cableable": false,
+        "choices": [
+          "1/4x",
+          "1/2x",
+          "1x",
+          "2x",
+          "4x"
+        ],
+        "min": 0.0,
+        "max": 4.0,
+        "def": 2.0,
+        "format": "choice",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trig",
+        "name": "Trig / Gate",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "slot",
+        "name": "Slot",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "cycle",
+        "name": "Cycle",
+        "type": "trigger",
+        "bipolar": false
+      }
+    ]
+  },
         "min": 0.0,
         "max": 2.0,
         "def": 0.0,
