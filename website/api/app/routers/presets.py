@@ -137,6 +137,10 @@ def validate_preset(body: PresetIn) -> tuple[bytes, dict, list[dict]]:
         raise HTTPException(422, "`needs` must map module slugs to {min?, max?} versions")
     if _depth(p) > MAX_DEPTH:
         raise HTTPException(422, "The preset is nested too deeply")
+    plays = p.get("plays")
+    if plays is not None and (not isinstance(plays, dict) or not set(plays) <= {"instrument", "effect"}
+                              or not all(isinstance(v, dict) for v in plays.values())):
+        raise HTTPException(422, "`plays` must be {instrument?, effect?}, each an object")
     credits = clean_credits(p.get("credits"))
     media, media_bytes = clean_media(p.get("media"))
     p = {k: v for k, v in p.items() if k not in ("credits", "media")}   # what is stored is the cleaned lists
@@ -170,7 +174,7 @@ def _out(preset: Preset, ratings: dict[str, tuple[float, int]], detail: bool = F
     newest = preset.versions[0]
     return PresetOut(
         id=preset.id, author=preset.author.handle, author_name=preset.author.display_name, slug=preset.slug, address=preset.address,
-        title=preset.title, summary=preset.summary, type=preset.type, tags=preset.tags, license=preset.license, pid=preset.pid,
+        title=preset.title, summary=preset.summary, type=preset.type, tags=preset.tags, license=preset.license, categories=preset.categories or [], roles=preset.roles or [], pid=preset.pid,
         visibility=preset.visibility, state=preset.state,
         downloads=preset.downloads, version=newest.version, version_label=newest.label, bytes=newest.bytes, created_at=preset.created_at, updated_at=preset.updated_at,
         rating_average=avg, rating_count=count, used_in=(used or {}).get(preset.address.lower(), 0),
@@ -286,7 +290,7 @@ def publish(body: PresetIn, db: Session = Depends(get_db), user: User = Depends(
         preset = db.scalar(select(Preset).where(Preset.author_id == user.id, Preset.slug == slug))
     if preset is None:
         preset = Preset(author_id=user.id, slug=slug, title=body.title, summary=body.summary, type=body.type, tags=body.tags,
-                        license=body.license, visibility=body.visibility or "private")
+                        license=body.license, categories=body.categories, visibility=body.visibility or "private")
         preset.author = user
         db.add(preset)
         number = 1
@@ -299,9 +303,13 @@ def publish(body: PresetIn, db: Session = Depends(get_db), user: User = Depends(
             preset.visibility = body.visibility
         # The licence stays what the first version had: a preset shared as CC0 before CC BY became the only one is not relicensed.
         preset.title, preset.summary, preset.tags = body.title, body.summary, body.tags
+        if body.type == "cell":
+            preset.categories = body.categories
         number = preset.versions[0].version + 1
+    plays = json.loads(data).get("plays") or {}
+    preset.roles = [r for r in ("instrument", "effect") if r in plays]
     envelope = json.dumps({"format": "bleeppreset", "version": 1, "type": body.type, "title": body.title, "author": handle,
-                           "license": preset.license, "tags": body.tags, "needs": needs, "preset": json.loads(data)},
+                           "license": preset.license, "tags": body.tags, "categories": preset.categories or [], "needs": needs, "preset": json.loads(data)},
                           separators=(",", ":")).encode()
     audio = sum(len(f["data"]) for f in body.preset.get("media", {}).values()) if isinstance(body.preset.get("media"), dict) else 0
     if len(envelope) - audio > MAX_BYTES:   # the limit is for the patch itself; the audio has its own (clean_media)

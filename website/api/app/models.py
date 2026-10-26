@@ -167,6 +167,8 @@ class Preset(Base):
     summary: Mapped[str] = mapped_column(String(280), default="")
     type: Mapped[str] = mapped_column(String(8))  # patch | cell
     tags: Mapped[list] = mapped_column(JSON, default=list)
+    categories: Mapped[list] = mapped_column(JSON, default=list)  # a cell's places in the cell category tree ("Drums/Kicks"); up to 3, the first is its main one
+    roles: Mapped[list] = mapped_column(JSON, default=list)  # what the newest version can be loaded as: "instrument", "effect" (its `plays`)
     license: Mapped[str] = mapped_column(String(120), default="CC-BY-4.0")
     pid: Mapped[str] = mapped_column(String(10), unique=True, index=True, default=new_pid)  # the public ID in every link; immutable
     visibility: Mapped[str] = mapped_column(String(8), default="private")  # private (author only) | public (the author's choice)

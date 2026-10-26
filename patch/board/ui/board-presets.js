@@ -207,6 +207,29 @@
       }
 
 
+      // ------------------------------------------------------------ what a cell can be loaded as (doc/specs/cell-plugins.md, 2.3)
+      /// Ring-out of the effects that have one, in seconds: the longest module in the cell (patch/presets/kit.mjs has the same table).
+      const TAIL = { reverb: 8, "delay-network": 8, "zone-delay": 6, grains: 2, "freq-shifter": 1, "pitch-shifter": 1, chorus: 1, phaser: 1 };
+      /// { role, spec } for the `plays` of a cell, from its jacks (the rules of the factory build), or null: board only.
+      function derivePlays(cell, nodes) {
+        if (cell.type === "voice-cell") return { role: "instrument", spec: { instrument: { notes: "voice" } } };
+        const ins = cell.inputs || [], outs = cell.outputs || [];
+        const audioIn = ins.filter((j) => j.type === "audio"), audioOut = outs.filter((j) => j.type === "audio");
+        if (!audioOut.length) return null;
+        if (audioIn.length) {
+          const tail = Math.max(0, ...nodes.map((n) => TAIL[n.type] || 0));
+          return { role: "effect", spec: { effect: { in: audioIn.slice(0, 2).map((j) => j.id), out: audioOut.slice(0, 2).map((j) => j.id), tail } } };
+        }
+        const has = (id) => ins.some((j) => j.id === id);
+        const velocity = has("velocity") ? { velocity: "velocity" } : {};
+        let notes = {};   // self-playing: MIDI is ignored, the cell plays with the transport
+        if (has("closed") && has("open")) notes = { trigger: { default: "closed", 44: "closed", 46: "open" }, ...velocity };
+        else if (has("trig")) notes = { trigger: "trig", ...velocity };
+        else if (ins.some((j) => j.type === "pitch")) notes = { pitch: ins.find((j) => j.type === "pitch").id };
+        else if (ins.some((j) => j.type === "notes")) notes = { notes: ins.find((j) => j.type === "notes").id };
+        return { role: "instrument", spec: { instrument: { notes } } };
+      }
+
       // ------------------------------------------------------------ sharing a cell (sharing.md)
       const cellNode = (id) => env.board.nodes.find((n) => n.id === id);
       /// The cell the Share menu acts on: the selected cell, else the one that is open; null when there is none.
@@ -225,6 +248,11 @@
           preset: async () => {
             const cell = cellNode(id);
             return cell ? buildCellPreset(cell, cell.name, cell.type === "voice-cell" ? "Synthesizers" : "My Cells", "") : null;
+          },
+          /// What the upload dialog offers: the places of the cell category tree (no new ones), and what the cell can be loaded as.
+          shareOptions: () => {
+            const cell = cellNode(id);
+            return { categories: presetOrder.filter((c) => c !== "Test"), plays: cell ? derivePlays(cell, [cell, ...descendants(cell.id)]) : null };
           },
           link: () => (cellNode(id) || {}).library || null,
           setLink: (link) => env.edit("Link cell to the library", (b) => {

@@ -23,11 +23,18 @@ def _image_url(r: Release) -> str | None:
     return f"/registry/v1/{r.kind}s/{r.slug}/{r.version}/{r.image}" if r.image else None
 
 
+def _category(p: Preset) -> str:
+    """Where a preset is in the library's tree: Patches, or Cells and its main category ("Cells/Drums/Kicks")."""
+    if p.type == "patch":
+        return "Patches"
+    return "Cells/" + p.categories[0] if p.categories else "Cells"
+
+
 def _preset_item(p: Preset) -> LibraryItemOut:
     v = p.versions[0]
     return LibraryItemOut(
         kind="preset", slug=p.address, version=str(v.version), channel="stable", title=p.title, notes="", summary=p.summary,
-        category="Patches" if p.type == "patch" else "Cells", image_url=None, files=1, bytes=v.bytes, published_at=p.updated_at,
+        category=_category(p), image_url=None, files=1, bytes=v.bytes, published_at=p.updated_at,
     )
 
 
@@ -87,7 +94,7 @@ def preset_detail(author: str, slug: str, db: Session = Depends(get_db)):
     base = f"/api/presets/{p.address}/file"
     rating = rating_summaries(db, "preset", [p.address]).get(p.address)
     return LibraryDetailOut(
-        kind="preset", slug=p.address, title=p.title, summary=p.summary, category="Patches" if p.type == "patch" else "Cells",
+        kind="preset", slug=p.address, title=p.title, summary=p.summary, category=_category(p),
         image_url=None, rating_average=rating[0] if rating else None, rating_count=rating[1] if rating else 0, license=p.license,
         origin={}, releases=[
             LibraryReleaseOut(version=str(v.version), channel="stable", notes="", files=1, bytes=v.bytes, published_at=v.created_at,

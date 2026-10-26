@@ -77,3 +77,19 @@ def test_versions_have_the_authors_number_and_links_use_it(client):
     assert anon.get(f"/api/patches/{pid}/2/file").status_code == 200       # the sequence number still works
     assert anon.get(f"/api/patches/{pid}/3.0/file").json() == {"detail": {"error": "version_unavailable"}}
     assert client.post("/api/presets", json={**PRESET, "slug": "other"}).json()["version_label"] == "1.0"   # default: <n>.0
+
+
+def test_a_cell_has_categories_and_roles(client):
+    register(client)
+    cell = {**PRESET, "type": "cell", "categories": ["Pads", "Drums/Kicks"],
+            "preset": {**PRESET["preset"], "plays": {"instrument": {"notes": "voice"}}}}
+    made = client.post("/api/presets", json=cell).json()
+    assert made["categories"] == ["Pads", "Drums/Kicks"] and made["roles"] == ["instrument"]
+    assert client.get("/api/presets/ann/warm-pad/file").json()["categories"] == ["Pads", "Drums/Kicks"]
+    assert TestClient(app).get("/api/library?kind=preset").json()["items"][0]["category"] == "Cells/Pads"
+    # a new version may change them; no plays means no roles
+    again = client.post("/api/presets", json={**cell, "pid": made["pid"], "version_label": "1.1", "categories": ["Basses"], "preset": PRESET["preset"]}).json()
+    assert again["categories"] == ["Basses"] and again["roles"] == []
+    assert client.post("/api/presets", json={**cell, "slug": "x", "categories": ["a", "b", "c", "d"]}).status_code == 422
+    assert client.post("/api/presets", json={**cell, "slug": "y", "categories": ["<b>"]}).status_code == 422
+    assert client.post("/api/presets", json={**cell, "slug": "z", "preset": {**PRESET["preset"], "plays": {"drone": {}}}}).status_code == 422

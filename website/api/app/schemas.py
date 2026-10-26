@@ -268,6 +268,7 @@ class PresetIn(BaseModel):
     slug: str | None = Field(default=None, max_length=64, pattern=r"^[a-z0-9][a-z0-9-]*$")  # default: from the title; an existing one makes a new version
     tags: list[str] = Field(default_factory=list, max_length=10)
     license: Literal["CC-BY-4.0"] = PRESET_LICENSE   # the only choice; kept so a client can still say it
+    categories: list[str] = Field(default_factory=list, max_length=3)   # a cell's places in the category tree, "Drums/Kicks"; the first is the main one
     version_label: str | None = Field(default=None, pattern=r"^\d{1,4}\.\d{1,4}$")   # the author's number for this version, "1.0"; default: "<n>.0"
     pid: str | None = Field(default=None, pattern=r"^[a-z0-9]{10}$")   # a new version of this patch (the slug may have changed meanwhile)
     visibility: Literal["private", "public"] | None = None   # a new patch is private; a new version keeps what it was
@@ -277,6 +278,18 @@ class PresetIn(BaseModel):
     @classmethod
     def _title(cls, v: str) -> str:
         return _clean_name(v)
+
+    @field_validator("categories")
+    @classmethod
+    def _categories(cls, v: list[str]) -> list[str]:
+        out = []
+        for c in v:
+            c = " ".join(c.split())
+            if not c or len(c) > 64 or not all(ch.isalnum() or ch in " &/'-" for ch in c):
+                raise ValueError("a category is a name from the category tree, like Pads or Drums/Kicks")
+            if c not in out:
+                out.append(c)
+        return out
 
     @field_validator("tags")
     @classmethod
@@ -320,6 +333,8 @@ class PresetOut(BaseModel):
     type: str
     tags: list[str]
     license: str
+    categories: list[str] = []        # a cell's places in the category tree
+    roles: list[str] = []             # "instrument" and/or "effect": what the newest version can be loaded as
     pid: str                          # the public ID in every link
     visibility: str                   # private | public
     state: str                        # listed | removed

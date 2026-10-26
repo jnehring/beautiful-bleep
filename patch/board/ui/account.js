@@ -74,7 +74,9 @@
       const back = el("div", "ac-back");
       const box = el("div", "ac-box");
       back.appendChild(box);
-      const close = (v) => { cancelled = true; back.remove(); resolve(v || null); };
+      const onKey = (e) => { if (e.key === "Escape") { e.stopPropagation(); e.preventDefault(); close(); } };
+      const close = (v) => { cancelled = true; document.removeEventListener("keydown", onKey, true); back.remove(); resolve(v || null); };
+      document.addEventListener("keydown", onKey, true);   // Escape closes the dialog wherever the focus is
       back.addEventListener("mousedown", (e) => { if (e.target === back) close(); });
       const heading = update ? "Upload a new version of “" + (opts.title || name) + "”" : "Upload “" + name + "” to the Bleep Library";
       box.appendChild(el("h3", "", heading));
@@ -89,10 +91,58 @@
         summary.value = (opts.summary !== undefined ? opts.summary : preset.description || "").slice(0, 280);
         const label = field("Version number (required, like 1.0)", el("input")); label.maxLength = 9; label.placeholder = "1.0"; label.value = opts.label || "";
         const tags = field("Tags (comma separated)", el("input")); tags.value = (opts.tags || preset.tags || []).join(", ");
+        // A cell is in up to three places of the cell category tree (the Add menu's); no new categories.
+        const picked = new Set((opts.picked || []).filter((c) => (opts.categories || []).includes(c)));
+        let useRole = null;
+        if (kind === "cells" && opts.categories) {
+          const group = el("div", "ac-choice");
+          const head = el("div", "ac-choice-label");
+          const list = el("div", "ac-cats");
+          const draw = () => {
+            head.textContent = "Categories (required, up to 3): " + (picked.size ? [...picked].join(", ") : "none chosen");
+            for (const i of list.querySelectorAll("input")) i.disabled = !i.checked && picked.size >= 3;
+          };
+          for (const c of opts.categories) {
+            const l = el("label", "ac-radio");
+            const i = el("input"); i.type = "checkbox"; i.checked = picked.has(c);
+            i.addEventListener("change", () => { if (i.checked) picked.add(c); else picked.delete(c); draw(); });
+            l.append(i, document.createTextNode(" " + c.replace(/\//g, " › ")));
+            list.appendChild(l);
+          }
+          group.append(head, list);
+          box.appendChild(group);
+          draw();
+          // What it can be loaded as: an instrument (notes in, audio out) or an effect (audio in and out), from the cell's jacks.
+          const roleBox = el("div", "ac-choice");
+          if (opts.plays) {
+            const l = el("label", "ac-radio");
+            useRole = el("input"); useRole.type = "checkbox"; useRole.checked = opts.useRole !== false;
+            l.append(useRole, document.createTextNode(" Offer it as a Beautiful Bleep " + opts.plays.role));
+            roleBox.appendChild(l);
+            roleBox.appendChild(el("div", "", opts.plays.role === "instrument"
+              ? "It then plays from MIDI in Bleep Instrument and in Bleep Play, with a keyboard."
+              : "It then processes audio in Bleep FX and in Bleep Play."));
+          } else {
+            roleBox.appendChild(el("div", "", "This cell stays a cell for the board: an instrument has audio out and no audio in, an effect has audio in and out."));
+          }
+          box.appendChild(roleBox);
+        }
+        // Two radio buttons, not a drop-down: both choices are in sight, and a WebView needs no pop-up list for them.
         let vis = null;
         if (!update) {
-          vis = field("Who can open it", el("select"));
-          for (const [v, t] of [["private", "Only me (private)"], ["public", "Everyone (public)"]]) { const o = el("option", "", t); o.value = v; vis.appendChild(o); }
+          const group = el("div", "ac-choice");
+          group.setAttribute("role", "radiogroup");
+          group.appendChild(el("div", "ac-choice-label", "Who can open it"));
+          const name_ = "ac-vis-" + Math.random().toString(36).slice(2, 7);
+          vis = { value: "private", change: () => {} };
+          for (const [v, t] of [["private", "Only me (private)"], ["public", "Everyone (public)"]]) {
+            const l = el("label", "ac-radio");
+            const r = el("input"); r.type = "radio"; r.name = name_; r.value = v; r.checked = v === vis.value;
+            r.addEventListener("change", () => { vis.value = v; drawHint(); });
+            l.append(r, document.createTextNode(" " + t));
+            group.appendChild(l);
+          }
+          box.appendChild(group);
         }
         const hint = el("div", "ac-hint");
         box.appendChild(hint);
@@ -105,7 +155,6 @@
               ? "Public: you are sharing this " + noun + " with everyone. Anyone can find it in the Bleep Library, play it, download it, copy it and change it, under the CC BY 4.0 license, if they credit you."
               : "Private: only you can open it, for now. You can make it public later on the website, and then everyone can use it under the CC BY 4.0 license.";
         };
-        if (vis) vis.addEventListener("change", drawHint);
         drawHint();
         box.appendChild(msg);
         const row = el("div", "ac-row");
@@ -116,6 +165,7 @@
           if (!title.value.trim()) return "Give it a name.";
           if (!summary.value.trim()) return "Add a description, so others know what it is.";
           if (!/^\d{1,4}\.\d{1,4}$/.test(label.value.trim())) return "The version number looks like 1.0 (two numbers with a dot).";
+          if (kind === "cells" && opts.categories && !picked.size) return "Choose at least one category, so others can find it.";
           return "";
         };
         go.addEventListener("click", async () => {
@@ -126,11 +176,17 @@
           go.disabled = true; msg.className = "ac-msg"; msg.textContent = "Uploading…";
           const { library, ...clean } = preset;   // the link to the library is the project's own; the file holds none, nor do its cells
           if (Array.isArray(clean.nodes)) clean.nodes = clean.nodes.map(({ library: l, ...n }) => n);
+          if (kind === "cells" && opts.categories) {
+            clean.category = [...picked][0];
+            clean.categories = [...picked];
+            if (useRole && useRole.checked) clean.plays = opts.plays.spec; else delete clean.plays;
+          }
           const body = {
             title: title.value.trim(), summary: summary.value.trim(), type: kind === "cells" ? "cell" : "patch", version_label: label.value.trim(),
             tags: tags.value.split(",").map((t) => t.trim()).filter(Boolean), preset: clean,
             slug: slugOf(opts.title || name),   // a slug of your own that exists is a new version; the pid is how an update finds its patch
           };
+          if (kind === "cells" && opts.categories) body.categories = [...picked];
           if (update) body.pid = opts.pid; else body.visibility = vis.value;
           const r = await call("POST", "/api/presets", body);
           go.disabled = false;
@@ -244,9 +300,10 @@
       const back = el("div", "ac-back");
       const box = el("div", "ac-box");
       back.appendChild(box);
-      const done = (ok, value) => { back.remove(); resolve({ ok, value }); };
+      const onKey = (e) => { if (e.key === "Escape") { e.stopPropagation(); e.preventDefault(); done(false); } };
+      const done = (ok, value) => { document.removeEventListener("keydown", onKey, true); back.remove(); resolve({ ok, value }); };
+      document.addEventListener("keydown", onKey, true);
       back.addEventListener("mousedown", (e) => { if (e.target === back) done(false); });
-      back.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.stopPropagation(); done(false); } });
       box.appendChild(el("h3", "", title));
       if (note) box.appendChild(el("div", "ac-note", note));
       let pick = null;
@@ -290,7 +347,7 @@
   async function shareSubject(s) {
     const preset = await s.preset();
     if (!preset) return;
-    const done = await share(s.kind, s.name(), preset, {});
+    const done = await share(s.kind, s.name(), preset, s.shareOptions ? s.shareOptions() : {});
     if (done) s.setLink({ pid: done.pid, version: done.version, label: done.label, sha256: done.sha256 });
   }
 
@@ -310,7 +367,9 @@
     }
     const preset = await s.preset();
     if (!preset) return;
-    const done = await share(s.kind, s.name(), preset, { pid: link.pid, title: m.body.title, summary: m.body.summary, tags: m.body.tags, label: bump(m.body.version_label) });
+    const more = s.shareOptions ? s.shareOptions() : {};
+    const done = await share(s.kind, s.name(), preset, Object.assign(more, { pid: link.pid, title: m.body.title, summary: m.body.summary, tags: m.body.tags,
+      label: bump(m.body.version_label), picked: m.body.categories, useRole: (m.body.roles || []).length > 0 }));
     if (!done) return;
     if (done.gone) { await gone(s); return; }
     s.setLink({ pid: link.pid, version: done.version, label: done.label, sha256: done.sha256 });
@@ -357,7 +416,9 @@
       const back = el("div", "ac-back");
       const box = el("div", "ac-box");
       back.appendChild(box);
-      const close = (v) => { cancel(); back.remove(); resolve(!!v); };
+      const onKey = (e) => { if (e.key === "Escape") { e.stopPropagation(); e.preventDefault(); close(false); } };
+      const close = (v) => { cancel(); document.removeEventListener("keydown", onKey, true); back.remove(); resolve(!!v); };
+      document.addEventListener("keydown", onKey, true);
       back.addEventListener("mousedown", (e) => { if (e.target === back) close(false); });
       box.appendChild(el("h3", "", title));
       box.appendChild(el("div", "ac-note", note + (st.playLogin

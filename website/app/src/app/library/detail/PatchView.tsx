@@ -7,7 +7,7 @@ import { Social } from "../Social";
 type Version = { version: number; label: string; bytes: number; sha256: string; created_at: string };
 type Patch = {
   pid: string; address: string; author_name: string; title: string; summary: string; type: string; tags: string[]; license: string;
-  visibility: string; version: number; version_label: string; downloads: number; versions: Version[];
+  categories: string[]; roles: string[]; visibility: string; version: number; version_label: string; downloads: number; versions: Version[];
 };
 
 /** `/library/p/<pid>/<version>` (the server serves the detail page for it): one version of a shared patch, with its links.
@@ -58,6 +58,12 @@ export function PatchView({ pid, version }: { pid: string; version: string }) {
       {isPrivate && <p className="notice" role="status">Private: only you can open this patch. Make it public in your account to share these links.</p>}
       {shownVersion.version !== data.version && <p className="notice">A newer version exists: <a href={`/library/p/${pid}/${data.version_label}`}>version {data.version_label}</a>. This page and its links show version {v}.</p>}
       <p>{data.summary || <span className="muted">No description yet.</span>}</p>
+      {(data.roles.length > 0 || data.categories.length > 0) && (
+        <p>
+          {data.roles.map((r) => <span key={r} className="tag">Bleep {r}</span>)}
+          {data.categories.map((c) => <span key={c} className="tag">{c.replace(/\//g, " › ")}</span>)}
+        </p>
+      )}
       {data.tags.length > 0 && <p>{data.tags.map((t) => <span key={t} className="tag">{t}</span>)}</p>}
       <p>
         <a className="play-button" href={`/play/index.html?${q}`} target="_blank" rel="noopener">Open in Play</a>

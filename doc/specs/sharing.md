@@ -117,6 +117,19 @@ Not yet:
 - A cell link opens in Play: a cell that says what it plays (`plays`) is wired as an instrument or effect, any other cell is put on a
   board of its own.
 
+### 8.1 Categories and Bleep instruments and effects
+
+- A cell is in 1 to 3 places of the cell category tree (the Add menu's, from `factory-presets.json`), chosen in the upload dialog. No
+  new categories for now; the API only checks the form of the names (`Preset.categories`). The library lists a cell under
+  `Cells/<first category>`. Tags stay free text and are not used further yet.
+- An instrument or effect is a cell whose file has `plays` (cell-plugins.md §2). The dialog derives it from the cell's jacks, with the
+  factory build's rules: audio out and no audio in is an instrument (Voice Cell: voices; `trig`, `pitch` or a notes input decide how
+  MIDI reaches it; otherwise self-playing), audio in and out is an effect (with the longest tail of its modules). If one applies, the
+  author may switch *Offer it as a Beautiful Bleep instrument/effect* off. The API keeps the roles (`Preset.roles`) and the library
+  page shows them. A project (a whole board) is a patch; to make it an instrument or effect, group it into a cell first.
+- Not done: library cells in the board's Add menu and in the Bleep Instrument / FX plugins' lists; the website's library filter by
+  category and role.
+
 ## 9. Order of work
 
 1. Migration (`pid`, `visibility`, `state` rename), `/api/patches/...`, the `patch_unavailable` answer, tests.
