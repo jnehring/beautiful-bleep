@@ -67,9 +67,13 @@ light up with the scale, following the Harmony Master.
   Drag a note to move it, drag its right edge to resize it. Hold **Alt** to
   ignore the snap. With **Select**, drag a rectangle to select the notes it
   touches; hold **Shift** to add to the selection. Shift-click a note to add
-  or remove it. The **Delete** button (or the Delete key) removes the selected
-  notes; the arrow keys nudge them (Shift: an octave). **Right-click** removes
-  a note in either mode.
+  or remove it. The Delete key removes the selected notes; the arrow keys nudge
+  them (Shift: an octave).
+- **Right-click menu:** *Copy* and *Paste* (⌘C / ⌘V) copy the selected notes and
+  paste them at the pointer, snapped to *Snap*. *Delete* removes the selection,
+  *Double* repeats the pattern into twice the bars, *Clear* empties the slot.
+  *Zoom in / out in time / in pitch* and *Fit* are here too. Right-clicking a
+  note selects it first.
 - **Record:** the *Rec* button writes what arrives on *Notes In*, or on *Pitch In*
   with *CV In* as its gate, into the playing slot at the playhead while the
   pattern runs. Each note starts where it was played and lasts as long as it was
@@ -81,13 +85,11 @@ light up with the scale, following the Harmony Master.
   them). Pick the lane in the *Lane* menu.
 - **Zoom:** the mouse wheel scrolls the pitch and Shift + wheel scrolls in time.
   Ctrl/⌘ + wheel up / down zooms in time and Ctrl/⌘ + wheel left / right zooms
-  the pitch rows. The buttons **↔−** **↔+** zoom in time and **↕−** **↕+** zoom
-  the pitch. *Fit* shows all bars and the pitch range of the notes.
+  the pitch rows. The right-click menu has the same zoom steps and *Fit*, which
+  shows all bars and the pitch range of the notes.
 - **Slots:** click a slot number to edit and play it; Shift-click edits without
   switching what plays. A bar under a number marks the slot that plays (bright)
-  and the one that played before (dim). *Copy →* copies the slot to the next
-  one, *Double* repeats a pattern into twice the bars.
-- **Dice** writes a random line in the scale into the loop region of the slot.
+  and the one that played before (dim).
 - **A bass and a lead from one pattern:** patch *Low Pitch / Low Gate* to a bass
   voice and *High Pitch / High Gate* to a lead.
 - **Evolving:** put a slow LFO on **Morph** and the pattern slides between two

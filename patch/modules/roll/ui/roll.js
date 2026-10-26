@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Roll view (doc/specs/modules/roll.md): the note editor. Notes are drawn on a
 // pitch grid (click and drag to draw, drag to move, drag the right edge to
-// resize, right-click or Delete to remove; the Select tool drags a rectangle), a ruler sets the loop region and
+// resize, Delete to remove; the Select tool drags a rectangle; right-click opens the menu), a ruler sets the loop region and
 // a lane below sets velocity, chance and ratchet. The previous slot shows as a
 // ghost and the Morph target as dashed outlines. Notes live in the node's data
 // as [start, length, pitch, velocity, chance, ratchet]; edits go to the engine
@@ -264,6 +264,21 @@
     g.fillRect(xa - 1, 0, 2, RULER);
     g.fillRect(xb - 1, 0, 2, RULER);
 
+    if (r.hover != null && r.hover >= r.lo && r.hover < r.lo + r.rows) {
+      const y = yOf(r, r.hover), label = r.hover + " · " + noteName(r.hover), tw = g.measureText(label).width + 10;
+      g.fillStyle = accent;
+      g.globalAlpha = 0.35;
+      g.fillRect(0, y, KEYS - 2, r.row - 1);
+      g.globalAlpha = 1;
+      const ty = clamp(y + r.row / 2 - 8, RULER, RULER + AREA - 16);
+      g.fillStyle = "#101010";
+      g.fillRect(KEYS + 4, ty, tw, 16);
+      g.strokeStyle = accent;
+      g.strokeRect(KEYS + 4.5, ty + 0.5, tw - 1, 15);
+      g.fillStyle = text;
+      g.textAlign = "left";
+      g.fillText(label, KEYS + 9, ty + 11);
+    }
     if (r.marquee) {
       const m = r.marquee, x0 = Math.min(m.x0, m.x1), x1 = Math.max(m.x0, m.x1), y0 = Math.min(m.y0, m.y1), y1 = Math.max(m.y0, m.y1);
       g.fillStyle = accent;
@@ -303,7 +318,6 @@
     g.fillText(lane[1], 4, LANE_TOP + 12);
     r.drawBtn.classList.toggle("on", r.tool === "draw");
     r.selectBtn.classList.toggle("on", r.tool === "select");
-    r.delBtn.disabled = r.sel.size === 0;
     r.recBtn.classList.toggle("on", setting(view, "record") === 1);
     r.canvas.style.cursor = r.tool === "select" ? "default" : "crosshair";
     r.info.textContent = s.notes.length + " notes · " + s.bars + (s.bars === 1 ? " bar" : " bars");
@@ -333,7 +347,8 @@
     c.addEventListener("contextmenu", (e) => {
       e.preventDefault();
       const { x, y } = at(e), n = hit(view, x, y);
-      if (n) edit(view, (d, s) => { s.notes.splice(s.notes.indexOf(n), 1); r.sel.delete(n); });
+      if (n && !r.sel.has(n)) { r.sel.clear(); r.sel.add(n); draw(view); }
+      openMenu(view, e.clientX, e.clientY, x >= KEYS ? tickOf(r, x) : 0);
     });
     c.addEventListener("pointerdown", (e) => {
       if (e.button !== 0) return;
@@ -387,7 +402,11 @@
       draw(view);
     });
     c.addEventListener("pointermove", (e) => {
-      if (!drag) return;
+      if (!drag) {  // hovering the piano keys names the pitch
+        const { x, y } = at(e), over = x < KEYS && y >= RULER && y < RULER + AREA ? clamp(pitchOf(r, y), 0, 127) : null;
+        if (over !== r.hover) { r.hover = over; draw(view); }
+        return;
+      }
       const { x, y } = at(e), s = cur(view), len = s.bars * TPBAR, free = e.altKey, g = free ? 1 : data(view).grid;
       if (drag.kind === "loop") {
         const t = clamp(snapTick(view, tickOf(r, x), free), 0, len);
@@ -433,6 +452,7 @@
       if (d && d.kind === "marquee") { r.marquee = null; draw(view); }
       else if (d && d.erase) edit(view, (data_, s) => { s.notes.splice(s.notes.indexOf(d.erase), 1); r.sel.delete(d.erase); });
     };
+    c.addEventListener("pointerleave", () => { if (r.hover != null) { r.hover = null; draw(view); } });
     c.addEventListener("pointerup", end);
     c.addEventListener("pointercancel", end);
     c.addEventListener("dblclick", (e) => {
@@ -457,6 +477,12 @@
       if ((e.key === "Delete" || e.key === "Backspace") && sel.length) {
         e.preventDefault();
         deleteSelected(view);
+      } else if ((e.key === "c" || e.key === "C") && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        copySelected(view);
+      } else if ((e.key === "v" || e.key === "V") && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        pasteAt(view, r.state && r.state.pos != null ? r.state.pos : 0);
       } else if ((e.key === "a" || e.key === "A") && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         s.notes.forEach((n) => r.sel.add(n));
@@ -474,6 +500,90 @@
         });
       } else if (e.key === "Escape") { r.sel.clear(); draw(view); }
     });
+  }
+  // ---- context menu --------------------------------------------------------
+  let clip = [];  // copied notes, start relative to the earliest one
+  function copySelected(view) {
+    const sel = [...R_(view).sel];
+    if (!sel.length) return;
+    const t0 = Math.min(...sel.map((n) => n[T]));
+    clip = sel.map((n) => [n[T] - t0, ...n.slice(1)]);
+  }
+  function pasteAt(view, tick) {
+    if (!clip.length) return;
+    const r = R_(view), g = data(view).grid;
+    r.sel.clear();
+    edit(view, (d, s) => {
+      const len = s.bars * TPBAR, t0 = clamp(Math.round(tick / g) * g, 0, len - 1);
+      for (const c of clip) {
+        if (s.notes.length >= MAXN || t0 + c[T] >= len) continue;
+        const n = [t0 + c[T], Math.min(c[L], len - t0 - c[T]), ...c.slice(2)];
+        s.notes.push(n);
+        r.sel.add(n);
+      }
+    });
+  }
+  function doubleSlot(view) {
+    edit(view, (d, s) => {
+      if (s.bars * 2 > MAXBARS) return;
+      const len = s.bars * TPBAR, copy = s.notes.map((n) => [n[T] + len, ...n.slice(1)]);
+      s.notes = s.notes.concat(copy).slice(0, MAXN);
+      s.bars *= 2;
+      s.loop = [0, s.bars * TPBAR];
+      fitZoom(view);
+    });
+  }
+  function closeMenu(view) {
+    const r = R_(view);
+    if (r.menu) { r.menu.remove(); r.menu = null; }
+  }
+  function openMenu(view, cx, cy, tick) {
+    const r = R_(view), s = cur(view);
+    closeMenu(view);
+    const css = getComputedStyle(view.root);
+    const m = document.createElement("div");
+    m.className = "rl-menu";
+    for (const v of ["--panel", "--panel-2", "--text", "--muted", "--line", "--accent"]) m.style.setProperty(v, css.getPropertyValue(v));
+    const hasSel = r.sel.size > 0;
+    const items = [
+      ["Copy", "⌘C", hasSel, () => copySelected(view)],
+      ["Paste", "⌘V", clip.length > 0, () => pasteAt(view, tick)],
+      null,
+      ["Delete", "⌫", hasSel, () => deleteSelected(view)],
+      ["Double", "", s.bars * 2 <= MAXBARS, () => doubleSlot(view)],
+      ["Clear", "", s.notes.length > 0, () => edit(view, (d, sl) => { sl.notes = []; r.sel.clear(); })],
+      null,
+      ["Zoom in time", "", true, () => { zoomH(view, 1.5); draw(view); }],
+      ["Zoom out in time", "", true, () => { zoomH(view, 1 / 1.5); draw(view); }],
+      ["Zoom in pitch", "", true, () => { zoomV(view, 1.4); draw(view); }],
+      ["Zoom out in pitch", "", true, () => { zoomV(view, 1 / 1.4); draw(view); }],
+      ["Fit", "", true, () => { fitZoom(view); fitPitch(view); draw(view); }],
+    ];
+    for (const it of items) {
+      if (!it) { m.appendChild(document.createElement("hr")); continue; }
+      const b = document.createElement("button");
+      b.disabled = !it[2];
+      b.innerHTML = "<span></span><kbd></kbd>";
+      b.firstChild.textContent = it[0];
+      b.lastChild.textContent = it[1];
+      b.addEventListener("click", () => { closeMenu(view); it[3](); });
+      m.appendChild(b);
+    }
+    document.body.appendChild(m);
+    m.style.left = Math.max(0, Math.min(cx, window.innerWidth - m.offsetWidth - 4)) + "px";
+    m.style.top = Math.max(0, Math.min(cy, window.innerHeight - m.offsetHeight - 4)) + "px";
+    r.menu = m;
+    const away = (e) => {
+      if (e.type === "keydown" && e.key !== "Escape") return;
+      if (e.type === "pointerdown" && m.contains(e.target)) return;
+      closeMenu(view);
+      window.removeEventListener("pointerdown", away, true);
+      window.removeEventListener("keydown", away, true);
+      window.removeEventListener("blur", away);
+    };
+    window.addEventListener("pointerdown", away, true);
+    window.addEventListener("keydown", away, true);
+    window.addEventListener("blur", away);
   }
   function deleteSelected(view) {
     const r = R_(view), s = cur(view), sel = [...r.sel];
@@ -501,25 +611,6 @@
   }
 
   // ---- tools ---------------------------------------------------------------
-  function randomNotes(view) {
-    const sc = scaleOf(view);
-    edit(view, (d, s) => {
-      s.notes = [];
-      const grid = Math.max(12, d.grid), cells = Math.floor((s.loop[1] - s.loop[0]) / grid);
-      const base = 48 + sc.root;
-      let p = base + 12;
-      for (let i = 0; i < cells; i++) {
-        if (Math.random() < 0.4) continue;
-        for (let k = 0; k < 6; k++) {  // a step of at most a fifth, inside the scale
-          const q = clamp(p + Math.round((Math.random() * 2 - 1) * 7), base, base + 28);
-          if ((sc.mask >> mod(q - sc.root, 12)) & 1) { p = q; break; }
-        }
-        const len = grid * (Math.random() < 0.3 ? 2 : 1);
-        s.notes.push([s.loop[0] + i * grid, Math.min(len, s.bars * TPBAR - (s.loop[0] + i * grid)), p, 70 + Math.floor(Math.random() * 50), 100, 1]);
-      }
-      view.roll.sel.clear();
-    });
-  }
   function setPlaying(view, i) {
     if (view.api.isPatched("pattern")) return;
     const v = i / (SLOTS - 1);
@@ -543,6 +634,14 @@
     .rl-tools .rl-slots { display: flex; gap: 2px; margin-right: 8px; }
     .rl-tools .rl-info { margin-left: auto; color: var(--muted); font-size: 11px; }
     .rl-tools label { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+    .rl-menu { position: fixed; z-index: 10000; min-width: 170px; padding: 4px; background: var(--panel); color: var(--text);
+      border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.45); font: 12px system-ui, sans-serif; }
+    .rl-menu button { display: flex; justify-content: space-between; gap: 18px; width: 100%; background: none; border: 0; color: inherit;
+      padding: 4px 8px; border-radius: 5px; font: inherit; text-align: left; cursor: pointer; }
+    .rl-menu button:hover:not(:disabled) { background: var(--panel-2); }
+    .rl-menu button:disabled { opacity: 0.4; cursor: default; }
+    .rl-menu kbd { color: var(--muted); font: inherit; }
+    .rl-menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 2px; }
     .rl-box { width: 100%; min-width: 0; }
     .rl-box canvas { display: block; touch-action: none; cursor: crosshair; outline: none; }`;
 
@@ -562,24 +661,11 @@
         <span class="rl-group">
           <button class="rl-draw" title="Draw: click empty grid to add a note, click a note to remove it, drag to move or resize">Draw</button>
           <button class="rl-select" title="Select: drag a rectangle to select notes (Shift adds to the selection)">Select</button>
-          <button class="rl-del" title="Delete the selected notes (Delete)">Delete</button>
         </span>
         <button class="rl-rec" title="Record the notes, pitch and CV on the record inputs into the playing slot at the playhead">● Rec</button>
         <label>Bars <select class="rl-bars">${[1, 2, 3, 4, 5, 6, 7, 8].map((b) => `<option>${b}</option>`).join("")}</select></label>
         <label>Snap <select class="rl-grid">${GRIDS.map((g) => `<option value="${g[1]}">${g[0]}</option>`).join("")}</select></label>
         <label>Lane <select class="rl-lane">${LANES.map((l) => `<option value="${l[0]}">${l[1]}</option>`).join("")}</select></label>
-        <button class="rl-ghost" title="Show the slot that played before as a ghost behind the notes">Ghost</button>
-        <button class="rl-double" title="Repeat the pattern into a pattern twice as long (up to 8 bars)">Double</button>
-        <button class="rl-copy" title="Copy this slot to the next one">Copy →</button>
-        <button class="rl-rand" title="Replace this slot with a random line in the scale">Dice</button>
-        <button class="rl-clear" title="Remove every note of this slot">Clear</button>
-        <span class="rl-group">
-          <button class="rl-hout" title="Zoom out in time (⌘ + wheel up / down)">↔−</button>
-          <button class="rl-hin" title="Zoom in in time (⌘ + wheel up / down)">↔+</button>
-          <button class="rl-vout" title="Zoom out in pitch (⌘ + wheel left / right)">↕−</button>
-          <button class="rl-vin" title="Zoom in in pitch (⌘ + wheel left / right)">↕+</button>
-          <button class="rl-fit" title="Fit all bars in the window">Fit</button>
-        </span>
         <span class="rl-info"></span>
       </div>
       <div class="rl-box"><canvas tabindex="0"></canvas></div>
@@ -624,46 +710,23 @@
       }));
       grid.addEventListener("change", () => { view.api.beginGesture(); data(view).grid = +grid.value; send(view); draw(view); });
       lane.addEventListener("change", () => { r.lane = lane.value; draw(view); });
-      el.querySelector(".rl-ghost").addEventListener("click", () => edit(view, (d) => (d.ghost = !d.ghost)));
-      el.querySelector(".rl-fit").addEventListener("click", () => { fitZoom(view); fitPitch(view); draw(view); });
-      const zoom = (sel, fn) => el.querySelector(sel).addEventListener("click", () => { fn(); draw(view); });
-      zoom(".rl-hin", () => zoomH(view, 1.5));
-      zoom(".rl-hout", () => zoomH(view, 1 / 1.5));
-      zoom(".rl-vin", () => zoomV(view, 1.4));
-      zoom(".rl-vout", () => zoomV(view, 1 / 1.4));
       r.drawBtn = el.querySelector(".rl-draw");
       r.selectBtn = el.querySelector(".rl-select");
-      r.delBtn = el.querySelector(".rl-del");
       r.recBtn = el.querySelector(".rl-rec");
       r.drawBtn.addEventListener("click", () => { r.tool = "draw"; draw(view); });
       r.selectBtn.addEventListener("click", () => { r.tool = "select"; draw(view); });
-      r.delBtn.addEventListener("click", () => deleteSelected(view));
       r.recBtn.addEventListener("click", () => {
         const v = setting(view, "record") === 1 ? 0 : 1;
         view.node.params.record = v;
         view.api.setParam("record", v);
         draw(view);
       });
-      el.querySelector(".rl-clear").addEventListener("click", () => edit(view, (d, s) => { s.notes = []; r.sel.clear(); }));
-      el.querySelector(".rl-rand").addEventListener("click", () => randomNotes(view));
-      el.querySelector(".rl-double").addEventListener("click", () => edit(view, (d, s) => {
-        if (s.bars * 2 > MAXBARS) return;
-        const len = s.bars * TPBAR, copy = s.notes.map((n) => [n[T] + len, ...n.slice(1)]);
-        s.notes = s.notes.concat(copy).slice(0, MAXN);
-        s.bars *= 2;
-        s.loop = [0, s.bars * TPBAR];
-        fitZoom(view);
-      }));
-      el.querySelector(".rl-copy").addEventListener("click", () => edit(view, (d, s) => {
-        d.slots[(d.slot + 1) % SLOTS] = JSON.parse(JSON.stringify(s));
-      }));
       new ResizeObserver(() => draw(view)).observe(r.box);
       r.syncControls = () => {
         const d = data(view), s = cur(view);
         bars.value = String(s.bars);
         grid.value = String(GRIDS.some((g) => g[1] === d.grid) ? d.grid : 24);
         lane.value = r.lane;
-        el.querySelector(".rl-ghost").classList.toggle("on", !!d.ghost);
       };
       r.syncControls();
       requestAnimationFrame(() => draw(view));
