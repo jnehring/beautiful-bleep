@@ -476,7 +476,8 @@
       '.eq-tab-pwr:hover{color:var(--text)}.eq-tab-pwr[aria-pressed=true]{color:var(--accent)}' +
       '.eq-tab.off .eq-tab-num{opacity:.55}' +
       '.eq-tab.sel{background:var(--accent);color:#000;border-color:var(--accent)}' +
-      '.eq-tab.sel .eq-tab-pwr{color:rgba(0,0,0,.45)}.eq-tab.sel .eq-tab-pwr[aria-pressed=true]{color:#000}' +
+      '.eq-tab.sel .eq-tab-pwr{color:rgba(0,0,0,.55);box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.4)}' +
+      '.eq-tab.sel .eq-tab-pwr[aria-pressed=true]{background:#000;color:var(--accent);box-shadow:none}' +
       // The selected band's controls in one row: the settings stacked on the left, the knobs beside them, all the same width.
       '.bleep-view .bv-sec-body{display:flex;flex-direction:row;align-items:flex-start;gap:16px}' +
       '.bleep-view .bv-sec-settings{display:flex;flex-direction:column;gap:6px;width:120px}' +
