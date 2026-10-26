@@ -107,3 +107,10 @@
 .bv-pmsg { color: var(--warn); font-size: 11px; }
 .bv-pmsg:empty { display: none; }
 .bv-pinit { align-self: flex-start; color: var(--muted); }
+/* Scrollbars in module views are always visible (styling them opts out of the OS overlay scrollbars that hide at rest). */
+/* Chromium ignores the ::-webkit-scrollbar rules below when the standard properties are set, so those are for the others only. */
+@supports not selector(::-webkit-scrollbar) { .bleep-view, .bleep-view *, .bp-view, .v-body { scrollbar-width: thin; scrollbar-color: var(--muted) var(--panel-2); } }
+.bleep-view ::-webkit-scrollbar, .bleep-view::-webkit-scrollbar, .bp-view::-webkit-scrollbar, .v-body::-webkit-scrollbar { width: 10px; height: 10px; }
+.bleep-view ::-webkit-scrollbar-track, .bleep-view::-webkit-scrollbar-track, .bp-view::-webkit-scrollbar-track, .v-body::-webkit-scrollbar-track { background: var(--panel-2); border-radius: 5px; }
+.bleep-view ::-webkit-scrollbar-thumb, .bleep-view::-webkit-scrollbar-thumb, .bp-view::-webkit-scrollbar-thumb, .v-body::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 5px; border: 2px solid var(--panel-2); }
+.bleep-view ::-webkit-scrollbar-corner, .bleep-view::-webkit-scrollbar-corner, .bp-view::-webkit-scrollbar-corner, .v-body::-webkit-scrollbar-corner { background: transparent; }
