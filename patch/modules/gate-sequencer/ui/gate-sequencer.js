@@ -7,7 +7,7 @@
 // with api.setData.
 (function () {
   "use strict";
-  const TRACKS = 4, STEPS = 32, COL = 16, ROW = 34, H = TRACKS * ROW + 14;
+  const TRACKS = 4, STEPS = 32, COL = 24, ROW = 56, H = TRACKS * ROW + 14;
   const MODES = [["on", "On"], ["p", "Prob"], ["l", "Len"], ["r", "Ratch"], ["n", "Nudge"], ["c", "Cond"], ["v", "Vel"]];
   const CONDS = ["Always", "A:B", "First", "Not First", "Fill", "Not Fill", "Prev", "Not Prev"];
   const COND_BADGE = ["", "", "1", "¬1", "F", "¬F", "P", "¬P"];
@@ -59,7 +59,7 @@
     const line = css.getPropertyValue("--line").trim() || "#333";
     const muted = css.getPropertyValue("--muted").trim() || "#888";
     const text = css.getPropertyValue("--text").trim() || "#ddd";
-    g.font = "8px system-ui, sans-serif";
+    g.font = "10px system-ui, sans-serif";
     g.textAlign = "center";
     g.textBaseline = "middle";
     for (let t = 0; t < TRACKS; t++) {
@@ -74,7 +74,7 @@
         const top = y0 + 6, bot = y0 + ROW - 8, h = bot - top;
         g.strokeStyle = muted;
         if (!s.on) {
-          g.strokeRect(x + 3.5, bot - 4.5, COL - 7, 4);
+          g.strokeRect(x + 4.5, bot - 5.5, COL - 9, 5);
           continue;
         }
         const will = typeof up !== "number" || i >= L || ((up >>> i) & 1) === 1;
@@ -86,8 +86,8 @@
         const shift = mode === "n" ? (s.n / 100) * COL : 0;
         const bh = Math.max(3, frac * h);
         g.fillStyle = accent;
-        if (will) g.fillRect(x + 3 + shift, bot - bh, COL - 6, bh);
-        else { g.strokeStyle = accent; g.strokeRect(x + 3.5 + shift, bot - bh + 0.5, COL - 7, bh - 1); }
+        if (will) g.fillRect(x + 4 + shift, bot - bh, COL - 8, bh);
+        else { g.strokeStyle = accent; g.strokeRect(x + 4.5 + shift, bot - bh + 0.5, COL - 9, bh - 1); }
         if (s.t && i + 1 < STEPS) g.fillRect(x + COL - 3, bot - 3, 6, 3);  // tie into the next step
         // ratchet ticks and condition badge (in every mode)
         g.fillStyle = text;
@@ -279,7 +279,7 @@
   BleepViews.register("gate-sequencer", {
     partNames: ["Tracks"],
     top: true,
-    width: 790,
+    width: 930,
     hideParams: ["rate1", "rate2", "rate3", "rate4", "length1", "length2", "length3", "length4"],
     layout: [
       { title: "Chance", params: ["chance1", "chance2", "chance3", "chance4"] },

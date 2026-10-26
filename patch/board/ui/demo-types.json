@@ -37019,6 +37019,522 @@
     ]
   },
   {
+    "type": "note-to-gate",
+    "name": "Note to Gate",
+    "category": "Utility/Converters",
+    "colour": "#c084fc",
+    "description": "A MIDI note stream in; a gate per note you choose out (1 to 16 gates, each with its own note), and a list of the latest notes that came in, to find the notes to set.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "gates",
+        "name": "Gates",
+        "kind": "int",
+        "default": 0.200000002980232,
+        "steps": 16,
+        "modulatable": true,
+        "cableable": true,
+        "min": 1.0,
+        "max": 16.0,
+        "def": 4.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "note1",
+        "name": "Note 1",
+        "kind": "int",
+        "default": 0.283464580774307,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 36.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 1,
+          "max": 16
+        }
+      },
+      {
+        "id": "note2",
+        "name": "Note 2",
+        "kind": "int",
+        "default": 0.291338592767715,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 37.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 2,
+          "max": 16
+        }
+      },
+      {
+        "id": "note3",
+        "name": "Note 3",
+        "kind": "int",
+        "default": 0.299212604761124,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 38.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 3,
+          "max": 16
+        }
+      },
+      {
+        "id": "note4",
+        "name": "Note 4",
+        "kind": "int",
+        "default": 0.307086616754532,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 39.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 4,
+          "max": 16
+        }
+      },
+      {
+        "id": "note5",
+        "name": "Note 5",
+        "kind": "int",
+        "default": 0.31496062874794,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 40.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 5,
+          "max": 16
+        }
+      },
+      {
+        "id": "note6",
+        "name": "Note 6",
+        "kind": "int",
+        "default": 0.322834640741348,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 41.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 6,
+          "max": 16
+        }
+      },
+      {
+        "id": "note7",
+        "name": "Note 7",
+        "kind": "int",
+        "default": 0.330708652734756,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 42.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 7,
+          "max": 16
+        }
+      },
+      {
+        "id": "note8",
+        "name": "Note 8",
+        "kind": "int",
+        "default": 0.338582664728165,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 43.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 8,
+          "max": 16
+        }
+      },
+      {
+        "id": "note9",
+        "name": "Note 9",
+        "kind": "int",
+        "default": 0.346456706523895,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 44.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 9,
+          "max": 16
+        }
+      },
+      {
+        "id": "note10",
+        "name": "Note 10",
+        "kind": "int",
+        "default": 0.354330718517303,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 45.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 10,
+          "max": 16
+        }
+      },
+      {
+        "id": "note11",
+        "name": "Note 11",
+        "kind": "int",
+        "default": 0.362204730510712,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 46.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 11,
+          "max": 16
+        }
+      },
+      {
+        "id": "note12",
+        "name": "Note 12",
+        "kind": "int",
+        "default": 0.37007874250412,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 47.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 12,
+          "max": 16
+        }
+      },
+      {
+        "id": "note13",
+        "name": "Note 13",
+        "kind": "int",
+        "default": 0.377952754497528,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 48.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 13,
+          "max": 16
+        }
+      },
+      {
+        "id": "note14",
+        "name": "Note 14",
+        "kind": "int",
+        "default": 0.385826766490936,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 49.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 14,
+          "max": 16
+        }
+      },
+      {
+        "id": "note15",
+        "name": "Note 15",
+        "kind": "int",
+        "default": 0.393700778484344,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 50.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 15,
+          "max": 16
+        }
+      },
+      {
+        "id": "note16",
+        "name": "Note 16",
+        "kind": "int",
+        "default": 0.401574790477753,
+        "steps": 128,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 51.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "gates",
+          "min": 16,
+          "max": 16
+        }
+      }
+    ],
+    "inputs": [
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "gate1",
+        "name": "Gate 1",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 1,
+          "max": 16
+        }
+      },
+      {
+        "id": "gate2",
+        "name": "Gate 2",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 2,
+          "max": 16
+        }
+      },
+      {
+        "id": "gate3",
+        "name": "Gate 3",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 3,
+          "max": 16
+        }
+      },
+      {
+        "id": "gate4",
+        "name": "Gate 4",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 4,
+          "max": 16
+        }
+      },
+      {
+        "id": "gate5",
+        "name": "Gate 5",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 5,
+          "max": 16
+        }
+      },
+      {
+        "id": "gate6",
+        "name": "Gate 6",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 6,
+          "max": 16
+        }
+      },
+      {
+        "id": "gate7",
+        "name": "Gate 7",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 7,
+          "max": 16
+        }
+      },
+      {
+        "id": "gate8",
+        "name": "Gate 8",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 8,
+          "max": 16
+        }
+      },
+      {
+        "id": "gate9",
+        "name": "Gate 9",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 9,
+          "max": 16
+        }
+      },
+      {
+        "id": "gate10",
+        "name": "Gate 10",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 10,
+          "max": 16
+        }
+      },
+      {
+        "id": "gate11",
+        "name": "Gate 11",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 11,
+          "max": 16
+        }
+      },
+      {
+        "id": "gate12",
+        "name": "Gate 12",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 12,
+          "max": 16
+        }
+      },
+      {
+        "id": "gate13",
+        "name": "Gate 13",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 13,
+          "max": 16
+        }
+      },
+      {
+        "id": "gate14",
+        "name": "Gate 14",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 14,
+          "max": 16
+        }
+      },
+      {
+        "id": "gate15",
+        "name": "Gate 15",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 15,
+          "max": 16
+        }
+      },
+      {
+        "id": "gate16",
+        "name": "Gate 16",
+        "type": "gate",
+        "bipolar": false,
+        "show": {
+          "param": "gates",
+          "min": 16,
+          "max": 16
+        }
+      }
+    ]
+  },
+  {
     "type": "organic-lfos",
     "name": "Organic LFOs",
     "category": "Modulation/LFOs",
