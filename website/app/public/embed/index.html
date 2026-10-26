@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- The frame a shared patch is embedded with (sharing.md): /embed/?patch=<pid>&v=<version>. A poster with a Play button, because browsers
+     only allow sound after a click; the click loads Bleep Play (same origin) in a frame under it. Public patches only: a frame on
+     another site does not carry the login. The meta policy below is what csp-hashes.mjs would add: external scripts only. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Bleep</title>
+<link rel="stylesheet" href="embed.css">
+</head>
+<body>
+<main id="stage">
+  <div id="poster" hidden>
+    <div id="kind"></div>
+    <h1 id="title"></h1>
+    <div id="by"></div>
+    <button id="play" type="button" aria-label="Play">&#9654; Play</button>
+  </div>
+  <p id="message" role="status">Loading…</p>
+  <iframe id="player" title="Bleep Play" allow="autoplay; midi; fullscreen" hidden></iframe>
+  <div id="bar" hidden>
+    <a id="open" target="_blank" rel="noopener">Open in Bleep Play</a>
+    <button id="full" type="button" aria-label="Full screen">Full screen</button>
+  </div>
+</main>
+<script src="embed.js"></script>
+</body>
+</html>

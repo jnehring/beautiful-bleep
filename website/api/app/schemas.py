@@ -268,6 +268,8 @@ class PresetIn(BaseModel):
     slug: str | None = Field(default=None, max_length=64, pattern=r"^[a-z0-9][a-z0-9-]*$")  # default: from the title; an existing one makes a new version
     tags: list[str] = Field(default_factory=list, max_length=10)
     license: Literal["CC-BY-4.0"] = PRESET_LICENSE   # the only choice; kept so a client can still say it
+    pid: str | None = Field(default=None, pattern=r"^[a-z0-9]{10}$")   # a new version of this patch (the slug may have changed meanwhile)
+    visibility: Literal["private", "public"] | None = None   # a new patch is private; a new version keeps what it was
     preset: dict
 
     @field_validator("title")
@@ -292,7 +294,8 @@ class PresetPatchIn(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=120)
     summary: str | None = Field(default=None, max_length=280)
     tags: list[str] | None = Field(default=None, max_length=10)
-    state: Literal["listed", "unlisted"] | None = None
+    visibility: Literal["private", "public"] | None = None
+    state: Literal["listed", "removed"] | None = None   # admins only
 
 
 class PresetVersionOut(BaseModel):
@@ -315,7 +318,9 @@ class PresetOut(BaseModel):
     type: str
     tags: list[str]
     license: str
-    state: str
+    pid: str                          # the public ID in every link
+    visibility: str                   # private | public
+    state: str                        # listed | removed
     downloads: int
     version: int                      # newest
     bytes: int

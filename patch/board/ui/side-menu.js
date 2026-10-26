@@ -5,7 +5,7 @@
 //   Transport        play and stop (Play lights while it plays), tempo and sync. The app drives its own clock (native "settings" play/tempo/link),
 //                    a plugin only shows Live's transport, the browser drives its worklet (BleepWeb.setTempo/setPlaying)
 //                    and can follow the app once connected.
-//   Preset           the name and source of the loaded preset (factory, library with link, user), and Upload to Library.
+//   Preset           the name and source of the loaded preset (factory, library with link, user), and the Share entries (Share…, Update, Restore, links).
 //
 //   P.BleepSideMenu.init({ mode: "app" | "plugin" | "web", board(): the current board })
 (function () {
@@ -172,10 +172,18 @@
     refs.pLink = el("a", "sm-link", "Open in the Bleep Library");
     refs.pLink.href = "#";
     refs.pLink.addEventListener("click", (e) => { e.preventDefault(); if (refs.pLink.dataset.url) native("openUrl", refs.pLink.dataset.url).then((ok) => { if (!ok) window.open(refs.pLink.dataset.url, "_blank", "noopener"); }); });
-    refs.upload = el("button", "sm-wide", "Upload to Library");
-    refs.upload.addEventListener("click", upload);
+    // Share (sharing.md): the same entries as the Share menu of the bar; the plugins have no bar
+    const PB = () => P.BleepProjectBrowser;
+    refs.share = [
+      ["Share…", () => PB().share(), (st) => !st.linked],
+      ["Update in Library", () => PB().update(), (st) => st.linked],
+      ["Restore from Library…", () => PB().restore(), (st) => st.linked],
+      ["Copy Library Link", () => PB().copyLink("library"), (st) => st.linked],
+      ["Copy Play Link", () => PB().copyLink("play"), (st) => st.linked],
+      ["Copy Embed Code", () => PB().copyLink("embed"), (st) => st.linked],
+    ].map(([label, run, on]) => { const b = el("button", "sm-wide", label); b.addEventListener("click", run); b.on = on; return b; });
     refs.pNote = el("div", "sm-note");
-    s.append(refs.pName, refs.pSource, refs.pLink, refs.upload, refs.pNote);
+    s.append(refs.pName, refs.pSource, refs.pLink, ...refs.share, refs.pNote);
     drawPreset();
   }
 
@@ -192,23 +200,8 @@
     }
     refs.pLink.hidden = !url;
     refs.pLink.dataset.url = url;
-    const can = !!(P.BleepAccount && P.BleepAccount.enabled);
-    refs.upload.hidden = !can;
-  }
-
-  async function upload() {
-    const b = host && host.board();
-    if (!b || !P.BleepAccount) return;
-    const c = P.BleepProjectBrowser.current();
-    const base = c && c.preset ? c.preset : {};
-    const preset = { format: 1, description: base.description || "", tags: base.tags || [],
-      nodes: JSON.parse(JSON.stringify(b.nodes)), cables: JSON.parse(JSON.stringify(b.cables)) };
-    if ((b.panels || []).length) preset.panels = JSON.parse(JSON.stringify(b.panels)).map((q) => { delete q.open; return q; });
-    if (base.tempo) preset.tempo = base.tempo;
-    const needs = P.BleepLibraryView && document.getElementById("library") ? await P.BleepLibraryView.needsFor(preset.nodes) : {};
-    if (Object.keys(needs).length) preset.needs = needs;
-    const done = await P.BleepAccount.share("boards", (c && c.name) || "My project", preset);
-    refs.pNote.textContent = done ? `Shared as ${done.address}.` : "";
+    const st = P.BleepProjectBrowser.shareState();
+    for (const b of refs.share) b.hidden = !st.enabled || !b.on(st);
   }
 
   // ---------------------------------------------------------------- the menu itself
@@ -248,7 +241,5 @@
     toggle: () => setOpen(!root.classList.contains("open")),
     /// The tempo a saved patch carries: the page's own (web) or the app's (standalone); the plugin follows Live, so none.
     tempo: () => mode === "plugin" ? 0 : mode === "web" ? BleepWeb.transport.bpm : t.bpm,
-    /// Library → Upload Project…: shares the board as it is (BleepAccount asks to sign in when needed).
-    upload: () => upload(),
   };
 })();

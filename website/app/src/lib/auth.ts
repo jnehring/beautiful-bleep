@@ -31,9 +31,15 @@ function errorCode(data: any): string | null {
   return typeof c === "string" ? c : null;
 }
 
+const CODES: Record<string, string> = {
+  patch_unavailable: "This patch is no longer available.",
+  version_unavailable: "This version does not exist.",
+};
+
 function errorMessage(data: any): string | null {
   const d = data?.detail;
   if (typeof d === "string") return d;
+  if (typeof d?.error === "string" && CODES[d.error]) return CODES[d.error];
   if (typeof d?.message === "string") return d.message;
   if (Array.isArray(d) && d[0]?.msg) return `${String(d[0].loc?.at(-1) ?? "")}: ${d[0].msg}`.replace(/^: /, "");
   return null;

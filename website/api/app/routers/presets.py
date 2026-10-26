@@ -34,6 +34,12 @@ CREDIT_LIMITS = {"name": 120, "author": 80, "address": 130, "license": 40}
 ADDRESS = re.compile(r"^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$")
 
 
+def patch_unavailable() -> HTTPException:
+    """One answer for a patch that was deleted, made private, removed, never existed, or is private and not the caller's: the
+    message tells nothing about a private one."""
+    return HTTPException(status.HTTP_404_NOT_FOUND, {"error": "patch_unavailable"})
+
+
 def slugify(text: str, fallback: str = "preset") -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")[:40].strip("-")
     return slug or fallback
@@ -153,7 +159,7 @@ def used_in_counts(db: Session, addresses: list[str]) -> dict[str, int]:
     rows = db.execute(
         select(PresetCredit.source_address, func.count(func.distinct(PresetCredit.preset_id)))
         .join(Preset, Preset.id == PresetCredit.preset_id)
-        .where(PresetCredit.source_address.in_(keys), Preset.state == "listed")
+        .where(PresetCredit.source_address.in_(keys), Preset.state == "listed", Preset.visibility == "public")
         .group_by(PresetCredit.source_address)
     ).all()
     return {a: n for a, n in rows}
@@ -164,7 +170,8 @@ def _out(preset: Preset, ratings: dict[str, tuple[float, int]], detail: bool = F
     newest = preset.versions[0]
     return PresetOut(
         id=preset.id, author=preset.author.handle, author_name=preset.author.display_name, slug=preset.slug, address=preset.address,
-        title=preset.title, summary=preset.summary, type=preset.type, tags=preset.tags, license=preset.license, state=preset.state,
+        title=preset.title, summary=preset.summary, type=preset.type, tags=preset.tags, license=preset.license, pid=preset.pid,
+        visibility=preset.visibility, state=preset.state,
         downloads=preset.downloads, version=newest.version, bytes=newest.bytes, created_at=preset.created_at, updated_at=preset.updated_at,
         rating_average=avg, rating_count=count, used_in=(used or {}).get(preset.address.lower(), 0),
         versions=[PresetVersionOut.model_validate(v) for v in preset.versions] if detail else None,
@@ -172,7 +179,8 @@ def _out(preset: Preset, ratings: dict[str, tuple[float, int]], detail: bool = F
 
 
 def listed_presets(db: Session, q: str = "", type: str | None = None, tag: str = "") -> list[Preset]:
-    stmt = select(Preset).join(User, Preset.author_id == User.id).where(Preset.state == "listed")
+    stmt = select(Preset).join(User, Preset.author_id == User.id).where(
+        Preset.state == "listed", Preset.visibility == "public")
     if type:
         stmt = stmt.where(Preset.type == type)
     if q.strip():
@@ -206,7 +214,7 @@ def search(
 
 @router.get("/mine", response_model=list[PresetOut])
 def mine(db: Session = Depends(get_db), user: User = Depends(get_library_user)):
-    """The presets of the signed-in user, listed or not (an unlisted one is not in the search)."""
+    """The presets of the signed-in user, public or private (a private one is not in the search)."""
     rows = list(db.scalars(select(Preset).where(Preset.author_id == user.id).order_by(Preset.updated_at.desc())))
     ratings = rating_summaries(db, "preset", [r.address for r in rows])
     used = used_in_counts(db, [r.address for r in rows])
@@ -215,8 +223,8 @@ def mine(db: Session = Depends(get_db), user: User = Depends(get_library_user)):
 
 def _find(db: Session, author: str, slug: str, user: User | None) -> Preset:
     row = db.scalar(select(Preset).join(User, Preset.author_id == User.id).where(User.handle == author, Preset.slug == slug))
-    # An unlisted preset is still visible to its author and to admins.
-    if row is None or (row.state != "listed" and not (user and (user.id == row.author_id or user.role == "admin"))):
+    # A private or removed preset is still visible to its author and to admins.
+    if row is None or (not row.is_public and not (user and (user.id == row.author_id or user.role == "admin"))):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No such preset")
     return row
 
@@ -229,11 +237,11 @@ def detail(author: str, slug: str, db: Session = Depends(get_db), user: User | N
 
 @router.get("/{author}/{slug}/used-in", response_model=PresetUsedInOut)
 def used_in(author: str, slug: str, db: Session = Depends(get_db), user: User | None = Depends(get_optional_library_user)):
-    """The listed presets that name this one in their credits, newest first (anonymous). Unlisted and deleted presets never appear."""
+    """The listed presets that name this one in their credits, newest first (anonymous). Private, removed and deleted presets never appear."""
     row = _find(db, author, slug, user)
     found = db.scalars(
         select(Preset).join(PresetCredit, PresetCredit.preset_id == Preset.id)
-        .where(PresetCredit.source_address == row.address.lower(), Preset.state == "listed")
+        .where(PresetCredit.source_address == row.address.lower(), Preset.state == "listed", Preset.visibility == "public")
         .order_by(Preset.updated_at.desc())
     ).all()
     return PresetUsedInOut(count=len(found), items=[
@@ -270,10 +278,15 @@ def publish(body: PresetIn, db: Session = Depends(get_db), user: User = Depends(
     data, needs, credits = validate_preset(body)
     handle = ensure_handle(db, user)
     slug = body.slug or slugify(body.title)
-    preset = db.scalar(select(Preset).where(Preset.author_id == user.id, Preset.slug == slug))
+    if body.pid:   # an update of a linked patch: found by its ID, whatever its slug is now
+        preset = db.scalar(select(Preset).where(Preset.author_id == user.id, Preset.pid == body.pid))
+        if preset is None:
+            raise patch_unavailable()
+    else:
+        preset = db.scalar(select(Preset).where(Preset.author_id == user.id, Preset.slug == slug))
     if preset is None:
         preset = Preset(author_id=user.id, slug=slug, title=body.title, summary=body.summary, type=body.type, tags=body.tags,
-                        license=body.license)
+                        license=body.license, visibility=body.visibility or "private")
         preset.author = user
         db.add(preset)
         number = 1
@@ -281,7 +294,9 @@ def publish(body: PresetIn, db: Session = Depends(get_db), user: User = Depends(
         if preset.type != body.type:
             raise HTTPException(status.HTTP_409_CONFLICT, "A new version cannot change the type")
         if preset.state != "listed":
-            raise HTTPException(status.HTTP_409_CONFLICT, "This preset is unlisted")
+            raise HTTPException(status.HTTP_409_CONFLICT, "This preset was removed")
+        if body.visibility:
+            preset.visibility = body.visibility
         # The licence stays what the first version had: a preset shared as CC0 before CC BY became the only one is not relicensed.
         preset.title, preset.summary, preset.tags = body.title, body.summary, body.tags
         number = preset.versions[0].version + 1
@@ -320,8 +335,10 @@ def edit(preset_id: int, body: PresetPatchIn, db: Session = Depends(get_db), use
     data = body.model_dump(exclude_none=True)
     if "tags" in data:
         data["tags"] = PresetIn(title="x", type="patch", preset={}, tags=data["tags"]).tags
-    if data.get("state") == "listed" and row.state == "unlisted" and user.role != "admin":
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only an admin can list this preset again")
+    if "state" in data and user.role != "admin":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only an admin can remove or restore a preset")
+    if data.get("visibility") == "public" and row.state != "listed":
+        raise HTTPException(status.HTTP_409_CONFLICT, "This preset was removed")
     for field, value in data.items():
         setattr(row, field, value)
     db.commit()
@@ -343,7 +360,7 @@ def remove(preset_id: int, db: Session = Depends(get_db), user: User = Depends(g
 @router.post("/{preset_id}/report", status_code=status.HTTP_204_NO_CONTENT)
 def report(preset_id: int, body: ReportIn, db: Session = Depends(get_db), user: User | None = Depends(get_optional_library_user)):
     row = db.get(Preset, preset_id)
-    if row is None or row.state != "listed":
+    if row is None or not row.is_public:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No such preset")
     db.add(Report(target="preset", target_id=row.id, reporter_id=user.id if user else None, reason=body.reason))
     db.commit()

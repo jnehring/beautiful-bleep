@@ -583,6 +583,9 @@ select:focus-visible { border-color: var(--accent) !important; }
 .ac-msg.bad { color: #e2706a; }
 .ac-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
 .ac-primary { background: var(--accent); color: var(--bg, #15171c); border-color: var(--accent); font-weight: 600; }
+body.embed .am-bar { display: none; }
+.ac-toast { position: fixed; z-index: 1001; left: 50%; bottom: 24px; transform: translateX(-50%); max-width: 90vw; padding: 8px 14px; font-size: 13px;
+  color: var(--text); background: var(--panel, #1b1e25); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 18px rgba(0, 0, 0, .4); }
 #library .st-account { max-width: 520px; }
 #library .st-account .ac-code { text-align: left; }
 

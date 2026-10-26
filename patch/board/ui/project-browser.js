@@ -116,7 +116,7 @@
   function toFlat(doc) {
     if (!doc || typeof doc !== "object") return null;
     if (doc.board && Array.isArray(doc.board.nodes))
-      return { name: doc.name, preset: Object.assign({}, doc.board, { description: doc.description || "", tags: doc.tags || [], tempo: doc.tempo, needs: doc.needs, credits: doc.credits, media: doc.media }) };
+      return { name: doc.name, preset: Object.assign({}, doc.board, { description: doc.description || "", tags: doc.tags || [], tempo: doc.tempo, needs: doc.needs, credits: doc.credits, media: doc.media, library: doc.library }) };
     if (doc.preset && Array.isArray(doc.preset.nodes))   // the Library's envelope
       return { name: doc.title, preset: Object.assign({}, doc.preset, { needs: doc.needs || doc.preset.needs, tags: doc.tags || doc.preset.tags }) };
     if (Array.isArray(doc.nodes)) return { name: doc.name, preset: doc };
@@ -437,7 +437,8 @@
     if (host.mapPorts) mapPorts(board);
     close();
     host.apply(await native("loadPatch", board, src.tempo || 0, p.name));
-    setCurrent({ name: p.name, source: p.address ? "community" : p.own ? "user" : "factory", address: p.address, preset: src });
+    const library = p.address ? null : validLink(p.library || src.library);   // a copy of a library patch is not linked to it
+    setCurrent({ name: p.name, source: p.address ? "community" : p.own ? "user" : "factory", address: p.address, preset: src, library });
   }
 
   /// File → New Patch: an empty board that keeps only the port nodes (Audio In/Out, MIDI) of the current one.
@@ -447,6 +448,98 @@
     const board = { format: 1, id: uuid(), nodes: clone(cur.filter((n) => n.port)), cables: [] };
     host.apply(await native("loadPatch", board, 0, "Untitled"));
     setCurrent({ name: "Untitled", source: "user", preset: board });
+  }
+
+  // ---------------------------------------------------------------- Share (sharing.md)
+  /// The project's link to its patch in the library: { pid, version, sha256 }, or null. Anything else is dropped.
+  const validLink = (l) => (l && typeof l.pid === "string" && /^[a-z0-9]{10}$/.test(l.pid) && Number.isInteger(l.version) && l.version > 0
+    ? { pid: l.pid, version: l.version, sha256: typeof l.sha256 === "string" ? l.sha256 : "" } : null);
+
+  function setLibrary(link) {
+    if (!current) current = { name: "Untitled", source: "user", preset: {} };
+    setCurrent(Object.assign({}, current, { library: validLink(link) }));
+  }
+
+  /// "This patch is no longer available": what the library, Play and the embed say of a deleted or private patch.
+  const GONE = "This patch is no longer available.";
+  const linked = () => (current && current.library) || null;
+  const noLibrary = () => !(P.BleepAccount && P.BleepAccount.enabled);
+
+  /// The linked patch is gone (deleted, made private by hand, or not the user's): say so; the user may unlink the project.
+  async function gone() {
+    const r = await P.BleepAccount.ask("The library patch is gone",
+      "It was deleted, or it is not yours. The project can be shared again as a new patch, with a new link.", { ok: "Unlink", cancel: "Keep" });
+    if (r.ok) setLibrary(null);
+  }
+
+  /// Share…: the first upload of this project; the project is linked to the patch from then on.
+  async function shareCurrent() {
+    if (noLibrary()) return;
+    const preset = await currentProject(current && current.preset ? current.preset.description : "");
+    if (!preset) return;
+    const done = await P.BleepAccount.share("boards", (current && current.name) || "My project", preset);
+    if (done) setLibrary({ pid: done.pid, version: done.version, sha256: done.sha256 });
+  }
+
+  /// Update in Library: a new version of the linked patch. The links the Share menu gives are then those of the new version.
+  async function updateCurrent() {
+    const link = linked();
+    if (!link || noLibrary()) return;
+    const A = P.BleepAccount;
+    if (!(await A.requireSignIn("Sign in to update", "Updating the library needs your account."))) return;
+    const m = await A.call("GET", "/api/patches/" + link.pid);
+    if (!m || m.status === 404) { await gone(); return; }
+    if (m.status !== 200) { A.toast((m && m.error) || "The library could not be reached."); return; }
+    if (m.body.version !== link.version) {
+      const r = await A.ask("The library has a newer version",
+        `The library has version ${m.body.version}; this project is from version ${link.version}. Updating adds version ${m.body.version + 1} from this project.`,
+        { ok: "Update anyway" });
+      if (!r.ok) return;
+    }
+    const preset = await currentProject(current.preset ? current.preset.description : "");
+    if (!preset) return;
+    delete preset.library;
+    const r = await A.call("POST", "/api/presets", { pid: link.pid, title: m.body.title, summary: m.body.summary, type: m.body.type, tags: m.body.tags, preset });
+    if (r && r.status === 404) { await gone(); return; }
+    if (!r || r.status !== 201) { A.toast((r && r.error) || "Could not update the patch."); return; }
+    setLibrary({ pid: link.pid, version: r.body.version, sha256: r.body.versions[0].sha256 });
+    A.toast("Updated: version " + r.body.version + ". The Share menu has its links.");
+  }
+
+  /// Restore from Library: the board becomes a version of the linked patch (the newest is offered first).
+  async function restoreCurrent() {
+    const link = linked();
+    if (!link || noLibrary()) return;
+    const A = P.BleepAccount;
+    if (!(await A.requireSignIn("Sign in to restore", "A private patch needs your account to be read."))) return;
+    const m = await A.call("GET", "/api/patches/" + link.pid);
+    if (!m || m.status === 404) { await gone(); return; }
+    if (m.status !== 200) { A.toast((m && m.error) || "The library could not be reached."); return; }
+    const items = m.body.versions.map((v) => ({ value: String(v.version),
+      label: `Version ${v.version} · ${String(v.created_at).slice(0, 10)}${v.version === link.version ? " (this project)" : ""}` }));
+    const pick = await A.ask("Restore from the library", "Replaces the board with that version. You can undo it.", { items, ok: "Restore" });
+    if (!pick.ok) return;
+    const version = Number(pick.value);
+    const f = await A.call("GET", `/api/patches/${link.pid}/${version}/file`);
+    const flat = f && f.status === 200 ? toFlat(f.body) : null;
+    if (!flat) { A.toast((f && f.status === 404) ? GONE : "That version could not be downloaded."); return; }
+    flat.preset.cables = flat.preset.cables || [];
+    const v = m.body.versions.find((x) => x.version === version);
+    await loadPatch({ name: (current && current.name) || m.body.title, preset: flat.preset, own: true, library: { pid: link.pid, version, sha256: v ? v.sha256 : "" } });
+  }
+
+  /// Copies the Library, Play or Embed link of the version the project is linked to. A private patch opens for its author only.
+  async function copyLink(kind) {
+    const link = linked();
+    if (!link || noLibrary()) return;
+    const A = P.BleepAccount;
+    await A.status(false).catch(() => null);
+    const m = await A.call("GET", "/api/patches/" + link.pid).catch(() => null);
+    if (m && m.status === 404) { await gone(); return; }
+    const u = A.urls(link);
+    const what = { library: "Library link", play: "Play link", embed: "Embed code" }[kind];
+    await A.copy(kind === "embed" ? u.iframe : u[kind], what);
+    if (m && m.status === 200 && m.body.visibility !== "public") A.toast(what + " copied. Only you can open it until the patch is public.");
   }
 
   // ---------------------------------------------------------------- Save, download, open from a file
@@ -483,6 +576,7 @@
     if (Object.keys(needs).length) preset.needs = needs;
     const bpm = P.BleepSideMenu && P.BleepSideMenu.tempo();
     if (bpm >= 20 && bpm <= 400) preset.tempo = bpm;   // web and standalone: the tempo is part of the patch
+    if (current && current.library) preset.library = clone(current.library);   // the project's own; Share and Update leave it out of the file
     return preset;
   }
 
@@ -511,8 +605,8 @@
     const preset = await currentProject(current && current.preset ? current.preset.description : "");
     if (!preset) return;
     const name = (current && current.name) || "Untitled";
-    const { description, tags, tempo, needs, credits, media, ...board } = preset;
-    const doc = { format: 2, app: "Bleep", name, description, tags, tempo, needs, credits, media, board };
+    const { description, tags, tempo, needs, credits, media, library, ...board } = preset;
+    const doc = { format: 2, app: "Bleep", name, description, tags, tempo, needs, credits, media, library, board };
     // Through the page's lock: a script-made click is otherwise dropped (common/ui/bleep-bridge.js).
     saveFile(JSON.stringify(doc, null, 1), name.replace(/[^\w .-]+/g, "_") + ".bleepboard", "application/json");
   }
@@ -692,6 +786,27 @@
       flat.preset.cables = flat.preset.cables || [];
       await loadPatch({ name: name || flat.name || address.split("/").pop(), preset: flat.preset, address });
     },
+    /// Loads a patch by its public ID and version (Bleep Play's ?patch=<pid>&v=<n>); without a version, the newest. Throws the library's
+    /// answer in words: "This patch is no longer available." (deleted, private, removed, never there) or "This version does not exist."
+    async loadById(pid, version) {
+      if (!/^[a-z0-9]{10}$/.test(pid || "")) throw new Error(GONE);
+      const get = async (path) => {
+        const r = await fetch(path);
+        if (r.ok) return r;
+        let e = ""; try { e = ((await r.json()).detail || {}).error; } catch (x) { /* no body */ }
+        throw new Error(e === "version_unavailable" ? "This version does not exist." : r.status === 404 ? GONE : "The patch could not be downloaded (" + r.status + ").");
+      };
+      const m = await (await get("/api/patches/" + pid)).json();
+      const v = version || m.version;
+      const flat = toFlat(await (await get("/api/patches/" + pid + "/" + v + "/file")).json());
+      if (!flat) throw new Error("That file is not a project.");
+      flat.preset.cables = flat.preset.cables || [];
+      await loadPatch({ name: m.title, preset: flat.preset, address: m.address });
+    },
+    /// Share menu: Share…, Update in Library, Restore from Library, the links of the linked version.
+    share: shareCurrent, update: updateCurrent, restore: restoreCurrent, copyLink,
+    /// What the Share menu may offer now: { enabled: the host has an account, linked: the project has a patch in the library }.
+    shareState: () => ({ enabled: !noLibrary(), linked: !!linked() }),
     /// Loads a demo board by its name ("Grains: Frozen Cloud"), as the module pages' *Run in Play* does (Bleep Play's ?demo=).
     /// Throws when there is no such demo.
     async loadDemo(name) {

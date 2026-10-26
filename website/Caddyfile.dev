@@ -33,8 +33,12 @@
 	}
 
 	# next dev does not serve index files from public/ (the static export and Caddyfile do).
+	rewrite /library/p/* /library/detail/
+
 	@playroot path /play /play/
 	rewrite @playroot /play/index.html
+	@embedroot path /embed /embed/
+	rewrite @embedroot /embed/index.html
 
 	# Everything else (pages, /docs, /play UI from public/) is the Next dev server with hot reload.
 	handle {

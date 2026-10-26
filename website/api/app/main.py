@@ -9,7 +9,7 @@ from .config import settings
 from .db import SessionLocal
 from .models import User, now
 from .deps import COOKIE, same_origin
-from .routers import admin, agent, agent_log, auth, community, contact, moderation, presets, profile, projects, registry, social, library, tokens, user_tokens
+from .routers import admin, agent, agent_log, auth, community, contact, moderation, patches, presets, profile, projects, registry, social, library, tokens, user_tokens
 from .security import hash_password
 
 
@@ -145,6 +145,7 @@ app.include_router(admin.chat_router)
 app.include_router(tokens.router)
 app.include_router(user_tokens.router)
 app.include_router(presets.router)
+app.include_router(patches.router)
 app.include_router(projects.router)
 app.include_router(social.router)
 app.include_router(moderation.router)

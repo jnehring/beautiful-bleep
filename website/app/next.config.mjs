@@ -9,6 +9,10 @@ const nextConfig = {
   ...(dev ? {} : { output: "export" }),
   trailingSlash: true,
   images: { unoptimized: true },
-  ...(dev && { async rewrites() { return [{ source: "/api/:path*", destination: "http://localhost:8000/api/:path*" }]; } }),
+  ...(dev && { async rewrites() { return [
+    { source: "/api/:path*", destination: "http://localhost:8000/api/:path*" },
+    { source: "/library/p/:path*", destination: "/library/detail/" },   // Caddy does this in the real setup (sharing.md)
+    { source: "/embed/", destination: "/embed/index.html" },
+  ]; } }),
 };
 export default nextConfig;

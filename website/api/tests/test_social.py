@@ -7,7 +7,7 @@ from app.models import Preset, Release
 
 from test_api import login_as_admin, register
 
-PRESET = {"title": "Warm Pad", "summary": "Slow and wide", "type": "patch", "tags": ["pad", "Warm"],
+PRESET = {"title": "Warm Pad", "summary": "Slow and wide", "type": "patch", "tags": ["pad", "Warm"], "visibility": "public",
           "preset": {"nodes": [{"id": "a", "type": "lfo"}], "cables": [], "needs": {"lfo": {"min": "1.2.0"}}}}
 
 
@@ -97,15 +97,15 @@ def test_every_preset_is_cc_by_and_an_older_licence_stays(client):
     assert client.get("/api/presets/ann/warm-pad/file").json()["license"] == "CC0-1.0"
 
 
-def test_mine_lists_own_presets_including_unlisted(client):
+def test_mine_lists_own_presets_including_private(client):
     register(client)
     assert TestClient(app).get("/api/presets/mine").status_code == 401
     made = client.post("/api/presets", json=PRESET).json()
     other = other_client()
     assert other.get("/api/presets/mine").json() == []
-    assert client.patch(f"/api/presets/{made['id']}", json={"state": "unlisted"}).status_code == 200
+    assert client.patch(f"/api/presets/{made['id']}", json={"visibility": "private"}).status_code == 200
     mine = client.get("/api/presets/mine").json()
-    assert [(p["address"], p["state"]) for p in mine] == [("ann/warm-pad", "unlisted")]
+    assert [(p["address"], p["visibility"]) for p in mine] == [("ann/warm-pad", "private")]
     assert client.get("/api/presets").json()["total"] == 0
 
 
@@ -145,12 +145,13 @@ def test_only_the_owner_edits_and_admin_unlists(client, make_admin):
 
     admin = TestClient(app)
     login_as_admin(admin, make_admin)
-    assert admin.patch(f"/api/presets/{pid}", json={"state": "unlisted"}).json()["state"] == "unlisted"
+    assert admin.patch(f"/api/presets/{pid}", json={"state": "removed"}).json()["state"] == "removed"
     anon = TestClient(app)
     assert anon.get("/api/presets").json()["total"] == 0
     assert anon.get("/api/presets/ann/warm-pad").status_code == 404
     assert client.get("/api/presets/ann/warm-pad").status_code == 200  # its author still sees it
     assert client.patch(f"/api/presets/{pid}", json={"state": "listed"}).status_code == 403
+    assert client.patch(f"/api/presets/{pid}", json={"visibility": "public"}).status_code == 409  # removed: the author cannot publish it again
 
 
 def test_publish_is_rate_limited(client):
@@ -307,7 +308,7 @@ def test_only_listed_presets_count_and_deleting_removes_the_credit(client):
     two = ben.post("/api/presets", json=credited("Two", {"name": "Warm Pad", "author": "Ann", "address": "ann/warm-pad"})).json()
     anon = TestClient(app)
     assert anon.get("/api/presets/ann/warm-pad/used-in").json()["count"] == 2
-    assert ben.patch(f"/api/presets/{one['id']}", json={"state": "unlisted"}).status_code == 200
+    assert ben.patch(f"/api/presets/{one['id']}", json={"visibility": "private"}).status_code == 200
     assert anon.get("/api/presets/ann/warm-pad/used-in").json()["count"] == 1
     assert ben.delete(f"/api/presets/{two['id']}").status_code == 204
     assert anon.get("/api/presets/ann/warm-pad/used-in").json() == {"count": 0, "items": []}

@@ -86,6 +86,7 @@
   const commands = {};                   // id -> fn(anchor)
   const enabledBy = {};                  // id -> fn(): bool
   const has = (name) => () => !!P[name];
+  const sharing = () => !!(P.BleepProjectBrowser && P.BleepAccount && P.BleepAccount.enabled);   // every host with an account: app, plugin, web
   const settingsOffered = () => !!(P.BleepSettingsView && document.getElementById("settings"));
 
   const MODEL = [
@@ -103,7 +104,6 @@
       { id: "project.download", label: "Download Project", when: () => !native_ && !!P.BleepProjectBrowser },
       null,
       { id: "library.open", label: "Open Library…", when: () => !!(document.getElementById("library") || window.BleepWeb) },
-      { id: "library.upload", label: "Upload Project to Library…", when: () => !!(document.getElementById("library") && P.BleepAccount && P.BleepAccount.enabled && P.BleepSideMenu) },
       null,
       { id: "file.settings", label: "Settings…", appKey: cmdKey(","), when: settingsOffered },
     ]],
@@ -134,6 +134,15 @@
       { id: "view.trace", label: "Trace Signal", key: "T" },
       { id: "view.keyboard", label: "Screen Keyboard", when: () => !!(window.BleepWeb && window.BleepPlayKeys) },   // Bleep Play: the piano under the board, on or off
     ]],
+    ["Share", [
+      { id: "share.share", label: "Share…", when: sharing, enabled: () => !P.BleepProjectBrowser.shareState().linked },
+      { id: "share.update", label: "Update in Library", when: sharing, enabled: () => P.BleepProjectBrowser.shareState().linked },
+      { id: "share.restore", label: "Restore from Library…", when: sharing, enabled: () => P.BleepProjectBrowser.shareState().linked },
+      null,
+      { id: "share.library", label: "Copy Library Link", when: sharing, enabled: () => P.BleepProjectBrowser.shareState().linked },
+      { id: "share.play", label: "Copy Play Link", when: sharing, enabled: () => P.BleepProjectBrowser.shareState().linked },
+      { id: "share.embed", label: "Copy Embed Play Code (iframe)", when: sharing, enabled: () => P.BleepProjectBrowser.shareState().linked },
+    ]],
     ["Help", [
       { id: "help.docs", label: "Documentation" },
       { id: "help.topics", label: "Help Topics…", when: () => !!document.getElementById("help") },
@@ -155,7 +164,12 @@
       if (window.BleepWeb) window.open("/library/", "_blank", "noopener");   // the browser board installs its modules itself; the library is the site's page
       else if (P.BleepLibraryView) P.BleepLibraryView.show();
     },
-    "library.upload": () => P.BleepSideMenu && P.BleepSideMenu.upload(),
+    "share.share": () => P.BleepProjectBrowser.share(),
+    "share.update": () => P.BleepProjectBrowser.update(),
+    "share.restore": () => P.BleepProjectBrowser.restore(),
+    "share.library": () => P.BleepProjectBrowser.copyLink("library"),
+    "share.play": () => P.BleepProjectBrowser.copyLink("play"),
+    "share.embed": () => P.BleepProjectBrowser.copyLink("embed"),
     "help.docs": () => showDocs(),
     "help.topics": () => P.BleepHelpView && P.BleepHelpView.show(),
     "help.about": () => showAbout(),
@@ -251,6 +265,7 @@
       native_ = !!opts.nativeMenu;
       if (!native_) build(); else sendNative();
       onNative("menu", (what) => run(what));
+      if (P.BleepProjectBrowser) P.BleepProjectBrowser.onChange(sendNative);   // the Share menu follows the project's link to the library
     },
     register(cmds, enabledFns) {
       Object.assign(commands, cmds);

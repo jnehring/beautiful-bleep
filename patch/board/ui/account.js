@@ -9,6 +9,9 @@
 //   BleepAccount.cancel() / signOut()
 //   BleepAccount.call(method, path, body)   a call to the library's API with the login: { status, body, error }
 //   BleepAccount.share(kind, name, preset)  the Share… dialog; kind is "cells" or "boards" (the local preset kinds)
+//   BleepAccount.urls(link)            the Library, Play and Embed links and the iframe code of a shared version (link = { pid, version })
+//   BleepAccount.copy(text, what)      puts text on the clipboard and says so
+//   BleepAccount.ask(title, note, opts) a dialog with buttons and an optional list: { ok, value } (confirm() does not work in plugins)
 (function () {
   "use strict";
   // The page's lock (common/ui/bleep-bridge.js): the native bridge and the board's private namespace are not on `window`.
@@ -73,13 +76,17 @@
       const form = () => {
         box.innerHTML = "";
         box.appendChild(el("h3", "", "Share “" + name + "”"));
-        box.appendChild(el("div", "ac-note", "Anyone can download it from the Bleep Library. You are signed in as " + (last.name || last.email || "you") + "."));
+        box.appendChild(el("div", "ac-note", "You are signed in as " + (last.name || last.email || "you") + "."));
         const field = (label, input) => { const l = el("label", "", label); l.appendChild(input); box.appendChild(l); return input; };
         const title = field("Title", el("input")); title.value = name; title.maxLength = 120;
         const summary = field("Description", el("textarea")); summary.maxLength = 280; summary.rows = 3;
         summary.value = (preset.description || "").slice(0, 280);
         const tags = field("Tags (comma separated)", el("input")); tags.value = (preset.tags || []).join(", ");
-        box.appendChild(el("div", "ac-note", "Shared presets are licensed CC BY 4.0: others may copy and change them if they credit you."));
+        const vis = field("Visibility", el("select"));
+        for (const [v, t] of [["private", "Private: only you can open it"], ["public", "Public: anyone can find, play and download it"]]) {
+          const o = el("option", "", t); o.value = v; vis.appendChild(o);
+        }
+        box.appendChild(el("div", "ac-note", "Public patches are licensed CC BY 4.0: others may copy and change them if they credit you. You can make it public later."));
         box.appendChild(msg);
         const row = el("div", "ac-row");
         const cancelBtn = el("button", "", "Cancel");
@@ -89,21 +96,23 @@
           const big = window.BleepMedia.tooBig(preset.media);   // the audio it carries must fit what the library takes
           if (big) { msg.className = "ac-msg bad"; msg.textContent = "Not shared: " + big + "."; return; }
           go.disabled = true; msg.className = "ac-msg"; msg.textContent = "Sharing…";
+          const { library, ...clean } = preset;   // the link to the library is the project's own; the file holds none
           const body = {
             title: title.value.trim(), summary: summary.value.trim(), type: kind === "cells" ? "cell" : "patch",
-            tags: tags.value.split(",").map((t) => t.trim()).filter(Boolean), preset,
-            slug: slugOf(name),   // sharing the same name again publishes a new version
+            tags: tags.value.split(",").map((t) => t.trim()).filter(Boolean), preset: clean, visibility: vis.value,
+            slug: slugOf(name),   // a slug of your own that exists is a new version; the project's link (pid) is how Update finds it
           };
           const r = await call("POST", "/api/presets", body);
           go.disabled = false;
           if (r && r.status === 201) {
-            const done = { address: r.body.address, version: r.body.version };
+            const done = { address: r.body.address, pid: r.body.pid, version: r.body.version, sha256: r.body.versions[0].sha256, visibility: r.body.visibility };
             box.innerHTML = "";
             box.appendChild(el("h3", "", "Shared"));
-            box.appendChild(el("div", "ac-note", "“" + r.body.title + "” is in the Bleep Library as version " + r.body.version + "."));
+            box.appendChild(el("div", "ac-note", "“" + r.body.title + "” is in the Bleep Library as version " + r.body.version + ", "
+              + (done.visibility === "public" ? "public." : "private: only you can open it until you make it public on the website (your account, Your presets).")));
             const row2 = el("div", "ac-row");
             const see = el("button", "", "Open in the library");
-            see.addEventListener("click", () => open(last.libraryUrl + "/library/detail/?kind=preset&slug=" + encodeURIComponent(done.address)));
+            see.addEventListener("click", () => open(urls(done).library));
             const ok = el("button", "ac-primary", "Done");
             ok.addEventListener("click", () => close(done));
             row2.append(see, ok);
@@ -158,6 +167,76 @@
     });
   }
 
+  /// The links of one version of a shared patch (sharing.md): every link names the version, so it shows what was shared then.
+  function urls(link) {
+    const base = (last && last.libraryUrl) || "";
+    const q = "patch=" + encodeURIComponent(link.pid) + "&v=" + link.version;
+    const embed = base + "/embed/?" + q;
+    return {
+      library: base + "/library/p/" + encodeURIComponent(link.pid) + "/" + link.version,
+      play: base + "/play/?" + q,
+      embed,
+      iframe: '<iframe src="' + embed + '" width="720" height="420" allow="autoplay; midi; fullscreen" loading="lazy"></iframe>',
+    };
+  }
+
+  let toastTimer = 0;
+  function toast(text) {
+    let t = document.querySelector(".ac-toast");
+    if (!t) { t = el("div", "ac-toast"); t.setAttribute("role", "status"); document.body.appendChild(t); }
+    t.textContent = text;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.remove(), 3000);
+  }
+
+  async function copy(text, what) {
+    let ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; } catch (e) { /* denied or insecure context */ }
+    if (!ok) {
+      const ta = el("textarea");
+      ta.value = text; ta.style.cssText = "position:fixed;opacity:0";
+      document.body.appendChild(ta); ta.select();
+      try { ok = document.execCommand("copy"); } catch (e) { /* nothing more to try */ }
+      ta.remove();
+    }
+    toast(ok ? (what || "Link") + " copied." : "Could not copy. Select it from the library page instead.");
+    return ok;
+  }
+
+  /// A small dialog: a title, a note, an optional list to choose from (opts.items = [{ value, label }], the first is chosen) and buttons
+  /// (opts.ok, default "OK"; opts.cancel = a label, or "" for none). Resolves { ok, value }.
+  function ask(title, note, opts) {
+    opts = opts || {};
+    return new Promise((resolve) => {
+      const back = el("div", "ac-back");
+      const box = el("div", "ac-box");
+      back.appendChild(box);
+      const done = (ok, value) => { back.remove(); resolve({ ok, value }); };
+      back.addEventListener("mousedown", (e) => { if (e.target === back) done(false); });
+      back.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.stopPropagation(); done(false); } });
+      box.appendChild(el("h3", "", title));
+      if (note) box.appendChild(el("div", "ac-note", note));
+      let pick = null;
+      if (opts.items) {
+        pick = el("select");
+        for (const it of opts.items) { const o = el("option", "", it.label); o.value = it.value; pick.appendChild(o); }
+        box.appendChild(pick);
+      }
+      const row = el("div", "ac-row");
+      if (opts.cancel !== "") {
+        const no = el("button", "", opts.cancel || "Cancel");
+        no.addEventListener("click", () => done(false));
+        row.appendChild(no);
+      }
+      const yes = el("button", "ac-primary", opts.ok || "OK");
+      yes.addEventListener("click", () => done(true, pick ? pick.value : undefined));
+      row.appendChild(yes);
+      box.appendChild(row);
+      document.body.appendChild(back);
+      yes.focus();
+    });
+  }
+
   /// A dialog that asks the user to sign in because `title` needs the login (the patch assistant: its first use). Resolves true when the
   /// user is signed in (already, or after the dialog), false when they dismissed it.
   function requireSignIn(title, note) {
@@ -203,5 +282,5 @@
     });
   }
 
-  const api = P.BleepAccount = { enabled: false, client: "Bleep", status, signIn, cancel, signOut, call, share, requireSignIn, onChange: (f) => listeners.add(f), open, get last() { return last; } };
+  const api = P.BleepAccount = { enabled: false, client: "Bleep", status, signIn, cancel, signOut, call, share, urls, copy, ask, toast, requireSignIn, onChange: (f) => listeners.add(f), open, get last() { return last; } };
 })();

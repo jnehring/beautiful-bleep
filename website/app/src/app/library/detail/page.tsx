@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/auth";
 import { LibraryImage } from "../LibraryImage";
 import { Social, Stars } from "../Social";
+import { PatchView, parsePatchPath } from "./PatchView";
 
 type File = { path: string; bytes: number; sha256: string; platform: string; uploaded: boolean };
 type Origin = { name: string; author: string; url: string; license: string; copyright: string; changes?: string };
@@ -26,6 +27,15 @@ export default function LibraryDetailPage() {
 }
 
 function DetailView() {
+  // /library/p/<pid>/<version> is this page too (the server rewrites it): one version of a shared patch.
+  const [byId, setById] = useState<{ pid: string; version: number } | null | undefined>(undefined);
+  useEffect(() => setById(parsePatchPath(window.location.pathname)), []);
+  if (byId === undefined) return <p>Loading…</p>;
+  if (byId) return <PatchView pid={byId.pid} version={byId.version} />;
+  return <EntryView />;
+}
+
+function EntryView() {
   const params = useSearchParams();
   const kind = params.get("kind") ?? "";
   const slug = params.get("slug") ?? "";

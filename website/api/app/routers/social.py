@@ -24,7 +24,7 @@ def _entry_exists(db: Session, kind: str, slug: str) -> Preset | bool:
     if kind == "preset":
         author, _, name = slug.partition("/")
         row = db.scalar(select(Preset).join(User, Preset.author_id == User.id).where(
-            User.handle == author, Preset.slug == name, Preset.state == "listed"))
+            User.handle == author, Preset.slug == name, Preset.state == "listed", Preset.visibility == "public"))
     else:
         row = db.scalar(select(Release.id).where(Release.kind == kind, Release.slug == slug, Release.status == "published").limit(1))
     if row is None:

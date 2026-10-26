@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: MIT
+import secrets
 from datetime import date, datetime, timezone
 
 from sqlalchemy import JSON, BigInteger, Boolean, CheckConstraint, Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
@@ -148,6 +149,11 @@ class DeviceCode(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
+def new_pid() -> str:
+    """10 characters of base32 (no look-alikes): 50 bits, so a link cannot be guessed."""
+    return "".join(secrets.choice("abcdefghjkmnpqrstuvwxyz23456789") for _ in range(10))
+
+
 class Preset(Base):
     """A shared preset (data, not code): metadata here, one `.bleeppreset` file per version in the library bucket."""
 
@@ -162,7 +168,9 @@ class Preset(Base):
     type: Mapped[str] = mapped_column(String(8))  # patch | cell
     tags: Mapped[list] = mapped_column(JSON, default=list)
     license: Mapped[str] = mapped_column(String(120), default="CC-BY-4.0")
-    state: Mapped[str] = mapped_column(String(16), default="listed")  # listed | unlisted (taken down by an admin or the author)
+    pid: Mapped[str] = mapped_column(String(10), unique=True, index=True, default=new_pid)  # the public ID in every link; immutable
+    visibility: Mapped[str] = mapped_column(String(8), default="private")  # private (author only) | public (the author's choice)
+    state: Mapped[str] = mapped_column(String(16), default="listed")  # listed | removed (taken down by an admin); moderation only
     downloads: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
@@ -175,6 +183,10 @@ class Preset(Base):
     @property
     def address(self) -> str:
         return f"{self.author.handle}/{self.slug}"
+
+    @property
+    def is_public(self) -> bool:
+        return self.visibility == "public" and self.state == "listed"
 
 
 class Project(Base):

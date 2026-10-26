@@ -204,3 +204,9 @@ details.release summary { cursor: pointer; }
 .meta { color: var(--muted); opacity: .75; font-size: .9rem; margin: 0 0 4px; }
 .meta a { color: inherit; }
 article.post { max-width: 720px; }
+
+/* Library page of a shared patch (library/detail/PatchView.tsx) */
+.notice { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); }
+.copy-row { display: flex; align-items: flex-end; gap: 8px; margin: 8px 0; }
+.copy-row label { flex: 1; display: block; font-size: .8rem; color: var(--muted); }
+.copy-row input { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; font-family: ui-monospace, Menlo, monospace; font-size: .85rem; }

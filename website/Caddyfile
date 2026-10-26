@@ -5,6 +5,11 @@
 # Optional automatic HTTPS: set BLEEP_SITE_ADDRESS to the domain (e.g. beautifulbleep.com) in website/.env. Caddy then gets and renews
 # a Let's Encrypt certificate itself (ports 80 and 443 must be reachable from the internet, see doc/operations/website.md) and
 # redirects HTTP to HTTPS. Unset or empty (compose passes :80): plain HTTP as before.
+# The CSP header of a page; the arguments are the matcher and the frame-ancestors source (see "The pages" below).
+(pagecsp) {
+	header {args[0]} Content-Security-Policy "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; object-src 'none'; frame-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors {args[1]}"
+}
+
 {$BLEEP_SITE_ADDRESS::80} {
 	root * /srv
 	encode zstd gzip
@@ -28,9 +33,13 @@
 		Strict-Transport-Security "max-age=31536000"
 	}
 
-	# Nobody frames the site (clickjacking on /device/ and /account), except the one page below.
-	@noframe not path /play/board-code-view.html
+	# Nobody frames the site (clickjacking on /device/ and /account), except: the sandboxed frame of a Code node (below), Bleep Play by
+	# this site's own /embed/ page, and /embed/ by anyone (sharing.md: the iframe code a patch's author copies into a forum). The embed
+	# page is public and makes no call that needs a login; the third-party frame does not carry the session cookie anyway.
+	@noframe not path /play/board-code-view.html /play /play/ /play/index.html /embed /embed/*
 	header @noframe X-Frame-Options "DENY"
+	@playframe path /play /play/ /play/index.html
+	header @playframe X-Frame-Options "SAMEORIGIN"
 
 	# The pages: no framing, no plugins, no <base>, forms and resources from here. The header deliberately has no script-src and no
 	# default-src: Next's static export writes inline scripts, and each page carries its own <meta> policy with script-src and the
@@ -38,9 +47,12 @@
 	# together, so a script-src in the header would have to allow the hashes too, which only 'unsafe-inline' could do. Every other
 	# fetch directive is therefore listed here instead of coming from default-src. The export also writes inline styles, so style-src
 	# keeps 'unsafe-inline'. wasm-unsafe-eval (in the meta) is for Bleep Play compiling the modules; frame-src 'self' is for the sandboxed frame a Code node's own UI runs in (board-code-view.html, which sets its own policy: no network); ws://127.0.0.1 is its
-	# bridge to the Bleep App on the same computer.
-	@pages not path /registry/* /play/board-code-view.html
-	header @pages Content-Security-Policy "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; object-src 'none'; frame-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+	# bridge to the Bleep App on the same computer. The one argument is frame-ancestors.
+	@pages not path /registry/* /play/board-code-view.html /play /play/ /play/index.html /embed /embed/*
+	import pagecsp @pages 'none'
+	import pagecsp @playframe 'self'
+	@embed path /embed /embed/*
+	import pagecsp @embed *
 
 	# The one page that is framed: a Code node's own UI (board-code-view.html) is embedded by Bleep Play, from the same origin.
 	# It sets its own policy (a meta tag: no network), so the header here only controls who may frame it.
@@ -103,6 +115,9 @@
 		rewrite * /bleep-registry{path}
 		reverse_proxy storage:8333
 	}
+
+	# /library/p/<pid>/<version> is the library page of one version of a patch (sharing.md); the static page reads the path.
+	rewrite /library/p/* /library/detail/
 
 	try_files {path} {path}/index.html
 	file_server
