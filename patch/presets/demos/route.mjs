@@ -122,7 +122,7 @@ function randomPan() {
   p.cable(g, "gate1", hats, "closed");
   const rt = p.add("route", [2, 0], { outputs: 4, rate: "1/8", order: "Random", seed: 3, fade: 0 });
   p.cable(hats, "out", rt, "in");
-  const mix = p.add("audio-mixer", [4, 0], { level1: -6, level2: -6, level3: -6, level4: -6, level5: -4, master: -2 });
+  const mix = p.add("audio-mixer", [4, 0], { level1: 0, level2: 0, level3: 0, level4: 0, level5: -4, master: 0 });
   const cutoffs = [600, 1500, 3200, 6500];
   cutoffs.forEach((c, i) => {
     const f = p.add("filter", [3, i], { cutoff: c, resonance: 0.55, type: "SVF Bandpass (unit gain)" }, { name: "Band " + (i + 1) });

@@ -23422,7 +23422,7 @@
           {"id":"drumgr","type":"drum-grid","name":"Pulse","x":340,"y":40,"parent":"","params":{},"data":{"tracks":[{"name":"Hit","mute":false,"solo":false},{"name":"","mute":false,"solo":false},{"name":"","mute":false,"solo":false},{"name":"","mute":false,"solo":false},{"name":"","mute":false,"solo":false},{"name":"","mute":false,"solo":false},{"name":"","mute":false,"solo":false},{"name":"","mute":false,"solo":false}],"current":0,"patterns":[{"name":"Pulse","length":16,"steps":["xxxxxxxxxxxxxxxx"]},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]}},
           {"id":"punchh","type":"punch-hats","name":"Punch Hats","x":640,"y":40,"parent":"","params":{"level":0.6}},
           {"id":"route","type":"route","name":"Route","x":940,"y":40,"parent":"","params":{"outputs":0.333333,"rate":0.333333,"order":1,"seed":0.003003,"fade":0}},
-          {"id":"audiom","type":"audio-mixer","name":"Audio Mixer","x":1540,"y":40,"parent":"","params":{"level1":0.646113,"level2":0.646113,"level3":0.646113,"level4":0.646113,"level5":0.699337,"master":0.754845}},
+          {"id":"audiom","type":"audio-mixer","name":"Audio Mixer","x":1540,"y":40,"parent":"","params":{"level1":0.812652,"level2":0.812652,"level3":0.812652,"level4":0.812652,"level5":0.699337,"master":0.812652}},
           {"id":"filter","type":"filter","name":"Band 1","x":1240,"y":40,"parent":"","params":{"cutoff":0.492374,"resonance":0.55,"type":0.032258}},
           {"id":"filter2","type":"filter","name":"Band 2","x":1240,"y":260,"parent":"","params":{"cutoff":0.62502,"resonance":0.55,"type":0.032258}},
           {"id":"filter3","type":"filter","name":"Band 3","x":1240,"y":480,"parent":"","params":{"cutoff":0.734707,"resonance":0.55,"type":0.032258}},
