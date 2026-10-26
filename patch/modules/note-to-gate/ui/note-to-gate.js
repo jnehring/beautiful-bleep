@@ -3,7 +3,7 @@
 // which note to set on a gate; a chip is lit while a gate listens to that note. Under it a lamp per gate.
 //
 // The notes arrive as the live array "notes": [count, note, velocity, …], the newest 12; the view keeps the
-// count it has seen and flashes the chips that are new.
+// count it has seen and flashes the chips that are new. Freeze stops the list so it can be read.
 (function () {
   "use strict";
   const style = document.createElement("style");
@@ -13,6 +13,9 @@
     ".ng-chip small{font:10px system-ui,sans-serif;opacity:.65}" +
     ".ng-chip.new{outline:2px solid var(--bv-accent,#c084fc)}" +
     ".ng-chip.used{background:color-mix(in srgb,var(--bv-accent,#c084fc) 30%,transparent)}" +
+    ".ng-head{display:flex;align-items:center;justify-content:space-between}" +
+    ".ng-freeze{padding:2px 10px;border-radius:6px;border:1px solid var(--bv-line,#444);background:none;color:inherit;font:600 11px system-ui,sans-serif;cursor:pointer}" +
+    ".ng-freeze.on{background:var(--bv-accent,#c084fc);color:#000}" +
     ".ng-empty{opacity:.6;font:12px system-ui,sans-serif}" +
     ".ng-gates{display:flex;flex-wrap:wrap;gap:6px}" +
     ".ng-gate{width:46px;padding:4px 0;text-align:center;border-radius:6px;border:1px solid var(--bv-line,#444);font:11px system-ui,sans-serif}" +
@@ -77,7 +80,7 @@
   BleepViews.register("note-to-gate", {
     width: 460,
     template:
-      '<div class="bv-panel"><h2>Notes heard</h2><div class="ng-notes"></div></div>' +
+      '<div class="bv-panel"><div class="ng-head"><h2>Notes heard</h2><button class="ng-freeze" title="Stop the list so you can read it">Freeze</button></div><div class="ng-notes"></div></div>' +
       '<div class="bv-panel"><h2>Gates</h2><div class="ng-gates"></div></div>',
     layout: [
       { title: "Gates", params: ["gates"] },
@@ -87,13 +90,24 @@
       view._list = custom.querySelector(".ng-notes");
       view._gates = custom.querySelector(".ng-gates");
       view._seen = null;
+      view._frozen = false;
+      const btn = custom.querySelector(".ng-freeze");
+      btn.addEventListener("click", () => {
+        view._frozen = !view._frozen;
+        btn.classList.toggle("on", view._frozen);
+        btn.textContent = view._frozen ? "Frozen" : "Freeze";
+        if (!view._frozen && view._latest) takeNotes(view, view._latest);  // catch up with what came in meanwhile
+      });
       view._gateKey = null;
       renderGates(view);
     },
     onState(st, view) {
       if (!st || !view._gates) return;
       renderGates(view);
-      if (st.arrays && st.arrays.notes) takeNotes(view, st.arrays.notes);
+      if (st.arrays && st.arrays.notes) {
+        view._latest = st.arrays.notes;
+        if (!view._frozen) takeNotes(view, st.arrays.notes);  // Freeze: the list stays as it is; the gate lamps keep running
+      }
       (view._lamps || []).forEach((d, k) => d.classList.toggle("on", !!st["gate" + (k + 1)]));
     },
   });

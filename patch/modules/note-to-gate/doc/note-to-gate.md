@@ -17,7 +17,8 @@ lowers it. If two gates listen to the same note, both follow it.
 **Notes heard.** The top of the view lists the latest notes that came in, newest
 first, with their note name, number and velocity. Play the key you want, read the
 number off the list, and set it on a gate. A note a gate already listens to is
-tinted. Under the list, a lamp per gate lights while the gate is high.
+tinted. **Freeze** stops the list so you can read it while notes keep arriving;
+click it again to catch up. Under the list, a lamp per gate lights while the gate is high.
 
 **All notes off.** The MIDI messages *All Sound Off* (120) and *All Notes Off*
 (123) lower every gate.
