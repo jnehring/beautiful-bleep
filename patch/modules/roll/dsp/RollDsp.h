@@ -84,6 +84,72 @@ struct RollOutputs {
     float trigger = 0.0f, loop = 0.0f, position = 0.0f;
 };
 
+/// Turns played notes into Roll notes while the playhead runs: a note starts at
+/// the playhead tick and ends at the tick of its release, wrapping round the
+/// loop. Finished notes leave through a callback. Input events arrive as note
+/// numbers (the Notes input) or as a pitch plus a gate (the CV inputs).
+class RollRecorder {
+public:
+    void reset() noexcept {
+        for (auto& h : held_) h = Held{};
+        gate_ = false;
+        gateNote_ = -1;
+    }
+    void noteOn(int note, float vel, int pos) noexcept {
+        note = std::clamp(note, 0, 127);
+        held_[(size_t)note] = {true, pos, (uint8_t)std::clamp((int)std::lround(vel * 127.0f), 1, 127)};
+    }
+    template <class Done>
+    void noteOff(int note, int pos, const RollSlot& slot, Done&& done) noexcept {
+        Held& h = held_[(size_t)std::clamp(note, 0, 127)];
+        if (!h.on) return;
+        h.on = false;
+        const int a = slot.loopA(), b = slot.loopB();
+        int len = pos >= h.start ? pos - h.start : (b - h.start) + (pos - a);
+        RollNote n;
+        n.t = std::clamp(h.start, 0, slot.length() - 1);
+        n.l = std::clamp(len, 1, slot.length() - n.t);
+        n.pitch = (uint8_t)std::clamp(note, 0, 127);
+        n.vel = h.vel;
+        done(n);
+    }
+    /// Pitch (1 V/oct, 0 V = C4) and gate in place of note events.
+    template <class Done>
+    void cv(float pitch, float gate, float vel, int pos, const RollSlot& slot, Done&& done) noexcept {
+        const bool high = gate >= 0.5f;
+        if (high && !gate_) {
+            gateNote_ = std::clamp(60 + (int)std::lround(pitch * 12.0f), 0, 127);
+            noteOn(gateNote_, vel, pos);
+        } else if (!high && gate_ && gateNote_ >= 0) {
+            noteOff(gateNote_, pos, slot, done);
+            gateNote_ = -1;
+        }
+        gate_ = high;
+    }
+    /// Ends every held note at `pos` (recording stopped, slot changed).
+    template <class Done>
+    void closeAll(int pos, const RollSlot& slot, Done&& done) noexcept {
+        for (int i = 0; i < 128; ++i) noteOff(i, pos, slot, done);
+        gate_ = false;
+        gateNote_ = -1;
+    }
+    bool holding() const noexcept {
+        for (const auto& h : held_)
+            if (h.on) return true;
+        return false;
+    }
+
+private:
+    struct Held {
+        bool on = false;
+        int start = 0;
+        uint8_t vel = 100;
+    };
+    std::array<Held, 128> held_{};
+    bool gate_ = false;
+    int gateNote_ = -1;
+};
+
 class RollDsp {
 public:
     static constexpr int kNumSpeeds = 5;
@@ -138,6 +204,9 @@ public:
     }
 
     int playingSlot() const noexcept { return std::max(playSlot_, 0); }
+    /// The slot being played, for the recorder (null before the first tick).
+    const RollSlot* playingSlotPtr() const noexcept { return playSlot_ < 0 ? nullptr : slotPtr(playSlot_); }
+    bool running() const noexcept { return playSlot_ >= 0 && (transportOn_ || haveClock_); }
     int previousSlot() const noexcept { return prevSlot_ >= 0 ? prevSlot_ : std::max(playSlot_, 0); }
     int position() const noexcept { return pos_; }
     int sounding() const noexcept {

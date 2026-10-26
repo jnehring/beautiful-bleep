@@ -408,6 +408,42 @@ static void clocked() {
     EXPECT(!run2.bad);
 }
 
+static void recording() {
+    RollSlot slot = slotOf(1, {});
+    std::vector<RollNote> got;
+    auto done = [&](const RollNote& n) { got.push_back(n); };
+
+    TEST("a played note is written at the playhead with its held length");
+    RollRecorder rec;
+    rec.noteOn(64, 0.5f, 96);
+    EXPECT(rec.holding());
+    rec.noteOff(64, 144, slot, done);
+    EXPECT(got.size() == 1 && !rec.holding());
+    EXPECT(got[0].t == 96 && got[0].l == 48 && got[0].pitch == 64);
+    EXPECT(got[0].vel == 64);
+
+    TEST("a note released after the loop wrapped keeps the time it was held");
+    got.clear();
+    rec.noteOn(60, 1.0f, 360);
+    rec.noteOff(60, 24, slot, done);
+    EXPECT(got.size() == 1 && got[0].t == 360 && got[0].l == 24);
+
+    TEST("pitch and gate record one note per gate");
+    got.clear();
+    rec.cv(7.0f / 12.0f, 1.0f, 0.8f, 48, slot, done);
+    rec.cv(7.0f / 12.0f, 1.0f, 0.8f, 60, slot, done);
+    EXPECT(got.empty());
+    rec.cv(7.0f / 12.0f, 0.0f, 0.8f, 96, slot, done);
+    EXPECT(got.size() == 1 && got[0].pitch == 67 && got[0].t == 48 && got[0].l == 48);
+
+    TEST("stopping ends the notes still held");
+    got.clear();
+    rec.noteOn(50, 0.8f, 10);
+    rec.noteOn(52, 0.8f, 20);
+    rec.closeAll(30, slot, done);
+    EXPECT(got.size() == 2 && !rec.holding());
+}
+
 int main() {
     timing();
     loops();
@@ -415,5 +451,6 @@ int main() {
     shaping();
     slots();
     clocked();
+    recording();
     return bleep::test::finish("roll");
 }

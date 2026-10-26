@@ -88,9 +88,7 @@ RollBank parseBank(const juce::var& data) {
     return bank;
 }
 
-std::string sanitiseData(const std::string& json) {
-    const juce::var in = json.empty() ? juce::var() : juce::JSON::parse(juce::String(json));
-    const RollBank bank = parseBank(in);
+std::string serialise(const juce::var& in, const RollBank& bank) {
     auto* out = new juce::DynamicObject();
     juce::var result(out);
     out->setProperty("slot", juce::jlimit(0, patch::kRollSlots - 1, number(in["slot"], 0)));
@@ -113,10 +111,41 @@ std::string sanitiseData(const std::string& json) {
     return juce::JSON::toString(result, true).toStdString();
 }
 
+std::string sanitiseData(const std::string& json) {
+    const juce::var in = json.empty() ? juce::var() : juce::JSON::parse(juce::String(json));
+    return serialise(in, parseBank(in));
+}
+
+/// Notes the recorder finished on the audio thread, waiting for the message
+/// thread to write them into the node's data (single producer, single consumer).
+struct RecordedNotes {
+    struct Item {
+        int slot = 0;
+        RollNote note;
+    };
+    static constexpr uint32_t kSize = 512;
+    std::array<Item, kSize> items{};
+    std::atomic<uint32_t> head{0}, tail{0};
+
+    void push(int slot, const RollNote& n) noexcept {
+        const uint32_t h = head.load(std::memory_order_relaxed);
+        if (h - tail.load(std::memory_order_acquire) >= kSize) return;  // full: drop
+        items[h % kSize] = {slot, n};
+        head.store(h + 1, std::memory_order_release);
+    }
+    bool pop(Item& out) noexcept {
+        const uint32_t t = tail.load(std::memory_order_relaxed);
+        if (t == head.load(std::memory_order_acquire)) return false;
+        out = items[t % kSize];
+        tail.store(t + 1, std::memory_order_release);
+        return true;
+    }
+};
+
 class RollModule final : public Module {
 public:
-    enum { Morph, Humanise, Length, Swing, Slot, MorphTo, Speed, ClockStep, Root, Scale, Octave, Quantize, Harmony, Change, Seed, SyncTo };
-    enum { Clock, Reset, Transpose, Pattern };
+    enum { Morph, Humanise, Length, Swing, Slot, MorphTo, Speed, ClockStep, Root, Scale, Octave, Quantize, Harmony, Change, Seed, SyncTo, Record };
+    enum { Clock, Reset, Transpose, Pattern, NotesIn, PitchIn, CvIn };
     enum { Notes, LowPitch, LowGate, HighPitch, HighGate, LastPitch, LastGate, VelocityOut, Trigger, Loop, Position };
 
     using Module::Module;
@@ -126,13 +155,34 @@ public:
         dsp_.prepare(sampleRate);
         dsp_.reset();
     }
-    void reset() override { dsp_.reset(); }
+    void reset() override {
+        dsp_.reset();
+        recorder_.reset();
+    }
 
     void setData(const std::string& json) override {
         if (json == data_) return;
         data_ = json;
         auto bank = std::make_shared<RollBank>(parseBank(juce::JSON::parse(juce::String(json))));
         handoff_.publish(std::move(bank));
+    }
+
+    bool takeData(std::string& json) override {
+        RecordedNotes::Item it;
+        if (!recorded_.pop(it)) return false;
+        const juce::var in = data_.empty() ? juce::var() : juce::JSON::parse(juce::String(data_));
+        RollBank bank = parseBank(in);
+        do {
+            RollSlot& s = bank[(size_t)std::clamp(it.slot, 0, patch::kRollSlots - 1)];
+            if (s.count < patch::kRollMaxNotes) s.notes[(size_t)s.count++] = it.note;
+        } while (recorded_.pop(it));
+        for (auto& s : bank)
+            std::sort(s.notes.begin(), s.notes.begin() + s.count, [](const RollNote& a, const RollNote& b) {
+                return a.t != b.t ? a.t < b.t : a.pitch < b.pitch;
+            });
+        data_ = json = serialise(in, bank);
+        handoff_.publish(std::make_shared<RollBank>(bank));
+        return true;
     }
 
     void liveValues(std::vector<std::pair<std::string, double>>& out) const override {
@@ -142,6 +192,7 @@ public:
         out.push_back({"voices", (double)voices_.load()});
         out.push_back({"root", (double)root_.load()});
         out.push_back({"mask", (double)mask_.load()});
+        out.push_back({"rec", (double)rec_.load()});
     }
 
     void process(const ProcessContext& c) override {
@@ -171,6 +222,9 @@ public:
         patch::RollInputs in;
         in.clockPatched = dsp::clockSynced((int)setting(SyncTo), c.inputConnected[Clock]);
         in.patternPatched = c.inputConnected[Pattern];
+        const bool recording = (int)setting(Record) == 1;
+        const NoteBuffer* recIn = c.inputConnected[NotesIn] ? c.notesIn[NotesIn] : nullptr;
+        int recEv = 0;
         NoteBuffer& notes = *c.notesOut[Notes];
         notes.clear();
         patch::RollOutputs o;
@@ -198,6 +252,7 @@ public:
             c.outputs[Trigger][i] = o.trigger;
             c.outputs[Loop][i] = o.loop;
             c.outputs[Position][i] = o.position;
+            record(recording, recIn, recEv, c, i);
         }
         pos_.store(dsp_.position());
         slot_.store(dsp_.playingSlot());
@@ -205,12 +260,41 @@ public:
         voices_.store(dsp_.sounding());
         root_.store(root);
         mask_.store(mask);
+        rec_.store(recording ? 1 : 0);
     }
 
 private:
+    /// Writes what arrives on the three record inputs into the playing slot at the playhead.
+    void record(bool on, const NoteBuffer* in, int& e, const ProcessContext& c, int i) {
+        const patch::RollSlot* slot = dsp_.playingSlotPtr();
+        const int slotIdx = dsp_.playingSlot();
+        auto done = [this, &slotIdx](const RollNote& n) { recorded_.push(slotIdx, n); };
+        if (slot == nullptr) return;
+        const int pos = dsp_.position();
+        if (recorder_.holding() && (!on || !dsp_.running() || slotIdx != recSlot_)) {
+            // stopped, or the playing slot changed: finish the held notes in the slot they began in
+            const int old = recSlot_;
+            recorder_.closeAll(pos, *slot, [this, old](const RollNote& n) { recorded_.push(old, n); });
+        }
+        recSlot_ = slotIdx;
+        if (in != nullptr)
+            for (; e < in->count && in->events[e].offset <= i; ++e) {
+                const NoteEvent& ev = in->events[e];
+                if (!on || !dsp_.running()) continue;
+                if (ev.type == NoteEvent::On) recorder_.noteOn(ev.note, ev.value, pos);
+                else if (ev.type == NoteEvent::Off) recorder_.noteOff(ev.note, pos, *slot, done);
+            }
+        if (c.inputConnected[CvIn] && on && dsp_.running()) recorder_.cv(c.inputs[PitchIn][i], c.inputs[CvIn][i], 0.8f, pos, *slot, done);
+        else recorder_.cv(0.0f, 0.0f, 0.0f, pos, *slot, done);
+    }
+
     RollDsp dsp_;
     std::string data_;  // message thread
     RtHandoff<RollBank> handoff_;
+    patch::RollRecorder recorder_;
+    RecordedNotes recorded_;
+    int recSlot_ = 0;
+    std::atomic<int> rec_{0};
     std::atomic<int> pos_{0}, slot_{0}, prev_{0}, voices_{0}, root_{0}, mask_{0xfff};
 };
 
@@ -243,12 +327,16 @@ static void registerRollModule(Registry& r) {
                 ParamSpec::choice("harmony", "Harmony", {"Off", "Bus A", "Bus B", "Bus C", "Bus D"}, 0),
                 ParamSpec::choice("change", "Slot Change", {"Immediate", "Next bar", "Loop end"}, 1),
                 ParamSpec::integer("seed", "Seed", 0, 999, 1),
-                ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto)};
+                ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto),
+                ParamSpec::choice("record", "Record", {"Off", "On"}, 0)};
     s.harmony = HarmonyRole::Reader;  // follows a Harmony Master when Harmony is set
     s.inputs = {{"clock", "Clock", Signal::Trigger},
                 {"reset", "Reset", Signal::Trigger},
                 {"transpose", "Transpose", Signal::Pitch},
-                {"pattern", "Pattern", Signal::Control}};
+                {"pattern", "Pattern", Signal::Control},
+                {"notesin", "Notes In", Signal::Notes},
+                {"pitchin", "Pitch In", Signal::Pitch},
+                {"cvin", "CV In", Signal::Gate}};
     s.outputs = {{"notes", "Notes", Signal::Notes, false},
                  {"lowpitch", "Low Pitch", Signal::Pitch, true},
                  {"lowgate", "Low Gate", Signal::Gate, false},

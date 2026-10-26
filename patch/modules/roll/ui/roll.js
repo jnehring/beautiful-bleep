@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Roll view (doc/specs/modules/roll.md): the note editor. Notes are drawn on a
 // pitch grid (click and drag to draw, drag to move, drag the right edge to
-// resize, right-click or Delete to remove), a ruler sets the loop region and
+// resize, right-click or Delete to remove; the Select tool drags a rectangle), a ruler sets the loop region and
 // a lane below sets velocity, chance and ratchet. The previous slot shows as a
 // ghost and the Morph target as dashed outlines. Notes live in the node's data
 // as [start, length, pitch, velocity, chance, ratchet]; edits go to the engine
 // with api.setData.
 (function () {
   "use strict";
-  const TPB = 96, TPBAR = 384, SLOTS = 8, MAXBARS = 8, MAXN = 256;
-  const KEYS = 40, RULER = 20, ROW = 11, ROWS = 36, LANE = 66, LANE_TOP = RULER + ROWS * ROW + 8, H = LANE_TOP + LANE + 4;
+  const TPB = 96, TPBAR = 384, SLOTS = 8, MAXBARS = 8, MAXN = 256, MINROWS = 12, MAXROWS = 60;
+  const KEYS = 40, RULER = 20, AREA = 396, LANE = 66, LANE_TOP = RULER + AREA + 8, H = LANE_TOP + LANE + 4;
   const NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
   const BLACK = [1, 3, 6, 8, 10];
   // Same order and notes as patch/common/dsp/Scales.h.
@@ -76,8 +76,8 @@
   const R_ = (view) => view.roll;
   const xOf = (r, t) => KEYS + (t - r.x0) * r.pxT;
   const tickOf = (r, x) => r.x0 + (x - KEYS) / r.pxT;
-  const yOf = (r, p) => RULER + (r.lo + ROWS - 1 - p) * ROW;
-  const pitchOf = (r, y) => r.lo + ROWS - 1 - Math.floor((y - RULER) / ROW);
+  const yOf = (r, p) => RULER + (r.lo + r.rows - 1 - p) * r.row;
+  const pitchOf = (r, y) => r.lo + r.rows - 1 - Math.floor((y - RULER) / r.row);
   function snapTick(view, t, free) {
     const g = free ? 1 : data(view).grid;
     return Math.round(t / g) * g;
@@ -87,30 +87,53 @@
     r.pxT = (r.w - KEYS - 8) / (s.bars * TPBAR);
     r.x0 = 0;
   }
+  /// Resets the pitch zoom and scrolls so the notes of the slot sit in the middle.
+  function fitPitch(view) {
+    const r = R_(view), ps = cur(view).notes.map((n) => n[P]);
+    r.rows = 36;
+    r.lo = ps.length ? Math.round((Math.min(...ps) + Math.max(...ps)) / 2 - r.rows / 2) : 48;
+  }
   function clampView(view) {
     const r = R_(view), s = cur(view), len = s.bars * TPBAR, span = (r.w - KEYS) / r.pxT;
     r.pxT = clamp(r.pxT, (r.w - KEYS - 8) / (MAXBARS * TPBAR), 2.5);
     r.x0 = clamp(r.x0, 0, Math.max(0, len - span + 12));
-    r.lo = clamp(r.lo, 0, 127 - ROWS + 1);
+    r.rows = clamp(Math.round(r.rows), MINROWS, MAXROWS);
+    r.row = AREA / r.rows;
+    r.lo = clamp(r.lo, 0, 127 - r.rows + 1);
+  }
+  /// Zoom in time by `f` (> 1 zooms in), keeping the tick under `x` in place.
+  function zoomH(view, f, x) {
+    const r = R_(view), ax = x == null ? (r.w + KEYS) / 2 : x, t = tickOf(r, ax);
+    r.pxT *= f;
+    clampView(view);
+    r.x0 += t - tickOf(r, ax);
+  }
+  /// Zoom the pitch axis by `f` (> 1 zooms in), keeping the pitch under `y` in place.
+  function zoomV(view, f, y) {
+    const r = R_(view), ay = y == null ? RULER + AREA / 2 : y, frac = (ay - RULER) / AREA;
+    const p = r.lo + r.rows * (1 - frac);
+    r.rows /= f;
+    clampView(view);
+    r.lo = clamp(Math.round(p - r.rows * (1 - frac)), 0, 127 - r.rows + 1);
   }
 
   // ---- drawing -------------------------------------------------------------
   function drawNotes(g, r, notes, mode, col, alpha) {
     g.save();
     g.beginPath();
-    g.rect(KEYS, RULER, r.w - KEYS, ROWS * ROW);
+    g.rect(KEYS, RULER, r.w - KEYS, AREA);
     g.clip();
     g.globalAlpha = alpha;
     for (const n of notes) {
-      if (n[P] < r.lo || n[P] >= r.lo + ROWS) continue;
+      if (n[P] < r.lo || n[P] >= r.lo + r.rows) continue;
       const x = xOf(r, n[T]), w = Math.max(3, n[L] * r.pxT - 1), y = yOf(r, n[P]);
       if (mode === "fill") {
         g.fillStyle = col;
-        g.fillRect(x, y + 1, w, ROW - 2);
+        g.fillRect(x, y + 1, w, r.row - 2);
       } else {
         if (mode === "dash") g.setLineDash([3, 3]);
         g.strokeStyle = col;
-        g.strokeRect(x + 0.5, y + 1.5, w - 1, ROW - 3);
+        g.strokeRect(x + 0.5, y + 1.5, w - 1, r.row - 3);
         g.setLineDash([]);
       }
     }
@@ -146,27 +169,27 @@
     g.font = "9px system-ui, sans-serif";
 
     // rows: black keys darker, scale rows lighter, tonic tinted
-    for (let p = r.lo; p < r.lo + ROWS; p++) {
+    for (let p = r.lo; p < r.lo + r.rows; p++) {
       const y = yOf(r, p), pc = mod(p, 12), inS = (sc.mask >> mod(p - sc.root, 12)) & 1;
       g.fillStyle = panel2;
       g.globalAlpha = BLACK.includes(pc) ? 1 : 0.55;
-      g.fillRect(KEYS, y, r.w - KEYS, ROW);
+      g.fillRect(KEYS, y, r.w - KEYS, r.row);
       g.globalAlpha = 1;
       if (inS) {
         g.fillStyle = accent;
         g.globalAlpha = mod(p - sc.root, 12) === 0 ? 0.2 : 0.07;
-        g.fillRect(KEYS, y, r.w - KEYS, ROW);
+        g.fillRect(KEYS, y, r.w - KEYS, r.row);
         g.globalAlpha = 1;
       }
       // key column
       g.fillStyle = BLACK.includes(pc) ? "#111" : "#d8d8d0";
-      g.fillRect(0, y, KEYS - 2, ROW - 1);
+      g.fillRect(0, y, KEYS - 2, r.row - 1);
       if (pc === 0) {
         g.fillStyle = "#222";
         g.textAlign = "right";
-        g.fillText(noteName(p), KEYS - 5, y + ROW - 3);
+        g.fillText(noteName(p), KEYS - 5, y + r.row - 3);
       }
-      if (inS) { g.fillStyle = accent; g.fillRect(KEYS - 3, y + 1, 2, ROW - 3); }
+      if (inS) { g.fillStyle = accent; g.fillRect(KEYS - 3, y + 1, 2, r.row - 3); }
     }
     // beat and bar lines
     g.lineWidth = 1;
@@ -176,15 +199,15 @@
       if (x < KEYS || x > r.w) continue;
       g.strokeStyle = t % TPBAR === 0 ? muted : line;
       g.globalAlpha = t % TPBAR === 0 ? 0.9 : t % TPB === 0 ? 0.6 : 0.2;
-      g.beginPath(); g.moveTo(x, RULER); g.lineTo(x, RULER + ROWS * ROW); g.stroke();
+      g.beginPath(); g.moveTo(x, RULER); g.lineTo(x, RULER + AREA); g.stroke();
     }
     g.globalAlpha = 1;
     // outside the pattern / loop
     g.fillStyle = "#000";
     g.globalAlpha = 0.35;
     const xa = xOf(r, s.loop[0]), xb = xOf(r, s.loop[1]);
-    g.fillRect(KEYS, RULER, Math.max(0, xa - KEYS), ROWS * ROW);
-    g.fillRect(Math.max(KEYS, xb), RULER, Math.max(0, r.w - xb), ROWS * ROW);
+    g.fillRect(KEYS, RULER, Math.max(0, xa - KEYS), AREA);
+    g.fillRect(Math.max(KEYS, xb), RULER, Math.max(0, r.w - xb), AREA);
     g.globalAlpha = 1;
 
     // ghost: the slot that played before (or the one playing, while another is edited); Morph target dashed
@@ -199,23 +222,23 @@
     // notes
     drawNotes(g, r, s.notes, "fill", accent, 1);
     g.save();
-    g.beginPath(); g.rect(KEYS, RULER, r.w - KEYS, ROWS * ROW); g.clip();
+    g.beginPath(); g.rect(KEYS, RULER, r.w - KEYS, AREA); g.clip();
     for (const n of s.notes) {
-      if (n[P] < r.lo || n[P] >= r.lo + ROWS) continue;
+      if (n[P] < r.lo || n[P] >= r.lo + r.rows) continue;
       const x = xOf(r, n[T]), wd = Math.max(3, n[L] * r.pxT - 1), y = yOf(r, n[P]);
       g.globalAlpha = 0.35 + 0.65 * (n[V] / 127);
       g.fillStyle = "#000";
       g.globalAlpha = 0.45 * (1 - n[V] / 127);
-      g.fillRect(x, y + 1, wd, ROW - 2);
+      g.fillRect(x, y + 1, wd, r.row - 2);
       g.globalAlpha = 1;
-      if (r.sel.has(n)) { g.strokeStyle = text; g.lineWidth = 1.5; g.strokeRect(x + 0.5, y + 1.5, wd - 1, ROW - 3); g.lineWidth = 1; }
+      if (r.sel.has(n)) { g.strokeStyle = text; g.lineWidth = 1.5; g.strokeRect(x + 0.5, y + 1.5, wd - 1, r.row - 3); g.lineWidth = 1; }
       g.fillStyle = "#101010";
       g.textAlign = "left";
       const tag = (n[R] > 1 ? "×" + n[R] + " " : "") + (n[PR] < 100 ? n[PR] + "%" : "");
-      if (tag && wd > 22) g.fillText(tag, x + 3, y + ROW - 3);
+      if (tag && wd > 22) g.fillText(tag, x + 3, y + r.row - 3);
       if (n[R] > 1) {  // ratchet ticks
         g.fillStyle = "#101010";
-        for (let k = 1; k < n[R]; k++) g.fillRect(x + (wd * k) / n[R], y + 1, 1, ROW - 2);
+        for (let k = 1; k < n[R]; k++) g.fillRect(x + (wd * k) / n[R], y + 1, 1, r.row - 2);
       }
     }
     g.restore();
@@ -240,6 +263,16 @@
     g.fillStyle = accent;
     g.fillRect(xa - 1, 0, 2, RULER);
     g.fillRect(xb - 1, 0, 2, RULER);
+
+    if (r.marquee) {
+      const m = r.marquee, x0 = Math.min(m.x0, m.x1), x1 = Math.max(m.x0, m.x1), y0 = Math.min(m.y0, m.y1), y1 = Math.max(m.y0, m.y1);
+      g.fillStyle = accent;
+      g.globalAlpha = 0.15;
+      g.fillRect(x0, y0, x1 - x0, y1 - y0);
+      g.globalAlpha = 1;
+      g.strokeStyle = accent;
+      g.strokeRect(x0 + 0.5, y0 + 0.5, x1 - x0, y1 - y0);
+    }
 
     // playhead (only while the playing slot is the edited one)
     if (st.pos != null && playing === d.slot) {
@@ -268,6 +301,11 @@
     g.fillStyle = muted;
     g.textAlign = "left";
     g.fillText(lane[1], 4, LANE_TOP + 12);
+    r.drawBtn.classList.toggle("on", r.tool === "draw");
+    r.selectBtn.classList.toggle("on", r.tool === "select");
+    r.delBtn.disabled = r.sel.size === 0;
+    r.recBtn.classList.toggle("on", setting(view, "record") === 1);
+    r.canvas.style.cursor = r.tool === "select" ? "default" : "crosshair";
     r.info.textContent = s.notes.length + " notes · " + s.bars + (s.bars === 1 ? " bar" : " bars");
     r.slotBtns.forEach((b, i) => {
       b.classList.toggle("on", i === d.slot);
@@ -280,7 +318,7 @@
   // ---- editing -------------------------------------------------------------
   function hit(view, x, y) {
     const r = R_(view), s = cur(view);
-    if (x < KEYS || y < RULER || y >= RULER + ROWS * ROW) return null;
+    if (x < KEYS || y < RULER || y >= RULER + AREA) return null;
     const t = tickOf(r, x), p = pitchOf(r, y);
     for (let i = s.notes.length - 1; i >= 0; i--) {
       const n = s.notes[i];
@@ -319,13 +357,23 @@
         if (e.shiftKey) { if (r.sel.has(n)) r.sel.delete(n); else r.sel.add(n); }
         else if (!r.sel.has(n)) { r.sel.clear(); r.sel.add(n); }
         const edge = x >= xOf(r, n[T] + n[L]) - 6 && n[L] * r.pxT > 10;
-        drag = { kind: edge ? "resize" : "move", t0: tickOf(r, x), p0: pitchOf(r, y), orig: [...r.sel].map((m) => [m, m[T], m[L], m[P]]), moved: false };
+        drag = { kind: edge ? "resize" : "move", t0: tickOf(r, x), p0: pitchOf(r, y), orig: [...r.sel].map((m) => [m, m[T], m[L], m[P]]), moved: false,
+          // draw mode: a click without a drag removes the note
+          erase: r.tool === "draw" && !e.shiftKey ? n : null };
         r.lastVel = n[V];
         draw(view);
         return;
       }
+      if (r.tool === "select") {
+        if (x < KEYS || y >= RULER + AREA) return;
+        drag = { kind: "marquee", base: e.shiftKey ? new Set(r.sel) : new Set() };
+        r.sel = new Set(drag.base);
+        r.marquee = { x0: x, y0: y, x1: x, y1: y };
+        draw(view);
+        return;
+      }
       if (!e.shiftKey) r.sel.clear();
-      if (x < KEYS || y >= RULER + ROWS * ROW || y < RULER || s.notes.length >= MAXN) { draw(view); return; }
+      if (x < KEYS || y >= RULER + AREA || y < RULER || s.notes.length >= MAXN) { draw(view); return; }
       const gq = e.altKey ? 1 : data(view).grid;
       const t0 = clamp(Math.floor(tickOf(r, x) / gq) * gq, 0, s.bars * TPBAR - 1);
       const p = clamp(pitchOf(r, y), 0, 127);
@@ -349,12 +397,22 @@
       } else if (drag.kind === "lane") {
         laneSet(view, x, y, e);
         return;
+      } else if (drag.kind === "marquee") {
+        const m = r.marquee;
+        m.x1 = clamp(x, KEYS, r.w);
+        m.y1 = clamp(y, RULER, RULER + AREA);
+        const ta = tickOf(r, Math.min(m.x0, m.x1)), tb = tickOf(r, Math.max(m.x0, m.x1));
+        const pa = pitchOf(r, Math.max(m.y0, m.y1)), pb = pitchOf(r, Math.min(m.y0, m.y1));
+        r.sel = new Set(drag.base);
+        for (const n of s.notes) if (n[T] < tb && n[T] + n[L] > ta && n[P] >= pa && n[P] <= pb) r.sel.add(n);
+        draw(view);
+        return;
       } else if (drag.kind === "create") {
         const n = drag.note, end = clamp(Math.round(tickOf(r, x) / g) * g, n[T] + 1, len);
         n[L] = Math.max(free ? 1 : g, end - n[T]);
       } else if (drag.kind === "move") {
         const dt = Math.round((tickOf(r, x) - drag.t0) / g) * g, dp = pitchOf(r, y) - drag.p0;
-        if (dt || dp) drag.moved = true;
+        if (dt || dp) drag.moved = true, drag.erase = null;
         for (const [n, t, l, p] of drag.orig) {
           n[T] = clamp(t + dt, 0, len - n[L]);
           n[P] = clamp(p + dp, 0, 127);
@@ -364,26 +422,31 @@
           const end = Math.round(tickOf(r, x) / g) * g;
           n[L] = clamp(Math.max(g, end - n[T]), 1, len - n[T]);
         }
+        drag.erase = null;
       }
       send(view);
       draw(view);
     });
-    const end = () => { drag = null; };
+    const end = () => {
+      const d = drag;
+      drag = null;
+      if (d && d.kind === "marquee") { r.marquee = null; draw(view); }
+      else if (d && d.erase) edit(view, (data_, s) => { s.notes.splice(s.notes.indexOf(d.erase), 1); r.sel.delete(d.erase); });
+    };
     c.addEventListener("pointerup", end);
     c.addEventListener("pointercancel", end);
     c.addEventListener("dblclick", (e) => {
       const { x, y } = at(e);
       if (y < RULER && x >= KEYS) { edit(view, (d, s) => (s.loop = [0, s.bars * TPBAR])); return; }
-      const n = hit(view, x, y);
+      const n = r.tool === "select" ? hit(view, x, y) : null;  // draw mode removes on a single click
       if (n) edit(view, (d, s) => { s.notes.splice(s.notes.indexOf(n), 1); r.sel.delete(n); });
     });
     c.addEventListener("wheel", (e) => {
       e.preventDefault();
       if (e.ctrlKey || e.metaKey) {
-        const t = tickOf(r, e.offsetX);
-        r.pxT *= Math.exp(-e.deltaY / 300);
-        clampView(view);
-        r.x0 += t - tickOf(r, e.offsetX);
+        // up / down zooms in time, left / right zooms the pitch rows
+        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) zoomV(view, Math.exp(-e.deltaX / 300), e.offsetY);
+        else zoomH(view, Math.exp(-e.deltaY / 300), e.offsetX);
       } else if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) r.x0 += (e.deltaX || e.deltaY) / r.pxT;
       else r.lo += Math.round(e.deltaY / 30) || Math.sign(e.deltaY);
       draw(view);
@@ -393,7 +456,7 @@
       const s = cur(view), sel = [...r.sel];
       if ((e.key === "Delete" || e.key === "Backspace") && sel.length) {
         e.preventDefault();
-        edit(view, () => { for (const n of sel) s.notes.splice(s.notes.indexOf(n), 1); r.sel.clear(); });
+        deleteSelected(view);
       } else if ((e.key === "a" || e.key === "A") && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         s.notes.forEach((n) => r.sel.add(n));
@@ -411,6 +474,11 @@
         });
       } else if (e.key === "Escape") { r.sel.clear(); draw(view); }
     });
+  }
+  function deleteSelected(view) {
+    const r = R_(view), s = cur(view), sel = [...r.sel];
+    if (!sel.length) return;
+    edit(view, () => { for (const n of sel) s.notes.splice(s.notes.indexOf(n), 1); r.sel.clear(); });
   }
   function laneSet(view, x, y, e) {
     const r = R_(view), s = cur(view), lane = LANES.find((l) => l[0] === r.lane);
@@ -469,6 +537,9 @@
     .rl-tools button:not(.filled) { color: var(--muted); }
     .rl-tools button.play { box-shadow: inset 0 -3px 0 var(--accent); }
     .rl-tools button.prev { box-shadow: inset 0 -3px 0 var(--muted); }
+    .rl-tools .rl-group { display: flex; gap: 2px; margin-right: 6px; }
+    .rl-tools button:disabled { opacity: 0.4; cursor: default; }
+    .rl-tools button.rl-rec.on { border-color: #e5484d; color: #e5484d; }
     .rl-tools .rl-slots { display: flex; gap: 2px; margin-right: 8px; }
     .rl-tools .rl-info { margin-left: auto; color: var(--muted); font-size: 11px; }
     .rl-tools label { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
@@ -488,6 +559,12 @@
     template: `<div class="bv-panel rl-panel">
       <div class="rl-tools">
         <span class="rl-slots"></span>
+        <span class="rl-group">
+          <button class="rl-draw" title="Draw: click empty grid to add a note, click a note to remove it, drag to move or resize">Draw</button>
+          <button class="rl-select" title="Select: drag a rectangle to select notes (Shift adds to the selection)">Select</button>
+          <button class="rl-del" title="Delete the selected notes (Delete)">Delete</button>
+        </span>
+        <button class="rl-rec" title="Record the notes, pitch and CV on the record inputs into the playing slot at the playhead">● Rec</button>
         <label>Bars <select class="rl-bars">${[1, 2, 3, 4, 5, 6, 7, 8].map((b) => `<option>${b}</option>`).join("")}</select></label>
         <label>Snap <select class="rl-grid">${GRIDS.map((g) => `<option value="${g[1]}">${g[0]}</option>`).join("")}</select></label>
         <label>Lane <select class="rl-lane">${LANES.map((l) => `<option value="${l[0]}">${l[1]}</option>`).join("")}</select></label>
@@ -496,7 +573,13 @@
         <button class="rl-copy" title="Copy this slot to the next one">Copy →</button>
         <button class="rl-rand" title="Replace this slot with a random line in the scale">Dice</button>
         <button class="rl-clear" title="Remove every note of this slot">Clear</button>
-        <button class="rl-fit" title="Fit all bars in the window">Fit</button>
+        <span class="rl-group">
+          <button class="rl-hout" title="Zoom out in time (⌘ + wheel up / down)">↔−</button>
+          <button class="rl-hin" title="Zoom in in time (⌘ + wheel up / down)">↔+</button>
+          <button class="rl-vout" title="Zoom out in pitch (⌘ + wheel left / right)">↕−</button>
+          <button class="rl-vin" title="Zoom in in pitch (⌘ + wheel left / right)">↕+</button>
+          <button class="rl-fit" title="Fit all bars in the window">Fit</button>
+        </span>
         <span class="rl-info"></span>
       </div>
       <div class="rl-box"><canvas tabindex="0"></canvas></div>
@@ -510,7 +593,7 @@
       }
       const canvas = el.querySelector("canvas");
       const r = (view.roll = { canvas, box: el.querySelector(".rl-box"), info: el.querySelector(".rl-info"), state: null,
-        x0: 0, pxT: 0.5, lo: 48, w: 0, sel: new Set(), lane: "vel", lastVel: 100, slotBtns: [] });
+        x0: 0, pxT: 0.5, lo: 48, rows: 36, row: 11, tool: "draw", marquee: null, w: 0, sel: new Set(), lane: "vel", lastVel: 100, slotBtns: [] });
       const slots = el.querySelector(".rl-slots");
       for (let i = 0; i < SLOTS; i++) {
         const b = document.createElement("button");
@@ -542,7 +625,25 @@
       grid.addEventListener("change", () => { view.api.beginGesture(); data(view).grid = +grid.value; send(view); draw(view); });
       lane.addEventListener("change", () => { r.lane = lane.value; draw(view); });
       el.querySelector(".rl-ghost").addEventListener("click", () => edit(view, (d) => (d.ghost = !d.ghost)));
-      el.querySelector(".rl-fit").addEventListener("click", () => { fitZoom(view); draw(view); });
+      el.querySelector(".rl-fit").addEventListener("click", () => { fitZoom(view); fitPitch(view); draw(view); });
+      const zoom = (sel, fn) => el.querySelector(sel).addEventListener("click", () => { fn(); draw(view); });
+      zoom(".rl-hin", () => zoomH(view, 1.5));
+      zoom(".rl-hout", () => zoomH(view, 1 / 1.5));
+      zoom(".rl-vin", () => zoomV(view, 1.4));
+      zoom(".rl-vout", () => zoomV(view, 1 / 1.4));
+      r.drawBtn = el.querySelector(".rl-draw");
+      r.selectBtn = el.querySelector(".rl-select");
+      r.delBtn = el.querySelector(".rl-del");
+      r.recBtn = el.querySelector(".rl-rec");
+      r.drawBtn.addEventListener("click", () => { r.tool = "draw"; draw(view); });
+      r.selectBtn.addEventListener("click", () => { r.tool = "select"; draw(view); });
+      r.delBtn.addEventListener("click", () => deleteSelected(view));
+      r.recBtn.addEventListener("click", () => {
+        const v = setting(view, "record") === 1 ? 0 : 1;
+        view.node.params.record = v;
+        view.api.setParam("record", v);
+        draw(view);
+      });
       el.querySelector(".rl-clear").addEventListener("click", () => edit(view, (d, s) => { s.notes = []; r.sel.clear(); }));
       el.querySelector(".rl-rand").addEventListener("click", () => randomNotes(view));
       el.querySelector(".rl-double").addEventListener("click", () => edit(view, (d, s) => {

@@ -61,16 +61,28 @@ light up with the scale, following the Harmony Master.
 
 ## How to use it?
 
-- **Drawing:** click empty grid to add a note (its length is the *Snap* value) and
-  drag sideways to make it longer. Drag a note to move it, drag its right edge
-  to resize it. Hold **Alt** to ignore the snap. **Right-click** or
-  double-click a note, or press Delete, removes it. Shift-click selects more
-  than one; the arrow keys nudge the selection (Shift: an octave).
+- **Draw and Select:** the *Draw* and *Select* buttons pick what the pointer does.
+  With **Draw**, a click on empty grid adds a note (its length is the *Snap*
+  value; drag sideways to make it longer) and a click on a note removes it.
+  Drag a note to move it, drag its right edge to resize it. Hold **Alt** to
+  ignore the snap. With **Select**, drag a rectangle to select the notes it
+  touches; hold **Shift** to add to the selection. Shift-click a note to add
+  or remove it. The **Delete** button (or the Delete key) removes the selected
+  notes; the arrow keys nudge them (Shift: an octave). **Right-click** removes
+  a note in either mode.
+- **Record:** the *Rec* button writes what arrives on *Notes In*, or on *Pitch In*
+  with *CV In* as its gate, into the playing slot at the playhead while the
+  pattern runs. Each note starts where it was played and lasts as long as it was
+  held; recorded notes are added to what is already there (overdub) and the
+  button stays on until you switch it off. Notes still held when you stop are
+  ended at that moment.
 - **Lanes:** the strip below the notes sets **velocity**, **chance** or
   **ratchet** of the note under the pointer (all selected notes if it is one of
   them). Pick the lane in the *Lane* menu.
-- **Zoom:** the mouse wheel scrolls the pitch, Shift + wheel scrolls in time and
-  Ctrl/⌘ + wheel zooms. *Fit* shows all bars.
+- **Zoom:** the mouse wheel scrolls the pitch and Shift + wheel scrolls in time.
+  Ctrl/⌘ + wheel up / down zooms in time and Ctrl/⌘ + wheel left / right zooms
+  the pitch rows. The buttons **↔−** **↔+** zoom in time and **↕−** **↕+** zoom
+  the pitch. *Fit* shows all bars and the pitch range of the notes.
 - **Slots:** click a slot number to edit and play it; Shift-click edits without
   switching what plays. A bar under a number marks the slot that plays (bright)
   and the one that played before (dim). *Copy →* copies the slot to the next
@@ -152,6 +164,7 @@ Every knob is a modulation destination.
 | Slot Change | Immediate, Next bar, Loop end | Next bar |
 | Seed | 0 – 999 | 1 |
 | Sync To | Auto, Clock, Transport | Auto |
+| Record | Off, On | Off |
 
 - **Sync To:** *Auto* follows *Clock* while it is patched, otherwise the transport. *Clock* only moves with pulses; *Transport* ignores a patched *Clock*.
 
@@ -163,6 +176,9 @@ Every knob is a modulation destination.
 | Reset | trigger | back to the start of the loop region; ends all notes |
 | Transpose | pitch | added to every note (1 V/oct) |
 | Pattern | control, 0 – 1 | chooses the slot over the eight slots |
+| Notes In | notes | notes to record while *Record* is on |
+| Pitch In | pitch | the pitch of the note to record, read when *CV In* goes high |
+| CV In | gate | starts a note at *Pitch In* when it goes high and ends it when it falls |
 
 ### Outputs
 

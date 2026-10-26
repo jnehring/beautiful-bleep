@@ -23,6 +23,15 @@
         renderSearch();
         input.focus();
       }
+      // Lower is better: exact name, name prefix, word-prefix in the name, name substring, then matches only via category/tags/description.
+      function nameRank(name, q) {
+        const n = name.toLowerCase();
+        if (n === q) return 0;
+        if (n.startsWith(q)) return 1;
+        if (n.split(/[\s\-_/]+/).some((w) => w.startsWith(q))) return 2;
+        if (n.includes(q)) return 3;
+        return 4;
+      }
       function searchItems(q) {
         const out = [];
         const link = searchState && searchState.link;
@@ -31,16 +40,16 @@
         for (const t of env.typeList)
           if (env.offered(t) && accepts(t) && (t.name + " " + t.category).toLowerCase().includes(q))
             out.push({ label: t.name === "Cell" ? "New Cell" : t.name === "Voice Cell" ? "New Voice Cell" : t.name,
-                       sub: t.category.replace(/\//g, " › "), hint: t.description, what: { type: t.type } });
+                       sub: t.category.replace(/\//g, " › "), hint: t.description, what: { type: t.type }, rank: nameRank(t.name, q) });
         if (!link)  // presets: every word in the name, category, tags or description
           for (const p of env.presets()) {
             const d = p.preset || {};
             const text = [p.name, p.category || "", d.description || "", ...(d.tags || [])].join(" ").toLowerCase();
             if (q.split(/\s+/).every((w) => text.includes(w)))
               out.push({ label: p.name, sub: "cell preset" + (p.category ? " · " + p.category.replace(/\//g, " › ") : ""),
-                         hint: d.description, what: { preset: p.key } });
+                         hint: d.description, what: { preset: p.key }, rank: nameRank(p.name, q) });
           }
-        return out;
+        return out.sort((a, b) => a.rank - b.rank);  // stable: ties keep modules before presets, then list order
       }
       function renderSearch() {
         const q = $("search-input").value.trim().toLowerCase();

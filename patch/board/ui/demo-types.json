@@ -43837,6 +43837,24 @@
         "def": 0.0,
         "format": "choice",
         "decimals": 2
+      },
+      {
+        "id": "record",
+        "name": "Record",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": true,
+        "cableable": true,
+        "choices": [
+          "Off",
+          "On"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -43862,6 +43880,24 @@
         "id": "pattern",
         "name": "Pattern",
         "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "notesin",
+        "name": "Notes In",
+        "type": "notes",
+        "bipolar": true
+      },
+      {
+        "id": "pitchin",
+        "name": "Pitch In",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "cvin",
+        "name": "CV In",
+        "type": "gate",
         "bipolar": true
       }
     ],
