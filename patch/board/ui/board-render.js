@@ -220,7 +220,7 @@
         const head = el("div", "n-head");
         head.appendChild(el("span", "n-title", n.name));
         let sub = t.name;
-        if (isPort(n)) sub = isGhost(n) ? (portInfo(n) ? "inactive" : "not in set") : n.track || t.name;
+        if (isPort(n)) sub = isGhost(n) ? (portInfo(n) ? "inactive" : "not in set") : n.type === "audio-insert" || n.type === "instrument" ? t.name : n.track || t.name;
         if (n.type === "cell") sub = "Cell";
         if (n.type === "voice-cell") sub = "×" + paramValue(n, "voices");
         if (isBoundary(n)) sub = "";

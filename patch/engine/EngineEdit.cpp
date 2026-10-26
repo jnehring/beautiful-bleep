@@ -99,7 +99,7 @@ size_t Engine::uiCall(int handle, const char* method, const char* argsJson, char
     return uiLast_.size();
 }
 
-/// A project loaded into Bleep Board brings an Audio Out and a MIDI In whose port is only the bare suffix (the page cannot know
+/// A project loaded into Bleep Board brings an Audio Out, an Audio In and a MIDI In whose port is only the bare suffix (the page cannot know
 /// the plugin's id): they become this Bleep Board's own, unless the board already has one.
 void Engine::claimBoardPorts(const juce::var& doc) {
     if (standalone_ || mainHandle_ == 0) return;
@@ -108,7 +108,7 @@ void Engine::claimBoardPorts(const juce::var& doc) {
         if (s->kind == PortKind::Patch && s->handle == mainHandle_) id = s->id;
     auto* nodes = doc["nodes"].getArray();
     if (id.empty() || nodes == nullptr) return;
-    for (const char* suffix : {kBoardMidiSuffix, kBoardAudioSuffix}) {
+    for (const char* suffix : {kBoardMidiSuffix, kBoardAudioInSuffix, kBoardAudioSuffix}) {
         const juce::String own = juce::String(id) + suffix;
         bool taken = false;
         for (const auto& n : *nodes) taken = taken || n["port"].toString() == own;

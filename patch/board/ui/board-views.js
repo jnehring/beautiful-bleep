@@ -136,10 +136,12 @@
         const ownHelp = () => (P.BleepCode && P.BleepCode.helpOf ? P.BleepCode.helpOf(nodeById(id)) : null);
         v.showHelpButton = () => { if (ownHelp() !== null) help.hidden = false; };
         v.showHelpButton();
+        // A module's help page opens with its version; one without a doc file still has the page made from its name and description.
+        const versionLine = () => (t.version ? `<p class="doc-version">Version ${String(t.version).replace(/[^0-9A-Za-z.+-]/g, "")}${t.older ? " (older, kept because this board pins it)" : ""}</p>` : "");
         moduleDoc(t.type).then((md) => {
-          if (md === null) return;
+          if (md === null && !(t.version && t.description)) return;
           help.hidden = false;
-          docHtml = BleepMarkdown.render(md);
+          docHtml = versionLine() + (md === null ? BleepMarkdown.render(`# ${t.name}\n\n${t.description}`) : BleepMarkdown.render(md));
         });
         views.set(id, v);
 

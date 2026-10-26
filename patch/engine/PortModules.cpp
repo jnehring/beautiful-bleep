@@ -575,7 +575,7 @@ void registerPortModules(Registry& r) {
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<MidiInModule>(spec, false); });
     }
     {
-        ModuleSpec s = portSpec("instrument", "Instrument", PortKind::Instrument,
+        ModuleSpec s = portSpec("instrument", "Bleep Instrument", PortKind::Instrument,
                                 "MIDI In and Audio Out in one plugin (Bleep Instrument).");
         s.params = {ParamSpec::choice("channel", "Channel", channels, 0)};
         for (auto& p : ccParams()) s.params.push_back(p);
@@ -630,7 +630,7 @@ void registerPortModules(Registry& r) {
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, false, true); });
     }
     {
-        ModuleSpec s = portSpec("audio-insert", "Audio Insert", PortKind::AudioInsert,
+        ModuleSpec s = portSpec("audio-insert", "Bleep FX", PortKind::AudioInsert,
                                 "A track's audio through the board and back (Bleep FX).");
         s.outputs = {{"l", "Send L", Signal::Audio, true}, {"r", "Send R", Signal::Audio, true}};
         addMacroOutputs(s);

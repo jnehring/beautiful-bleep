@@ -21,9 +21,10 @@ void Engine::recompile() {
     for (const auto& s : instances_) {
         s->writesOut.store(false, std::memory_order_relaxed);  // compile sets it again for an Audio Out node
         if ((s->kind != PortKind::Patch || s->handle == mainHandle_) && !s->bridged) ports[s->id] = s;
-        // Bleep Board is also a MIDI In and an Audio Out: a port id names one node, so each gets its own.
+        // Bleep Board is also a MIDI In, an Audio In and an Audio Out: a port id names one node, so each gets its own.
         if (s->kind == PortKind::Patch && s->handle == mainHandle_ && !s->bridged) {
             ports[s->id + kBoardMidiSuffix] = s;
+            ports[s->id + kBoardAudioInSuffix] = s;
             ports[s->id + kBoardAudioSuffix] = s;
         }
     }
@@ -132,7 +133,7 @@ void Engine::reconcile(bool force) {
     for (const auto& s : instances_) {
         if (s->kind == PortKind::Patch && s->handle == mainHandle_ && !standalone_ && !s->bridged && !s->seeded &&
             (force || s->restored || nowMs() - s->registeredAt >= 500.0) && board::findNodeByPort(board_, juce::String(s->id)) == nullptr) {
-            // A new Bleep Board starts with a MIDI In and an Audio Out of its own. A board that already has its Macros node is
+            // A new Bleep Board starts with a MIDI In, an Audio In and an Audio Out of its own. A board that already has its Macros node is
             // a saved one and is left alone; a board that only holds other ports (Instruments added first) gets them below.
             s->seeded = true;
             auto [mx, my] = emptyBoard ? std::pair{40.0, 40.0} : belowExisting(board_);
@@ -142,8 +143,13 @@ void Engine::reconcile(bool force) {
             if (const auto* audio = Registry::get().forPort(PortKind::AudioOut);
                 audio && board::findNodeByPort(board_, juce::String(s->id + kBoardAudioSuffix)) == nullptr)
                 board::addNode(board_, *audio, mx + 720.0, my, juce::String(s->id + kBoardAudioSuffix));
+            if (const auto* audioIn = Registry::get().forPort(PortKind::AudioIn);
+                audioIn && board::findNodeByPort(board_, juce::String(s->id + kBoardAudioInSuffix)) == nullptr) {
+                const auto [ax, ay] = belowExisting(board_);
+                board::addNode(board_, *audioIn, ax, ay, juce::String(s->id + kBoardAudioInSuffix));
+            }
             changed = true;
-            seededNow = true;  // the Macros node goes below the MIDI In (whatever its height)
+            seededNow = true;  // the Macros node goes below the Audio In (whatever its height)
         }
         if (s->kind == PortKind::Patch && (s->handle != mainHandle_ || standalone_)) continue;
         if (s->kind == PortKind::MidiDevice && !s->remote) continue;  // its node comes first; the app follows it
@@ -221,9 +227,10 @@ juce::var Engine::ports() const {
         p->setProperty("live", now - s->lastBlock.load() < 16 && s->lastBlock.load() >= 0);
         p->setProperty("main", s->handle == mainHandle_);
         o->setProperty(juce::Identifier(s->id), juce::var(p));
-        // Bleep Board is also a MIDI In and an Audio Out (see recompile): the same slot answers for their port ids.
+        // Bleep Board is also a MIDI In, an Audio In and an Audio Out (see recompile): the same slot answers for their port ids.
         if (s->kind == PortKind::Patch && s->handle == mainHandle_ && !s->bridged)
-            for (const auto& [suffix, kind] : {std::pair{kBoardMidiSuffix, PortKind::MidiIn}, std::pair{kBoardAudioSuffix, PortKind::AudioOut}}) {
+            for (const auto& [suffix, kind] : {std::pair{kBoardMidiSuffix, PortKind::MidiIn}, std::pair{kBoardAudioInSuffix, PortKind::AudioIn},
+                                               std::pair{kBoardAudioSuffix, PortKind::AudioOut}}) {
                 auto* q = new juce::DynamicObject();
                 q->setProperty("kind", portKindName(kind));
                 q->setProperty("track", juce::String(s->trackName));

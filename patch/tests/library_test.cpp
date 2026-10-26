@@ -226,8 +226,8 @@ void testClient(const juce::File& fixtures) {
             if (i.source == "local") by[i.slug] = i;
         CHECK(by["acme.fuzz"].allowed && by["handmade"].allowed, "a package copied into the local folder loads");
         CHECK(by["hand-made"].allowed && by["hand-made"].version == "0.1.4-dev", "a -dev version in the name is read: a slug with a dash, version 0.1.4-dev");
-        CHECK(versionNewer("0.1.4-dev", "0.1.3") && !versionNewer("0.1.4-dev", "0.1.4") && !versionNewer("0.1.4", "0.1.4-dev") && !versionNewer("0.1.3", "0.1.4-dev"),
-              "a -dev version ranks like the release it precedes");
+        CHECK(versionNewer("0.1.4-dev", "0.1.3") && versionNewer("0.1.4-dev", "0.1.4") && !versionNewer("0.1.4", "0.1.4-dev") && !versionNewer("0.1.3", "0.1.4-dev") && versionNewer("0.1.5", "0.1.4-dev"),
+              "a -dev version ranks above the release of the same number, and below the next one");
         CHECK(by["renamed"].allowed && by["renamed"].version == "0.0.0", "one without its version in the name loads as 0.0.0");
         CHECK(!by["broken"].allowed && !by["broken"].why.empty(), "one that is not a safe package does not: %s", by["broken"].why.c_str());
     }

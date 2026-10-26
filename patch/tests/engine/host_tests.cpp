@@ -481,7 +481,7 @@ void boardIsMidiInAndAudioOut() {
     edited["cables"].getArray()->add(cable(portNode(*e, ain), "l", outNode, "l"));
     e->commit(edited, "patch");
     e->reconcileNow();
-    EXPECT(e->board()["nodes"].getArray()->size() == 4);  // MIDI In, Audio Out, Macros, Audio In: nothing added twice
+    EXPECT(e->board()["nodes"].getArray()->size() == 5);  // MIDI In, Audio In, Audio Out, Macros, Audio In: nothing added twice
 
     FakePort pMain(*e, main), pIn(*e, ain);
     int arrivedAt = -1;
@@ -513,9 +513,10 @@ void boardAddedAfterInstrumentsIsMidiInAndAudioOut() {
     EXPECT(board::findNodeByPort(e->board(), juce::String(id) + ":midi") != nullptr);
     EXPECT(board::findNodeByPort(e->board(), juce::String(id) + ":audio") != nullptr);
     EXPECT(portNode(*e, inst).isNotEmpty());
-    EXPECT(e->board()["nodes"].getArray()->size() == 4);  // Instrument, MIDI In, Audio Out, Macros
+    EXPECT(board::findNodeByPort(e->board(), juce::String(id) + ":audioin") != nullptr);
+    EXPECT(e->board()["nodes"].getArray()->size() == 5);  // Instrument, MIDI In, Audio In, Audio Out, Macros
     e->reconcileNow();
-    EXPECT(e->board()["nodes"].getArray()->size() == 4);  // nothing added twice
+    EXPECT(e->board()["nodes"].getArray()->size() == 5);  // nothing added twice
     e->unregisterInstance(main);
     e->unregisterInstance(inst);
     e->collectGarbage();

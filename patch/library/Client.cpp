@@ -45,11 +45,12 @@ std::string str(const juce::var& v) { return v.isString() ? v.toString().toStdSt
 
 /// "1.2.3" → a comparable number; -1 for anything else.
 long long versionKey(const std::string& v) {
-    // "1.2.3", or "1.2.3-dev": a development build (bleep package), which ranks like the release it precedes.
+    // "1.2.3", or "1.2.3-dev": a development build (bleep package), which ranks above the release of the same number.
     int a = 0, b = 0, c = 0, used = 0;
     if (std::sscanf(v.c_str(), "%d.%d.%d%n", &a, &b, &c, &used) != 3) return -1;
-    if (v.compare(used, std::string::npos, "-dev") != 0 && v.size() != (size_t)used) return -1;
-    return ((long long)a << 40) | ((long long)b << 20) | c;
+    const bool dev = v.compare(used, std::string::npos, "-dev") == 0;
+    if (!dev && v.size() != (size_t)used) return -1;
+    return ((((long long)a << 40) | ((long long)b << 20) | c) << 1) | (dev ? 1 : 0);
 }
 
 /// A slug or version becomes a folder name: no separators, no "..", nothing that could leave the modules folder.

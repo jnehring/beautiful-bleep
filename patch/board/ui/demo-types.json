@@ -58537,7 +58537,7 @@
   },
   {
     "type": "instrument",
-    "name": "Instrument",
+    "name": "Bleep Instrument",
     "category": "Ports",
     "colour": "#60a5fa",
     "description": "MIDI In and Audio Out in one plugin (Bleep Instrument).",
@@ -59463,7 +59463,7 @@
   },
   {
     "type": "audio-insert",
-    "name": "Audio Insert",
+    "name": "Bleep FX",
     "category": "Ports",
     "colour": "#60a5fa",
     "description": "A track's audio through the board and back (Bleep FX).",

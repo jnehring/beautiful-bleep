@@ -160,7 +160,7 @@ void persistenceAndDuplicates() {
         audioIns += n["type"].toString() == "audio-in";
     }
     EXPECT(functions == 1);
-    EXPECT(audioIns == 2);  // the original, plus a new node for the duplicate
+    EXPECT(audioIns == 4);  // the original, plus a new node for the duplicate, plus two Bleep Boards' own (the saved one and this one: its id was not restored)
 
     // A second Bleep Board is inactive and keeps its own copy.
     const int second = e->registerInstance(PortKind::Patch);

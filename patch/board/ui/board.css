@@ -232,6 +232,7 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 /* ---- module documentation (bleep-markdown.js) */
 .mod-doc .v-doc { padding: 0; }
 .v-doc { padding: 4px 16px 16px; font-size: 12.5px; line-height: 1.5; user-select: text; -webkit-user-select: text; }
+.v-doc .doc-version { margin: 8px 0 0; font-size: 11px; letter-spacing: .04em; color: var(--muted); }
 .v-doc h1 { font-size: 17px; margin: 10px 0 6px; color: var(--accent); }
 .v-doc h2 { font-size: 13px; margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
 .v-doc h3 { font-size: 11px; margin: 14px 0 4px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
