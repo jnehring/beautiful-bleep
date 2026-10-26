@@ -150,14 +150,14 @@
         const { folder, files } = filesOf(rec);
         return { name: folder.slice(0, -1) + ".zip", blob: new Blob(zipParts(files, rec.startedAt), { type: "application/zip" }) };
       },
-      /// Offers the zip to the visitor. Resolves to {name, bytes} or {error}.
+      /// Offers the zip to the visitor. Returns {name, bytes, url} (the url lives ten minutes, for a link if the browser swallowed the download) or {error}.
       download(id) {
         try {
           const { name, blob } = api.zip(id);
           const url = URL.createObjectURL(blob), a = document.createElement("a");
           a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
-          setTimeout(() => URL.revokeObjectURL(url), 60000);
-          return { name, bytes: blob.size };
+          setTimeout(() => URL.revokeObjectURL(url), 600000);
+          return { name, bytes: blob.size, url };
         } catch (e) {
           return { error: e.message };
         }

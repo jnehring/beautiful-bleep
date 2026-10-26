@@ -542,6 +542,7 @@
 
       let shown = "";
       /// The recordings the browser keeps (view.api.recordings: only in Bleep Play), with their Download and Discard buttons.
+      let dlError = "";
       const showList = (items) => {
         const key = JSON.stringify(items);
         if (key === shown) return;
@@ -556,7 +557,16 @@
           dl.title = "One zip with a WAV file for every track of every take";
           dl.addEventListener("click", async () => {
             const res = await view.api.downloadRecording(r.id);
-            if (res && res.error) msg.textContent = res.error;
+            dlError = res && res.error ? res.error : "";   // state() rewrites msg on every tick: keep this one until the next try
+            msg.textContent = dlError;
+            // Some browsers or extensions swallow a script-started download: leave a plain link, which they treat as a click
+            const old = row.querySelector("a.ac-dl");
+            if (old) old.remove();
+            if (res && res.url) {
+              const a = el("a", "ac-btn ac-dl", "Save " + res.name);
+              a.href = res.url; a.download = res.name;
+              row.append(a);
+            }
           });
           rm.title = "Frees the memory it uses";
           rm.addEventListener("click", () => view.api.discardRecording(r.id));
@@ -583,7 +593,7 @@
         barFill.style.width = rate > 0 && state === 2 ? Math.min(100, ((st.recSeconds || 0) / ((st.recSeconds || 0) + total || 1)) * 100) + "%" : "0%";
         where.textContent = web ? "In memory: the recording is offered as a download when you stop" + (free ? "  ·  " + bytesText(free) + " left" : "")
           : st.recAvailable ? (state ? (st.recSession || st.recFolder || "") : (st.recFolder || "")) + (free ? "  ·  " + bytesText(free) + " free" : "") : "";
-        msg.textContent = st.recFailed && !st.recMessage ? (web ? "The memory budget is used up. The recording stopped: download it before you start another." : "Recording stopped.") : st.recMessage || "";
+        msg.textContent = dlError || (st.recFailed && !st.recMessage ? (web ? "The memory budget is used up. The recording stopped: download it before you start another." : "Recording stopped.") : st.recMessage || "");
       };
       ac.draw();
     },
