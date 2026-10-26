@@ -1,0 +1,11 @@
+{
+  "name": "Note to Gate",
+  "slug": "note-to-gate",
+  "license": "GPL-3.0-only",
+  "tagline": "A MIDI note stream in; one gate per note you choose, and a list of the notes that came in.",
+  "colour": "#c084fc",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/note-to-gate.md"
+}

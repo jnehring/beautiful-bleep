@@ -117,7 +117,7 @@ struct Rig {
 
 void specs() {
     const char* types[] = {"attenuverter", "cv-mixer", "audio-mixer", "multiplier", "math", "cv-to-gate", "crossfader",
-                           "logic",        "quantizer", "switch",     "notes-to-cv", "level-meter", "monitor"};
+                           "logic",        "quantizer", "switch",     "notes-to-cv", "level-meter", "monitor", "note-to-gate"};
     for (const char* t : types) {
         g_test = t;
         const ModuleSpec* s = Registry::get().find(t);
@@ -335,6 +335,49 @@ void quantizer() {
     n.connected[(size_t)ni] = false;  // cable pulled with a note held: it ends
     n.run();
     EXPECT(nout.count == 1 && nout.events[0].type == NoteEvent::Off && nout.events[0].note == 69);
+}
+
+void noteToGate() {
+    g_test = "note-to-gate node";
+    Rig r("note-to-gate");
+    r.set("gates", 3.0f);
+    r.set("note1", 36.0f);
+    r.set("note2", 38.0f);
+    r.set("note3", 38.0f);
+    const int ni = r.m->spec().inputIndex("notes");
+    r.connected[(size_t)ni] = true;
+    auto ev = [&](NoteEvent::Type t, int note, int offset) {
+        NoteEvent e;
+        e.type = t;
+        e.note = note;
+        e.offset = (int16_t)offset;
+        e.value = 0.5f;
+        r.notes[(size_t)ni].push(e);
+    };
+    ev(NoteEvent::On, 38, 4);
+    ev(NoteEvent::On, 50, 5);  // nobody listens
+    r.run();
+    EXPECT_NEAR(r.out("gate2", 3), 0.0, 1e-6);
+    EXPECT_NEAR(r.out("gate2", 4), 1.0, 1e-6);  // sample accurate
+    EXPECT_NEAR(r.out("gate3"), 1.0, 1e-6);     // two gates may share a note
+    EXPECT_NEAR(r.out("gate1"), 0.0, 1e-6);
+    r.run();
+    EXPECT_NEAR(r.out("gate2"), 1.0, 1e-6);  // held across blocks
+    ev(NoteEvent::Off, 38, 0);
+    r.run();
+    EXPECT_NEAR(r.out("gate2"), 0.0, 1e-6);
+    ev(NoteEvent::On, 36, 0);
+    ev(NoteEvent::Cc, 123, 8);  // all notes off
+    r.run();
+    EXPECT_NEAR(r.out("gate1", 7), 1.0, 1e-6);
+    EXPECT_NEAR(r.out("gate1", 8), 0.0, 1e-6);
+
+    // The notes heard, newest first: count, then (note, velocity) pairs.
+    std::vector<std::pair<std::string, std::vector<float>>> arrays;
+    r.m->liveArrays(arrays);
+    EXPECT(arrays.size() == 1 && arrays[0].second.size() == 1 + 2 * 3);
+    EXPECT(arrays[0].second[0] == 3.0f && arrays[0].second[1] == 36.0f && arrays[0].second[3] == 50.0f &&
+           arrays[0].second[5] == 38.0f && arrays[0].second[2] == 64.0f);
 }
 
 void switchNode() {
@@ -926,6 +969,7 @@ int main() {
     logic();
     quantizer();
     switchNode();
+    noteToGate();
     notesToCv();
     midiInEvents();
     monitor();
