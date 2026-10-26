@@ -94,6 +94,7 @@ Five whole patches show what ADSR does. In the standalone app open **File → Pr
 | Sustain | 0 – 100 % | 70 % |
 | Release | 1 ms – 20 s | 400 ms |
 | Vel Amount | 0 – 100 % | 50 % |
+| Attack / Decay / Release Curve | −100 – +100 % | 0 % |
 
 - **Attack:** how long the rise from silence to the peak takes. The rise is
   linear, so short attacks stay punchy. The knob's centre is 200 ms; the lower
@@ -107,6 +108,10 @@ Five whole patches show what ADSR does. In the standalone app open **File → Pr
 - **Release:** time from the gate going low to silence (−80 dB). The centre
   is 600 ms. A gate that ends during the attack or decay starts the release
   from wherever the level is.
+- **Attack / Decay / Release Curve:** bends the shape of each stage. At 0 % the
+  stage keeps its default (linear attack, exponential decay and release).
+  Positive values bend it late: a slow start and a quick finish. Negative
+  values bend it early: a quick start and a slow finish. The times stay the same.
 - **Vel Amount:** how much velocity lowers the peak. Peak = 1 − Vel Amount ×
   (1 − Velocity). At 0 % velocity is ignored; at 100 % a velocity of 0.3 gives a
   peak of 0.3.

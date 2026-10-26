@@ -11,7 +11,7 @@ using patch::AdsrParams;
 
 class AdsrModule final : public Module {
 public:
-    enum { Attack, Decay, Sustain, Release, Velocity };
+    enum { Attack, Decay, Sustain, Release, Velocity, AttackCurve, DecayCurve, ReleaseCurve };
     enum { Gate, Retrigger, VelocityIn };
     enum { Env, End, Active };
 
@@ -32,6 +32,9 @@ public:
             p.sustain = value(c, Sustain, i);
             p.release = value(c, Release, i);
             p.velocityAmount = value(c, Velocity, i);
+            p.attackCurve = value(c, AttackCurve, i);
+            p.decayCurve = value(c, DecayCurve, i);
+            p.releaseCurve = value(c, ReleaseCurve, i);
             const auto f = dsp_.tick(p, c.inputs[Gate][i], c.inputs[Retrigger][i],
                                      velocityPatched ? c.inputs[VelocityIn][i] : 1.0f);
             c.outputs[Env][i] = f.env;
@@ -57,7 +60,10 @@ void registerAdsrModule(Registry& r) {
                 ParamSpec::seconds("decay", "Decay", 0.001f, 10.0f, 0.4f, 0.3f),
                 ParamSpec::percent("sustain", "Sustain", 0.0f, 1.0f, 0.7f),
                 ParamSpec::seconds("release", "Release", 0.001f, 20.0f, 0.6f, 0.4f),
-                ParamSpec::percent("velamount", "Vel Amount", 0.0f, 1.0f, 0.5f)};
+                ParamSpec::percent("velamount", "Vel Amount", 0.0f, 1.0f, 0.5f),
+                ParamSpec::percent("attackcurve", "Attack Curve", -1.0f, 1.0f, 0.0f),
+                ParamSpec::percent("decaycurve", "Decay Curve", -1.0f, 1.0f, 0.0f),
+                ParamSpec::percent("releasecurve", "Release Curve", -1.0f, 1.0f, 0.0f)};
     s.inputs = {{"gate", "Gate", Signal::Gate}, {"retrig", "Retrigger", Signal::Trigger},
                 {"velocity", "Velocity", Signal::Control}};
     s.outputs = {{"env", "Env", Signal::Control, false}, {"end", "End", Signal::Trigger, false},

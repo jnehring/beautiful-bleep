@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // ADSR view: the real envelope curve of the (modulated) settings: a linear
-// attack, an exponential decay to the sustain level and an exponential release,
+// attack (each stage bendable with its Curve knob), an exponential decay to the sustain level and an exponential release,
 // both reaching -80 dB after their set time (AdsrDsp.h). A glowing dot follows
 // the live Env output; the sustain stage has a fixed width.
 (function () {
@@ -18,25 +18,29 @@
     return p.min + (p.max - p.min) * x;
   }
   const secs = (t) => (t < 1 ? Math.round(t * 1000) + " ms" : t.toFixed(t < 10 ? 2 : 1) + " s");
+  const unwarp = (y, c) => Math.pow(y, Math.pow(4, -c));
   const DECAY = Math.pow(10, -4);  // -80 dB
+  const warp = (x, c) => Math.pow(x, Math.pow(4, c));  // mirrors AdsrDsp.h: + late, - early
 
   function curve(view, st) {
     const a = real(view, st, "attack"), d = real(view, st, "decay"), r = real(view, st, "release");
     const s = view.value(st, "sustain");
+    // the curve knobs are bipolar percent: normalised 0..1 -> -1..1
+    const ca = view.value(st, "attackcurve") * 2 - 1, cd = view.value(st, "decaycurve") * 2 - 1, cr = view.value(st, "releasecurve") * 2 - 1;
     // stage widths: compressed with a root so a 5 ms attack and a 10 s release both show
     const wa = 0.12 + Math.sqrt(a), wd = 0.12 + Math.sqrt(d), ws = 0.9, wr = 0.12 + Math.sqrt(r);
     const tot = wa + wd + ws + wr;
-    return { a, d, r, s, wa: wa / tot, wd: wd / tot, ws: ws / tot, wr: wr / tot };
+    return { a, d, r, s, ca, cd, cr, wa: wa / tot, wd: wd / tot, ws: ws / tot, wr: wr / tot };
   }
   /// Level at x (0..1 across the display).
   function levelAt(c, x) {
-    if (x < c.wa) return x / c.wa;
+    if (x < c.wa) return warp(x / c.wa, c.ca);
     x -= c.wa;
-    if (x < c.wd) return c.s + (1 - c.s) * Math.pow(DECAY, x / c.wd);
+    if (x < c.wd) return c.s + (1 - c.s) * Math.pow(DECAY, warp(x / c.wd, c.cd));
     x -= c.wd;
     if (x < c.ws) return c.s;
     x -= c.ws;
-    return c.s * Math.pow(DECAY, Math.min(x / c.wr, 1)) * (x >= c.wr ? 0 : 1);
+    return c.s * Math.pow(DECAY, warp(Math.min(x / c.wr, 1), c.cr)) * (x >= c.wr ? 0 : 1);
   }
 
   function draw(view, cv) {
@@ -84,10 +88,10 @@
     if (m.stage !== "I") {
       let x;
       const peak = Math.max(env, 1e-4);
-      if (m.stage === "A") x = c.wa * Math.min(env, 1);
-      else if (m.stage === "D") x = c.wa + c.wd * Math.min(1, Math.log(Math.max((env - c.s) / Math.max(1 - c.s, 1e-4), DECAY)) / Math.log(DECAY));
+      if (m.stage === "A") x = c.wa * unwarp(Math.min(env, 1), c.ca);
+      else if (m.stage === "D") x = c.wa + c.wd * unwarp(Math.min(1, Math.log(Math.max((env - c.s) / Math.max(1 - c.s, 1e-4), DECAY)) / Math.log(DECAY)), c.cd);
       else if (m.stage === "S") x = c.wa + c.wd + c.ws * 0.5;
-      else x = c.wa + c.wd + c.ws + c.wr * Math.min(1, Math.log(Math.max(peak / Math.max(c.s, 1e-4), DECAY)) / Math.log(DECAY));
+      else x = c.wa + c.wd + c.ws + c.wr * unwarp(Math.min(1, Math.log(Math.max(peak / Math.max(c.s, 1e-4), DECAY)) / Math.log(DECAY)), c.cr);
       const px = X(x), py = Y(env);
       g.strokeStyle = th.text; g.globalAlpha = 0.35; g.beginPath(); g.moveTo(px + 0.5, padT); g.lineTo(px + 0.5, Y(0)); g.stroke(); g.globalAlpha = 1;
       BleepView.glow(g, th.accent, 16);
@@ -101,6 +105,7 @@
     template: '<div class="bv-panel"><h2>Envelope</h2><canvas class="adsr-cv"></canvas></div>',
     layout: [
       { title: "Envelope", params: ["attack", "decay", "sustain", "release"] },
+      { title: "Curves", params: ["attackcurve", "decaycurve", "releasecurve"] },
       { title: "Dynamics", params: ["velamount"] },
     ],
     afterBuild(view, custom) {

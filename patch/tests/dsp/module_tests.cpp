@@ -187,6 +187,24 @@ static void adsr() {
     env.reset();
     for (int i = 0; i < 20; ++i) f = env.tick(p, 1.0f, 0.0f, 0.5f);
     EXPECT(f.env <= 0.5f + 1e-4f);
+
+    // Curves: a late attack lags the straight ramp, an early one leads it; a late release holds longer.
+    auto at5 = [&](float ca, float cr) {
+        AdsrParams q = p;
+        q.velocityAmount = 0.0f;
+        q.attackCurve = ca;
+        q.releaseCurve = cr;
+        env.reset();
+        AdsrFrame g{};
+        for (int i = 0; i < 5; ++i) g = env.tick(q, 1.0f, 0.0f, 1.0f);
+        const float mid = g.env;
+        for (int i = 0; i < 300; ++i) g = env.tick(q, 1.0f, 0.0f, 1.0f);
+        for (int i = 0; i < 50; ++i) g = env.tick(q, 0.0f, 0.0f, 1.0f);
+        return std::pair<float, float>(mid, g.env);
+    };
+    const auto lin = at5(0.0f, 0.0f), late = at5(1.0f, 1.0f), early = at5(-1.0f, -1.0f);
+    EXPECT(late.first < lin.first && lin.first < early.first);
+    EXPECT(late.second > lin.second && lin.second > early.second);
 }
 
 
