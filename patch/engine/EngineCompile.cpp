@@ -130,14 +130,18 @@ void Engine::reconcile(bool force) {
     // channels) are added from the Add menu, and may be deleted again.
     const bool emptyBoard = board_["nodes"].getArray() == nullptr || board_["nodes"].getArray()->isEmpty();
     for (const auto& s : instances_) {
-        if (s->kind == PortKind::Patch && s->handle == mainHandle_ && !standalone_ && !s->bridged && !s->seeded && emptyBoard &&
-            (force || s->restored || nowMs() - s->registeredAt >= 500.0)) {
-            // A new Bleep Board starts with a MIDI In and an Audio Out of its own (a saved board is left alone).
+        if (s->kind == PortKind::Patch && s->handle == mainHandle_ && !standalone_ && !s->bridged && !s->seeded &&
+            (force || s->restored || nowMs() - s->registeredAt >= 500.0) && board::findNodeByPort(board_, juce::String(s->id)) == nullptr) {
+            // A new Bleep Board starts with a MIDI In and an Audio Out of its own. A board that already has its Macros node is
+            // a saved one and is left alone; a board that only holds other ports (Instruments added first) gets them below.
             s->seeded = true;
-            if (const auto* midi = Registry::get().forPort(PortKind::MidiIn))
-                board::addNode(board_, *midi, 40.0, 40.0, juce::String(s->id + kBoardMidiSuffix));
-            if (const auto* audio = Registry::get().forPort(PortKind::AudioOut))
-                board::addNode(board_, *audio, 760.0, 40.0, juce::String(s->id + kBoardAudioSuffix));
+            auto [mx, my] = emptyBoard ? std::pair{40.0, 40.0} : belowExisting(board_);
+            if (const auto* midi = Registry::get().forPort(PortKind::MidiIn);
+                midi && board::findNodeByPort(board_, juce::String(s->id + kBoardMidiSuffix)) == nullptr)
+                board::addNode(board_, *midi, mx, my, juce::String(s->id + kBoardMidiSuffix));
+            if (const auto* audio = Registry::get().forPort(PortKind::AudioOut);
+                audio && board::findNodeByPort(board_, juce::String(s->id + kBoardAudioSuffix)) == nullptr)
+                board::addNode(board_, *audio, mx + 720.0, my, juce::String(s->id + kBoardAudioSuffix));
             changed = true;
             seededNow = true;  // the Macros node goes below the MIDI In (whatever its height)
         }

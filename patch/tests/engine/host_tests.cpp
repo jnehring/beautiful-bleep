@@ -500,6 +500,28 @@ void boardIsMidiInAndAudioOut() {
     e->release();
 }
 
+/// Instruments added before the Bleep Board: the board is not empty, but the Board still gets its MIDI In and Audio Out.
+void boardAddedAfterInstrumentsIsMidiInAndAudioOut() {
+    g_test = "board io late";
+    auto* e = new Engine();
+    const int inst = e->registerInstance(PortKind::Instrument);
+    e->reconcileNow();
+    const int main = e->registerInstance(PortKind::Patch);
+    e->reconcileNow();
+    char id[40];
+    e->instanceId(main, id, sizeof id);
+    EXPECT(board::findNodeByPort(e->board(), juce::String(id) + ":midi") != nullptr);
+    EXPECT(board::findNodeByPort(e->board(), juce::String(id) + ":audio") != nullptr);
+    EXPECT(portNode(*e, inst).isNotEmpty());
+    EXPECT(e->board()["nodes"].getArray()->size() == 4);  // Instrument, MIDI In, Audio Out, Macros
+    e->reconcileNow();
+    EXPECT(e->board()["nodes"].getArray()->size() == 4);  // nothing added twice
+    e->unregisterInstance(main);
+    e->unregisterInstance(inst);
+    e->collectGarbage();
+    e->release();
+}
+
 /// A project loaded into Bleep Board carries an Audio Out with only the bare port suffix: the board makes it its own.
 void boardClaimsLoadedPorts() {
     g_test = "board claims";
@@ -578,6 +600,7 @@ void runHostTests() {
     midiThrough();
     standaloneDriver();
     boardIsMidiInAndAudioOut();
+    boardAddedAfterInstrumentsIsMidiInAndAudioOut();
     boardFollowsHostTempo();
     boardClaimsLoadedPorts();
 }
