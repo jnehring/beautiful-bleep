@@ -58813,6 +58813,54 @@
         "name": "Playing",
         "type": "gate",
         "bipolar": false
+      },
+      {
+        "id": "m1",
+        "name": "Macro 1",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m2",
+        "name": "Macro 2",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m3",
+        "name": "Macro 3",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m4",
+        "name": "Macro 4",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m5",
+        "name": "Macro 5",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m6",
+        "name": "Macro 6",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m7",
+        "name": "Macro 7",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m8",
+        "name": "Macro 8",
+        "type": "control",
+        "bipolar": false
       }
     ]
   },
@@ -59449,6 +59497,54 @@
         "name": "Send R",
         "type": "audio",
         "bipolar": true
+      },
+      {
+        "id": "m1",
+        "name": "Macro 1",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m2",
+        "name": "Macro 2",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m3",
+        "name": "Macro 3",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m4",
+        "name": "Macro 4",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m5",
+        "name": "Macro 5",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m6",
+        "name": "Macro 6",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m7",
+        "name": "Macro 7",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m8",
+        "name": "Macro 8",
+        "type": "control",
+        "bipolar": false
       }
     ]
   },

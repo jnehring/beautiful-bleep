@@ -14,6 +14,7 @@ namespace bleep::engine {
 namespace {
 
 constexpr int kNumCcs = 8;
+constexpr int kNumHostMacros = 8;  // Bleep Instrument and Bleep FX: Macro 1…8, host parameters that appear as jacks
 const int kDefaultCcs[kNumCcs] = {2, 4, 7, 10, 11, 71, 74, 64};
 
 float pitchOf(int note) noexcept { return (float)(note - 60) / 12.0f; }
@@ -25,6 +26,18 @@ void zeroOutputs(const ProcessContext& c, const ModuleSpec& s) noexcept {
     }
 }
 
+/// The plugin's Macro 1…8 parameters as signals, on the outputs from `first` on. A ghost (no plugin) holds them at 0.
+void writeMacros(const ProcessContext& c, int first) noexcept {
+    const PortFrame* in = c.port ? c.port->in : nullptr;
+    for (int k = 0; k < kNumHostMacros; ++k)
+        std::fill(c.outputs[first + k], c.outputs[first + k] + c.numSamples, in ? in->macros[k] : 0.0f);
+}
+
+void addMacroOutputs(ModuleSpec& s) {
+    for (int k = 1; k <= kNumHostMacros; ++k)
+        s.outputs.push_back({"m" + std::to_string(k), "Macro " + std::to_string(k), Signal::Control, false});
+}
+
 // ---- MIDI In / Instrument ----------------------------------------------------
 
 /// Turns the track's MIDI into a `notes` stream plus mono signals.
@@ -34,7 +47,7 @@ public:
     enum { Notes, Pitch, Gate, Velocity, Trigger, Pressure, Bend, Mod, CcOut1 };
     enum { InL, InR };  // Instrument only
     /// Instrument only: the host's time as a clock and a run gate, for cells that play by themselves.
-    static constexpr int ClockOut = CcOut1 + kNumCcs, PlayingOut = ClockOut + 1;
+    static constexpr int ClockOut = CcOut1 + kNumCcs, PlayingOut = ClockOut + 1, MacroOut1 = PlayingOut + 1;
 
     MidiInModule(const ModuleSpec& s, bool audioOut) : Module(s), audioOut_(audioOut) {}
 
@@ -47,7 +60,10 @@ public:
     void process(const ProcessContext& c) override {
         NoteBuffer& notes = *c.notesOut[Notes];
         notes.clear();
-        if (audioOut_) writeAudio(c);
+        if (audioOut_) {
+            writeAudio(c);
+            writeMacros(c, MacroOut1);
+        }
         if (c.port == nullptr || c.port->in == nullptr) {
             zeroOutputs(c, spec());  // outputs deactivated (spec §6)
             releaseAll(notes);
@@ -310,6 +326,7 @@ public:
                 std::fill(c.outputs[ch] + n, c.outputs[ch] + c.numSamples, 0.0f);
             }
             if (hasLevel()) applyLevel(c, c.outputs[0], c.outputs[1], c.outputs[0], c.outputs[1]);
+            if (spec().type == "audio-insert") writeMacros(c, 2);
         }
         if (to_ && c.port && c.port->out) {
             // An Insert with nothing patched into its return passes the send through.
@@ -565,6 +582,7 @@ void registerPortModules(Registry& r) {
         s.outputs = midiInOutputs();
         s.outputs.push_back({"clock", "Clock", Signal::Gate, false});
         s.outputs.push_back({"playing", "Playing", Signal::Gate, false});
+        addMacroOutputs(s);
         s.inputs = {{"l", "Audio L", Signal::Audio}, {"r", "Audio R", Signal::Audio}};
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<MidiInModule>(spec, true); });
     }
@@ -615,6 +633,7 @@ void registerPortModules(Registry& r) {
         ModuleSpec s = portSpec("audio-insert", "Audio Insert", PortKind::AudioInsert,
                                 "A track's audio through the board and back (Bleep FX).");
         s.outputs = {{"l", "Send L", Signal::Audio, true}, {"r", "Send R", Signal::Audio, true}};
+        addMacroOutputs(s);
         s.inputs = {{"l", "Return L", Signal::Audio}, {"r", "Return R", Signal::Audio}};
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, true, false); });
     }

@@ -45,14 +45,17 @@ PortProcessor::BusesProperties PortProcessor::busesFor(PortKind k) {
 
 PortProcessor::PortProcessor(PortKind kind)
     : juce::AudioProcessor(busesFor(kind)), kind_(kind), instance_(kind) {
-    if (kind_ == PortKind::Patch) {
-        for (int k = 0; k < engine::kNumMacros; ++k) {
+    // Bleep Board has 16 macros; Bleep Instrument and Bleep FX have 8 (after their 16 cell parameters, below).
+    const int numMacros = kind_ == PortKind::Patch ? engine::kNumMacros : loadsPresets() ? kHostMacros : 0;
+    auto addMacros = [&] {
+        for (int k = 0; k < numMacros; ++k) {
             const auto id = "macro" + juce::String(k + 1);
             macros_[(size_t)k] = new juce::AudioParameterFloat(juce::ParameterID(id, 1), "Macro " + juce::String(k + 1),
                                                                0.0f, 1.0f, 0.0f);
             addParameter(macros_[(size_t)k]);
         }
-    }
+    };
+    if (kind_ == PortKind::Patch) addMacros();
     if (kind_ == PortKind::AudioInsert) {
         mix_ = new juce::AudioParameterFloat(juce::ParameterID("mix", 1), "Dry/Wet", 0.0f, 1.0f, 1.0f);
         addParameter(mix_);
@@ -64,6 +67,7 @@ PortProcessor::PortProcessor(PortKind kind)
             addParameter(slots_[(size_t)k]);
             slots_[(size_t)k]->addListener(this);
         }
+    if (loadsPresets()) addMacros();
     if (canBridge()) {
         // Not automatable: it re-plumbs the plugin, it isn't a knob.
         boardChoice_ = new juce::AudioParameterChoice(juce::ParameterID("board", 1), "Board", juce::StringArray{"This set", "App", "Web"}, 0,
@@ -253,8 +257,9 @@ void PortProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuff
         return;
     }
 
-    if (kind_ == PortKind::Patch) {
-        for (int k = 0; k < engine::kNumMacros; ++k) macroValues_[k] = macros_[(size_t)k]->get();
+    if (kind_ == PortKind::Patch || loadsPresets()) {
+        for (size_t k = 0; k < macros_.size(); ++k)
+            if (macros_[k]) macroValues_[k] = macros_[k]->get();
         io.macros = macroValues_;
     }
     if (kind_ == PortKind::AudioIn || kind_ == PortKind::AudioInsert) {

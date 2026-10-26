@@ -123,6 +123,7 @@ private:
     int64_t fallbackPos_ = 0;
     uint64_t seenGeneration_ = 0;
     static constexpr int kSlots = 16;
+    static constexpr int kHostMacros = 8;   ///< Bleep Instrument and Bleep FX: Macro 1…8 (engine::kNumHostMacros)
     std::array<SlotParameter*, kSlots> slots_{};
     struct Mapped { juce::String node, param; };
     std::array<Mapped, kSlots> mapping_{};
