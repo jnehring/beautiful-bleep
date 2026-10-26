@@ -143,5 +143,116 @@ const roomMic = () => drum("Room Mic Kick", {
             effect("reverb", "Room", { size: 0.3, decay: 0.6, damping: 0.5, mix: 0.2 })],
 });
 
+const subDrop = () => drum("Sub Drop Kick", {
+  description: "A very low, long kick that is more felt than heard: a sine sub that falls a long way.",
+  tags: ["kick", "sub", "808", "long"],
+  help: "A Ring Kick at 34 Hz with a long decay and a slow sweep, then a low-pass at 400 Hz so nothing but the sub is left.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. The Tone input opens the low-pass for a little more definition.\n\n" +
+        "Tip: sidechain-free bass music works best with one of these per bar; shorten the Decay when the tempo is fast.",
+  layers: [layer("ring-kick", "Sub", { tune: 34, decay: 2, sweep: 0.55, tone: 0.1, drive: 0.1 })],
+  effects: [effect("filter", "Low-pass", { cutoff: 400, resonance: 0.05 })],
+  patch: toneDial(1, 0.3),
+});
+
+const boom808 = () => drum("808 Boom Kick", {
+  description: "A round, booming kick with a soft click and a long, gentle tail: the classic drum-machine bass drum.",
+  tags: ["kick", "808", "boom", "hip hop"],
+  help: "A Punch Kick at 45 Hz with a long decay, a low Attack and a slow sweep, into a Crunch used as a soft saturator for warmth.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. The Tone input opens the Crunch tone filter.\n\n" +
+        "Tip: tune the Punch Kick to the key of the bass line.",
+  layers: [layer("punch-kick", "Kick", { tune: 45, decay: 1.6, sweep: 0.3, attack: 0.2, drive: 0.15 })],
+  effects: [effect("crunch", "Warmth", { drive: 0.35, bits: 16, tone: 6000, level: 1, mix: 1 })],
+});
+
+const technoRumble = () => drum("Techno Rumble Kick", {
+  description: "A hard four-on-the-floor kick with a rumbling reverb tail that sits underneath the pattern.",
+  tags: ["kick", "techno", "rumble", "club"],
+  help: "A Punch Kick at 52 Hz with a strong click, then a big Reverb at 30 percent mix with a dark tone, and a Compressor that " +
+        "holds the whole thing together.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the hit.\n\n" +
+        "Tip: shorten the Reverb Decay when the rumble starts to blur with the next kick.",
+  layers: [layer("punch-kick", "Kick", { tune: 52, decay: 0.55, sweep: 0.6, attack: 0.7, drive: 0.35 })],
+  effects: [effect("reverb", "Rumble", { size: 0.7, decay: 1.2, damping: 0.8, tone: -0.6, mix: 0.3 }),
+            effect("compressor", "Glue", { threshold: -14, ratio: 4, attack: 5, release: 120, makeup: 3 })],
+});
+
+const gabber = () => drum("Gabber Distortion Kick", {
+  description: "A hardcore kick pushed deep into distortion: a loud, buzzing thump with a pitched tail.",
+  tags: ["kick", "gabber", "hardcore", "distorted"],
+  help: "A Punch Kick at 48 Hz with Drive at full, into a Crunch with a lot of drive and a second Crunch for a buzzing top.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the level.\n\n" +
+        "Tip: lower the Crunch drive to get a harder club kick instead of a full gabber.",
+  layers: [layer("punch-kick", "Kick", { tune: 48, decay: 0.7, sweep: 0.7, attack: 0.6, drive: 1 })],
+  effects: [effect("crunch", "Crush", { drive: 0.75, bits: 14, tone: 8000, level: 0.8, mix: 1 }),
+            effect("crunch", "Buzz", { drive: 0.5, bits: 16, tone: 12000, level: 0.9, mix: 1 })],
+});
+
+const clickBeater = () => drum("Click Beater Kick", {
+  description: "A short, dry kick with a loud beater click on top: it cuts through a busy mix.",
+  tags: ["kick", "click", "dry", "tight"],
+  help: "A Punch Kick at 62 Hz with a short decay and the Attack at its top, plus a Ring Rim 8 dB down for the beater tick.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\n" +
+        "Tip: lower the Rim level for a softer beater, or raise it to hear the click first.",
+  layers: [layer("punch-kick", "Kick", { tune: 62, decay: 0.22, sweep: 0.45, attack: 0.9, drive: 0.2 }),
+           layer("ring-rim", "Beater", { voice: "Clave", tune: 7, decay: 0.3 }, { gain: -8 })],
+});
+
+const tapeThud = () => drum("Tape Thud Kick", {
+  description: "A woolly, compressed kick that sounds as if it were bounced to tape and back.",
+  tags: ["kick", "tape", "warm", "lo-fi"],
+  help: "A Ring Kick at 56 Hz with some Tone, into a Crunch used as tape-style saturation, then a gentle low-pass.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. The Tone input opens the low-pass.\n\n" +
+        "Tip: raise the Crunch drive for a more worn-out thud.",
+  layers: [layer("ring-kick", "Kick", { tune: 56, decay: 0.7, sweep: 0.35, tone: 0.4, drive: 0.2 })],
+  effects: [effect("crunch", "Tape", { drive: 0.5, bits: 16, tone: 9000, level: 1, mix: 1 }),
+            effect("filter", "Soften", { cutoff: 5000, resonance: 0.05 })],
+  patch: toneDial(2, 0.3),
+});
+
+const boomBap = () => drum("Boom Bap Sample Kick", {
+  description: "A kick that sounds like it was chopped from a dusty record: crushed, short and a little boxy.",
+  tags: ["kick", "boom bap", "sample", "lo-fi"],
+  help: "A Ring Kick at 60 Hz with a medium decay, crunched to 10 bits with some sample-rate reduction, then low-passed at 3.5 kHz.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. The Tone input opens the low-pass.\n\n" +
+        "Tip: pair it with the Crushed Snare for a whole sampled kit.",
+  layers: [layer("ring-kick", "Kick", { tune: 60, decay: 0.45, sweep: 0.25, tone: 0.55, drive: 0.1 })],
+  effects: [effect("crunch", "Dust", { drive: 0.2, bits: 10, rate: 0.25, tone: 20000, level: 1, mix: 1 }),
+            effect("filter", "Low-pass", { cutoff: 3500, resonance: 0.1 })],
+  patch: toneDial(2, 0.3),
+});
+
+const deepHouse = () => drum("Deep House Kick", {
+  description: "A round, soft house kick with a slightly dark tone: it pushes without hurting.",
+  tags: ["kick", "house", "deep", "round"],
+  help: "A Ring Kick at 50 Hz with a medium decay and a low Drive, into an EQ that cuts the low-mids at 250 Hz and a short, tight Reverb.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the level.\n\n" +
+        "Tip: raise the Ring Kick's Tone for a bit more knock on the front.",
+  layers: [layer("ring-kick", "Kick", { tune: 50, decay: 0.55, sweep: 0.3, tone: 0.3, drive: 0.1 })],
+  effects: [effect("eq", "Shape", { b2On: false, b3On: true, b3Type: "Bell", b3Hz: 250, b3Gain: -5, b3Q: 1,
+                                    b4On: false, b5On: false }),
+            effect("reverb", "Room", { size: 0.2, decay: 0.4, damping: 0.6, mix: 0.1 })],
+});
+
+const fmPunch = () => drum("FM Punch Kick", {
+  description: "A kick from a frequency-modulated voice: a hard, slightly metallic punch with a bright front.",
+  tags: ["kick", "fm", "punch", "electronic"],
+  help: "A Perc Voice in its FM engine at 55 Hz with a quick sweep and a short decay, mixed with a Punch Kick 6 dB down for weight.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\n" +
+        "Tip: raise Tone on the Perc Voice for more metallic overtones.",
+  layers: [layer("perc-voice", "FM", { engine: "FM", pitch: 55, tone: 0.3, morph: 0.45, click: 0.5, decay: 0.35, sweep: 0.7, damp: 0.5 }),
+           layer("punch-kick", "Weight", { tune: 50, decay: 0.4, sweep: 0.4, attack: 0.3, drive: 0.2 }, { gain: -6 })],
+});
+
+const trapSlide = () => drum("Trap Slide Kick", {
+  description: "A long sub kick that slides down to the floor, for trap and drill.",
+  tags: ["kick", "trap", "slide", "sub"],
+  help: "A Punch Kick at 38 Hz with a very long decay and a large sweep, so the pitch slides down audibly, plus a small Crunch for harmonics.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the level.\n\n" +
+        "Tip: lower the Punch Kick's Sweep to make the slide shorter and the kick more of a thud.",
+  layers: [layer("punch-kick", "Slide", { tune: 38, decay: 2.2, sweep: 0.85, attack: 0.15, drive: 0.25 })],
+  effects: [effect("crunch", "Harmonics", { drive: 0.4, bits: 16, tone: 10000, level: 1, mix: 0.8 })],
+});
+
 export default category("Drums/Kicks", "One-shot bass drums, from soft thuds to layered club kicks: patch a trigger into Trig.",
-  [pocketThump, velvetTape, cardboard, woodLog, zap, pillow, twoStage, folded, dusty, roomMic]);
+  [pocketThump, velvetTape, cardboard, woodLog, zap, pillow, twoStage, folded, dusty, roomMic,
+  subDrop, boom808, technoRumble, gabber, clickBeater, tapeThud, boomBap, deepHouse, fmPunch, trapSlide]);

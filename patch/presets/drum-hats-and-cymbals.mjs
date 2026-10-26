@@ -141,5 +141,87 @@ const bell = () => drum("Ride Bell Ping", {
   effects: [effect("filter", "High-pass", { cutoff: 400, mode: HP })],
 });
 
+const trapTickHats = () => drum("Trap Tick Hats", {
+  description: "Very short, dry, tight hats for fast rolls; the open hat is just a little longer.",
+  tags: ["hats", "trap", "tight", "short"],
+  help: "A Punch Hats module with very short Closed and Open decays, little Crunch and a high Tone, high-passed at 6 kHz. Closed cuts open.\n\n" +
+        "Patch triggers into Closed and Open and take Out L/R. The Tone input moves the high-pass.\n\n" +
+        "Tip: roll the Closed input at sixteenth or thirty-second notes.",
+  hats: true,
+  layers: [layer("punch-hats", "Hats", { tune: 2, closed: 0.02, open: 0.15, tone: 0.8, crunch: 0.2 })],
+  effects: [effect("filter", "High-pass", { cutoff: 6000, mode: HP })],
+  patch: toneDial(1, 0.2),
+});
+
+const technoClosed = () => drum("Techno Closed Hats", {
+  description: "Crisp, metallic hats with a firm top end and a clean open hat that sizzles.",
+  tags: ["hats", "techno", "crisp", "metallic"],
+  help: "A Ring Hats module with a middling Tone and a longer open decay, high-passed at 5 kHz, with a short Reverb for a bit of air.\n\n" +
+        "Patch triggers into Closed and Open and take Out L/R. The Tone input moves the high-pass.\n\n" +
+        "Tip: put the open hat on the offbeat of a four-on-the-floor pattern.",
+  hats: true,
+  layers: [layer("ring-hats", "Hats", { tune: 0, closed: 0.05, open: 0.4, tone: 0.65 })],
+  effects: [effect("filter", "High-pass", { cutoff: 5000, mode: HP }),
+            effect("reverb", "Air", { size: 0.2, decay: 0.4, damping: 0.3, mix: 0.1 })],
+  patch: toneDial(1, 0.2),
+});
+
+const metalRing = () => drum("Metal Ring Hats", {
+  description: "Hats with a clear, ringing, bell-like edge: long open hats that almost sing.",
+  tags: ["hats", "metal", "ringing", "bright"],
+  help: "A Ring Hats module tuned up five semitones with a high Tone and a long open decay, plus a Modal Voice 14 dB down for the ring.\n\n" +
+        "Patch triggers into Closed and Open and take Out L/R. The Modal Voice is struck by Closed.\n\n" +
+        "Tip: lower the Modal Voice level to taste.",
+  hats: true,
+  layers: [layer("ring-hats", "Hats", { tune: 5, closed: 0.06, open: 0.9, tone: 0.9 }),
+           layer("modal-voice", "Ring", { coarse: 24, geometry: 0.7, brightness: 0.9, damping: 0.4, position: 0.5 }, { gain: -14, on: { strike: "closed" } })],
+});
+
+const shuffleHats = () => drum("Lo-fi Shuffle Hats", {
+  description: "Soft, rounded hats with a lazy open hat: the loose pulse of a lo-fi beat.",
+  tags: ["hats", "lo-fi", "shuffle", "soft"],
+  help: "A Punch Hats module with a low Tone and little Crunch, through a Crunch at 12 bits and a low-pass at 8 kHz. Closed cuts open.\n\n" +
+        "Patch triggers into Closed and Open and take Out L/R. The Tone input opens the low-pass.\n\n" +
+        "Tip: play them with uneven velocities for the shuffle.",
+  hats: true,
+  layers: [layer("punch-hats", "Hats", { tune: -3, closed: 0.07, open: 0.35, tone: 0.3, crunch: 0.15 })],
+  effects: [effect("crunch", "Wear", { drive: 0.1, bits: 12, rate: 0.15, tone: 20000, level: 1, mix: 1 }),
+            effect("filter", "Low-pass", { cutoff: 8000, resonance: 0.05 })],
+  patch: toneDial(2, 0.3),
+});
+
+const splash = () => drum("Splash Cymbal", {
+  description: "A small, quick cymbal crash that dies in half a second: an accent for fills.",
+  tags: ["cymbal", "splash", "crash", "accent"],
+  help: "A Punch Cymbal in Crash mode tuned up seven semitones with a short decay, into a small Reverb.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the level.\n\n" +
+        "Tip: use it at the end of a short fill instead of a full crash.",
+  layers: [layer("punch-cymbal", "Splash", { voice: "Crash", tune: 7, decay: 0.6, tone: 0.8, crunch: 0.3 })],
+  effects: [effect("reverb", "Air", { size: 0.25, decay: 0.5, damping: 0.3, mix: 0.12 })],
+});
+
+const brightRide = () => drum("Bright Ride Cymbal", {
+  description: "A shiny ride with a clear ping and a lasting, glittery wash.",
+  tags: ["cymbal", "ride", "bright", "ping"],
+  help: "A Punch Cymbal in Ride mode with a long decay and a bright Tone, plus a Ring Cowbell tuned very high and 18 dB down for the ping.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\n" +
+        "Tip: raise the Cowbell level for a more pronounced ping.",
+  layers: [layer("punch-cymbal", "Ride", { voice: "Ride", tune: 1, decay: 3, tone: 0.75, crunch: 0.15 }),
+           layer("ring-cowbell", "Ping", { tune: 12, decay: 0.15, tone: 0.9 }, { gain: -18 })],
+  effects: [effect("filter", "High-pass", { cutoff: 700, mode: HP })],
+});
+
+const jingle = () => drum("Tambourine Jingle", {
+  description: "A shaken tambourine: a burst of noise with a metallic ring and a short tail.",
+  tags: ["percussion", "tambourine", "jingle", "shaker"],
+  help: "A Perc Voice in its Noise Bank engine for the shake and a Ring Hats module 12 dB down for the jingles, high-passed at 2.5 kHz.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity feeds both layers.\n\n" +
+        "Tip: play it on every eighth note with varying velocities.",
+  layers: [layer("perc-voice", "Shake", { engine: "Noise Bank", pitch: 3800, tone: 0.7, click: 0.1, decay: 0.2, sweep: 0, damp: 0.4 }),
+           layer("ring-hats", "Jingles", { tune: 4, open: 0.35, tone: 0.8 }, { gain: -12, on: { open: "trig" } })],
+  effects: [effect("filter", "High-pass", { cutoff: 2500, mode: HP })],
+});
+
 export default category("Drums/Hats & Cymbals", "Hi-hats with Closed and Open triggers, shakers, and crash, ride and gong cymbals.",
-  [glass, crate, sizzle, pedal, sand, darkRide, gong, trash, choked, bell]);
+  [glass, crate, sizzle, pedal, sand, darkRide, gong, trash, choked, bell,
+  trapTickHats, technoClosed, metalRing, shuffleHats, splash, brightRide, jingle]);

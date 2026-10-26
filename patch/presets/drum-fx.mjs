@@ -127,5 +127,60 @@ const alien = () => drum("Alien Clang", {
   effects: [effect("freq-shifter", "Shifter", { shift: 0.1, feedback: 0.4, fbDelay: 0.3, mix: 0.7 })],
 });
 
+const laser = () => drum("Laser Zap", {
+  description: "A fast, bright pitch dive: the sound of a laser, for fills and sci-fi hits.",
+  tags: ["fx", "laser", "zap", "sci-fi"],
+  help: "A Perc Voice in its FM engine at 2.4 kHz with the Sweep at its top and a short decay, into a short ping-pong Delay.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity feeds the accent.\n\n" +
+        "Tip: lower Sweep for a smaller blip.",
+  layers: [layer("perc-voice", "Zap", { engine: "FM", pitch: 2400, tone: 0.2, morph: 0.5, click: 0.1, decay: 0.25, sweep: 1, damp: 0.4 })],
+  effects: [effect("delay", "Echo", { timel: 120, timer: 180, feedback: 0.35, highcut: 6000, mix: 0.25, mode: "Ping-Pong" })],
+});
+
+const subImpact = () => drum("Sub Impact", {
+  description: "A huge, slow boom with a long dark tail: the hit that starts a drop.",
+  tags: ["fx", "impact", "boom", "cinematic"],
+  help: "A Ring Kick at 36 Hz with the longest decay, plus a Ring Cymbal 18 dB down for the crash, into a huge Reverb at 50 percent mix.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\n" +
+        "Tip: use it once per phrase; it rings for several seconds.",
+  layers: [layer("ring-kick", "Boom", { tune: 36, decay: 3, sweep: 0.5, tone: 0.2, drive: 0.15 }),
+           layer("ring-cymbal", "Crash", { tune: -4, decay: 4, tone: 0.4 }, { gain: -18 })],
+  effects: [effect("reverb", "Hall", { size: 0.95, decay: 4.5, damping: 0.6, mix: 0.5 })],
+});
+
+const pipe = () => drum("Metal Pipe Hit", {
+  description: "A hollow steel pipe struck with a hammer: a dull clang with a long, inharmonic ring.",
+  tags: ["fx", "metal", "pipe", "clang"],
+  help: "A Modal Voice with a bar-like Geometry and a strong Strike, plus a Perc Voice in its Modal engine for the hammer click.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\n" +
+        "Tip: raise Damping on the Modal Voice for a shorter ring.",
+  layers: [layer("modal-voice", "Pipe", { coarse: 4, geometry: 0.45, brightness: 0.6, damping: 0.25, position: 0.35, size: 0.6 }),
+           layer("perc-voice", "Hammer", { engine: "Modal", pitch: 1500, tone: 0.8, click: 0.6, decay: 0.05, sweep: 0, damp: 0.7 }, { gain: -10 })],
+  effects: [effect("reverb", "Room", { size: 0.5, decay: 1.4, damping: 0.4, mix: 0.25 })],
+});
+
+const whoosh = () => drum("Noise Whoosh", {
+  description: "A burst of filtered noise that swells and falls away: a transition sweep in one hit.",
+  tags: ["fx", "noise", "whoosh", "transition"],
+  help: "A Macro Osc in its Noise Band model with a long decay, through a band-pass filter and a Phaser that sweeps the notches.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity feeds the accent.\n\n" +
+        "Tip: lengthen the Macro Osc Decay for a slower sweep.",
+  layers: [layer("macro-osc", "Noise", { model: "Noise Band", octave: 0, tone: 0.5, shape: 0.6, decay: 1.2 })],
+  effects: [effect("filter", "Band", { cutoff: 2500, resonance: 0.35, mode: BP }),
+            effect("phaser", "Sweep", { rate: 0.8, depth: 0.9, centre: 1500, feedback: 0.6, stages: "8", mix: 0.7 })],
+});
+
+const robot = () => drum("Robot Blip", {
+  description: "A short, bubbly two-tone blip like a small robot answering: playful and electronic.",
+  tags: ["fx", "robot", "blip", "chiptune"],
+  help: "Two Perc Voice layers in the FM engine, one a fourth above the other, with short decays and a little Sweep, through a Crunch at 8 bits.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity sets the level.\n\n" +
+        "Tip: lower the bits for a harsher robot.",
+  layers: [layer("perc-voice", "Low", { engine: "FM", pitch: 600, tone: 0.3, morph: 0.6, click: 0.1, decay: 0.12, sweep: 0.3, damp: 0.5 }, { gain: -4 }),
+           layer("perc-voice", "High", { engine: "FM", pitch: 800, tone: 0.3, morph: 0.6, click: 0, decay: 0.2, sweep: 0, damp: 0.5 }, { gain: -4 })],
+  effects: [effect("crunch", "Bits", { drive: 0.15, bits: 8, rate: 0.25, mix: 1 })],
+});
+
 export default category("Drums/FX", "Pings, chirps, glass, gongs and noise hits for fills and transitions.",
-  [sonar, coin, glass, boing, steam, static_, vowel, gong, chime, alien]);
+  [sonar, coin, glass, boing, steam, static_, vowel, gong, chime, alien,
+  laser, subImpact, pipe, whoosh, robot]);

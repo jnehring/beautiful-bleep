@@ -5112,6 +5112,317 @@
       }
     },
     {
+      "name": "Sub Drop Kick", "category": "Drums/Kicks",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Kicks",
+        "description": "A very low, long kick that is more felt than heard: a sine sub that falls a long way.",
+        "tags": ["drums","one-shot","kick","sub","808","long","instrument"],
+        "help": {"text":"A Ring Kick at 34 Hz with a long decay and a slow sweep, then a low-pass at 400 Hz so nothing but the sub is left.\n\nPatch a trigger into Trig and take Out L/R. The Tone input opens the low-pass for a little more definition.\n\nTip: sidechain-free bass music works best with one of these per bar; shorten the Decay when the tempo is fast."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Sub Drop Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"},{"id":"tone","name":"Tone","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"ringki","type":"ring-kick","name":"Sub","x":340,"y":40,"parent":"root","params":{"tune":0.090286,"decay":0.842958,"sweep":0.55,"tone":0.1,"drive":0.1}},
+          {"id":"filter","type":"filter","name":"Low-pass","x":940,"y":40,"parent":"root","params":{"cutoff":0.433677,"resonance":0.05}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringki","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringki","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringki","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"filter","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"filter","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k8","from":{"node":"ci","jack":"tone"},"to":{"node":"filter","jack":"cutoff"},"amount":0.3}
+        ]
+      }
+    },
+    {
+      "name": "808 Boom Kick", "category": "Drums/Kicks",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Kicks",
+        "description": "A round, booming kick with a soft click and a long, gentle tail: the classic drum-machine bass drum.",
+        "tags": ["drums","one-shot","kick","808","boom","hip hop","instrument"],
+        "help": {"text":"A Punch Kick at 45 Hz with a long decay, a low Attack and a slow sweep, into a Crunch used as a soft saturator for warmth.\n\nPatch a trigger into Trig and take Out L/R. The Tone input opens the Crunch tone filter.\n\nTip: tune the Punch Kick to the key of the bass line."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"808 Boom Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"punchk","type":"punch-kick","name":"Kick","x":340,"y":40,"parent":"root","params":{"tune":0.292481,"decay":0.82922,"sweep":0.3,"attack":0.2,"drive":0.15}},
+          {"id":"crunch","type":"crunch","name":"Warmth","x":940,"y":40,"parent":"root","params":{"drive":0.35,"bits":1,"tone":0.673621,"level":0.5,"mix":1}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchk","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchk","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchk","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"crunch","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"crunch","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"crunch","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"crunch","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Techno Rumble Kick", "category": "Drums/Kicks",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Kicks",
+        "description": "A hard four-on-the-floor kick with a rumbling reverb tail that sits underneath the pattern.",
+        "tags": ["drums","one-shot","kick","techno","rumble","club","instrument"],
+        "help": {"text":"A Punch Kick at 52 Hz with a strong click, then a big Reverb at 30 percent mix with a dark tone, and a Compressor that holds the whole thing together.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the hit.\n\nTip: shorten the Reverb Decay when the rumble starts to blur with the next kick."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Techno Rumble Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"punchk","type":"punch-kick","name":"Kick","x":340,"y":40,"parent":"root","params":{"tune":0.396775,"decay":0.522019,"sweep":0.6,"attack":0.7,"drive":0.35}},
+          {"id":"reverb","type":"reverb","name":"Rumble","x":940,"y":40,"parent":"root","params":{"size":0.7,"decay":0.357377,"damping":0.8,"tone":0.2,"mix":0.3}},
+          {"id":"compre","type":"compressor","name":"Glue","x":1240,"y":40,"parent":"root","params":{"threshold":0.766667,"ratio":0.375804,"attack":0.566323,"release":0.468999,"makeup":0.125}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchk","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchk","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchk","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"reverb","jack":"l"},"to":{"node":"compre","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"reverb","jack":"r"},"to":{"node":"compre","jack":"r"},"amount":1},
+          {"id":"k8","from":{"node":"compre","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"compre","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Gabber Distortion Kick", "category": "Drums/Kicks",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Kicks",
+        "description": "A hardcore kick pushed deep into distortion: a loud, buzzing thump with a pitched tail.",
+        "tags": ["drums","one-shot","kick","gabber","hardcore","distorted","instrument"],
+        "help": {"text":"A Punch Kick at 48 Hz with Drive at full, into a Crunch with a lot of drive and a second Crunch for a buzzing top.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: lower the Crunch drive to get a harder club kick instead of a full gabber."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Gabber Distortion Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"punchk","type":"punch-kick","name":"Kick","x":340,"y":40,"parent":"root","params":{"tune":0.339036,"decay":0.581156,"sweep":0.7,"attack":0.6,"drive":1}},
+          {"id":"crunch","type":"crunch","name":"Crush","x":940,"y":40,"parent":"root","params":{"drive":0.75,"bits":0.866667,"tone":0.751607,"level":0.4,"mix":1}},
+          {"id":"crunch2","type":"crunch","name":"Buzz","x":1240,"y":40,"parent":"root","params":{"drive":0.5,"bits":1,"tone":0.861523,"level":0.45,"mix":1}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchk","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchk","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchk","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"crunch","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"crunch","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"crunch","jack":"l"},"to":{"node":"crunch2","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"crunch","jack":"r"},"to":{"node":"crunch2","jack":"r"},"amount":1},
+          {"id":"k8","from":{"node":"crunch2","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"crunch2","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Click Beater Kick", "category": "Drums/Kicks",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Kicks",
+        "description": "A short, dry kick with a loud beater click on top: it cuts through a busy mix.",
+        "tags": ["drums","one-shot","kick","click","dry","tight","instrument"],
+        "help": {"text":"A Punch Kick at 62 Hz with a short decay and the Attack at its top, plus a Ring Rim 8 dB down for the beater tick.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: lower the Rim level for a softer beater, or raise it to hear the click first."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Click Beater Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5,"level2":0.595159,"pan2":0.5}},
+          {"id":"punchk","type":"punch-kick","name":"Kick","x":340,"y":40,"parent":"root","params":{"tune":0.523653,"decay":0.335773,"sweep":0.45,"attack":0.9,"drive":0.2}},
+          {"id":"ringri","type":"ring-rim","name":"Beater","x":340,"y":260,"parent":"root","params":{"voice":1,"tune":0.791667,"decay":0.065759}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchk","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchk","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchk","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"ci","jack":"trig"},"to":{"node":"ringri","jack":"trig"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringri","jack":"velocity"},"amount":1},
+          {"id":"k6","from":{"node":"ringri","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k7","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Tape Thud Kick", "category": "Drums/Kicks",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Kicks",
+        "description": "A woolly, compressed kick that sounds as if it were bounced to tape and back.",
+        "tags": ["drums","one-shot","kick","tape","warm","lo-fi","instrument"],
+        "help": {"text":"A Ring Kick at 56 Hz with some Tone, into a Crunch used as tape-style saturation, then a gentle low-pass.\n\nPatch a trigger into Trig and take Out L/R. The Tone input opens the low-pass.\n\nTip: raise the Crunch drive for a more worn-out thud."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Tape Thud Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"},{"id":"tone","name":"Tone","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"ringki","type":"ring-kick","name":"Kick","x":340,"y":40,"parent":"root","params":{"tune":0.450232,"decay":0.535685,"sweep":0.35,"tone":0.4,"drive":0.2}},
+          {"id":"crunch","type":"crunch","name":"Tape","x":940,"y":40,"parent":"root","params":{"drive":0.5,"bits":1,"tone":0.783537,"level":0.5,"mix":1}},
+          {"id":"filter","type":"filter","name":"Soften","x":1240,"y":40,"parent":"root","params":{"cutoff":0.799313,"resonance":0.05}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringki","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringki","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringki","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"crunch","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"crunch","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"crunch","jack":"l"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"crunch","jack":"r"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k8","from":{"node":"filter","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"filter","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k10","from":{"node":"ci","jack":"tone"},"to":{"node":"filter","jack":"cutoff"},"amount":0.3}
+        ]
+      }
+    },
+    {
+      "name": "Boom Bap Sample Kick", "category": "Drums/Kicks",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Kicks",
+        "description": "A kick that sounds like it was chopped from a dusty record: crushed, short and a little boxy.",
+        "tags": ["drums","one-shot","kick","boom bap","sample","lo-fi","instrument"],
+        "help": {"text":"A Ring Kick at 60 Hz with a medium decay, crunched to 10 bits with some sample-rate reduction, then low-passed at 3.5 kHz.\n\nPatch a trigger into Trig and take Out L/R. The Tone input opens the low-pass.\n\nTip: pair it with the Crushed Snare for a whole sampled kit."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Boom Bap Sample Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"},{"id":"tone","name":"Tone","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"ringki","type":"ring-kick","name":"Kick","x":340,"y":40,"parent":"root","params":{"tune":0.5,"decay":0.438426,"sweep":0.25,"tone":0.55,"drive":0.1}},
+          {"id":"crunch","type":"crunch","name":"Dust","x":940,"y":40,"parent":"root","params":{"drive":0.2,"bits":0.6,"rate":0.25,"tone":1,"level":0.5,"mix":1}},
+          {"id":"filter","type":"filter","name":"Low-pass","x":1240,"y":40,"parent":"root","params":{"cutoff":0.747679,"resonance":0.1}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringki","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringki","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringki","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"crunch","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"crunch","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"crunch","jack":"l"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"crunch","jack":"r"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k8","from":{"node":"filter","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"filter","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k10","from":{"node":"ci","jack":"tone"},"to":{"node":"filter","jack":"cutoff"},"amount":0.3}
+        ]
+      }
+    },
+    {
+      "name": "Deep House Kick", "category": "Drums/Kicks",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Kicks",
+        "description": "A round, soft house kick with a slightly dark tone: it pushes without hurting.",
+        "tags": ["drums","one-shot","kick","house","deep","round","instrument"],
+        "help": {"text":"A Ring Kick at 50 Hz with a medium decay and a low Drive, into an EQ that cuts the low-mids at 250 Hz and a short, tight Reverb.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: raise the Ring Kick's Tone for a bit more knock on the front."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Deep House Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"ringki","type":"ring-kick","name":"Kick","x":340,"y":40,"parent":"root","params":{"tune":0.368483,"decay":0.480716,"sweep":0.3,"tone":0.3,"drive":0.1}},
+          {"id":"eq","type":"eq","name":"Shape","x":940,"y":40,"parent":"root","params":{"b2On":0,"b3On":1,"b3Type":0,"b3Hz":0.365637,"b3Gain":0.361111,"b3Q":0.443405,"b4On":0,"b5On":0}},
+          {"id":"reverb","type":"reverb","name":"Room","x":1240,"y":40,"parent":"root","params":{"size":0.2,"decay":0.199375,"damping":0.6,"mix":0.1}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringki","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringki","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringki","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"eq","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"eq","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"eq","jack":"l"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"eq","jack":"r"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k8","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "FM Punch Kick", "category": "Drums/Kicks",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Kicks",
+        "description": "A kick from a frequency-modulated voice: a hard, slightly metallic punch with a bright front.",
+        "tags": ["drums","one-shot","kick","fm","punch","electronic","instrument"],
+        "help": {"text":"A Perc Voice in its FM engine at 55 Hz with a quick sweep and a short decay, mixed with a Punch Kick 6 dB down for weight.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: raise Tone on the Perc Voice for more metallic overtones."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"FM Punch Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5,"level2":0.646113,"pan2":0.5}},
+          {"id":"percvo","type":"perc-voice","name":"FM","x":340,"y":40,"parent":"root","params":{"engine":0,"pitch":0.190929,"tone":0.3,"morph":0.45,"click":0.5,"decay":0.431814,"sweep":0.7,"damp":0.5}},
+          {"id":"punchk","type":"punch-kick","name":"Weight","x":340,"y":260,"parent":"root","params":{"tune":0.368483,"decay":0.451155,"sweep":0.4,"attack":0.3,"drive":0.2}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"percvo","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"percvo","jack":"accent"},"amount":1},
+          {"id":"k3","from":{"node":"percvo","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"percvo","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"trig"},"to":{"node":"punchk","jack":"trig"},"amount":1},
+          {"id":"k6","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchk","jack":"velocity"},"amount":1},
+          {"id":"k7","from":{"node":"punchk","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k8","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Trap Slide Kick", "category": "Drums/Kicks",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Kicks",
+        "description": "A long sub kick that slides down to the floor, for trap and drill.",
+        "tags": ["drums","one-shot","kick","trap","slide","sub","instrument"],
+        "help": {"text":"A Punch Kick at 38 Hz with a very long decay and a large sweep, so the pitch slides down audibly, plus a small Crunch for harmonics.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: lower the Punch Kick's Sweep to make the slide shorter and the kick more of a thud."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Trap Slide Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"punchk","type":"punch-kick","name":"Slide","x":340,"y":40,"parent":"root","params":{"tune":0.170518,"decay":0.947974,"sweep":0.85,"attack":0.15,"drive":0.25}},
+          {"id":"crunch","type":"crunch","name":"Harmonics","x":940,"y":40,"parent":"root","params":{"drive":0.4,"bits":1,"tone":0.812098,"level":0.5,"mix":0.8}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchk","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchk","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchk","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"crunch","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"crunch","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"crunch","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"crunch","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
       "name": "Rim Crack Snare", "category": "Drums/Snares & Claps",
       "preset": {
         "format": 1,
@@ -5426,6 +5737,479 @@
           {"id":"k10","from":{"node":"filter2","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k11","from":{"node":"filter2","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
           {"id":"k12","from":{"node":"ci","jack":"tone"},"to":{"node":"filter2","jack":"cutoff"},"amount":0.3}
+        ]
+      }
+    },
+    {
+      "name": "Fat Backbeat Snare", "category": "Drums/Snares & Claps",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Snares & Claps",
+        "description": "A full, round snare with a body you can feel and a medium room: the standard pop and rock backbeat.",
+        "tags": ["drums","one-shot","snare","fat","backbeat","pop","instrument"],
+        "help": {"text":"A Punch Snare at 190 Hz with a medium decay and a lot of Snappy, into a small Reverb and a Compressor that evens out the hit.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the hit strength.\n\nTip: raise the Reverb mix for a bigger room."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Fat Backbeat Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"punchs","type":"punch-snare","name":"Snare","x":340,"y":40,"parent":"root","params":{"tune":0.38168,"tone":0.5,"snappy":0.7,"decay":0.520384}},
+          {"id":"reverb","type":"reverb","name":"Room","x":940,"y":40,"parent":"root","params":{"size":0.35,"decay":0.279859,"damping":0.5,"mix":0.18}},
+          {"id":"compre","type":"compressor","name":"Even","x":1240,"y":40,"parent":"root","params":{"threshold":0.733333,"ratio":0.297817,"attack":0.634363,"release":0.434588,"makeup":0.083333}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchs","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchs","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchs","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"reverb","jack":"l"},"to":{"node":"compre","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"reverb","jack":"r"},"to":{"node":"compre","jack":"r"},"amount":1},
+          {"id":"k8","from":{"node":"compre","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"compre","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Trap Tick Snare", "category": "Drums/Snares & Claps",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Snares & Claps",
+        "description": "A tight, high snare with a hard tick and a short tail: it sits on the two and four of a trap beat.",
+        "tags": ["drums","one-shot","snare","trap","tight","tick","instrument"],
+        "help": {"text":"A Ring Snare at 260 Hz with a short decay, plus a Punch Rim 6 dB down for the tick, then a high-pass at 150 Hz.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: add the Slapback Clap on the same beat for a layered trap snare."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Trap Tick Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5,"level2":0.646113,"pan2":0.5}},
+          {"id":"ringsn","type":"ring-snare","name":"Snare","x":340,"y":40,"parent":"root","params":{"tune":0.689256,"tone":0.6,"snappy":0.6,"decay":0.367329}},
+          {"id":"punchr","type":"punch-rim","name":"Tick","x":340,"y":260,"parent":"root","params":{"tune":0.625,"decay":0.25}},
+          {"id":"filter","type":"filter","name":"Rumble Cut","x":940,"y":40,"parent":"root","params":{"cutoff":0.291687,"mode":0.666667}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringsn","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringsn","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringsn","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"ci","jack":"trig"},"to":{"node":"punchr","jack":"trig"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchr","jack":"velocity"},"amount":1},
+          {"id":"k6","from":{"node":"punchr","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k7","from":{"node":"audiom","jack":"outl"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"audiom","jack":"outr"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k9","from":{"node":"filter","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"filter","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Electro Noise Snare", "category": "Drums/Snares & Claps",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Snares & Claps",
+        "description": "A bright, synthetic snare made mostly of noise with a thin pitched body: 1980s electro.",
+        "tags": ["drums","one-shot","snare","electro","synthetic","noise","instrument"],
+        "help": {"text":"A Macro Osc in its Snare model, crunched to 8 bits, into a short, bright Reverb.\n\nPatch a trigger into Trig and take Out L/R. Velocity feeds the accent.\n\nTip: change Shape on the Macro Osc to move between a pitched and a noisy snare."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Electro Noise Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"macroo","type":"macro-osc","name":"Snare","x":340,"y":40,"parent":"root","params":{"model":0.933333,"octave":0.5,"tone":0.75,"shape":0.8,"blend":0.6,"decay":0.413638}},
+          {"id":"crunch","type":"crunch","name":"Edge","x":940,"y":40,"parent":"root","params":{"drive":0.3,"bits":0.466667,"rate":0.1,"tone":1,"level":0.5,"mix":0.7}},
+          {"id":"reverb","type":"reverb","name":"Plate","x":1240,"y":40,"parent":"root","params":{"size":0.3,"decay":0.231468,"damping":0.2,"mix":0.15}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"macroo","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"macroo","jack":"accent"},"amount":1},
+          {"id":"k3","from":{"node":"macroo","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"crunch","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"crunch","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"crunch","jack":"l"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"crunch","jack":"r"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k8","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Lo-fi Dust Snare", "category": "Drums/Snares & Claps",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Snares & Claps",
+        "description": "A soft, rounded snare with a slow dusty tail, rolled off at the top: it sits behind a sample loop.",
+        "tags": ["drums","one-shot","snare","lo-fi","dusty","soft","instrument"],
+        "help": {"text":"A Punch Snare at 175 Hz with a low Tone and a long-ish decay, crunched to 11 bits and low-passed at 5 kHz.\n\nPatch a trigger into Trig and take Out L/R. The Tone input opens the low-pass.\n\nTip: lower Bits for a rougher sound."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Lo-fi Dust Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"},{"id":"tone","name":"Tone","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"punchs","type":"punch-snare","name":"Snare","x":340,"y":40,"parent":"root","params":{"tune":0.313374,"tone":0.3,"snappy":0.5,"decay":0.577528}},
+          {"id":"crunch","type":"crunch","name":"Dust","x":940,"y":40,"parent":"root","params":{"drive":0.15,"bits":0.666667,"rate":0.2,"tone":1,"level":0.5,"mix":1}},
+          {"id":"filter","type":"filter","name":"Low-pass","x":1240,"y":40,"parent":"root","params":{"cutoff":0.799313,"resonance":0.05}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchs","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchs","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchs","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"crunch","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"crunch","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"crunch","jack":"l"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"crunch","jack":"r"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k8","from":{"node":"filter","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"filter","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k10","from":{"node":"ci","jack":"tone"},"to":{"node":"filter","jack":"cutoff"},"amount":0.3}
+        ]
+      }
+    },
+    {
+      "name": "Cross Stick", "category": "Drums/Snares & Claps",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Snares & Claps",
+        "description": "A short, woody click like the stick laid across the rim: the quiet alternative to a snare.",
+        "tags": ["drums","one-shot","snare","rim","cross stick","woody","instrument"],
+        "help": {"text":"A Ring Rim in Rim mode, tuned up three semitones with a short decay, and a faint Modal head from a Perc Voice under it.\n\nPatch a trigger into Trig and take Out L/R. Velocity scales both layers.\n\nTip: use it on the backbeat of a ballad or a bossa nova."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Cross Stick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5,"level2":0.455763,"pan2":0.5}},
+          {"id":"ringri","type":"ring-rim","name":"Rim","x":340,"y":40,"parent":"root","params":{"voice":0,"tune":0.625,"decay":0.315759}},
+          {"id":"percvo","type":"perc-voice","name":"Head","x":340,"y":260,"parent":"root","params":{"engine":0.5,"pitch":0.452577,"tone":0.1,"click":0.2,"decay":0.303216,"sweep":0.1,"damp":0.7}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringri","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringri","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringri","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"ci","jack":"trig"},"to":{"node":"percvo","jack":"trig"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"velocity"},"to":{"node":"percvo","jack":"accent"},"amount":1},
+          {"id":"k6","from":{"node":"percvo","jack":"l"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k7","from":{"node":"percvo","jack":"r"},"to":{"node":"audiom","jack":"in2r"},"amount":1},
+          {"id":"k8","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Tom Snare", "category": "Drums/Snares & Claps",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Snares & Claps",
+        "description": "A low, thick snare with a lot of tom in it: heavy, dark and slow, for half-time grooves.",
+        "tags": ["drums","one-shot","snare","low","heavy","half-time","instrument"],
+        "help": {"text":"A Punch Snare at 135 Hz with a long decay and lots of body, joined by a Punch Tom 6 dB down at 120 Hz.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: tune the Punch Tom up to make the snare brighter."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Tom Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5,"level2":0.646113,"pan2":0.5}},
+          {"id":"punchs","type":"punch-snare","name":"Snare","x":340,"y":40,"parent":"root","params":{"tune":0.097829,"tone":0.35,"snappy":0.55,"decay":0.638192}},
+          {"id":"puncht","type":"punch-tom","name":"Body","x":340,"y":260,"parent":"root","params":{"tune":0.380211,"decay":0.407057,"bend":0.4,"noise":0.1}},
+          {"id":"reverb","type":"reverb","name":"Room","x":940,"y":40,"parent":"root","params":{"size":0.4,"decay":0.316003,"damping":0.6,"mix":0.2}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchs","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchs","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchs","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"ci","jack":"trig"},"to":{"node":"puncht","jack":"trig"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"velocity"},"to":{"node":"puncht","jack":"velocity"},"amount":1},
+          {"id":"k6","from":{"node":"puncht","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k7","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k9","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Industrial Slam Snare", "category": "Drums/Snares & Claps",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Snares & Claps",
+        "description": "A violent, distorted snare that hits like a hammer on a steel plate.",
+        "tags": ["drums","one-shot","snare","industrial","distorted","loud","instrument"],
+        "help": {"text":"A Punch Snare with Tone at its top and long Snappy, plus a Ring Cymbal 14 dB down for the metallic wash, through a Crunch with a lot of drive and a fast Compressor.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: lower the Crunch Drive for a more usable but still aggressive snare."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Industrial Slam Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5,"level2":0.455763,"pan2":0.5}},
+          {"id":"punchs","type":"punch-snare","name":"Snare","x":340,"y":40,"parent":"root","params":{"tune":0.464808,"tone":0.9,"snappy":0.9,"decay":0.549644}},
+          {"id":"ringcy","type":"ring-cymbal","name":"Plate","x":340,"y":260,"parent":"root","params":{"tune":0.583333,"decay":0.285165,"tone":0.7}},
+          {"id":"crunch","type":"crunch","name":"Hammer","x":940,"y":40,"parent":"root","params":{"drive":0.8,"bits":0.733333,"tone":0.812098,"level":0.4,"mix":1}},
+          {"id":"compre","type":"compressor","name":"Squash","x":1240,"y":40,"parent":"root","params":{"threshold":0.666667,"ratio":0.624196,"attack":0.333333,"release":0.392472,"makeup":0.208333}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchs","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchs","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchs","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"ci","jack":"trig"},"to":{"node":"ringcy","jack":"trig"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringcy","jack":"velocity"},"amount":1},
+          {"id":"k6","from":{"node":"ringcy","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k7","from":{"node":"audiom","jack":"outl"},"to":{"node":"crunch","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"audiom","jack":"outr"},"to":{"node":"crunch","jack":"r"},"amount":1},
+          {"id":"k9","from":{"node":"crunch","jack":"l"},"to":{"node":"compre","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"crunch","jack":"r"},"to":{"node":"compre","jack":"r"},"amount":1},
+          {"id":"k11","from":{"node":"compre","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k12","from":{"node":"compre","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Plate Snare", "category": "Drums/Snares & Claps",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Snares & Claps",
+        "description": "A clean snare thrown into a long, smooth plate reverb: an open, spacious backbeat.",
+        "tags": ["drums","one-shot","snare","plate","reverb","spacious","instrument"],
+        "help": {"text":"A Punch Snare at 205 Hz with a medium decay into a Reverb with a long decay and low damping at 35 percent mix.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the hit strength.\n\nTip: raise Pre-delay on the Reverb to keep the attack in front of the plate."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Plate Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"punchs","type":"punch-snare","name":"Snare","x":340,"y":40,"parent":"root","params":{"tune":0.444793,"tone":0.55,"snappy":0.65,"decay":0.445301}},
+          {"id":"reverb","type":"reverb","name":"Plate","x":940,"y":40,"parent":"root","params":{"size":0.7,"decay":0.444551,"preDelay":0.347991,"damping":0.25,"diffusion":0.95,"mix":0.35}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchs","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchs","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchs","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Big Room Clap", "category": "Drums/Snares & Claps",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Snares & Claps",
+        "description": "A wide, loud clap with a long room behind it: festival-sized.",
+        "tags": ["drums","one-shot","clap","big","room","edm","instrument"],
+        "help": {"text":"A Punch Clap with four bursts and a long decay, into a large Reverb at 35 percent mix.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: shorten the Reverb Decay if the clap starts to blur with the hats."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Big Room Clap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"punchc","type":"punch-clap","name":"Clap","x":340,"y":40,"parent":"root","params":{"tone":0.588512,"decay":0.625995,"spread":0.636638,"bursts":0.6}},
+          {"id":"reverb","type":"reverb","name":"Hall","x":940,"y":40,"parent":"root","params":{"size":0.8,"decay":0.41569,"damping":0.4,"mix":0.35,"width":0.866667}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchc","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchc","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchc","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Tight Trap Clap", "category": "Drums/Snares & Claps",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Snares & Claps",
+        "description": "A short, snappy clap with only three quick bursts: it fits fast hi-hat rolls.",
+        "tags": ["drums","one-shot","clap","trap","tight","short","instrument"],
+        "help": {"text":"A Punch Clap with three bursts that are close together and a short decay, high-passed at 400 Hz.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: raise Spread on the Punch Clap to loosen the bursts."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Tight Trap Clap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"punchc","type":"punch-clap","name":"Clap","x":340,"y":40,"parent":"root","params":{"tone":0.666667,"decay":0.368582,"spread":0.405308,"bursts":0.4}},
+          {"id":"filter","type":"filter","name":"High-pass","x":940,"y":40,"parent":"root","params":{"cutoff":0.433677,"mode":0.666667}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchc","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchc","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchc","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"filter","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"filter","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Loose Crowd Clap", "category": "Drums/Snares & Claps",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Snares & Claps",
+        "description": "Many people clapping out of time: six bursts spread widely, with a soft room around them.",
+        "tags": ["drums","one-shot","clap","crowd","loose","live","instrument"],
+        "help": {"text":"A Ring Clap with six bursts and a wide Spread, plus a second one a little lower and 4 dB down panned to the side, into a small Reverb.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: use it for a single gospel-style clap on the downbeat."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Loose Crowd Clap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.35,"level2":0.699337,"pan2":0.7}},
+          {"id":"ringcl","type":"ring-clap","name":"Hands","x":340,"y":40,"parent":"root","params":{"tone":0.459504,"decay":0.601807,"spread":0.957092,"bursts":1}},
+          {"id":"ringcl2","type":"ring-clap","name":"Crowd","x":340,"y":260,"parent":"root","params":{"tone":0.333333,"decay":0.657159,"spread":1,"bursts":1}},
+          {"id":"reverb","type":"reverb","name":"Room","x":940,"y":40,"parent":"root","params":{"size":0.4,"decay":0.299063,"mix":0.2}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringcl","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringcl","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringcl","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"ci","jack":"trig"},"to":{"node":"ringcl2","jack":"trig"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringcl2","jack":"velocity"},"amount":1},
+          {"id":"k6","from":{"node":"ringcl2","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k7","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k9","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Dry Funk Clap", "category": "Drums/Snares & Claps",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Snares & Claps",
+        "description": "A tiny, dry, cracking clap with no tail: close-miked and punchy.",
+        "tags": ["drums","one-shot","clap","dry","funk","close","instrument"],
+        "help": {"text":"A Ring Clap with a very short decay and four bursts, high-passed at 600 Hz.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: use the same clap on the offbeat for a disco feel."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Dry Funk Clap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"ringcl","type":"ring-clap","name":"Clap","x":340,"y":40,"parent":"root","params":{"tone":0.615999,"decay":0.265068,"spread":0.4244,"bursts":0.6}},
+          {"id":"filter","type":"filter","name":"High-pass","x":940,"y":40,"parent":"root","params":{"cutoff":0.492374,"mode":0.666667}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringcl","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringcl","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringcl","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"filter","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"filter","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Finger Snap", "category": "Drums/Snares & Claps",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Snares & Claps",
+        "description": "A bright, light snap with a short airy tail: fingers, not palms.",
+        "tags": ["drums","one-shot","clap","snap","finger","light","instrument"],
+        "help": {"text":"A Punch Rim tuned up seven semitones for the snap and a single-burst Ring Clap 6 dB down for the air, high-passed at 1 kHz.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: it works well on the offbeats of a quiet groove."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Finger Snap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.699337,"pan1":0.5,"level2":0.646113,"pan2":0.5}},
+          {"id":"punchr","type":"punch-rim","name":"Snap","x":340,"y":40,"parent":"root","params":{"tune":0.791667,"decay":0.065759}},
+          {"id":"ringcl","type":"ring-clap","name":"Air","x":340,"y":260,"parent":"root","params":{"tone":0.892691,"decay":0.302675,"spread":0.226931,"bursts":0}},
+          {"id":"filter","type":"filter","name":"High-pass","x":940,"y":40,"parent":"root","params":{"cutoff":0.566323,"mode":0.666667}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchr","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchr","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchr","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"ci","jack":"trig"},"to":{"node":"ringcl","jack":"trig"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringcl","jack":"velocity"},"amount":1},
+          {"id":"k6","from":{"node":"ringcl","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k7","from":{"node":"audiom","jack":"outl"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"audiom","jack":"outr"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k9","from":{"node":"filter","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"filter","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Gated Hall Clap", "category": "Drums/Snares & Claps",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Snares & Claps",
+        "description": "A clap in a huge hall that is cut off sharply: a big, hard-edged eighties clap.",
+        "tags": ["drums","one-shot","clap","gated","80s","hall","instrument"],
+        "help": {"text":"A Punch Clap into a large Reverb at almost full mix, followed by a Compressor with a fast attack and release that chops the tail off.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: lengthen the Compressor Release for a softer gate."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Gated Hall Clap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"punchc","type":"punch-clap","name":"Clap","x":340,"y":40,"parent":"root","params":{"tone":0.528321,"decay":0.535085,"spread":0.574159,"bursts":0.6}},
+          {"id":"reverb","type":"reverb","name":"Hall","x":940,"y":40,"parent":"root","params":{"size":0.8,"decay":0.357377,"damping":0.3,"diffusion":0.9,"mix":0.75}},
+          {"id":"compre","type":"compressor","name":"Gate","x":1240,"y":40,"parent":"root","params":{"threshold":0.633333,"ratio":0.812098,"attack":0.23299,"release":0.261648,"knee":0,"makeup":0.25}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchc","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchc","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchc","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"reverb","jack":"l"},"to":{"node":"compre","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"reverb","jack":"r"},"to":{"node":"compre","jack":"r"},"amount":1},
+          {"id":"k8","from":{"node":"compre","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"compre","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Tape Echo Clap", "category": "Drums/Snares & Claps",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Snares & Claps",
+        "description": "A soft clap with a dark ping-pong echo that fades into the background: dub-style.",
+        "tags": ["drums","one-shot","clap","echo","dub","tape","instrument"],
+        "help": {"text":"A Ring Clap with a medium decay into a Delay in ping-pong mode with a dark High Cut and moderate feedback.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: set the delay's Sync to Tempo to make the echoes land on the beat."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Tape Echo Clap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"ringcl","type":"ring-clap","name":"Clap","x":340,"y":40,"parent":"root","params":{"tone":0.421011,"decay":0.5,"spread":0.53471,"bursts":0.4}},
+          {"id":"delay","type":"delay","name":"Echo","x":940,"y":40,"parent":"root","params":{"timel":0.741332,"timer":0.794676,"feedback":0.225,"highcut":0.485719,"lowcut":0.588046,"mix":0.35,"mode":1}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringcl","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringcl","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringcl","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"delay","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"delay","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"delay","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"delay","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
         ]
       }
     },
@@ -5762,6 +6546,233 @@
       }
     },
     {
+      "name": "Trap Tick Hats", "category": "Drums/Hats & Cymbals",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Hats & Cymbals",
+        "description": "Very short, dry, tight hats for fast rolls; the open hat is just a little longer.",
+        "tags": ["drums","one-shot","hats","trap","tight","short","instrument"],
+        "help": {"text":"A Punch Hats module with very short Closed and Open decays, little Crunch and a high Tone, high-passed at 6 kHz. Closed cuts open.\n\nPatch triggers into Closed and Open and take Out L/R. The Tone input moves the high-pass.\n\nTip: roll the Closed input at sixteenth or thirty-second notes."},
+        "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Trap Tick Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"},{"id":"tone","name":"Tone","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"punchh","type":"punch-hats","name":"Hats","x":340,"y":40,"parent":"root","params":{"tune":0.583333,"closed":0.30783,"open":0.332701,"tone":0.8,"crunch":0.2}},
+          {"id":"filter","type":"filter","name":"High-pass","x":940,"y":40,"parent":"root","params":{"cutoff":0.825707,"mode":0.666667}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"closed"},"to":{"node":"punchh","jack":"closed"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"open"},"to":{"node":"punchh","jack":"open"},"amount":1},
+          {"id":"k3","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchh","jack":"velocity"},"amount":1},
+          {"id":"k4","from":{"node":"punchh","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outl"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k6","from":{"node":"audiom","jack":"outr"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k7","from":{"node":"filter","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"filter","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k9","from":{"node":"ci","jack":"tone"},"to":{"node":"filter","jack":"cutoff"},"amount":0.2}
+        ]
+      }
+    },
+    {
+      "name": "Techno Closed Hats", "category": "Drums/Hats & Cymbals",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Hats & Cymbals",
+        "description": "Crisp, metallic hats with a firm top end and a clean open hat that sizzles.",
+        "tags": ["drums","one-shot","hats","techno","crisp","metallic","instrument"],
+        "help": {"text":"A Ring Hats module with a middling Tone and a longer open decay, high-passed at 5 kHz, with a short Reverb for a bit of air.\n\nPatch triggers into Closed and Open and take Out L/R. The Tone input moves the high-pass.\n\nTip: put the open hat on the offbeat of a four-on-the-floor pattern."},
+        "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Techno Closed Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"},{"id":"tone","name":"Tone","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"ringha","type":"ring-hats","name":"Hats","x":340,"y":40,"parent":"root","params":{"tune":0.5,"closed":0.457886,"open":0.455759,"tone":0.65}},
+          {"id":"filter","type":"filter","name":"High-pass","x":940,"y":40,"parent":"root","params":{"cutoff":0.799313,"mode":0.666667}},
+          {"id":"reverb","type":"reverb","name":"Air","x":1240,"y":40,"parent":"root","params":{"size":0.2,"decay":0.199375,"damping":0.3,"mix":0.1}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"closed"},"to":{"node":"ringha","jack":"closed"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"open"},"to":{"node":"ringha","jack":"open"},"amount":1},
+          {"id":"k3","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringha","jack":"velocity"},"amount":1},
+          {"id":"k4","from":{"node":"ringha","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outl"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k6","from":{"node":"audiom","jack":"outr"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k7","from":{"node":"filter","jack":"l"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"filter","jack":"r"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k9","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k11","from":{"node":"ci","jack":"tone"},"to":{"node":"filter","jack":"cutoff"},"amount":0.2}
+        ]
+      }
+    },
+    {
+      "name": "Metal Ring Hats", "category": "Drums/Hats & Cymbals",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Hats & Cymbals",
+        "description": "Hats with a clear, ringing, bell-like edge: long open hats that almost sing.",
+        "tags": ["drums","one-shot","hats","metal","ringing","bright","instrument"],
+        "help": {"text":"A Ring Hats module tuned up five semitones with a high Tone and a long open decay, plus a Modal Voice 14 dB down for the ring.\n\nPatch triggers into Closed and Open and take Out L/R. The Modal Voice is struck by Closed.\n\nTip: lower the Modal Voice level to taste."},
+        "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Metal Ring Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5,"level2":0.455763,"pan2":0.5}},
+          {"id":"ringha","type":"ring-hats","name":"Hats","x":340,"y":40,"parent":"root","params":{"tune":0.708333,"closed":0.5,"open":0.632105,"tone":0.9}},
+          {"id":"modalv","type":"modal-voice","name":"Ring","x":340,"y":260,"parent":"root","params":{"coarse":1,"geometry":0.7,"brightness":0.9,"damping":0.4,"position":0.5}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"closed"},"to":{"node":"ringha","jack":"closed"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"open"},"to":{"node":"ringha","jack":"open"},"amount":1},
+          {"id":"k3","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringha","jack":"velocity"},"amount":1},
+          {"id":"k4","from":{"node":"ringha","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"closed"},"to":{"node":"modalv","jack":"strike"},"amount":1},
+          {"id":"k6","from":{"node":"ci","jack":"velocity"},"to":{"node":"modalv","jack":"velocity"},"amount":1},
+          {"id":"k7","from":{"node":"modalv","jack":"l"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k8","from":{"node":"modalv","jack":"r"},"to":{"node":"audiom","jack":"in2r"},"amount":1},
+          {"id":"k9","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Lo-fi Shuffle Hats", "category": "Drums/Hats & Cymbals",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Hats & Cymbals",
+        "description": "Soft, rounded hats with a lazy open hat: the loose pulse of a lo-fi beat.",
+        "tags": ["drums","one-shot","hats","lo-fi","shuffle","soft","instrument"],
+        "help": {"text":"A Punch Hats module with a low Tone and little Crunch, through a Crunch at 12 bits and a low-pass at 8 kHz. Closed cuts open.\n\nPatch triggers into Closed and Open and take Out L/R. The Tone input opens the low-pass.\n\nTip: play them with uneven velocities for the shuffle."},
+        "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Lo-fi Shuffle Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"},{"id":"tone","name":"Tone","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"punchh","type":"punch-hats","name":"Hats","x":340,"y":40,"parent":"root","params":{"tune":0.375,"closed":0.576214,"open":0.475555,"tone":0.3,"crunch":0.15}},
+          {"id":"crunch","type":"crunch","name":"Wear","x":940,"y":40,"parent":"root","params":{"drive":0.1,"bits":0.733333,"rate":0.15,"tone":1,"level":0.5,"mix":1}},
+          {"id":"filter","type":"filter","name":"Low-pass","x":1240,"y":40,"parent":"root","params":{"cutoff":0.867353,"resonance":0.05}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"closed"},"to":{"node":"punchh","jack":"closed"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"open"},"to":{"node":"punchh","jack":"open"},"amount":1},
+          {"id":"k3","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchh","jack":"velocity"},"amount":1},
+          {"id":"k4","from":{"node":"punchh","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outl"},"to":{"node":"crunch","jack":"l"},"amount":1},
+          {"id":"k6","from":{"node":"audiom","jack":"outr"},"to":{"node":"crunch","jack":"r"},"amount":1},
+          {"id":"k7","from":{"node":"crunch","jack":"l"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"crunch","jack":"r"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k9","from":{"node":"filter","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"filter","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k11","from":{"node":"ci","jack":"tone"},"to":{"node":"filter","jack":"cutoff"},"amount":0.3}
+        ]
+      }
+    },
+    {
+      "name": "Splash Cymbal", "category": "Drums/Hats & Cymbals",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Hats & Cymbals",
+        "description": "A small, quick cymbal crash that dies in half a second: an accent for fills.",
+        "tags": ["drums","one-shot","cymbal","splash","crash","accent","instrument"],
+        "help": {"text":"A Punch Cymbal in Crash mode tuned up seven semitones with a short decay, into a small Reverb.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: use it at the end of a short fill instead of a full crash."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Splash Cymbal","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"punchc","type":"punch-cymbal","name":"Splash","x":340,"y":40,"parent":"root","params":{"voice":0,"tune":0.791667,"decay":0.225579,"tone":0.8,"crunch":0.3}},
+          {"id":"reverb","type":"reverb","name":"Air","x":940,"y":40,"parent":"root","params":{"size":0.25,"decay":0.231468,"damping":0.3,"mix":0.12}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchc","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchc","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchc","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Bright Ride Cymbal", "category": "Drums/Hats & Cymbals",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Hats & Cymbals",
+        "description": "A shiny ride with a clear ping and a lasting, glittery wash.",
+        "tags": ["drums","one-shot","cymbal","ride","bright","ping","instrument"],
+        "help": {"text":"A Punch Cymbal in Ride mode with a long decay and a bright Tone, plus a Ring Cowbell tuned very high and 18 dB down for the ping.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: raise the Cowbell level for a more pronounced ping."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Bright Ride Cymbal","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5,"level2":0.373891,"pan2":0.5}},
+          {"id":"punchc","type":"punch-cymbal","name":"Ride","x":340,"y":40,"parent":"root","params":{"voice":1,"tune":0.541667,"decay":0.618246,"tone":0.75,"crunch":0.15}},
+          {"id":"ringco","type":"ring-cowbell","name":"Ping","x":340,"y":260,"parent":"root","params":{"tune":1,"decay":0.301589,"tone":0.9}},
+          {"id":"filter","type":"filter","name":"High-pass","x":940,"y":40,"parent":"root","params":{"cutoff":0.514689,"mode":0.666667}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchc","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchc","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"punchc","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"ci","jack":"trig"},"to":{"node":"ringco","jack":"trig"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringco","jack":"velocity"},"amount":1},
+          {"id":"k6","from":{"node":"ringco","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k7","from":{"node":"audiom","jack":"outl"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"audiom","jack":"outr"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k9","from":{"node":"filter","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"filter","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Tambourine Jingle", "category": "Drums/Hats & Cymbals",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Hats & Cymbals",
+        "description": "A shaken tambourine: a burst of noise with a metallic ring and a short tail.",
+        "tags": ["drums","one-shot","percussion","tambourine","jingle","shaker","instrument"],
+        "help": {"text":"A Perc Voice in its Noise Bank engine for the shake and a Ring Hats module 12 dB down for the jingles, high-passed at 2.5 kHz.\n\nPatch a trigger into Trig and take Out L/R. Velocity feeds both layers.\n\nTip: play it on every eighth note with varying velocities."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Tambourine Jingle","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5,"level2":0.5,"pan2":0.5}},
+          {"id":"percvo","type":"perc-voice","name":"Shake","x":340,"y":40,"parent":"root","params":{"engine":1,"pitch":0.990319,"tone":0.7,"click":0.1,"decay":0.36989,"sweep":0,"damp":0.4}},
+          {"id":"ringha","type":"ring-hats","name":"Jingles","x":340,"y":260,"parent":"root","params":{"tune":0.666667,"open":0.430583,"tone":0.8}},
+          {"id":"filter","type":"filter","name":"High-pass","x":940,"y":40,"parent":"root","params":{"cutoff":0.69897,"mode":0.666667}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"percvo","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"percvo","jack":"accent"},"amount":1},
+          {"id":"k3","from":{"node":"percvo","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"percvo","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"trig"},"to":{"node":"ringha","jack":"open"},"amount":1},
+          {"id":"k6","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringha","jack":"velocity"},"amount":1},
+          {"id":"k7","from":{"node":"ringha","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k8","from":{"node":"audiom","jack":"outl"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"audiom","jack":"outr"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k10","from":{"node":"filter","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k11","from":{"node":"filter","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
       "name": "Rack Tom Dive", "category": "Drums/Toms & Percussion",
       "preset": {
         "format": 1,
@@ -6053,6 +7064,404 @@
           {"id":"k6","from":{"node":"audiom","jack":"outr"},"to":{"node":"filter","jack":"r"},"amount":1},
           {"id":"k7","from":{"node":"filter","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k8","from":{"node":"filter","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Floor Tom Boom", "category": "Drums/Toms & Percussion",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Toms & Percussion",
+        "description": "A big, low floor tom with a deep thump and a long, round ring-out.",
+        "tags": ["drums","one-shot","tom","floor","low","rock","instrument"],
+        "help": {"text":"A Punch Tom at 85 Hz with a long decay and a moderate bend, into a medium Reverb.\n\nPatch a trigger into Trig and take Out L/R. Velocity scales the hit.\n\nTip: use it with the Rack Tom Dive for a full fill."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Floor Tom Boom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"puncht","type":"punch-tom","name":"Tom","x":340,"y":40,"parent":"root","params":{"tune":0.230449,"decay":0.695359,"bend":0.4,"noise":0.2}},
+          {"id":"reverb","type":"reverb","name":"Room","x":940,"y":40,"parent":"root","params":{"size":0.4,"decay":0.316003,"damping":0.5,"mix":0.18}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"puncht","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"puncht","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"puncht","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Electro Tom", "category": "Drums/Toms & Percussion",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Toms & Percussion",
+        "description": "A synthetic tom with a steep, laser-like pitch fall: the classic electro drum fill.",
+        "tags": ["drums","one-shot","tom","electro","synthetic","zap","instrument"],
+        "help": {"text":"A Punch Tom at 160 Hz with the Bend at its top and a short decay, into a Crunch at 10 bits for a bit of edge.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: lower the Bend for a calmer tom."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Electro Tom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"puncht","type":"punch-tom","name":"Tom","x":340,"y":40,"parent":"root","params":{"tune":0.50515,"decay":0.407057,"bend":1,"noise":0.05}},
+          {"id":"crunch","type":"crunch","name":"Edge","x":940,"y":40,"parent":"root","params":{"drive":0.2,"bits":0.6,"tone":1,"level":0.5,"mix":0.6}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"puncht","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"puncht","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"puncht","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"crunch","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"crunch","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"crunch","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"crunch","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Hall Tom", "category": "Drums/Toms & Percussion",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Toms & Percussion",
+        "description": "A mid tom in a huge hall: the hit is clean and the room does the rest.",
+        "tags": ["drums","one-shot","tom","hall","reverb","cinematic","instrument"],
+        "help": {"text":"A Ring Tom at 130 Hz with a medium decay into a big Reverb at 40 percent mix.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the hit.\n\nTip: shorten the Reverb Decay for a smaller hall."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Hall Tom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"ringto","type":"ring-tom","name":"Tom","x":340,"y":40,"parent":"root","params":{"tune":0.384526,"decay":0.553369,"bend":0.3,"noise":0.2}},
+          {"id":"reverb","type":"reverb","name":"Hall","x":940,"y":40,"parent":"root","params":{"size":0.85,"decay":0.457065,"damping":0.4,"mix":0.4}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringto","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringto","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringto","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Roto Tom", "category": "Drums/Toms & Percussion",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Toms & Percussion",
+        "description": "A pitched, bouncy tom that sounds like a tuned drum head: high, round and short.",
+        "tags": ["drums","one-shot","tom","roto","tonal","pitched","instrument"],
+        "help": {"text":"A Ring Tom at 270 Hz with a low Bend and a short decay, plus a quieter Perc Voice in its Modal engine for the head.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: copy it and retune the Ring Tom to play melodies."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Roto Tom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5,"level2":0.54646,"pan2":0.5}},
+          {"id":"ringto","type":"ring-tom","name":"Tom","x":340,"y":40,"parent":"root","params":{"tune":0.678657,"decay":0.398927,"bend":0.15,"noise":0.1}},
+          {"id":"percvo","type":"perc-voice","name":"Head","x":340,"y":260,"parent":"root","params":{"engine":0.5,"pitch":0.491229,"tone":0.05,"click":0.1,"decay":0.36989,"sweep":0.05,"damp":0.5}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringto","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringto","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringto","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"ci","jack":"trig"},"to":{"node":"percvo","jack":"trig"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"velocity"},"to":{"node":"percvo","jack":"accent"},"amount":1},
+          {"id":"k6","from":{"node":"percvo","jack":"l"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k7","from":{"node":"percvo","jack":"r"},"to":{"node":"audiom","jack":"in2r"},"amount":1},
+          {"id":"k8","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Mid Ring Tom", "category": "Drums/Toms & Percussion",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Toms & Percussion",
+        "description": "A warm, resonant tom with a long tone that keeps singing after the hit.",
+        "tags": ["drums","one-shot","tom","mid","resonant","warm","instrument"],
+        "help": {"text":"A Ring Tom at 150 Hz with a long decay and a little noise, into a short EQ boost at 200 Hz.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: use it as the top of a three-tom set."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Mid Ring Tom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"ringto","type":"ring-tom","name":"Tom","x":340,"y":40,"parent":"root","params":{"tune":0.442114,"decay":0.778949,"bend":0.25,"noise":0.15}},
+          {"id":"eq","type":"eq","name":"Warmth","x":940,"y":40,"parent":"root","params":{"b2On":0,"b3On":1,"b3Type":0,"b3Hz":0.333333,"b3Gain":0.583333,"b3Q":0.443405,"b4On":0,"b5On":0}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringto","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringto","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringto","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"eq","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"eq","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"eq","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"eq","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Tribal Low Tom", "category": "Drums/Toms & Percussion",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Toms & Percussion",
+        "description": "A deep hand-hit drum with a rounded, hollow sound: a ritual pulse.",
+        "tags": ["drums","one-shot","tom","tribal","hand drum","deep","instrument"],
+        "help": {"text":"A Perc Voice in its Modal engine at 90 Hz with a soft Click and a long Damp, plus a Ring Tom 8 dB down for the body.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: play it in groups of three or five for a driving pulse."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Tribal Low Tom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5,"level2":0.595159,"pan2":0.5}},
+          {"id":"percvo","type":"perc-voice","name":"Skin","x":340,"y":40,"parent":"root","params":{"engine":0.5,"pitch":0.283878,"tone":0.2,"click":0.35,"decay":0.521263,"sweep":0.3,"damp":0.5}},
+          {"id":"ringto","type":"ring-tom","name":"Body","x":340,"y":260,"parent":"root","params":{"tune":0.189143,"decay":0.600044,"bend":0.3,"noise":0.1}},
+          {"id":"reverb","type":"reverb","name":"Cave","x":940,"y":40,"parent":"root","params":{"size":0.5,"decay":0.357377,"damping":0.6,"mix":0.2}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"percvo","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"percvo","jack":"accent"},"amount":1},
+          {"id":"k3","from":{"node":"percvo","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"percvo","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"trig"},"to":{"node":"ringto","jack":"trig"},"amount":1},
+          {"id":"k6","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringto","jack":"velocity"},"amount":1},
+          {"id":"k7","from":{"node":"ringto","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k8","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k10","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k11","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Cowbell Classic", "category": "Drums/Toms & Percussion",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Toms & Percussion",
+        "description": "A bright, clanking cowbell with a short ring: more cowbell.",
+        "tags": ["drums","one-shot","percussion","cowbell","metal","disco","instrument"],
+        "help": {"text":"A Ring Cowbell at its default tuning with a medium decay and a lively Tone, high-passed at 500 Hz.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: tune it down a few semitones for a larger, duller bell."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Cowbell Classic","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"ringco","type":"ring-cowbell","name":"Bell","x":340,"y":40,"parent":"root","params":{"tune":0.5,"decay":0.469844,"tone":0.6}},
+          {"id":"filter","type":"filter","name":"High-pass","x":940,"y":40,"parent":"root","params":{"cutoff":0.46598,"mode":0.666667}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringco","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringco","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringco","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"filter","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"filter","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Clave Stick", "category": "Drums/Toms & Percussion",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Toms & Percussion",
+        "description": "Two hardwood sticks struck together: a high, dry, ringing click.",
+        "tags": ["drums","one-shot","percussion","clave","wood","latin","instrument"],
+        "help": {"text":"A Ring Rim in Clave mode with a medium decay, into a tiny Reverb.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: tune it up or down a few semitones for a pair of different claves."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Clave Stick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"ringri","type":"ring-rim","name":"Clave","x":340,"y":40,"parent":"root","params":{"voice":1,"tune":0.5,"decay":0.5}},
+          {"id":"reverb","type":"reverb","name":"Room","x":940,"y":40,"parent":"root","params":{"size":0.15,"decay":0.158001,"damping":0.5,"mix":0.1}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringri","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringri","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringri","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Conga Open", "category": "Drums/Toms & Percussion",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Toms & Percussion",
+        "description": "An open conga tone: a round, ringing hit from the centre of the skin.",
+        "tags": ["drums","one-shot","percussion","conga","latin","hand drum","instrument"],
+        "help": {"text":"A Perc Voice in its Modal engine at 300 Hz with a short Click and a medium Damp, plus a Ring Tom 10 dB down.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: use two cells at different pitches for a conga pair."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Conga Open","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5,"level2":0.54646,"pan2":0.5}},
+          {"id":"percvo","type":"perc-voice","name":"Skin","x":340,"y":40,"parent":"root","params":{"engine":0.5,"pitch":0.511115,"tone":0.2,"click":0.3,"decay":0.447865,"sweep":0.2,"damp":0.5}},
+          {"id":"ringto","type":"ring-tom","name":"Body","x":340,"y":260,"parent":"root","params":{"tune":0.707414,"decay":0.436517,"bend":0.2,"noise":0.1}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"percvo","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"percvo","jack":"accent"},"amount":1},
+          {"id":"k3","from":{"node":"percvo","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"percvo","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"trig"},"to":{"node":"ringto","jack":"trig"},"amount":1},
+          {"id":"k6","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringto","jack":"velocity"},"amount":1},
+          {"id":"k7","from":{"node":"ringto","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k8","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Maracas Pair", "category": "Drums/Toms & Percussion",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Toms & Percussion",
+        "description": "Two maracas shaken one after the other: a short hiss with a gentle swell.",
+        "tags": ["drums","one-shot","percussion","maracas","shaker","latin","instrument"],
+        "help": {"text":"A Perc Voice in its Noise Bank engine with a slow-ish attack and a short decay, panned left, plus a second one panned right with a longer decay.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: lower the Click for a softer shake."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Maracas Pair","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.25,"level2":0.726805,"pan2":0.75}},
+          {"id":"percvo","type":"perc-voice","name":"Left","x":340,"y":40,"parent":"root","params":{"engine":1,"pitch":0.974797,"tone":0.8,"click":0.05,"decay":0.293864,"sweep":0,"damp":0.5}},
+          {"id":"percvo2","type":"perc-voice","name":"Right","x":340,"y":260,"parent":"root","params":{"engine":1,"pitch":0.995222,"tone":0.8,"click":0.05,"decay":0.341031,"sweep":0,"damp":0.5}},
+          {"id":"filter","type":"filter","name":"High-pass","x":940,"y":40,"parent":"root","params":{"cutoff":0.725364,"mode":0.666667}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"percvo","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"percvo","jack":"accent"},"amount":1},
+          {"id":"k3","from":{"node":"percvo","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"percvo","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"trig"},"to":{"node":"percvo2","jack":"trig"},"amount":1},
+          {"id":"k6","from":{"node":"ci","jack":"velocity"},"to":{"node":"percvo2","jack":"accent"},"amount":1},
+          {"id":"k7","from":{"node":"percvo2","jack":"l"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k8","from":{"node":"percvo2","jack":"r"},"to":{"node":"audiom","jack":"in2r"},"amount":1},
+          {"id":"k9","from":{"node":"audiom","jack":"outl"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"audiom","jack":"outr"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k11","from":{"node":"filter","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k12","from":{"node":"filter","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Guiro Scrape", "category": "Drums/Toms & Percussion",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Toms & Percussion",
+        "description": "A ridged gourd scraped with a stick: a quick, rasping run of clicks.",
+        "tags": ["drums","one-shot","percussion","guiro","scrape","latin","instrument"],
+        "help": {"text":"A Perc Voice in its Noise Bank engine with a lot of Spread and a medium decay, through a band-pass at 3 kHz, with a Chorus in Flanger mode for the ridges.\n\nPatch a trigger into Trig and take Out L/R. Velocity feeds the accent.\n\nTip: raise the flanger Rate for a faster scrape."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Guiro Scrape","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"percvo","type":"perc-voice","name":"Scrape","x":340,"y":40,"parent":"root","params":{"engine":1,"pitch":0.945703,"tone":0.6,"click":0.4,"decay":0.413925,"sweep":0.2,"damp":0.3,"spread":0.8}},
+          {"id":"filter","type":"filter","name":"Band","x":940,"y":40,"parent":"root","params":{"cutoff":0.725364,"resonance":0.3,"mode":0.333333}},
+          {"id":"chorus","type":"chorus","name":"Ridges","x":1240,"y":40,"parent":"root","params":{"rate":0.983046,"depth":0.8,"delay":0.542562,"feedback":0.75,"mode":1,"mix":0.6}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"percvo","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"percvo","jack":"accent"},"amount":1},
+          {"id":"k3","from":{"node":"percvo","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"percvo","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outl"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k6","from":{"node":"audiom","jack":"outr"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k7","from":{"node":"filter","jack":"l"},"to":{"node":"chorus","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"filter","jack":"r"},"to":{"node":"chorus","jack":"r"},"amount":1},
+          {"id":"k9","from":{"node":"chorus","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"chorus","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Tabla Tone", "category": "Drums/Toms & Percussion",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Toms & Percussion",
+        "description": "A tuned hand drum with a bending, singing tone: a tabla-like pitched hit.",
+        "tags": ["drums","one-shot","percussion","tabla","tonal","hand drum","instrument"],
+        "help": {"text":"A Perc Voice in its Modal engine at 200 Hz with a rising Sweep and a long decay, into a small Reverb.\n\nPatch a trigger into Trig and take Out L/R. Velocity feeds the accent.\n\nTip: patch a pitch cable into the voice's Pitch for a melodic tabla."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Tabla Tone","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"percvo","type":"perc-voice","name":"Tabla","x":340,"y":40,"parent":"root","params":{"engine":0.5,"pitch":0.434588,"tone":0.15,"click":0.25,"decay":0.540371,"sweep":0.4,"damp":0.3}},
+          {"id":"reverb","type":"reverb","name":"Room","x":940,"y":40,"parent":"root","params":{"size":0.25,"decay":0.257689,"mix":0.12}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"percvo","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"percvo","jack":"accent"},"amount":1},
+          {"id":"k3","from":{"node":"percvo","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"percvo","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k6","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k7","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Castanet Click", "category": "Drums/Toms & Percussion",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/Toms & Percussion",
+        "description": "A tiny, dry wooden clack: two shells meeting.",
+        "tags": ["drums","one-shot","percussion","castanet","wood","click","instrument"],
+        "help": {"text":"A Ring Rim in Clave mode tuned up nine semitones with a short decay, and a Punch Rim 6 dB down for a second click.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: play two quick hits in a row for a flamenco-style roll."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Castanet Click","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5,"level2":0.646113,"pan2":0.5}},
+          {"id":"ringri","type":"ring-rim","name":"Shell","x":340,"y":40,"parent":"root","params":{"voice":1,"tune":0.875,"decay":0.169518}},
+          {"id":"punchr","type":"punch-rim","name":"Clack","x":340,"y":260,"parent":"root","params":{"tune":0.75,"decay":0.065759}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringri","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringri","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringri","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"ci","jack":"trig"},"to":{"node":"punchr","jack":"trig"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"velocity"},"to":{"node":"punchr","jack":"velocity"},"amount":1},
+          {"id":"k6","from":{"node":"punchr","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k7","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
         ]
       }
     },
@@ -6371,6 +7780,171 @@
           {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"freqsh","jack":"r"},"amount":1},
           {"id":"k6","from":{"node":"freqsh","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k7","from":{"node":"freqsh","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Laser Zap", "category": "Drums/FX",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/FX",
+        "description": "A fast, bright pitch dive: the sound of a laser, for fills and sci-fi hits.",
+        "tags": ["drums","one-shot","fx","laser","zap","sci-fi","instrument"],
+        "help": {"text":"A Perc Voice in its FM engine at 2.4 kHz with the Sweep at its top and a short decay, into a short ping-pong Delay.\n\nPatch a trigger into Trig and take Out L/R. Velocity feeds the accent.\n\nTip: lower Sweep for a smaller blip."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Laser Zap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"percvo","type":"perc-voice","name":"Zap","x":340,"y":40,"parent":"root","params":{"engine":0,"pitch":0.903587,"tone":0.2,"morph":0.5,"click":0.1,"decay":0.393604,"sweep":1,"damp":0.4}},
+          {"id":"delay","type":"delay","name":"Echo","x":940,"y":40,"parent":"root","params":{"timel":0.629858,"timer":0.683203,"feedback":0.175,"highcut":0.673621,"mix":0.25,"mode":1}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"percvo","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"percvo","jack":"accent"},"amount":1},
+          {"id":"k3","from":{"node":"percvo","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"percvo","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outl"},"to":{"node":"delay","jack":"l"},"amount":1},
+          {"id":"k6","from":{"node":"audiom","jack":"outr"},"to":{"node":"delay","jack":"r"},"amount":1},
+          {"id":"k7","from":{"node":"delay","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"delay","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Sub Impact", "category": "Drums/FX",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/FX",
+        "description": "A huge, slow boom with a long dark tail: the hit that starts a drop.",
+        "tags": ["drums","one-shot","fx","impact","boom","cinematic","instrument"],
+        "help": {"text":"A Ring Kick at 36 Hz with the longest decay, plus a Ring Cymbal 18 dB down for the crash, into a huge Reverb at 50 percent mix.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: use it once per phrase; it rings for several seconds."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Sub Impact","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5,"level2":0.373891,"pan2":0.5}},
+          {"id":"ringki","type":"ring-kick","name":"Boom","x":340,"y":40,"parent":"root","params":{"tune":0.131517,"decay":1,"sweep":0.5,"tone":0.2,"drive":0.15}},
+          {"id":"ringcy","type":"ring-cymbal","name":"Crash","x":340,"y":260,"parent":"root","params":{"tune":0.333333,"decay":0.714415,"tone":0.4}},
+          {"id":"reverb","type":"reverb","name":"Hall","x":940,"y":40,"parent":"root","params":{"size":0.95,"decay":0.54747,"damping":0.6,"mix":0.5}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"ringki","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringki","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"ringki","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"ci","jack":"trig"},"to":{"node":"ringcy","jack":"trig"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"velocity"},"to":{"node":"ringcy","jack":"velocity"},"amount":1},
+          {"id":"k6","from":{"node":"ringcy","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k7","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k9","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Metal Pipe Hit", "category": "Drums/FX",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/FX",
+        "description": "A hollow steel pipe struck with a hammer: a dull clang with a long, inharmonic ring.",
+        "tags": ["drums","one-shot","fx","metal","pipe","clang","instrument"],
+        "help": {"text":"A Modal Voice with a bar-like Geometry and a strong Strike, plus a Perc Voice in its Modal engine for the hammer click.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: raise Damping on the Modal Voice for a shorter ring."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Metal Pipe Hit","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5,"level2":0.54646,"pan2":0.5}},
+          {"id":"modalv","type":"modal-voice","name":"Pipe","x":340,"y":40,"parent":"root","params":{"coarse":0.583333,"geometry":0.45,"brightness":0.6,"damping":0.25,"position":0.35,"size":0.6}},
+          {"id":"percvo","type":"perc-voice","name":"Hammer","x":340,"y":260,"parent":"root","params":{"engine":0.5,"pitch":0.814879,"tone":0.8,"click":0.6,"decay":0.244384,"sweep":0,"damp":0.7}},
+          {"id":"reverb","type":"reverb","name":"Room","x":940,"y":40,"parent":"root","params":{"size":0.5,"decay":0.379547,"damping":0.4,"mix":0.25}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"modalv","jack":"strike"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"modalv","jack":"velocity"},"amount":1},
+          {"id":"k3","from":{"node":"modalv","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"modalv","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"trig"},"to":{"node":"percvo","jack":"trig"},"amount":1},
+          {"id":"k6","from":{"node":"ci","jack":"velocity"},"to":{"node":"percvo","jack":"accent"},"amount":1},
+          {"id":"k7","from":{"node":"percvo","jack":"l"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k8","from":{"node":"percvo","jack":"r"},"to":{"node":"audiom","jack":"in2r"},"amount":1},
+          {"id":"k9","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k11","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k12","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Noise Whoosh", "category": "Drums/FX",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/FX",
+        "description": "A burst of filtered noise that swells and falls away: a transition sweep in one hit.",
+        "tags": ["drums","one-shot","fx","noise","whoosh","transition","instrument"],
+        "help": {"text":"A Macro Osc in its Noise Band model with a long decay, through a band-pass filter and a Phaser that sweeps the notches.\n\nPatch a trigger into Trig and take Out L/R. Velocity feeds the accent.\n\nTip: lengthen the Macro Osc Decay for a slower sweep."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Noise Whoosh","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.812652,"pan1":0.5}},
+          {"id":"macroo","type":"macro-osc","name":"Noise","x":340,"y":40,"parent":"root","params":{"model":0.6,"octave":0.5,"tone":0.5,"shape":0.6,"decay":0.593439}},
+          {"id":"filter","type":"filter","name":"Band","x":940,"y":40,"parent":"root","params":{"cutoff":0.69897,"resonance":0.35,"mode":0.333333}},
+          {"id":"phaser","type":"phaser","name":"Sweep","x":1240,"y":40,"parent":"root","params":{"rate":0.593582,"depth":0.9,"centre":0.678912,"feedback":0.815789,"stages":0.6,"mix":0.7}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"macroo","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"macroo","jack":"accent"},"amount":1},
+          {"id":"k3","from":{"node":"macroo","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"audiom","jack":"outl"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"audiom","jack":"outr"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k6","from":{"node":"filter","jack":"l"},"to":{"node":"phaser","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"filter","jack":"r"},"to":{"node":"phaser","jack":"r"},"amount":1},
+          {"id":"k8","from":{"node":"phaser","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"phaser","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Robot Blip", "category": "Drums/FX",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Drums/FX",
+        "description": "A short, bubbly two-tone blip like a small robot answering: playful and electronic.",
+        "tags": ["drums","one-shot","fx","robot","blip","chiptune","instrument"],
+        "help": {"text":"Two Perc Voice layers in the FM engine, one a fourth above the other, with short decays and a little Sweep, through a Crunch at 8 bits.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity sets the level.\n\nTip: lower the bits for a harsher robot."},
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Robot Blip","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"audiom","type":"audio-mixer","name":"Mixer","x":640,"y":40,"parent":"root","params":{"limiter":0,"level1":0.699337,"pan1":0.5,"level2":0.699337,"pan2":0.5}},
+          {"id":"percvo","type":"perc-voice","name":"Low","x":340,"y":40,"parent":"root","params":{"engine":0,"pitch":0.641939,"tone":0.3,"morph":0.6,"click":0.1,"decay":0.319841,"sweep":0.3,"damp":0.5}},
+          {"id":"percvo2","type":"perc-voice","name":"High","x":340,"y":260,"parent":"root","params":{"engine":0,"pitch":0.696236,"tone":0.3,"morph":0.6,"click":0,"decay":0.36989,"sweep":0,"damp":0.5}},
+          {"id":"crunch","type":"crunch","name":"Bits","x":940,"y":40,"parent":"root","params":{"drive":0.15,"bits":0.466667,"rate":0.25,"mix":1}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"percvo","jack":"trig"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"velocity"},"to":{"node":"percvo","jack":"accent"},"amount":1},
+          {"id":"k3","from":{"node":"percvo","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k4","from":{"node":"percvo","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"trig"},"to":{"node":"percvo2","jack":"trig"},"amount":1},
+          {"id":"k6","from":{"node":"ci","jack":"velocity"},"to":{"node":"percvo2","jack":"accent"},"amount":1},
+          {"id":"k7","from":{"node":"percvo2","jack":"l"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k8","from":{"node":"percvo2","jack":"r"},"to":{"node":"audiom","jack":"in2r"},"amount":1},
+          {"id":"k9","from":{"node":"audiom","jack":"outl"},"to":{"node":"crunch","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"audiom","jack":"outr"},"to":{"node":"crunch","jack":"r"},"amount":1},
+          {"id":"k11","from":{"node":"crunch","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k12","from":{"node":"crunch","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
         ]
       }
     },

@@ -136,5 +136,167 @@ const folded = () => drum("Folded Snare", {
   patch: toneDial(3, 0.3),
 });
 
+const fatBackbeat = () => drum("Fat Backbeat Snare", {
+  description: "A full, round snare with a body you can feel and a medium room: the standard pop and rock backbeat.",
+  tags: ["snare", "fat", "backbeat", "pop"],
+  help: "A Punch Snare at 190 Hz with a medium decay and a lot of Snappy, into a small Reverb and a Compressor that evens out the hit.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the hit strength.\n\n" +
+        "Tip: raise the Reverb mix for a bigger room.",
+  layers: [layer("punch-snare", "Snare", { tune: 190, tone: 0.5, snappy: 0.7, decay: 0.32 })],
+  effects: [effect("reverb", "Room", { size: 0.35, decay: 0.7, damping: 0.5, mix: 0.18 }),
+            effect("compressor", "Even", { threshold: -16, ratio: 3, attack: 8, release: 100, makeup: 2 })],
+});
+
+const trapTick = () => drum("Trap Tick Snare", {
+  description: "A tight, high snare with a hard tick and a short tail: it sits on the two and four of a trap beat.",
+  tags: ["snare", "trap", "tight", "tick"],
+  help: "A Ring Snare at 260 Hz with a short decay, plus a Punch Rim 6 dB down for the tick, then a high-pass at 150 Hz.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\n" +
+        "Tip: add the Slapback Clap on the same beat for a layered trap snare.",
+  layers: [layer("ring-snare", "Snare", { tune: 260, tone: 0.6, snappy: 0.6, decay: 0.15 }),
+           layer("punch-rim", "Tick", { tune: 3, decay: 0.5 }, { gain: -6 })],
+  effects: [effect("filter", "Rumble Cut", { cutoff: 150, mode: HP })],
+});
+
+const electroNoise = () => drum("Electro Noise Snare", {
+  description: "A bright, synthetic snare made mostly of noise with a thin pitched body: 1980s electro.",
+  tags: ["snare", "electro", "synthetic", "noise"],
+  help: "A Macro Osc in its Snare model, crunched to 8 bits, into a short, bright Reverb.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity feeds the accent.\n\n" +
+        "Tip: change Shape on the Macro Osc to move between a pitched and a noisy snare.",
+  layers: [layer("macro-osc", "Snare", { model: "Snare", octave: 0, tone: 0.75, shape: 0.8, blend: 0.6, decay: 0.28 })],
+  effects: [effect("crunch", "Edge", { drive: 0.3, bits: 8, rate: 0.1, tone: 20000, level: 1, mix: 0.7 }),
+            effect("reverb", "Plate", { size: 0.3, decay: 0.5, damping: 0.2, mix: 0.15 })],
+});
+
+const lofiDust = () => drum("Lo-fi Dust Snare", {
+  description: "A soft, rounded snare with a slow dusty tail, rolled off at the top: it sits behind a sample loop.",
+  tags: ["snare", "lo-fi", "dusty", "soft"],
+  help: "A Punch Snare at 175 Hz with a low Tone and a long-ish decay, crunched to 11 bits and low-passed at 5 kHz.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. The Tone input opens the low-pass.\n\n" +
+        "Tip: lower Bits for a rougher sound.",
+  layers: [layer("punch-snare", "Snare", { tune: 175, tone: 0.3, snappy: 0.5, decay: 0.38 })],
+  effects: [effect("crunch", "Dust", { drive: 0.15, bits: 11, rate: 0.2, tone: 20000, level: 1, mix: 1 }),
+            effect("filter", "Low-pass", { cutoff: 5000, resonance: 0.05 })],
+  patch: toneDial(2, 0.3),
+});
+
+const crossStick = () => drum("Cross Stick", {
+  description: "A short, woody click like the stick laid across the rim: the quiet alternative to a snare.",
+  tags: ["snare", "rim", "cross stick", "woody"],
+  help: "A Ring Rim in Rim mode, tuned up three semitones with a short decay, and a faint Modal head from a Perc Voice under it.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity scales both layers.\n\n" +
+        "Tip: use it on the backbeat of a ballad or a bossa nova.",
+  layers: [layer("ring-rim", "Rim", { voice: "Rim", tune: 3, decay: 0.6 }),
+           layer("perc-voice", "Head", { engine: "Modal", pitch: 220, tone: 0.1, click: 0.2, decay: 0.1, sweep: 0.1, damp: 0.7 }, { gain: -14 })],
+});
+
+const tomSnare = () => drum("Tom Snare", {
+  description: "A low, thick snare with a lot of tom in it: heavy, dark and slow, for half-time grooves.",
+  tags: ["snare", "low", "heavy", "half-time"],
+  help: "A Punch Snare at 135 Hz with a long decay and lots of body, joined by a Punch Tom 6 dB down at 120 Hz.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\n" +
+        "Tip: tune the Punch Tom up to make the snare brighter.",
+  layers: [layer("punch-snare", "Snare", { tune: 135, tone: 0.35, snappy: 0.55, decay: 0.45 }),
+           layer("punch-tom", "Body", { tune: 120, decay: 0.3, bend: 0.4, noise: 0.1 }, { gain: -6 })],
+  effects: [effect("reverb", "Room", { size: 0.4, decay: 0.9, damping: 0.6, mix: 0.2 })],
+});
+
+const industrialSlam = () => drum("Industrial Slam Snare", {
+  description: "A violent, distorted snare that hits like a hammer on a steel plate.",
+  tags: ["snare", "industrial", "distorted", "loud"],
+  help: "A Punch Snare with Tone at its top and long Snappy, plus a Ring Cymbal 14 dB down for the metallic wash, through a Crunch with a lot of drive and a fast Compressor.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\n" +
+        "Tip: lower the Crunch Drive for a more usable but still aggressive snare.",
+  layers: [layer("punch-snare", "Snare", { tune: 210, tone: 0.9, snappy: 0.9, decay: 0.35 }),
+           layer("ring-cymbal", "Plate", { tune: 2, decay: 0.8, tone: 0.7 }, { gain: -14 })],
+  effects: [effect("crunch", "Hammer", { drive: 0.8, bits: 12, tone: 10000, level: 0.8, mix: 1 }),
+            effect("compressor", "Squash", { threshold: -20, ratio: 10, attack: 1, release: 80, makeup: 5 })],
+});
+
+const plateSnare = () => drum("Plate Snare", {
+  description: "A clean snare thrown into a long, smooth plate reverb: an open, spacious backbeat.",
+  tags: ["snare", "plate", "reverb", "spacious"],
+  help: "A Punch Snare at 205 Hz with a medium decay into a Reverb with a long decay and low damping at 35 percent mix.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the hit strength.\n\n" +
+        "Tip: raise Pre-delay on the Reverb to keep the attack in front of the plate.",
+  layers: [layer("punch-snare", "Snare", { tune: 205, tone: 0.55, snappy: 0.65, decay: 0.25 })],
+  effects: [effect("reverb", "Plate", { size: 0.7, decay: 2.2, preDelay: 0.03, damping: 0.25, diffusion: 0.95, mix: 0.35 })],
+});
+
+const bigRoomClap = () => drum("Big Room Clap", {
+  description: "A wide, loud clap with a long room behind it: festival-sized.",
+  tags: ["clap", "big", "room", "edm"],
+  help: "A Punch Clap with four bursts and a long decay, into a large Reverb at 35 percent mix.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the level.\n\n" +
+        "Tip: shorten the Reverb Decay if the clap starts to blur with the hats.",
+  layers: [layer("punch-clap", "Clap", { tone: 1700, decay: 0.55, spread: 0.012, bursts: 4 })],
+  effects: [effect("reverb", "Hall", { size: 0.8, decay: 1.8, damping: 0.4, mix: 0.35, width: 1.3 })],
+});
+
+const tightTrapClap = () => drum("Tight Trap Clap", {
+  description: "A short, snappy clap with only three quick bursts: it fits fast hi-hat rolls.",
+  tags: ["clap", "trap", "tight", "short"],
+  help: "A Punch Clap with three bursts that are close together and a short decay, high-passed at 400 Hz.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the level.\n\n" +
+        "Tip: raise Spread on the Punch Clap to loosen the bursts.",
+  layers: [layer("punch-clap", "Clap", { tone: 2000, decay: 0.2, spread: 0.006, bursts: 3 })],
+  effects: [effect("filter", "High-pass", { cutoff: 400, mode: HP })],
+});
+
+const crowd = () => drum("Loose Crowd Clap", {
+  description: "Many people clapping out of time: six bursts spread widely, with a soft room around them.",
+  tags: ["clap", "crowd", "loose", "live"],
+  help: "A Ring Clap with six bursts and a wide Spread, plus a second one a little lower and 4 dB down panned to the side, into a small Reverb.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\n" +
+        "Tip: use it for a single gospel-style clap on the downbeat.",
+  layers: [layer("ring-clap", "Hands", { tone: 1300, decay: 0.45, spread: 0.028, bursts: 6 }, { pan: -0.3 }),
+           layer("ring-clap", "Crowd", { tone: 1000, decay: 0.55, spread: 0.03, bursts: 6 }, { gain: -4, pan: 0.4 })],
+  effects: [effect("reverb", "Room", { size: 0.4, decay: 0.8, mix: 0.2 })],
+});
+
+const dryFunk = () => drum("Dry Funk Clap", {
+  description: "A tiny, dry, cracking clap with no tail: close-miked and punchy.",
+  tags: ["clap", "dry", "funk", "close"],
+  help: "A Ring Clap with a very short decay and four bursts, high-passed at 600 Hz.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the level.\n\n" +
+        "Tip: use the same clap on the offbeat for a disco feel.",
+  layers: [layer("ring-clap", "Clap", { tone: 1800, decay: 0.1, spread: 0.009, bursts: 4 })],
+  effects: [effect("filter", "High-pass", { cutoff: 600, mode: HP })],
+});
+
+const fingerSnap = () => drum("Finger Snap", {
+  description: "A bright, light snap with a short airy tail: fingers, not palms.",
+  tags: ["clap", "snap", "finger", "light"],
+  help: "A Punch Rim tuned up seven semitones for the snap and a single-burst Ring Clap 6 dB down for the air, high-passed at 1 kHz.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\n" +
+        "Tip: it works well on the offbeats of a quiet groove.",
+  layers: [layer("punch-rim", "Snap", { tune: 7, decay: 0.3 }, { gain: -4 }),
+           layer("ring-clap", "Air", { tone: 3200, decay: 0.12, spread: 0.005, bursts: 1 }, { gain: -6 })],
+  effects: [effect("filter", "High-pass", { cutoff: 1000, mode: HP })],
+});
+
+const gatedHallClap = () => drum("Gated Hall Clap", {
+  description: "A clap in a huge hall that is cut off sharply: a big, hard-edged eighties clap.",
+  tags: ["clap", "gated", "80s", "hall"],
+  help: "A Punch Clap into a large Reverb at almost full mix, followed by a Compressor with a fast attack and release that chops the tail off.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the level.\n\n" +
+        "Tip: lengthen the Compressor Release for a softer gate.",
+  layers: [layer("punch-clap", "Clap", { tone: 1500, decay: 0.4, spread: 0.01, bursts: 4 })],
+  effects: [effect("reverb", "Hall", { size: 0.8, decay: 1.2, damping: 0.3, diffusion: 0.9, mix: 0.75 }),
+            effect("compressor", "Gate", { threshold: -22, ratio: 20, attack: 0.5, release: 40, knee: 0, makeup: 6 })],
+});
+
+const tapeClap = () => drum("Tape Echo Clap", {
+  description: "A soft clap with a dark ping-pong echo that fades into the background: dub-style.",
+  tags: ["clap", "echo", "dub", "tape"],
+  help: "A Ring Clap with a medium decay into a Delay in ping-pong mode with a dark High Cut and moderate feedback.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the level.\n\n" +
+        "Tip: set the delay's Sync to Tempo to make the echoes land on the beat.",
+  layers: [layer("ring-clap", "Clap", { tone: 1200, decay: 0.3, spread: 0.012, bursts: 3 })],
+  effects: [effect("delay", "Echo", { timel: 280, timer: 420, feedback: 0.45, highcut: 3000, lowcut: 300, mix: 0.35, mode: "Ping-Pong" })],
+});
+
 export default category("Drums/Snares & Claps", "One-shot snares and handclaps, from brushed to gated: patch a trigger into Trig.",
-  [crack, brush, gated, piccolo, crushed, skinWires, tripleStack, slap, slapback, folded]);
+  [crack, brush, gated, piccolo, crushed, skinWires, tripleStack, slap, slapback, folded,
+  fatBackbeat, trapTick, electroNoise, lofiDust, crossStick, tomSnare, industrialSlam, plateSnare, bigRoomClap, tightTrapClap, crowd, dryFunk, fingerSnap, gatedHallClap, tapeClap]);

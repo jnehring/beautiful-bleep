@@ -115,5 +115,139 @@ const triangle = () => drum("Bright Triangle", {
   effects: [effect("filter", "High-pass", { cutoff: 1800, mode: HP })],
 });
 
+const floorBoom = () => drum("Floor Tom Boom", {
+  description: "A big, low floor tom with a deep thump and a long, round ring-out.",
+  tags: ["tom", "floor", "low", "rock"],
+  help: "A Punch Tom at 85 Hz with a long decay and a moderate bend, into a medium Reverb.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity scales the hit.\n\n" +
+        "Tip: use it with the Rack Tom Dive for a full fill.",
+  layers: [layer("punch-tom", "Tom", { tune: 85, decay: 0.9, bend: 0.4, noise: 0.2 })],
+  effects: [effect("reverb", "Room", { size: 0.4, decay: 0.9, damping: 0.5, mix: 0.18 })],
+});
+
+const electroTom = () => drum("Electro Tom", {
+  description: "A synthetic tom with a steep, laser-like pitch fall: the classic electro drum fill.",
+  tags: ["tom", "electro", "synthetic", "zap"],
+  help: "A Punch Tom at 160 Hz with the Bend at its top and a short decay, into a Crunch at 10 bits for a bit of edge.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the level.\n\n" +
+        "Tip: lower the Bend for a calmer tom.",
+  layers: [layer("punch-tom", "Tom", { tune: 160, decay: 0.3, bend: 1, noise: 0.05 })],
+  effects: [effect("crunch", "Edge", { drive: 0.2, bits: 10, tone: 20000, level: 1, mix: 0.6 })],
+});
+
+const hallTom = () => drum("Hall Tom", {
+  description: "A mid tom in a huge hall: the hit is clean and the room does the rest.",
+  tags: ["tom", "hall", "reverb", "cinematic"],
+  help: "A Ring Tom at 130 Hz with a medium decay into a big Reverb at 40 percent mix.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the hit.\n\n" +
+        "Tip: shorten the Reverb Decay for a smaller hall.",
+  layers: [layer("ring-tom", "Tom", { tune: 130, decay: 0.5, bend: 0.3, noise: 0.2 })],
+  effects: [effect("reverb", "Hall", { size: 0.85, decay: 2.4, damping: 0.4, mix: 0.4 })],
+});
+
+const roto = () => drum("Roto Tom", {
+  description: "A pitched, bouncy tom that sounds like a tuned drum head: high, round and short.",
+  tags: ["tom", "roto", "tonal", "pitched"],
+  help: "A Ring Tom at 270 Hz with a low Bend and a short decay, plus a quieter Perc Voice in its Modal engine for the head.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\n" +
+        "Tip: copy it and retune the Ring Tom to play melodies.",
+  layers: [layer("ring-tom", "Tom", { tune: 270, decay: 0.25, bend: 0.15, noise: 0.1 }),
+           layer("perc-voice", "Head", { engine: "Modal", pitch: 270, tone: 0.05, click: 0.1, decay: 0.2, sweep: 0.05, damp: 0.5 }, { gain: -10 })],
+});
+
+const midRing = () => drum("Mid Ring Tom", {
+  description: "A warm, resonant tom with a long tone that keeps singing after the hit.",
+  tags: ["tom", "mid", "resonant", "warm"],
+  help: "A Ring Tom at 150 Hz with a long decay and a little noise, into a short EQ boost at 200 Hz.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the level.\n\n" +
+        "Tip: use it as the top of a three-tom set.",
+  layers: [layer("ring-tom", "Tom", { tune: 150, decay: 1.1, bend: 0.25, noise: 0.15 })],
+  effects: [effect("eq", "Warmth", { b2On: false, b3On: true, b3Type: "Bell", b3Hz: 200, b3Gain: 3, b3Q: 1, b4On: false, b5On: false })],
+});
+
+const tribalLow = () => drum("Tribal Low Tom", {
+  description: "A deep hand-hit drum with a rounded, hollow sound: a ritual pulse.",
+  tags: ["tom", "tribal", "hand drum", "deep"],
+  help: "A Perc Voice in its Modal engine at 90 Hz with a soft Click and a long Damp, plus a Ring Tom 8 dB down for the body.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\n" +
+        "Tip: play it in groups of three or five for a driving pulse.",
+  layers: [layer("perc-voice", "Skin", { engine: "Modal", pitch: 90, tone: 0.2, click: 0.35, decay: 0.7, sweep: 0.3, damp: 0.5 }),
+           layer("ring-tom", "Body", { tune: 80, decay: 0.6, bend: 0.3, noise: 0.1 }, { gain: -8 })],
+  effects: [effect("reverb", "Cave", { size: 0.5, decay: 1.2, damping: 0.6, mix: 0.2 })],
+});
+
+const cowbell = () => drum("Cowbell Classic", {
+  description: "A bright, clanking cowbell with a short ring: more cowbell.",
+  tags: ["percussion", "cowbell", "metal", "disco"],
+  help: "A Ring Cowbell at its default tuning with a medium decay and a lively Tone, high-passed at 500 Hz.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the level.\n\n" +
+        "Tip: tune it down a few semitones for a larger, duller bell.",
+  layers: [layer("ring-cowbell", "Bell", { tune: 0, decay: 0.35, tone: 0.6 })],
+  effects: [effect("filter", "High-pass", { cutoff: 500, mode: HP })],
+});
+
+const claveStick = () => drum("Clave Stick", {
+  description: "Two hardwood sticks struck together: a high, dry, ringing click.",
+  tags: ["percussion", "clave", "wood", "latin"],
+  help: "A Ring Rim in Clave mode with a medium decay, into a tiny Reverb.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity sets the level.\n\n" +
+        "Tip: tune it up or down a few semitones for a pair of different claves.",
+  layers: [layer("ring-rim", "Clave", { voice: "Clave", tune: 0, decay: 1 })],
+  effects: [effect("reverb", "Room", { size: 0.15, decay: 0.3, damping: 0.5, mix: 0.1 })],
+});
+
+const conga = () => drum("Conga Open", {
+  description: "An open conga tone: a round, ringing hit from the centre of the skin.",
+  tags: ["percussion", "conga", "latin", "hand drum"],
+  help: "A Perc Voice in its Modal engine at 300 Hz with a short Click and a medium Damp, plus a Ring Tom 10 dB down.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\n" +
+        "Tip: use two cells at different pitches for a conga pair.",
+  layers: [layer("perc-voice", "Skin", { engine: "Modal", pitch: 300, tone: 0.2, click: 0.3, decay: 0.4, sweep: 0.2, damp: 0.5 }),
+           layer("ring-tom", "Body", { tune: 290, decay: 0.3, bend: 0.2, noise: 0.1 }, { gain: -10 })],
+});
+
+const maracas = () => drum("Maracas Pair", {
+  description: "Two maracas shaken one after the other: a short hiss with a gentle swell.",
+  tags: ["percussion", "maracas", "shaker", "latin"],
+  help: "A Perc Voice in its Noise Bank engine with a slow-ish attack and a short decay, panned left, plus a second one panned right with a longer decay.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\n" +
+        "Tip: lower the Click for a softer shake.",
+  layers: [layer("perc-voice", "Left", { engine: "Noise Bank", pitch: 3500, tone: 0.8, click: 0.05, decay: 0.09, sweep: 0, damp: 0.5 }, { pan: -0.5 }),
+           layer("perc-voice", "Right", { engine: "Noise Bank", pitch: 3900, tone: 0.8, click: 0.05, decay: 0.15, sweep: 0, damp: 0.5 }, { pan: 0.5, gain: -3 })],
+  effects: [effect("filter", "High-pass", { cutoff: 3000, mode: HP })],
+});
+
+const guiro = () => drum("Guiro Scrape", {
+  description: "A ridged gourd scraped with a stick: a quick, rasping run of clicks.",
+  tags: ["percussion", "guiro", "scrape", "latin"],
+  help: "A Perc Voice in its Noise Bank engine with a lot of Spread and a medium decay, through a band-pass at 3 kHz, with a Chorus in Flanger mode for the ridges.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity feeds the accent.\n\n" +
+        "Tip: raise the flanger Rate for a faster scrape.",
+  layers: [layer("perc-voice", "Scrape", { engine: "Noise Bank", pitch: 3000, tone: 0.6, click: 0.4, decay: 0.3, sweep: 0.2, damp: 0.3, spread: 0.8 })],
+  effects: [effect("filter", "Band", { cutoff: 3000, resonance: 0.3, mode: BP }),
+            effect("chorus", "Ridges", { rate: 9, depth: 0.8, delay: 2, feedback: 0.5, mode: "Flanger", mix: 0.6 })],
+});
+
+const tabla = () => drum("Tabla Tone", {
+  description: "A tuned hand drum with a bending, singing tone: a tabla-like pitched hit.",
+  tags: ["percussion", "tabla", "tonal", "hand drum"],
+  help: "A Perc Voice in its Modal engine at 200 Hz with a rising Sweep and a long decay, into a small Reverb.\n\n" +
+        "Patch a trigger into Trig and take Out L/R. Velocity feeds the accent.\n\n" +
+        "Tip: patch a pitch cable into the voice's Pitch for a melodic tabla.",
+  layers: [layer("perc-voice", "Tabla", { engine: "Modal", pitch: 200, tone: 0.15, click: 0.25, decay: 0.8, sweep: 0.4, damp: 0.3 })],
+  effects: [effect("reverb", "Room", { size: 0.25, decay: 0.6, mix: 0.12 })],
+});
+
+const castanet = () => drum("Castanet Click", {
+  description: "A tiny, dry wooden clack: two shells meeting.",
+  tags: ["percussion", "castanet", "wood", "click"],
+  help: "A Ring Rim in Clave mode tuned up nine semitones with a short decay, and a Punch Rim 6 dB down for a second click.\n\n" +
+        "One Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\n" +
+        "Tip: play two quick hits in a row for a flamenco-style roll.",
+  layers: [layer("ring-rim", "Shell", { voice: "Clave", tune: 9, decay: 0.4 }),
+           layer("punch-rim", "Clack", { tune: 6, decay: 0.3 }, { gain: -6 })],
+});
+
 export default category("Drums/Toms & Percussion", "Toms, hand drums and small percussion: patch a trigger into Trig.",
-  [rackDive, logDrum, bongo, timbale, woodblock, agogo, cabasa, djembe, taiko, triangle]);
+  [rackDive, logDrum, bongo, timbale, woodblock, agogo, cabasa, djembe, taiko, triangle,
+  floorBoom, electroTom, hallTom, roto, midRing, tribalLow, cowbell, claveStick, conga, maracas, guiro, tabla, castanet]);
