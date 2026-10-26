@@ -4,16 +4,17 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/auth";
 import { Social } from "../Social";
 
-type Version = { version: number; bytes: number; sha256: string; created_at: string };
+type Version = { version: number; label: string; bytes: number; sha256: string; created_at: string };
 type Patch = {
   pid: string; address: string; author_name: string; title: string; summary: string; type: string; tags: string[]; license: string;
-  visibility: string; version: number; downloads: number; versions: Version[];
+  visibility: string; version: number; version_label: string; downloads: number; versions: Version[];
 };
 
-/** `/library/p/<pid>/<version>` (the server serves the detail page for it): one version of a shared patch, with its links. */
-export function parsePatchPath(path: string): { pid: string; version: number } | null {
-  const m = path.match(/^\/library\/p\/([a-z0-9]{10})(?:\/(\d+))?\/?$/);
-  return m ? { pid: m[1], version: m[2] ? Number(m[2]) : 0 } : null;
+/** `/library/p/<pid>/<version>` (the server serves the detail page for it): one version of a shared patch, with its links.
+ *  The version is the author's number ("1.2"); a plain number is the sequence number of older links. */
+export function parsePatchPath(path: string): { pid: string; version: string } | null {
+  const m = path.match(/^\/library\/p\/([a-z0-9]{10})(?:\/(\d+(?:\.\d+)?))?\/?$/);
+  return m ? { pid: m[1], version: m[2] ?? "" } : null;
 }
 
 function CopyRow({ label, text }: { label: string; text: string }) {
@@ -29,20 +30,22 @@ function CopyRow({ label, text }: { label: string; text: string }) {
   );
 }
 
-export function PatchView({ pid, version }: { pid: string; version: number }) {
+export function PatchView({ pid, version }: { pid: string; version: string }) {
   const [data, setData] = useState<Patch | null>(null);
   const [error, setError] = useState("");
   const [size, setSize] = useState({ w: 720, h: 420 });
   useEffect(() => {
     api<Patch>("GET", `/patches/${pid}`).then((p) => {
-      if (version && !p.versions.some((v) => v.version === version)) { setError("This version does not exist."); return; }
+      const found = version ? p.versions.find((v) => v.label === version || String(v.version) === version) : p.versions[0];
+      if (!found) { setError("This version does not exist."); return; }
       setData(p);
-      if (!version) window.history.replaceState(null, "", `/library/p/${pid}/${p.version}`);   // a link without a version shows the newest
+      if (found.label !== version) window.history.replaceState(null, "", `/library/p/${pid}/${found.label}`);   // a link without a version shows the newest
     }, (e) => setError(e.message));
   }, [pid, version]);
   if (error) return <><p><a href="/library/">← Bleep Library</a></p><p className="error" role="alert">{error}</p></>;
   if (!data) return <p>Loading…</p>;
-  const v = version || data.version;
+  const shownVersion = data.versions.find((x) => x.label === version || String(x.version) === version) ?? data.versions[0];
+  const v = shownVersion.label;
   const origin = window.location.origin;
   const q = `patch=${pid}&v=${v}`;
   const embed = `${origin}/embed/?${q}`;
@@ -53,7 +56,7 @@ export function PatchView({ pid, version }: { pid: string; version: number }) {
       <p><a href="/library/">← Bleep Library</a></p>
       <h2>{data.title} <small className="muted">{data.type === "cell" ? "cell" : "project"} · version {v} · by {data.author_name}</small></h2>
       {isPrivate && <p className="notice" role="status">Private: only you can open this patch. Make it public in your account to share these links.</p>}
-      {v !== data.version && <p className="notice">A newer version exists: <a href={`/library/p/${pid}/${data.version}`}>version {data.version}</a>. This page and its links show version {v}.</p>}
+      {shownVersion.version !== data.version && <p className="notice">A newer version exists: <a href={`/library/p/${pid}/${data.version_label}`}>version {data.version_label}</a>. This page and its links show version {v}.</p>}
       <p>{data.summary || <span className="muted">No description yet.</span>}</p>
       {data.tags.length > 0 && <p>{data.tags.map((t) => <span key={t} className="tag">{t}</span>)}</p>}
       <p>
@@ -76,7 +79,7 @@ export function PatchView({ pid, version }: { pid: string; version: number }) {
       <h2>Versions</h2>
       <ul>{data.versions.map((x) => (
         <li key={x.version}>
-          {x.version === v ? <strong>Version {x.version}</strong> : <a href={`/library/p/${pid}/${x.version}`}>Version {x.version}</a>}
+          {x.version === shownVersion.version ? <strong>Version {x.label}</strong> : <a href={`/library/p/${pid}/${x.label}`}>Version {x.label}</a>}
           {" "}<small className="muted">{x.created_at.slice(0, 10)}</small>
         </li>
       ))}</ul>

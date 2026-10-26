@@ -175,12 +175,19 @@
     // Share (sharing.md): the same entries as the Share menu of the bar; the plugins have no bar
     const PB = () => P.BleepProjectBrowser;
     refs.share = [
-      ["Share…", () => PB().share(), (st) => !st.linked],
-      ["Update in Library", () => PB().update(), (st) => st.linked],
-      ["Restore from Library…", () => PB().restore(), (st) => st.linked],
-      ["Copy Library Link", () => PB().copyLink("library"), (st) => st.linked],
-      ["Copy Play Link", () => PB().copyLink("play"), (st) => st.linked],
-      ["Copy Embed Code", () => PB().copyLink("embed"), (st) => st.linked],
+      ["Share Project…", () => PB().share(), (st) => !st.linked],
+      ["Update Project in Library…", () => PB().update(), (st) => st.linked],
+      ["Restore Project from Library…", () => PB().restore(), (st) => st.linked],
+      ["Copy Project Library Link", () => PB().copyLink("library"), (st) => st.linked],
+      ["Copy Project Play Link", () => PB().copyLink("play"), (st) => st.linked],
+      ["Copy Project Embed Code", () => PB().copyLink("embed"), (st) => st.linked],
+      // The selected cell, or the open one
+      ["Share Cell…", () => P.BleepCellShare && P.BleepCellShare.share(), () => true],
+      ["Update Cell in Library…", () => P.BleepCellShare && P.BleepCellShare.update(), () => true],
+      ["Restore Cell from Library…", () => P.BleepCellShare && P.BleepCellShare.restore(), () => true],
+      ["Copy Cell Library Link", () => P.BleepCellShare && P.BleepCellShare.copyLink("library"), () => true],
+      ["Copy Cell Play Link", () => P.BleepCellShare && P.BleepCellShare.copyLink("play"), () => true],
+      ["Copy Cell Embed Code", () => P.BleepCellShare && P.BleepCellShare.copyLink("embed"), () => true],
     ].map(([label, run, on]) => { const b = el("button", "sm-wide", label); b.addEventListener("click", run); b.on = on; return b; });
     refs.pNote = el("div", "sm-note");
     s.append(refs.pName, refs.pSource, refs.pLink, ...refs.share, refs.pNote);

@@ -28,7 +28,7 @@ export default function LibraryDetailPage() {
 
 function DetailView() {
   // /library/p/<pid>/<version> is this page too (the server rewrites it): one version of a shared patch.
-  const [byId, setById] = useState<{ pid: string; version: number } | null | undefined>(undefined);
+  const [byId, setById] = useState<{ pid: string; version: string } | null | undefined>(undefined);
   useEffect(() => setById(parsePatchPath(window.location.pathname)), []);
   if (byId === undefined) return <p>Loading…</p>;
   if (byId) return <PatchView pid={byId.pid} version={byId.version} />;

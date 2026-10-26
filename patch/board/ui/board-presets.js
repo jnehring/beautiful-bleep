@@ -103,18 +103,10 @@
         return byCat;
       }
 
-      async function savePreset(cell) {
-        const ne = nodesEl.querySelector(`[data-id="${cell.id}"]`);
-        const r = canvas.getBoundingClientRect();
-        const at = ne ? { x: ne.getBoundingClientRect().left - r.left, y: ne.getBoundingClientRect().bottom - r.top + 6 }
-                      : { x: 40, y: 40 };
-        const cats = [...new Set(["Synthesizers", ...presetCategories().keys()])];
-        const answer = await ask([{ label: "Save cell as preset", value: cell.name },
-                                  { label: "Category", value: cell.type === "voice-cell" ? "Synthesizers" : "My Cells", suggestions: cats },
-                                  { label: "Description (optional)", value: "" }], at);
-        if (!answer || !answer[0]) return;
-        const [name, category, description] = answer;
+      /// A cell as a preset file: the cell with everything inside it, the cables between them, its panels, help, credits and audio.
+      async function buildCellPreset(cell, name, category, description) {
         const nodes = [cell, ...descendants(cell.id)].map(clone);
+        delete nodes[0].library;   // the link to the library is the cell's own; a file holds none
         const ids = new Set(nodes.map((n) => n.id));
         const cables = env.board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node)).map(clone);
         const preset = { format: 1, root: cell.id, category: category || "My Cells", nodes, cables };
@@ -129,6 +121,21 @@
         // The audio files its modules use (a sampler's reel) go along: a preset is a copy that works on another computer.
         const lost = await window.BleepMedia.attach(preset, nodes, (id) => native("readMedia", id));
         if (lost.length) notice(`${lost.length === 1 ? "An audio file" : lost.length + " audio files"} of “${name}” could not be read and ${lost.length === 1 ? "is" : "are"} not in the preset.`);
+        return preset;
+      }
+
+      async function savePreset(cell) {
+        const ne = nodesEl.querySelector(`[data-id="${cell.id}"]`);
+        const r = canvas.getBoundingClientRect();
+        const at = ne ? { x: ne.getBoundingClientRect().left - r.left, y: ne.getBoundingClientRect().bottom - r.top + 6 }
+                      : { x: 40, y: 40 };
+        const cats = [...new Set(["Synthesizers", ...presetCategories().keys()])];
+        const answer = await ask([{ label: "Save cell as preset", value: cell.name },
+                                  { label: "Category", value: cell.type === "voice-cell" ? "Synthesizers" : "My Cells", suggestions: cats },
+                                  { label: "Description (optional)", value: "" }], at);
+        if (!answer || !answer[0]) return;
+        const [name, category, description] = answer;
+        const preset = await buildCellPreset(cell, name, category, description);
         const saved = await native("savePreset", name, preset);
         if (saved) setPresets(saved);
       }
@@ -189,6 +196,7 @@
         if (preset.help && preset.help.text) root.help = clone(preset.help);
         else delete root.help;
         delete root.credits;
+        delete root.library;   // a placed copy is not linked to the patch it came from
         credits().stamp(root, preset.credits || [], source);
         for (const c of tmp.cables)
           if (map.has(c.from.node) && map.has(c.to.node))
@@ -198,7 +206,65 @@
         return root.id;
       }
 
+
+      // ------------------------------------------------------------ sharing a cell (sharing.md)
+      const cellNode = (id) => env.board.nodes.find((n) => n.id === id);
+      /// The cell the Share menu acts on: the selected cell, else the one that is open; null when there is none.
+      function shareTarget() {
+        const picked = [...env.sel].map(cellNode).filter((n) => n && isCellLike(n));
+        if (picked.length === 1) return picked[0].id;
+        if (env.sel.size === 0 && env.level()) return env.level();
+        return null;
+      }
+      /// A subject for BleepAccount's share, update, restore and link functions (account.js).
+      function cellSubject(id) {
+        return {
+          kind: "cells",
+          restoreNote: "Adds that version as a new cell next to this one. Your cell stays as it is.",
+          name: () => (cellNode(id) || {}).name || "My cell",
+          preset: async () => {
+            const cell = cellNode(id);
+            return cell ? buildCellPreset(cell, cell.name, cell.type === "voice-cell" ? "Synthesizers" : "My Cells", "") : null;
+          },
+          link: () => (cellNode(id) || {}).library || null,
+          setLink: (link) => env.edit("Link cell to the library", (b) => {
+            const n = b.nodes.find((x) => x.id === id);
+            if (!n) return false;
+            if (link) n.library = link; else delete n.library;
+          }),
+          apply: async (doc, link) => {
+            const preset = doc && doc.preset;
+            const at = cellNode(id);
+            if (!preset || !Array.isArray(preset.nodes) || !at) { P.BleepAccount.toast("That version could not be read."); return; }
+            if (!Array.isArray(preset.cables)) preset.cables = [];
+            if (doc.needs && !preset.needs) preset.needs = doc.needs;
+            env.edit("Restore cell from the library", (b) => {
+              const root = insertPreset(b, preset, at.parent || "", (at.x || 0) + 40, (at.y || 0) + 60, null);
+              const n = root && b.nodes.find((x) => x.id === root);
+              if (!n) return false;
+              n.library = link;
+            });
+          },
+        };
+      }
+      /// What the menus call. `id`: a cell; without it the Share menu's target. Each says what is missing instead of doing nothing.
+      function withCell(id, run, needsLink) {
+        const cell = id || shareTarget();
+        if (!cell || !cellNode(cell)) { P.BleepAccount.toast("Select a cell, or open one, to share it."); return; }
+        if (needsLink && !(cellNode(cell).library)) { P.BleepAccount.toast("Upload this cell to the library first (Share Cell…)."); return; }
+        return run(cellSubject(cell));
+      }
+      const cellShare = {
+        target: shareTarget,
+        linked: (id) => { const c = cellNode(id || shareTarget()); return !!(c && c.library); },
+        share: (id) => withCell(id, (s) => P.BleepAccount.shareSubject(s)),
+        update: (id) => withCell(id, (s) => P.BleepAccount.updateSubject(s), true),
+        restore: (id) => withCell(id, (s) => P.BleepAccount.restoreSubject(s), true),
+        copyLink: (which, id) => withCell(id, (s) => P.BleepAccount.copySubjectLink(s, which), true),
+      };
+
       return {
+        cellShare,
         list: () => presets, order: () => presetOrder, categories: presetCategories,
         load: async () => { await loadFactoryPresets(); await loadFactoryPanels(); },
         setPresets, save: savePreset, insert: insertPreset, addPanels,

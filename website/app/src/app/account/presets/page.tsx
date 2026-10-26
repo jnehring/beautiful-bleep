@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api, useAccountUser } from "@/lib/auth";
 
 type Preset = {
-  id: number; pid: string; address: string; title: string; type: string; visibility: string; state: string; version: number; downloads: number;
+  id: number; pid: string; version_label: string; address: string; title: string; type: string; visibility: string; state: string; version: number; downloads: number;
   rating_average: number | null; rating_count: number; updated_at: string;
 };
 
@@ -36,10 +36,10 @@ export default function MyPresetsPage() {
           <thead><tr><th>Title</th><th>Visibility</th><th>Type</th><th>Version</th><th>Downloads</th><th>Rating</th><th>Updated</th><th></th></tr></thead>
           <tbody>{presets.map((p) => (
             <tr key={p.id}>
-              <td><a href={`/library/p/${p.pid}/${p.version}`}>{p.title}</a>{p.state !== "listed" && <small className="muted"> · removed by an admin</small>}</td>
+              <td><a href={`/library/p/${p.pid}/${p.version_label}`}>{p.title}</a>{p.state !== "listed" && <small className="muted"> · removed by an admin</small>}</td>
               <td>{p.visibility}</td>
               <td>{p.type}</td>
-              <td>{p.version}</td>
+              <td>{p.version_label}</td>
               <td>{p.downloads}</td>
               <td>{p.rating_average === null ? "—" : `${p.rating_average.toFixed(1)} (${p.rating_count})`}</td>
               <td>{p.updated_at.slice(0, 10)}</td>

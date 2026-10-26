@@ -60,3 +60,20 @@ def test_a_deleted_patch_is_no_longer_available(client):
         assert who.get(f"/api/patches/{made['pid']}").json() == GONE
         assert who.get(f"/api/patches/{made['pid']}/1/file").json() == GONE
     assert client.post("/api/presets", json={**PRESET, "pid": made["pid"]}).json() == GONE   # an update of a deleted one
+
+
+def test_versions_have_the_authors_number_and_links_use_it(client):
+    register(client)
+    made = client.post("/api/presets", json={**PRESET, "version_label": "1.0"}).json()
+    pid = made["pid"]
+    assert made["version_label"] == "1.0" and made["versions"][0]["label"] == "1.0"
+    again = client.post("/api/presets", json={**PRESET, "pid": pid, "version_label": "1.1"}).json()
+    assert again["version"] == 2 and again["version_label"] == "1.1"
+    assert client.post("/api/presets", json={**PRESET, "pid": pid, "version_label": "1.1"}).status_code == 409   # a number is used once
+    assert client.post("/api/presets", json={**PRESET, "pid": pid, "version_label": "one"}).status_code == 422
+    anon = TestClient(app)
+    assert anon.get(f"/api/patches/{pid}/1.0/file").status_code == 200
+    assert anon.get(f"/api/patches/{pid}/1.1/file").status_code == 200
+    assert anon.get(f"/api/patches/{pid}/2/file").status_code == 200       # the sequence number still works
+    assert anon.get(f"/api/patches/{pid}/3.0/file").json() == {"detail": {"error": "version_unavailable"}}
+    assert client.post("/api/presets", json={**PRESET, "slug": "other"}).json()["version_label"] == "1.0"   # default: <n>.0

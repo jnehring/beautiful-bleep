@@ -11,6 +11,7 @@
 //   BleepAccount.share(kind, name, preset)  the Share… dialog; kind is "cells" or "boards" (the local preset kinds)
 //   BleepAccount.urls(link)            the Library, Play and Embed links and the iframe code of a shared version (link = { pid, version })
 //   BleepAccount.copy(text, what)      puts text on the clipboard and says so
+//   BleepAccount.shareSubject / updateSubject / restoreSubject / copySubjectLink(subject, …)   the Share menu for a project or a cell
 //   BleepAccount.ask(title, note, opts) a dialog with buttons and an optional list: { ok, value } (confirm() does not work in plugins)
 (function () {
   "use strict";
@@ -61,8 +62,13 @@
   /// "My Pad" → "my-pad": the address name the library would make of it.
   const slugOf = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "preset";
 
-  /// The Share… dialog. Resolves with { address, version } when the preset was shared, else null.
-  function share(kind, name, preset, host) {
+  /// The upload dialog: what makes it clear that the user puts something in the library. `kind` is "cells" or "boards" (the local preset
+  /// kinds); `opts` for a new version of a patch already there: { pid, title, summary, tags, label }. Resolves with
+  /// { address, pid, version, label, sha256, visibility, title } when it was uploaded, else null.
+  function share(kind, name, preset, opts) {
+    opts = opts || {};
+    const update = !!opts.pid;
+    const noun = kind === "cells" ? "cell" : "project";
     return new Promise(async (resolve) => {
       const st = await status(false);
       const back = el("div", "ac-back");
@@ -70,46 +76,71 @@
       back.appendChild(box);
       const close = (v) => { cancelled = true; back.remove(); resolve(v || null); };
       back.addEventListener("mousedown", (e) => { if (e.target === back) close(); });
-      box.appendChild(el("h3", "", "Share “" + name + "”"));
+      const heading = update ? "Upload a new version of “" + (opts.title || name) + "”" : "Upload “" + name + "” to the Bleep Library";
+      box.appendChild(el("h3", "", heading));
       const msg = el("div", "ac-msg");
 
       const form = () => {
         box.innerHTML = "";
-        box.appendChild(el("h3", "", "Share “" + name + "”"));
-        box.appendChild(el("div", "ac-note", "You are signed in as " + (last.name || last.email || "you") + "."));
+        box.appendChild(el("h3", "", heading));
         const field = (label, input) => { const l = el("label", "", label); l.appendChild(input); box.appendChild(l); return input; };
-        const title = field("Title", el("input")); title.value = name; title.maxLength = 120;
-        const summary = field("Description", el("textarea")); summary.maxLength = 280; summary.rows = 3;
-        summary.value = (preset.description || "").slice(0, 280);
-        const tags = field("Tags (comma separated)", el("input")); tags.value = (preset.tags || []).join(", ");
-        const vis = field("Visibility", el("select"));
-        for (const [v, t] of [["private", "Private: only you can open it"], ["public", "Public: anyone can find, play and download it"]]) {
-          const o = el("option", "", t); o.value = v; vis.appendChild(o);
+        const title = field("Name (required)", el("input")); title.value = opts.title || name; title.maxLength = 120;
+        const summary = field("Description (required)", el("textarea")); summary.maxLength = 280; summary.rows = 3;
+        summary.value = (opts.summary !== undefined ? opts.summary : preset.description || "").slice(0, 280);
+        const label = field("Version number (required, like 1.0)", el("input")); label.maxLength = 9; label.placeholder = "1.0"; label.value = opts.label || "";
+        const tags = field("Tags (comma separated)", el("input")); tags.value = (opts.tags || preset.tags || []).join(", ");
+        let vis = null;
+        if (!update) {
+          vis = field("Who can open it", el("select"));
+          for (const [v, t] of [["private", "Only me (private)"], ["public", "Everyone (public)"]]) { const o = el("option", "", t); o.value = v; vis.appendChild(o); }
         }
-        box.appendChild(el("div", "ac-note", "Public patches are licensed CC BY 4.0: others may copy and change them if they credit you. You can make it public later."));
+        const hint = el("div", "ac-hint");
+        box.appendChild(hint);
+        const drawHint = () => {
+          const pub = update || (vis && vis.value === "public");
+          hint.className = "ac-hint" + (pub ? " public" : "");
+          hint.textContent = update
+            ? "This adds a new version to the Bleep Library. If the " + noun + " is public, everyone can see this version, play it, download it, copy it and change it, under the CC BY 4.0 license."
+            : vis.value === "public"
+              ? "Public: you are sharing this " + noun + " with everyone. Anyone can find it in the Bleep Library, play it, download it, copy it and change it, under the CC BY 4.0 license, if they credit you."
+              : "Private: only you can open it, for now. You can make it public later on the website, and then everyone can use it under the CC BY 4.0 license.";
+        };
+        if (vis) vis.addEventListener("change", drawHint);
+        drawHint();
         box.appendChild(msg);
         const row = el("div", "ac-row");
         const cancelBtn = el("button", "", "Cancel");
-        const go = el("button", "ac-primary", "Share");
+        const go = el("button", "ac-primary", "Upload");
         cancelBtn.addEventListener("click", () => close());
+        const problem = () => {
+          if (!title.value.trim()) return "Give it a name.";
+          if (!summary.value.trim()) return "Add a description, so others know what it is.";
+          if (!/^\d{1,4}\.\d{1,4}$/.test(label.value.trim())) return "The version number looks like 1.0 (two numbers with a dot).";
+          return "";
+        };
         go.addEventListener("click", async () => {
+          const bad = problem();
+          if (bad) { msg.className = "ac-msg bad"; msg.textContent = bad; return; }
           const big = window.BleepMedia.tooBig(preset.media);   // the audio it carries must fit what the library takes
-          if (big) { msg.className = "ac-msg bad"; msg.textContent = "Not shared: " + big + "."; return; }
-          go.disabled = true; msg.className = "ac-msg"; msg.textContent = "Sharing…";
-          const { library, ...clean } = preset;   // the link to the library is the project's own; the file holds none
+          if (big) { msg.className = "ac-msg bad"; msg.textContent = "Not uploaded: " + big + "."; return; }
+          go.disabled = true; msg.className = "ac-msg"; msg.textContent = "Uploading…";
+          const { library, ...clean } = preset;   // the link to the library is the project's own; the file holds none, nor do its cells
+          if (Array.isArray(clean.nodes)) clean.nodes = clean.nodes.map(({ library: l, ...n }) => n);
           const body = {
-            title: title.value.trim(), summary: summary.value.trim(), type: kind === "cells" ? "cell" : "patch",
-            tags: tags.value.split(",").map((t) => t.trim()).filter(Boolean), preset: clean, visibility: vis.value,
-            slug: slugOf(name),   // a slug of your own that exists is a new version; the project's link (pid) is how Update finds it
+            title: title.value.trim(), summary: summary.value.trim(), type: kind === "cells" ? "cell" : "patch", version_label: label.value.trim(),
+            tags: tags.value.split(",").map((t) => t.trim()).filter(Boolean), preset: clean,
+            slug: slugOf(opts.title || name),   // a slug of your own that exists is a new version; the pid is how an update finds its patch
           };
+          if (update) body.pid = opts.pid; else body.visibility = vis.value;
           const r = await call("POST", "/api/presets", body);
           go.disabled = false;
           if (r && r.status === 201) {
-            const done = { address: r.body.address, pid: r.body.pid, version: r.body.version, sha256: r.body.versions[0].sha256, visibility: r.body.visibility };
+            const done = { address: r.body.address, pid: r.body.pid, version: r.body.version, label: r.body.version_label, sha256: r.body.versions[0].sha256,
+                           visibility: r.body.visibility, title: r.body.title };
             box.innerHTML = "";
-            box.appendChild(el("h3", "", "Shared"));
-            box.appendChild(el("div", "ac-note", "“" + r.body.title + "” is in the Bleep Library as version " + r.body.version + ", "
-              + (done.visibility === "public" ? "public." : "private: only you can open it until you make it public on the website (your account, Your presets).")));
+            box.appendChild(el("h3", "", "Uploaded"));
+            box.appendChild(el("div", "ac-note", "“" + r.body.title + "” is in the Bleep Library as version " + done.label + ", "
+              + (done.visibility === "public" ? "public: everyone can use it." : "private: only you can open it until you make it public on the website (your account, Your presets).")));
             const row2 = el("div", "ac-row");
             const see = el("button", "", "Open in the library");
             see.addEventListener("click", () => open(urls(done).library));
@@ -120,8 +151,9 @@
             return;
           }
           if (r && r.status === 401) { await status(false); signedOut(); return; }
+          if (r && r.status === 404 && update) { close({ gone: true }); return; }
           msg.className = "ac-msg bad";
-          msg.textContent = (r && r.error) || "Could not share the preset.";
+          msg.textContent = (r && r.error) || "Could not upload it.";
         });
         row.append(cancelBtn, go);
         box.appendChild(row);
@@ -130,10 +162,10 @@
 
       const signedOut = () => {
         box.innerHTML = "";
-        box.appendChild(el("h3", "", "Sign in to share"));
+        box.appendChild(el("h3", "", "Sign in to upload"));
         box.appendChild(el("div", "ac-note", last && last.playLogin
-          ? "Sharing needs an account. Log in on the website, then come back here."
-          : "Sharing needs an account on the Bleep Library. Sign in: the website shows a page where you confirm the code below."));
+          ? "Uploading needs an account. Log in on the website, then come back here."
+          : "Uploading needs an account on the Bleep Library. Sign in: the website shows a page where you confirm the code below."));
         const code = el("div", "ac-code");
         box.appendChild(code);
         box.appendChild(msg);
@@ -170,10 +202,11 @@
   /// The links of one version of a shared patch (sharing.md): every link names the version, so it shows what was shared then.
   function urls(link) {
     const base = (last && last.libraryUrl) || "";
-    const q = "patch=" + encodeURIComponent(link.pid) + "&v=" + link.version;
+    const v = link.label || link.version;   // the author's number ("1.2"); the sequence number for links made before there were any
+    const q = "patch=" + encodeURIComponent(link.pid) + "&v=" + encodeURIComponent(v);
     const embed = base + "/embed/?" + q;
     return {
-      library: base + "/library/p/" + encodeURIComponent(link.pid) + "/" + link.version,
+      library: base + "/library/p/" + encodeURIComponent(link.pid) + "/" + encodeURIComponent(v),
       play: base + "/play/?" + q,
       embed,
       iframe: '<iframe src="' + embed + '" width="720" height="420" allow="autoplay; midi; fullscreen" loading="lazy"></iframe>',
@@ -237,6 +270,84 @@
     });
   }
 
+  // ---------------------------------------------------------------- what is shared: a project or a cell (sharing.md)
+  // A "subject" is { kind: "boards" | "cells", name(), preset(): the file to upload, link(): the link to its patch or null,
+  // setLink(link | null), apply(doc, link): puts a library version in its place }. The link is { pid, version, label, sha256 }.
+  const validLink = (l) => (l && typeof l.pid === "string" && /^[a-z0-9]{10}$/.test(l.pid) && Number.isInteger(l.version) && l.version > 0
+    ? { pid: l.pid, version: l.version, label: typeof l.label === "string" ? l.label : "", sha256: typeof l.sha256 === "string" ? l.sha256 : "" } : null);
+  const shown = (l) => l.label || String(l.version);
+  const bump = (label) => { const m = /^(\d+)\.(\d+)$/.exec(label || ""); return m ? m[1] + "." + (Number(m[2]) + 1) : ""; };
+  const noun = (s) => (s.kind === "cells" ? "cell" : "project");
+
+  /// "This patch is no longer available": what the library says of a deleted or private patch. The user may unlink what was shared.
+  async function gone(s) {
+    const r = await ask("The library patch is gone",
+      "It was deleted, or it is not yours. The " + noun(s) + " can be uploaded again as a new patch, with a new link.", { ok: "Unlink", cancel: "Keep" });
+    if (r.ok) s.setLink(null);
+  }
+
+  /// First upload: the dialog, then the subject is linked to its patch.
+  async function shareSubject(s) {
+    const preset = await s.preset();
+    if (!preset) return;
+    const done = await share(s.kind, s.name(), preset, {});
+    if (done) s.setLink({ pid: done.pid, version: done.version, label: done.label, sha256: done.sha256 });
+  }
+
+  /// A new version of the linked patch (the dialog asks for name, description and version again).
+  async function updateSubject(s) {
+    const link = validLink(s.link());
+    if (!link) return;
+    if (!(await requireSignIn("Sign in to upload", "Uploading to the library needs your account."))) return;
+    const m = await call("GET", "/api/patches/" + link.pid);
+    if (!m || m.status === 404) { await gone(s); return; }
+    if (m.status !== 200) { toast((m && m.error) || "The library could not be reached."); return; }
+    if (m.body.version !== link.version) {
+      const r = await ask("The library has a newer version",
+        "The library has version " + m.body.version_label + "; this " + noun(s) + " is from version " + shown(link) + ". Upload this one as a new version anyway?",
+        { ok: "Upload anyway" });
+      if (!r.ok) return;
+    }
+    const preset = await s.preset();
+    if (!preset) return;
+    const done = await share(s.kind, s.name(), preset, { pid: link.pid, title: m.body.title, summary: m.body.summary, tags: m.body.tags, label: bump(m.body.version_label) });
+    if (!done) return;
+    if (done.gone) { await gone(s); return; }
+    s.setLink({ pid: link.pid, version: done.version, label: done.label, sha256: done.sha256 });
+    toast("Uploaded version " + done.label + ". The Share menu has its links.");
+  }
+
+  /// Restore from Library: a version of the linked patch (a list, the newest first) takes the place of the subject.
+  async function restoreSubject(s) {
+    const link = validLink(s.link());
+    if (!link) return;
+    if (!(await requireSignIn("Sign in to restore", "A private patch needs your account to be read."))) return;
+    const m = await call("GET", "/api/patches/" + link.pid);
+    if (!m || m.status === 404) { await gone(s); return; }
+    if (m.status !== 200) { toast((m && m.error) || "The library could not be reached."); return; }
+    const items = m.body.versions.map((v) => ({ value: String(v.version),
+      label: "Version " + v.label + " · " + String(v.created_at).slice(0, 10) + (v.version === link.version ? " (this " + noun(s) + ")" : "") }));
+    const pick = await ask("Restore from the library", s.restoreNote || "Replaces it with that version. You can undo it.", { items, ok: "Restore" });
+    if (!pick.ok) return;
+    const v = m.body.versions.find((x) => String(x.version) === pick.value);
+    const f = v ? await call("GET", "/api/patches/" + link.pid + "/" + encodeURIComponent(v.label || v.version) + "/file") : null;
+    if (!f || f.status !== 200 || !f.body) { toast(f && f.status === 404 ? "This patch is no longer available." : "That version could not be downloaded."); return; }
+    await s.apply(f.body, { pid: link.pid, version: v.version, label: v.label, sha256: v.sha256 });
+  }
+
+  /// Copies the Library, Play or Embed link of the version the subject is linked to. A private patch opens for its author only.
+  async function copySubjectLink(s, which) {
+    const link = validLink(s.link());
+    if (!link) return;
+    await status(false).catch(() => null);
+    const m = await call("GET", "/api/patches/" + link.pid).catch(() => null);
+    if (m && m.status === 404) { await gone(s); return; }
+    const u = urls(link);
+    const what = { library: "Library link", play: "Play link", embed: "Embed code" }[which];
+    await copy(which === "embed" ? u.iframe : u[which], what);
+    if (m && m.status === 200 && m.body.visibility !== "public") toast(what + " copied. Only you can open it until the patch is public.");
+  }
+
   /// A dialog that asks the user to sign in because `title` needs the login (the patch assistant: its first use). Resolves true when the
   /// user is signed in (already, or after the dialog), false when they dismissed it.
   function requireSignIn(title, note) {
@@ -282,5 +393,5 @@
     });
   }
 
-  const api = P.BleepAccount = { enabled: false, client: "Bleep", status, signIn, cancel, signOut, call, share, urls, copy, ask, toast, requireSignIn, onChange: (f) => listeners.add(f), open, get last() { return last; } };
+  const api = P.BleepAccount = { enabled: false, client: "Bleep", status, signIn, cancel, signOut, call, share, urls, copy, ask, toast, validLink, shareSubject, updateSubject, restoreSubject, copySubjectLink, requireSignIn, onChange: (f) => listeners.add(f), open, get last() { return last; } };
 })();

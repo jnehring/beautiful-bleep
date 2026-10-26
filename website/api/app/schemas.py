@@ -268,6 +268,7 @@ class PresetIn(BaseModel):
     slug: str | None = Field(default=None, max_length=64, pattern=r"^[a-z0-9][a-z0-9-]*$")  # default: from the title; an existing one makes a new version
     tags: list[str] = Field(default_factory=list, max_length=10)
     license: Literal["CC-BY-4.0"] = PRESET_LICENSE   # the only choice; kept so a client can still say it
+    version_label: str | None = Field(default=None, pattern=r"^\d{1,4}\.\d{1,4}$")   # the author's number for this version, "1.0"; default: "<n>.0"
     pid: str | None = Field(default=None, pattern=r"^[a-z0-9]{10}$")   # a new version of this patch (the slug may have changed meanwhile)
     visibility: Literal["private", "public"] | None = None   # a new patch is private; a new version keeps what it was
     preset: dict
@@ -301,6 +302,7 @@ class PresetPatchIn(BaseModel):
 class PresetVersionOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     version: int
+    label: str
     bytes: int
     sha256: str
     needs: dict
@@ -323,6 +325,7 @@ class PresetOut(BaseModel):
     state: str                        # listed | removed
     downloads: int
     version: int                      # newest
+    version_label: str = ""           # its number as the author wrote it, "1.2"
     bytes: int
     created_at: datetime
     updated_at: datetime

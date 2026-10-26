@@ -371,6 +371,9 @@
           items.push({ label: "Make Voice Cell", run: () => makeVoiceCell(n.id), disabled: insideVoiceCell(n.parent) });
         }
         if (isCellLike(n)) items.push({ label: "Save as preset…", run: () => savePreset(n) });
+        if (isCellLike(n) && P.BleepAccount && P.BleepAccount.enabled && P.BleepCellShare)   // the library: sharing.md
+          items.push(n.library ? { label: "Update cell in Library…", run: () => P.BleepCellShare.update(n.id) }
+                               : { label: "Share cell…", run: () => P.BleepCellShare.share(n.id) });
         items.push({ label: "Trace signal flow", key: "T", run: toggleTrace });
         items.push("-");
         items.push({ label: "Delete", key: "⌫", run: deleteSelection, disabled: isFixedPort(n) || isFixedBoundary(n) });

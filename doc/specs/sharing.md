@@ -7,6 +7,7 @@ private by default; the author decides to publish them.
 
 - Two visibilities only: `private` (default) and `public`. There is no link-only level.
 - Every library patch has an immutable public ID (`pid`). URLs use the ID, not `author/slug`, so a rename never breaks a link.
+- Every upload asks for a name, a description and a version number (x.y), all required, and says in plain words who will be able to use it. The number is the author's own and unique per patch; links and pages show it (`/library/p/<pid>/1.2`). A plain number in a link is the older sequence number and still works.
 - Links are pinned to a version. A link always carries the version it was created for; it never follows "latest".
 - A deleted, unpublished or private patch gives the same message to everyone but its author: "This patch is no longer available."
 
@@ -101,12 +102,22 @@ Built: the migration and `/api/patches/<pid>[/<version>/file]`; `POST /api/prese
 `library` link in project files.
 
 Not yet:
-- The Share entries in a cell's context menu (type `cell` is supported by the API and Play; only the board's Share menu exists).
-- Restore is not highlighted when the library has a different version; Update asks before it overwrites a newer one.
+- Restore is not highlighted when the library has a different version (dropped); Update asks before it uploads over a newer one.
+- The native menu bar (standalone) cannot follow the selection, so its cell entries are always on and say "Select a cell…" when there is none.
 - The embed asks for the Play button and then Bleep Play's own *Start audio*.
 - A library patch opened by its author in Play is a copy, not linked; the author uses the project they shared.
 
-## 8. Order of work
+## 8. Cells
+
+- A cell is shared from its context menu (*Share cell…*, or *Update cell in Library…* once linked) or from the Share menu, whose second
+  group acts on the selected cell, or the open one if nothing is selected. Both use the same functions as projects (`account.js`).
+- The cell node carries the link (`library: {pid, version, label, sha256}`); the cell's file and the project file hold none, and a
+  placed copy is not linked.
+- *Restore cell* adds the chosen version as a new cell beside the old one; the old cell stays.
+- A cell link opens in Play: a cell that says what it plays (`plays`) is wired as an instrument or effect, any other cell is put on a
+  board of its own.
+
+## 9. Order of work
 
 1. Migration (`pid`, `visibility`, `state` rename), `/api/patches/...`, the `patch_unavailable` answer, tests.
 2. `?patch=&v=` loader in Play and `/library/p/<pid>/<version>`; the error pages.

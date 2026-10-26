@@ -229,6 +229,7 @@ class PresetVersion(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     preset_id: Mapped[int] = mapped_column(ForeignKey("presets.id", ondelete="CASCADE"), index=True)
     version: Mapped[int] = mapped_column()
+    label: Mapped[str] = mapped_column(String(16), default="")  # the author's version number, "1.0": what links and pages show (unique per patch)
     bytes: Mapped[int] = mapped_column()
     sha256: Mapped[str] = mapped_column(String(64))
     needs: Mapped[dict] = mapped_column(JSON, default=dict)

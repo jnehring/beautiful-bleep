@@ -5,7 +5,7 @@
   const $ = (id) => document.getElementById(id);
   const q = new URLSearchParams(location.search);
   const pid = q.get("patch") || "";
-  const v = parseInt(q.get("v"), 10) || 0;
+  const v = q.get("v") || "";   // the author's number ("1.2"), or the sequence number of older links
   const message = (text, bad) => { $("message").hidden = false; $("message").textContent = text; $("message").className = bad ? "bad" : ""; };
   const GONE = "This patch is no longer available.";
 
@@ -17,13 +17,14 @@
       if (!r.ok) return message(GONE, true);
       meta = await r.json();
     } catch (e) { return message("The Bleep Library could not be reached.", true); }
-    const version = v || meta.version;
-    if (!meta.versions.some((x) => x.version === version)) return message("This version does not exist.", true);
+    const found = v ? meta.versions.find((x) => x.label === v || String(x.version) === v) : meta.versions[0];
+    if (!found) return message("This version does not exist.", true);
+    const version = encodeURIComponent(found.label);
     const play = "/play/index.html?patch=" + pid + "&v=" + version;
     $("kind").textContent = meta.type === "cell" ? "Bleep cell" : "Bleep patch";
     $("title").textContent = meta.title;
     $("by").textContent = "by " + meta.author_name;
-    $("open").href = "/play/index.html?patch=" + pid + "&v=" + version;
+    $("open").href = play;
     $("message").hidden = true;
     $("poster").hidden = false;
     $("play").addEventListener("click", () => {

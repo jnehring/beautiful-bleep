@@ -172,7 +172,7 @@ def _out(preset: Preset, ratings: dict[str, tuple[float, int]], detail: bool = F
         id=preset.id, author=preset.author.handle, author_name=preset.author.display_name, slug=preset.slug, address=preset.address,
         title=preset.title, summary=preset.summary, type=preset.type, tags=preset.tags, license=preset.license, pid=preset.pid,
         visibility=preset.visibility, state=preset.state,
-        downloads=preset.downloads, version=newest.version, bytes=newest.bytes, created_at=preset.created_at, updated_at=preset.updated_at,
+        downloads=preset.downloads, version=newest.version, version_label=newest.label, bytes=newest.bytes, created_at=preset.created_at, updated_at=preset.updated_at,
         rating_average=avg, rating_count=count, used_in=(used or {}).get(preset.address.lower(), 0),
         versions=[PresetVersionOut.model_validate(v) for v in preset.versions] if detail else None,
     )
@@ -306,8 +306,11 @@ def publish(body: PresetIn, db: Session = Depends(get_db), user: User = Depends(
     audio = sum(len(f["data"]) for f in body.preset.get("media", {}).values()) if isinstance(body.preset.get("media"), dict) else 0
     if len(envelope) - audio > MAX_BYTES:   # the limit is for the patch itself; the audio has its own (clean_media)
         raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, f"A preset may be up to {MAX_BYTES // 1024} KB, not counting its audio")
+    label = body.version_label or f"{number}.0"
+    if any(v.label == label for v in preset.versions):
+        raise HTTPException(status.HTTP_409_CONFLICT, f"Version {label} exists already; use a new version number")
     db.flush()
-    db.add(PresetVersion(preset_id=preset.id, version=number, bytes=len(envelope), sha256=hashlib.sha256(envelope).hexdigest(), needs=needs))
+    db.add(PresetVersion(preset_id=preset.id, version=number, label=label, bytes=len(envelope), sha256=hashlib.sha256(envelope).hexdigest(), needs=needs))
     # The credits of the newest version replace the older ones; only those with an address can be found again, and a preset
     # does not credit itself.
     preset.credits.clear()

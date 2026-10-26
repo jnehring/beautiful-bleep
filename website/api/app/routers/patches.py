@@ -30,14 +30,21 @@ def detail(pid: str, db: Session = Depends(get_db), user: User | None = Depends(
     return _out(row, rating_summaries(db, "preset", [row.address]), detail=True, used=used_in_counts(db, [row.address]))
 
 
+def _version(row: Preset, version: str):
+    """A version by the author's number ("1.2") or by its sequence number ("3", the older links)."""
+    for v in row.versions:
+        if (v.label == version) or (version.isdigit() and v.version == int(version)):
+            return v
+    raise HTTPException(status.HTTP_404_NOT_FOUND, {"error": "version_unavailable"})
+
+
 @router.get("/{pid}/{version}/file")
-def file(pid: str, version: int, db: Session = Depends(get_db), user: User | None = Depends(get_optional_library_user),
+def file(pid: str, version: str, db: Session = Depends(get_db), user: User | None = Depends(get_optional_library_user),
          storage: Storage = Depends(get_storage)):
     """The `.bleeppreset` file of one version. Every download is counted."""
     row = _get(db, pid, user)
-    if not any(v.version == version for v in row.versions):
-        raise HTTPException(status.HTTP_404_NOT_FOUND, {"error": "version_unavailable"})
-    data = storage.get(_key(row, version))
+    found = _version(row, version)
+    data = storage.get(_key(row, found.version))
     if data is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, {"error": "version_unavailable"})
     row.downloads += 1

@@ -317,16 +317,19 @@
   const cp = P.BoardPresets.create({
     get board() { return board; }, $, el, uid, clone, canvas, nodesEl, closeSubmenus, descendants, isCellLike, insideVoiceCell, groupOpen, groupKey,
     panelList: () => panelList(), panelsWithLoaded: (list) => panelsWithLoaded(list), credits, notice: (text) => notice(text),
+    edit, level, sel,
   });
+  P.BleepCellShare = cp.cellShare;   // the Share menus and a cell's context menu (board-menus.js, app-menu.js, side-menu.js)
   const { setPresets, categories: presetCategories, save: savePreset, insert: insertPreset, addPanels, list: presetList, order: presetOrder } = cp;
 
   /// Bleep Play: a factory cell preset on its own, wired as the plugins wire it (play-wrap.js). An instrument takes MIDI In; an effect takes a
   /// self-playing instrument preset as its source (`sourceName`), or the Audio In port, fed with the microphone or a file, when `sourceName` is
   /// "@input" (`input` says which, for the source bar). Replaces the board; throws what Play cannot do.
+  const libraryCells = new Map();   // cells of the Bleep Library opened by a link (openLibraryCell), by name: playCell finds them here
   async function playCell(name, role, sourceName, input) {
     const W = window.BleepPlayWrap;
     const everything = presetList(), factory = everything.filter((r) => r.factory);
-    const q = factory.find((r) => r.name === name) || everything.find((r) => r.name === name);   // the user's own presets too
+    const q = libraryCells.get(name) || factory.find((r) => r.name === name) || everything.find((r) => r.name === name);   // a library cell, the user's own presets too
     if (!q) throw new Error(`There is no preset called “${name}”.`);
     const plan = W.plan(q.preset, role);
     if (!plan.ok) throw new Error(plan.message);
@@ -411,6 +414,23 @@
     if (plan.notes.length) notice(plan.notes.join(" "));
     fit();
   }
+
+  /// Bleep Play opened from a link to a library cell (?patch=…): a cell that says what it plays (`plays`) is wired like a factory
+  /// instrument or effect; any other cell is put on a board of its own, to patch.
+  async function openLibraryCell(preset, name) {
+    const W = window.BleepPlayWrap;
+    libraryCells.set(name, { name, preset, factory: false });
+    const role = W.plan(preset, "instrument").ok ? "instrument" : W.plan(preset, "effect").ok ? "effect" : null;
+    if (role) return playCell(name, role, "");
+    const b = { format: 1, id: uid("b"), nodes: (board.nodes || []).filter((n) => n.port && !n.parent).map(clone), cables: [], panels: [] };
+    b.nodes.forEach((n, i) => { n.x = 20; n.y = 40 + 110 * i; });
+    if (!insertPreset(b, preset, "", 340, 40, null)) throw new Error("That cell could not be opened.");
+    applyMessage(await native("loadPatch", b, 0, name));
+    window.BleepPlayKeys.hide();
+    notice("This cell has no wiring for Play yet: connect it to the ports to try it.");
+    fit();
+  }
+  P.BleepOpenLibraryCell = openLibraryCell;
 
   // ------------------------------------------------------------ navigation
   function enterCell(id) {
@@ -761,7 +781,7 @@
       const q = new URLSearchParams(location.search);
       if (q.get("embed")) document.body.classList.add("embed");   // inside the embed frame (website/app/public/embed): no menu bar
       const shared = q.get("preset"), demo = q.get("demo"), byId = q.get("patch");
-      if (byId && !pluginMode) P.BleepProjectBrowser.loadById(byId, parseInt(q.get("v"), 10) || 0).catch((e) => notice(e.message));   // /play/?patch=<pid>&v=<n>
+      if (byId && !pluginMode) P.BleepProjectBrowser.loadById(byId, q.get("v") || "").catch((e) => notice(e.message));   // /play/?patch=<pid>&v=<n>
       else if (shared && !pluginMode) P.BleepProjectBrowser.loadShared(shared).catch((e) => notice(e.message));
       else if (demo && !pluginMode) P.BleepProjectBrowser.loadDemo(demo).catch((e) => notice(e.message));
       else if (q.get("play") && !pluginMode)   // an instrument or effect preset on its own: /play/index.html?play=Slate Stabs&as=instrument
