@@ -303,7 +303,7 @@ bool Client::loadCachedIndex(Index& out, int64_t& fetchedAt, std::string& error)
         error = "the saved index is from another library or channel";   // the address was changed in the settings
         return false;
     }
-    fetchedAt = (int64_t)doc["fetchedAt"];
+    fetchedAt = (juce::int64)doc["fetchedAt"];   // int64_t is "long" on Linux, juce::var converts to "long long"
     return parseIndex(doc["index"], settings_.channel, out, error);
 }
 
@@ -408,8 +408,13 @@ bool Client::installPlugin(const std::string& slug, const juce::File& folder, st
     const auto bundles = temp.findChildFiles(juce::File::findFilesAndDirectories, false, "*.vst3");
     if (bundles.isEmpty()) { temp.deleteRecursively(); error = path + " holds no .vst3"; return false; }
 #if JUCE_MAC || JUCE_LINUX
+#if JUCE_MAC
+    const char* binaries = "Contents/MacOS";
+#else
+    const char* binaries = "Contents";
+#endif
     for (const auto& b : bundles)  // a zip may not carry the execute bit
-        for (const auto& f : b.getChildFile(JUCE_MAC ? "Contents/MacOS" : "Contents").findChildFiles(juce::File::findFiles, true))
+        for (const auto& f : b.getChildFile(binaries).findChildFiles(juce::File::findFiles, true))
             f.setExecutePermission(true);
 #endif
     folder.createDirectory();
