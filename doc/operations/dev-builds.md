@@ -8,7 +8,7 @@ Every push to `main` is tested, built and released into the **dev channel** of t
 
 | Job | Where | What |
 |---|---|---|
-| `server` | self-hosted runner on the Linux server (label `bleep-server`) | JS and preset tests, the native tests, the modules (WebAssembly, built in the Emscripten Docker image; the same on every system), then the Linux plugins and app. Releases the modules and the plugins into the dev channel. |
+| `server` | the build runner on the Linux server (label `bleep-build`, a container: `ci/runner`) | JS and preset tests, the native tests, the modules (WebAssembly; the same on every system), then the Linux plugins and app. Releases the modules and the plugins into the dev channel. |
 | `other-systems` | GitHub-hosted `macos-14` and `windows-latest` | builds the plugins (and the app) and adds its platform to the release the server made for the same commit |
 
 The jobs do not talk to each other except through the library: the macOS and Windows jobs find the release by its build time.
@@ -35,7 +35,18 @@ Dev builds are not public. They live in the bucket under `dev/` which `/registry
 
 ## One-time setup
 
-1. **The runner** on the server is the one of [deploy.md](deploy.md) (label `bleep-server`). It also needs what the builds need: `git`, Docker, CMake 3.22+, a C++ compiler, Python 3, Node 22, and for the Linux plugins `libasound2-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libfreetype-dev libfontconfig1-dev libgl1-mesa-dev libwebkit2gtk-4.1-dev libcurl4-openssl-dev`. The workflow does not install packages (no `sudo` on the runner).
+1. **The build runner** is a container (`ci/runner`) with the whole toolchain inside: Emscripten, JUCE, CMake, Node, the Linux libraries. It is **ephemeral**: it takes one job and is deleted, and docker compose starts a fresh one. It has no Docker socket, no host folders, no capabilities, and CPU and memory limits; only a compiler cache volume survives between jobs. A job (which compiles other people's code) therefore cannot reach the server, the website stack or the deploy runner. Docker and Docker Compose v2 are all the server needs.
+
+   ```bash
+   cd ci/runner
+   cp .env.example .env     # REPO=owner/name, GITHUB_PAT=a fine-grained token for this repository only, "Administration: Read and write"
+   chmod 600 .env
+   docker compose up -d --build
+   ```
+
+   The token only registers runners; the entrypoint removes it from the environment before the job starts. Rebuild the image (`docker compose build --pull`) now and then, and bump `RUNNER_VERSION` in the Dockerfile when GitHub asks. Several jobs at once: `docker compose up -d --scale runner=2` (the workflow runs one build at a time anyway).
+
+   The deploy runner of [deploy.md](deploy.md) (label `bleep-server`, needs the Docker socket to restart the website) stays separate on the host and only ever runs `deploy.yml`.
 2. **A dev-only release token** (cannot touch `stable` or `beta`):
 
    ```bash
@@ -45,7 +56,7 @@ Dev builds are not public. They live in the bucket under `dev/` which `/registry
 3. **GitHub:** Settings → Environments → New environment `dev` (no required reviewers: this runs by itself) with the variable `BLEEP_REGISTRY_URL` (the website's https address) and the secret `BLEEP_DEV_TOKEN`.
 4. **Deploy the website once** (the migration `0018` adds the channel, and the Caddyfile hides `/registry/dev/`).
 
-The token only reaches the release steps, not the build steps, which compile other people's code (JUCE, Link). Do not let pull requests from forks run on the self-hosted runner (see deploy.md).
+The token only reaches the release steps, not the build steps, which compile other people's code (JUCE, Link). Do not let pull requests from forks run on the self-hosted runners (see deploy.md).
 
 ## What is not covered
 

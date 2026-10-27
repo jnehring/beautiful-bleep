@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: MIT
+# The build runner (doc/operations/dev-builds.md):  cd ci/runner && cp .env.example .env && docker compose up -d --build
+services:
+  runner:
+    build: .
+    restart: always            # an ephemeral runner exits after its job: the next container takes the next one
+    env_file: .env
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 2048
+    cpus: 6
+    mem_limit: 12g
+    tmpfs: ["/tmp:exec,size=20g"]   # the checkout and the build: gone with the container
+    volumes:
+      - ccache:/cache            # the only thing kept between jobs: compiler cache
+    # No Docker socket, no host paths, no published ports.
+volumes:
+  ccache:

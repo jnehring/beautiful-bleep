@@ -4,7 +4,7 @@
 # Accounts with dev access install them from Bleep App (Settings -> Library -> Channel: dev); with "Install module updates
 # automatically" a running Ableton Live picks up a new module within a minute.
 #
-# As much as possible runs on the self-hosted runner on our Linux server: the tests, the modules (WebAssembly, the same for
+# As much as possible runs on our own Linux server, in the ephemeral build runner container (ci/runner): the tests, the modules (WebAssembly, the same for
 # every system) and the Linux plugins and app. Only what needs another operating system is built on GitHub's runners and added
 # to the release the server made: macOS and Windows. The version is 1.4.4-dev.<commit time>: every machine works that out from
 # the commit, so the three builds of one commit end up in one release (scripts/release/release.py, --dev).
@@ -32,11 +32,9 @@ concurrency:
 jobs:
   server:
     name: Linux server (tests, modules, Linux plugins)
-    runs-on: [self-hosted, bleep-server]
+    runs-on: [self-hosted, bleep-build]   # ci/runner: a container with the toolchain, one job each, no access to Docker or the server
     environment: dev
     timeout-minutes: 90
-    env:
-      BLEEP_WEB_DOCKER: "1"   # the modules are built in the Emscripten image: nothing but Docker is needed on the server
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:

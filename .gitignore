@@ -29,3 +29,4 @@ __pycache__/
 
 # This machine's settings for ./bleep (token file, JUCE, Live set)
 config/bleep.local.json
+ci/runner/.env
