@@ -20,7 +20,7 @@ board shows them but cannot run them.
 
 Output:
   <out>/modules/<slug>.wasm
-  <out>/manifest.json   {"modules": {slug: {"file", "bytes", "types": [type ids], "spec": [node type descriptions], "script": {view, source, help}}},   (script: script modules only)
+  <out>/manifest.json   {"modules": {slug: {"file", "bytes", "built" (when it was compiled), "types": [type ids], "spec": [node type descriptions], "script": {view, source, help}}},   (script: script modules only)
                          "types":   {type id: slug},
                          "unavailable": {slug: reason}}
 """
@@ -271,7 +271,8 @@ def main():
                 manifest["unavailable"][slug] = err
                 progress.done(slug, f"  skip  {slug}: {err}")
                 continue
-            manifest["modules"][slug] = {"file": f"modules/{slug}.wasm", "bytes": wasm.stat().st_size, "types": []}
+            manifest["modules"][slug] = {"file": f"modules/{slug}.wasm", "bytes": wasm.stat().st_size, "types": [],
+                                         "built": time.strftime("%Y-%m-%d %H:%M", time.localtime(wasm.stat().st_mtime))}   # when it was last compiled
             if is_script(MODULES / slug):   # the board lists its node types from this (no demo-types.json entry), and shows its UI, help and source
                 entry = manifest["modules"][slug]
                 entry["spec"] = json.loads((out / ".cache" / f"{slug}.spec.json").read_text())

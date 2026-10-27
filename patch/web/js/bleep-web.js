@@ -162,7 +162,7 @@
       }, () => [])));
       W.libraryUi = ui;
       // The version of each module's newest release, for its help page; a local build says "local", and a user's own module has none to show.
-      W.typeVersions = Object.fromEntries(Object.entries(m.types).filter(([, slug]) => /^(\d|local$)/.test(m.modules[slug].version)).map(([t, slug]) => [t, m.modules[slug].version]));
+      W.typeVersions = Object.fromEntries(Object.entries(m.types).filter(([, slug]) => /^(\d|local$)/.test(m.modules[slug].version)).map(([t, slug]) => [t, { version: m.modules[slug].version, built: m.modules[slug].built || "" }]));
       return fromBuild.concat(found.flat());
     } catch (e) {
       return [];

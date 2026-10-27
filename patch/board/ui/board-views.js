@@ -143,7 +143,7 @@
         v.showHelpButton();
         // A module's help page shows its version once, right-aligned under the title: the "Version V · built DATE" line a local install stamps
         // into the doc, or else the module's version. One without a doc file still has the page made from its name and description.
-        const versionLine = () => (t.version ? `<p class="doc-version">${t.version === "local" ? "Local build" : "Version " + String(t.version).replace(/[^0-9A-Za-z.+-]/g, "")}${t.older ? " (older, kept because this board pins it)" : ""}</p>` : "");
+        const versionLine = () => (t.version ? `<p class="doc-version">${t.version === "local" ? "Local build" + (t.built ? " · built " + String(t.built).replace(/[^0-9: -]/g, "") : "") : "Version " + String(t.version).replace(/[^0-9A-Za-z.+-]/g, "")}${t.older ? " (older, kept because this board pins it)" : ""}</p>` : "");
         moduleDoc(t.type).then((md) => {
           if (md === null && !(t.version && t.description)) return;
           help.hidden = false;

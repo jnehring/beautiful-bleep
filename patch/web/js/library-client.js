@@ -120,7 +120,7 @@
     } catch (e) {
       if (!local && !(mine && mine.list().length)) throw e;  // a local build, or the user's own modules, are enough to run offline
     }
-    if (local) for (const [slug, m] of Object.entries(local)) mods[slug] = { version: "local", types: m.types || [], local: m.file, spec: m.spec || null, script: m.script || null };
+    if (local) for (const [slug, m] of Object.entries(local)) mods[slug] = { version: "local", built: m.built || "", types: m.types || [], local: m.file, spec: m.spec || null, script: m.script || null };
     // Kept in this browser, their own code.
     if (mine) for (const [slug, m] of Object.entries(mine.index())) mods[slug] = { version: "user", types: m.types || [], user: true, spec: m.spec || null };
     const types = {};

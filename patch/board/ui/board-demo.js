@@ -23,7 +23,7 @@
       const byType = new Map(types.concat(found).map((t) => [t.type, t]));   // a module's own description replaces the list's (the same position)
       types = [...byType.values()];
       const versions = BleepWeb.typeVersions || {};
-      types = types.map((t) => (versions[t.type] && !t.version ? { ...t, version: versions[t.type] } : t));   // the help page shows it
+      types = types.map((t) => (versions[t.type] && !t.version ? { ...t, ...versions[t.type] } : t));   // the help page shows it
     }
     // the views of the user's own modules, the built-in ones, and the library's that bring a picture or a help page
     if (priv.BleepCode) priv.BleepCode.registerInstalledViews((window.BleepWeb && BleepWeb.libraryUi) || []);
