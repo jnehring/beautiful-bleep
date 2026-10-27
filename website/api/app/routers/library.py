@@ -68,7 +68,7 @@ def listing(
     each with its rating."""
     newest: dict[tuple[str, str], Release] = {}
     if kind != "preset":
-        stmt = select(Release).where(Release.status == "published")
+        stmt = select(Release).where(Release.status == "published", Release.channel != "dev")
         if kind:
             stmt = stmt.where(Release.kind == kind)
         for r in db.scalars(stmt.order_by(Release.kind, Release.slug, *_NEWEST_FIRST)).all():
@@ -108,7 +108,7 @@ def preset_detail(author: str, slug: str, db: Session = Depends(get_db)):
 def detail(kind: Literal["plugin", "module", "preset"], slug: str, db: Session = Depends(get_db)):
     """All published versions of one entry, newest first, each with its files."""
     rows = db.scalars(
-        select(Release).where(Release.kind == kind, Release.slug == slug, Release.status == "published").order_by(*_NEWEST_FIRST)
+        select(Release).where(Release.kind == kind, Release.slug == slug, Release.status == "published", Release.channel != "dev").order_by(*_NEWEST_FIRST)
     ).all()
     if not rows:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No such download")

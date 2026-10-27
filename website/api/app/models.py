@@ -26,6 +26,7 @@ class User(Base):
     handle: Mapped[str | None] = mapped_column(String(40), unique=True, index=True)  # the author part of a preset's address; set on first publish
     role: Mapped[str] = mapped_column(String(16), default="user")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    dev_access: Mapped[bool] = mapped_column(Boolean, default=False)  # may use the dev channel of the library (admins always may)
     email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
@@ -77,6 +78,8 @@ class ApiToken(Base):
     scope: Mapped[str] = mapped_column(String(16), default="release")
     # The publisher this token may release for (its namespace); none: only "bleep".
     publisher: Mapped[str | None] = mapped_column(String(40))
+    # The channels this token may release into (stable | beta | dev). A token for CI gets ["dev"] only.
+    channels: Mapped[list] = mapped_column(JSON, default=lambda: ["stable", "beta"])
     created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -92,11 +95,12 @@ class Release(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     kind: Mapped[str] = mapped_column(String(16))  # plugin | module
     slug: Mapped[str] = mapped_column(String(64))
-    version: Mapped[str] = mapped_column(String(32))
+    version: Mapped[str] = mapped_column(String(48))  # "1.2.3", or "1.2.3-dev.202610271432" (a development build)
     major: Mapped[int] = mapped_column()
     minor: Mapped[int] = mapped_column()
     patch: Mapped[int] = mapped_column()
-    channel: Mapped[str] = mapped_column(String(16), default="stable")  # stable | beta
+    build: Mapped[int] = mapped_column(Integer, default=0)  # the build time YYYYMMDDHHMM of a development build, 0 for a release
+    channel: Mapped[str] = mapped_column(String(16), default="stable")  # stable | beta | dev
     status: Mapped[str] = mapped_column(String(16), default="draft")  # draft | published
     title: Mapped[str] = mapped_column(String(120), default="")
     notes: Mapped[str] = mapped_column(Text, default="")

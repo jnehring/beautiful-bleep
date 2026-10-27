@@ -1,6 +1,6 @@
 # Continuous integration and deployment
 
-Three workflows in `.github/workflows/`:
+Four workflows in `.github/workflows/` (the fourth, `dev.yml`, builds and releases dev builds: [dev-builds.md](dev-builds.md)):
 
 | Workflow | Runs | Where | What |
 |---|---|---|---|

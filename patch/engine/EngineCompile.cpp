@@ -21,6 +21,8 @@ void Engine::recompile() {
     for (const auto& s : instances_) {
         s->writesOut.store(false, std::memory_order_relaxed);  // compile sets it again for an Audio Out node
         if ((s->kind != PortKind::Patch || s->handle == mainHandle_) && !s->bridged) ports[s->id] = s;
+        // Bleep Instrument and Bleep FX have an input node and an output node.
+        if ((s->kind == PortKind::Instrument || s->kind == PortKind::AudioInsert) && !s->bridged) ports[s->id + board::kPortOutSuffix] = s;
         // Bleep Board is also a MIDI In, an Audio In and an Audio Out: a port id names one node, so each gets its own.
         if (s->kind == PortKind::Patch && s->handle == mainHandle_ && !s->bridged) {
             ports[s->id + kBoardMidiSuffix] = s;
@@ -156,6 +158,8 @@ void Engine::reconcile(bool force) {
         if (s->bridged) continue;                                      // its other side is another board
         auto* existing = board::findNodeByPort(board_, juce::String(s->id));
         if (existing != nullptr) {
+            if (s->kind == PortKind::Instrument || s->kind == PortKind::AudioInsert)
+                changed |= board::ensureOutNode(board_, existing->getProperty("id").toString());
             // Keep the last known track on the node, so ghosts still say where they were.
             if (s->trackName.size() && existing->getProperty("track").toString() != juce::String(s->trackName)) {
                 existing->setProperty("track", juce::String(s->trackName));
@@ -180,6 +184,7 @@ void Engine::reconcile(bool force) {
             n->setProperty("name", juce::String(s->trackName));
         }
         if (!s->presetJson.empty()) attachPreset(*s, id);
+        else if (s->kind == PortKind::Instrument || s->kind == PortKind::AudioInsert) board::ensureOutNode(board_, id);
         changed = true;
     }
     if (changed) boardEdited(true);
@@ -188,6 +193,12 @@ void Engine::reconcile(bool force) {
 void Engine::reconcileNow() { reconcile(true); }
 
 void Engine::timerCallback() {
+#if defined(BLEEP_WASM_MODULES)
+    if (++libraryTicks_ >= 600) {   // once a minute (the timer runs at 10 Hz)
+        libraryTicks_ = 0;
+        ModuleLibrary::instance().autoUpdateTick();
+    }
+#endif
     applySampleRate();
     collectGarbage();
     reconcile(false);

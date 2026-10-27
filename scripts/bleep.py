@@ -7,7 +7,7 @@
     ./bleep test    [py|js|script|presets|bus|native|check ...]    default: py js check (fast, no compiler)
     ./bleep check   [repo|api-docs|account]                        default: repo api-docs
     ./bleep docs    [build|help-index|screenshots]
-    ./bleep release plugins|modules|community [...]
+    ./bleep release plugins|modules|community [--dev] [...]
     ./bleep package [module ...]                                   packages and installs into the data folder (--no-install: only package)
     ./bleep config                                                 show the effective settings
 
@@ -497,15 +497,17 @@ def cmd_release(args, s):
             build_plugins(argparse.Namespace(debug=False, juce=None, ui_dev=False, plugins_only=True, no_test=True, no_test_build=True,
                                              no_app=False, install=False, clean=False), s)
         tail = ["--add-platform", args.add_platform] if args.add_platform else ["--level", args.level or ""]
-        if not args.add_platform and not args.level:
-            sys.exit("--level is required: x, 1.x, 1.4.x, major, minor or patch (or --add-platform VERSION)")
+        if args.dev:   # a development build: no level; --add-platform adds this machine's build to the one of the same commit
+            tail = ["--dev", *(["--add-platform", "latest"] if args.add_platform else [])]
+        elif not args.add_platform and not args.level:
+            sys.exit("--level is required: x, 1.x, 1.4.x, major, minor or patch (or --add-platform VERSION, or --dev)")
         run([*base, *names, *tail, *common, *(["--notes", args.notes] if args.notes else [])])
     else:
-        if not args.level:
-            sys.exit("--level is required: x, 1.x, 1.4.x, major, minor or patch")
+        if not args.level and not args.dev:
+            sys.exit("--level is required: x, 1.x, 1.4.x, major, minor or patch (or --dev)")
         if not args.no_build:
             build_web(argparse.Namespace(docker=False, out=None), s, ui=False)
-        run([*base, "--modules", "--package", *args.names, "--level", args.level, *common, *(["--force"] if args.force else []),
+        run([*base, "--modules", "--package", *args.names, *(["--dev"] if args.dev else ["--level", args.level]), *common, *(["--force"] if args.force else []),
              *(["--notes", args.notes] if args.notes else [])])
 
 
@@ -585,6 +587,7 @@ def parser():
     rl.add_argument("what", choices=["plugins", "modules", "community"])
     rl.add_argument("names", nargs="*", help="plugin ids or module slugs (default: all)")
     rl.add_argument("--level", help="x, 1.x, 1.4.x, major, minor or patch")
+    rl.add_argument("--dev", action="store_true", help="a development build for the dev channel (1.4.4-dev.<commit time>) instead of a release at --level")
     rl.add_argument("--add-platform", metavar="VERSION|latest", help="plugins: add this machine's build to a published version")
     rl.add_argument("--build", action="store_true", help="plugins: build first")
     rl.add_argument("--no-build", action="store_true", help="modules: do not rebuild the .wasm files first")

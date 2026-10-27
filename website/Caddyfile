@@ -108,6 +108,9 @@
 	# handle_path strips /registry before anything else runs (a `uri strip_prefix` would run after `rewrite`, and the
 	# bucket key would be registry/v1/…); the paths below are therefore without the prefix.
 	handle_path /registry/* {
+		# Development builds are stored under dev/ in the same bucket; they are only handed out by the API (/api/registry/dev/v1/…), to accounts with dev access.
+		@private path /dev /dev/*
+		respond @private 404
 		@index path /v1/index.json /v1/presets/index.json
 		header @index Cache-Control "no-cache"
 		@versioned not path /v1/index.json /v1/presets/index.json

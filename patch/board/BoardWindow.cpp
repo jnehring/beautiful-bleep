@@ -340,7 +340,8 @@ public:
                 auto s = before;
                 if (a[0]["firstRunDone"].isBool()) s.firstRunDone = (bool)a[0]["firstRunDone"];
                 if (a[0]["updateCheck"].isBool()) s.updateCheck = (bool)a[0]["updateCheck"];
-                if (a[0]["channel"].isString()) s.channel = a[0]["channel"].toString().toStdString();
+                if (a[0]["autoUpdate"].isBool()) s.autoUpdate = (bool)a[0]["autoUpdate"];
+                if (const auto c = a[0]["channel"].toString(); c == "stable" || c == "beta" || c == "dev") s.channel = c.toStdString();
                 if (a[0]["libraryUrl"].isString() && a[0]["libraryUrl"].toString().isNotEmpty())
                     s.libraryUrl = a[0]["libraryUrl"].toString().toStdString();
                 juce::String risk;

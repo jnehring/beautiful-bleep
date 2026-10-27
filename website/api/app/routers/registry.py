@@ -13,15 +13,15 @@ import tempfile
 import zipfile
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Request, Response, status
 from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..db import get_db
-from ..deps import require_release_token
-from ..models import ApiToken, Release, now
+from ..deps import get_optional_library_user, require_release_token
+from ..models import ApiToken, Release, User, now
 from ..schemas import FileIn, OriginIn, PlatformIn, ReleaseIn, ReleaseOut
 from ..community import read_member
 from ..storage import Storage, get_storage
@@ -31,8 +31,22 @@ router = APIRouter(prefix="/api/registry", tags=["registry"])
 Kind = Literal["plugin", "module"]
 # A third-party id "acme/fuzz" has the slug "acme.fuzz" (a "/" does not fit in a URL path segment).
 Slug = Path(pattern=r"^[a-z0-9][a-z0-9-]{0,62}(\.[a-z0-9][a-z0-9-]{0,62})?$")
-VersionPath = Path(pattern=r"^\d{1,4}\.\d{1,5}\.\d{1,6}$")
+VersionPath = Path(pattern=r"^\d{1,4}\.\d{1,5}\.\d{1,6}(-dev\.\d{12})?$")
 MAX_FILE_BYTES = 1024 * 1024 * 1024
+KEEP_DEV_BUILDS = 20  # per plugin or module: older development builds are deleted when a new one is published
+
+
+def _parse(version: str) -> tuple[int, int, int, int]:
+    """"1.2.3" or "1.2.3-dev.202610271432" -> major, minor, patch, build (0 for a release)."""
+    base, _, build = version.partition("-dev.")
+    major, minor, patch = (int(p) for p in base.split("."))
+    return major, minor, patch, int(build or 0)
+
+
+def rank(r: Release) -> tuple[int, int, int, int, int]:
+    """The order of versions: a development build ranks above the release of the same number (0.1.4-dev is the work towards 0.1.5, said
+    the other way round: it is newer than anything published before it), and development builds among themselves by build time."""
+    return (r.major, r.minor, r.patch, 1 if r.build else 0, r.build)
 
 
 def _id(slug: str) -> str:
@@ -108,7 +122,9 @@ def _types(r: Release) -> list[str]:
 
 
 def _key(r: Release, path: str = "") -> str:
-    return f"v1/{r.kind}s/{r.slug}/{r.version}" + (f"/{path}" if path else "")
+    """Where a release is stored. Development builds live under dev/, which the public /registry/ path does not serve (Caddyfile):
+    they are handed out by dev_file() to the accounts that may have them."""
+    return ("dev/" if r.channel == "dev" else "") + f"v1/{r.kind}s/{r.slug}/{r.version}" + (f"/{path}" if path else "")
 
 
 def _find(db: Session, kind: str, slug: str, version: str) -> Release:
@@ -118,13 +134,16 @@ def _find(db: Session, kind: str, slug: str, version: str) -> Release:
     return row
 
 
-def _published(db: Session, kind: str | None = None, slug: str | None = None) -> list[Release]:
+def _published(db: Session, kind: str | None = None, slug: str | None = None, dev: bool | None = False) -> list[Release]:
+    """Published releases, oldest first. `dev`: False the public ones (stable, beta), True only development builds, None all."""
     q = select(Release).where(Release.status == "published")
     if kind:
         q = q.where(Release.kind == kind)
     if slug:
         q = q.where(Release.slug == slug)
-    return list(db.scalars(q.order_by(Release.major, Release.minor, Release.patch)))
+    if dev is not None:
+        q = q.where(Release.channel == "dev") if dev else q.where(Release.channel != "dev")
+    return sorted(db.scalars(q), key=rank)
 
 
 @router.get("/token")
@@ -138,19 +157,37 @@ def versions(kind: Kind, slug: str = Slug, db: Session = Depends(get_db)):
     return [{"version": r.version, "channel": r.channel, "published_at": r.published_at} for r in _published(db, kind, slug)]
 
 
+@router.get("/{kind}/{slug}/newest")
+def newest(kind: Kind, slug: str = Slug, channel: Literal["stable", "dev"] = "stable", db: Session = Depends(get_db),
+           token: ApiToken = Depends(require_release_token)):
+    """The newest published release with its files' digests, for a release script that skips what did not change. `dev` also counts
+    development builds (a token that may release into the dev channel); `stable` only the public releases."""
+    if channel == "dev" and "dev" not in (token.channels or []):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "This token may not use the dev channel")
+    rows = _published(db, kind, slug, dev=None if channel == "dev" else False)
+    if not rows:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nothing published yet")
+    r = rows[-1]
+    return {"version": r.version, "channel": r.channel,
+            "files": [{k: f[k] for k in ("path", "sha256", "platform")} for f in r.files if f["uploaded"]]}
+
+
 @router.post("/{kind}/{slug}/releases", response_model=ReleaseOut, status_code=status.HTTP_201_CREATED)
 def create_release(kind: Kind, body: ReleaseIn, slug: str = Slug, db: Session = Depends(get_db),
                    token: ApiToken = Depends(require_release_token)):
     """Starts a draft. The version must be higher than every published version of this id; a draft of the same version is replaced."""
-    major, minor, patch = (int(p) for p in body.version.split("."))
+    major, minor, patch, build = _parse(body.version)
+    if body.channel not in (token.channels or ["stable", "beta"]):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, f"This token may not release into the {body.channel} channel")
     if len({f.path for f in body.files}) != len(body.files):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Duplicate file paths")
-    newest = max(((r.major, r.minor, r.patch) for r in _published(db, kind, slug)), default=None)
-    if newest is not None and (major, minor, patch) <= newest:
-        raise HTTPException(status.HTTP_409_CONFLICT, f"Version must be higher than {'.'.join(map(str, newest))}")
+    # releases count among releases, development builds among development builds
+    newest = max((rank(r) for r in _published(db, kind, slug, dev=body.channel == "dev")), default=None)
+    if newest is not None and (major, minor, patch, 1 if build else 0, build) <= newest:
+        raise HTTPException(status.HTTP_409_CONFLICT, f"Version must be higher than {newest[0]}.{newest[1]}.{newest[2]}" + (f"-dev.{newest[4]}" if newest[4] else ""))
     row = db.scalar(select(Release).where(Release.kind == kind, Release.slug == slug, Release.version == body.version))
     if row is None:
-        row = Release(kind=kind, slug=slug, version=body.version, major=major, minor=minor, patch=patch)
+        row = Release(kind=kind, slug=slug, version=body.version, major=major, minor=minor, patch=patch, build=build)
         db.add(row)
     else:
         _own_draft(row, token)  # a draft is replaced only by the token that started it
@@ -240,6 +277,8 @@ def add_platform(kind: Kind, body: PlatformIn, slug: str = Slug, version: str = 
     """Declares files for platforms a published release lacks (built on another machine). Existing files never change;
     each file shows in entry.json once it is uploaded, so clients never see a half-uploaded platform file."""
     row = _find(db, kind, slug, version)
+    if row.channel not in (token.channels or ["stable", "beta"]):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, f"This token may not release into the {row.channel} channel")
     if row.status != "published":
         raise HTTPException(status.HTTP_409_CONFLICT, "Release is not published; create or replace the draft instead")
     have = {f["platform"] for f in row.files if f["uploaded"]}
@@ -267,22 +306,69 @@ def _entry(r: Release) -> dict:
     }
 
 
+def _index_entry(r: Release) -> dict:
+    return {
+        "version": r.version, "entry": f"{r.kind}s/{r.slug}/{r.version}/entry.json",
+        # what the apps' library tiles show, so one request to the index is enough
+        "title": r.title or r.slug, "summary": r.summary, "category": r.category,
+        **({"image": f"{r.kind}s/{r.slug}/{r.version}/{r.image}"} if r.image else {}),
+        **({"types": _types(r)} if r.kind == "module" else {}),  # which node types a module provides: clients find the package for a type without downloading any
+    }
+
+
+def _channels(releases: list[Release], names: tuple[str, ...]) -> dict:
+    """Per channel, the newest version of every plugin and module. `releases` ascending, so later rows are newer; beta also sees stable
+    releases, dev sees everything."""
+    seen = {"stable": ("stable",), "beta": ("stable", "beta"), "dev": ("stable", "beta", "dev")}
+    out: dict = {n: {"plugins": {}, "modules": {}} for n in names}
+    for r in releases:
+        for n in names:
+            if r.channel in seen[n]:
+                out[n][r.kind + "s"][r.slug] = _index_entry(r)
+    return out
+
+
 def write_index(db: Session, storage: Storage) -> dict:
-    """v1/index.json: per channel, the newest version of every plugin and module, with its title, summary, category and image. beta also sees stable releases."""
-    channels: dict = {"stable": {"plugins": {}, "modules": {}}, "beta": {"plugins": {}, "modules": {}}}
-    for r in _published(db):  # ascending, so later rows are newer
-        for channel in ("stable", "beta") if r.channel == "stable" else ("beta",):
-            channels[channel][r.kind + "s"][r.slug] = {
-                "version": r.version, "entry": f"{r.kind}s/{r.slug}/{r.version}/entry.json",
-                # what the apps' library tiles show, so one request to the index is enough
-                "title": r.title or r.slug, "summary": r.summary, "category": r.category,
-                **({"image": f"{r.kind}s/{r.slug}/{r.version}/{r.image}"} if r.image else {}),
-            }
-            if r.kind == "module":  # which node types a module provides: clients find the package for a type without downloading any
-                channels[channel]["modules"][r.slug]["types"] = _types(r)
-    index = {"format": 1, "generated": now().isoformat(), "channels": channels}
+    """v1/index.json: per channel, the newest version of every plugin and module. Public: stable and beta. dev/v1/index.json (only
+    for accounts with dev access, see dev_file) has the dev channel too: development builds, and what they are newer than."""
+    releases = _published(db, dev=None)
+    index = {"format": 1, "generated": now().isoformat(), "channels": _channels([r for r in releases if r.channel != "dev"], ("stable", "beta"))}
     storage.put("v1/index.json", io.BytesIO(json.dumps(index, indent=1).encode()), "application/json")
+    private = {**index, "channels": {**index["channels"], **_channels(releases, ("dev",))}}
+    storage.put("dev/v1/index.json", io.BytesIO(json.dumps(private, indent=1).encode()), "application/json")
     return index
+
+
+def _prune_dev(db: Session, storage: Storage, kind: str, slug: str) -> None:
+    """Keeps the newest KEEP_DEV_BUILDS development builds of a plugin or module; older ones are deleted with their files."""
+    for old in _published(db, kind, slug, dev=True)[:-KEEP_DEV_BUILDS]:
+        for key in [_key(old, f["path"]) for f in old.files] + [_key(old, "entry.json")] + ([_key(old, old.image)] if old.image else []):
+            storage.delete(key)
+        db.delete(old)
+    db.commit()
+
+
+def _may_use_dev(user: User | None) -> bool:
+    return user is not None and (user.role == "admin" or user.dev_access)
+
+
+@router.get("/dev/v1/{path:path}")
+def dev_file(path: str, user: User | None = Depends(get_optional_library_user), storage: Storage = Depends(get_storage)):
+    """The library for accounts with dev access: development builds are only here, everything else (a release, an image) is the same as
+    under /registry/v1/. Signed in with a session cookie or the app's personal token."""
+    if user is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Not logged in")
+    if not _may_use_dev(user):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "This account has no access to the dev channel")
+    if ".." in path.split("/") or path.startswith("/"):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No such file")
+    data = storage.get("dev/v1/" + path)
+    if data is None:
+        data = storage.get("v1/" + path)
+    if data is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No such file")
+    kind = "application/json" if path.endswith(".json") else "image/" + path.rsplit(".", 1)[-1] if path.endswith((".png", ".jpg", ".webp")) else "application/octet-stream"
+    return Response(data, media_type=kind, headers={"Cache-Control": "private, no-cache", "Content-Security-Policy": "default-src 'none'; sandbox", "X-Content-Type-Options": "nosniff"})
 
 
 @router.post("/{kind}/{slug}/releases/{version}/publish", response_model=ReleaseOut)
@@ -295,11 +381,13 @@ def publish(kind: Kind, slug: str = Slug, version: str = VersionPath, db: Sessio
     missing = [f["path"] for f in row.files if not f["uploaded"]]
     if missing:
         raise HTTPException(status.HTTP_409_CONFLICT, f"Files not uploaded: {', '.join(missing)}")
-    newest = max(((r.major, r.minor, r.patch) for r in _published(db, kind, slug)), default=None)
-    if newest is not None and (row.major, row.minor, row.patch) <= newest:
-        raise HTTPException(status.HTTP_409_CONFLICT, f"A version up to {'.'.join(map(str, newest))} was published meanwhile")
+    newest = max((rank(r) for r in _published(db, kind, slug, dev=row.channel == "dev")), default=None)
+    if newest is not None and rank(row) <= newest:
+        raise HTTPException(status.HTTP_409_CONFLICT, f"A version up to {newest[0]}.{newest[1]}.{newest[2]} was published meanwhile")
     row.status, row.published_at = "published", now()
     storage.put(_key(row, "entry.json"), io.BytesIO(json.dumps(_entry(row), indent=1).encode()), "application/json")
     db.commit()
+    if row.channel == "dev":
+        _prune_dev(db, storage, kind, slug)
     write_index(db, storage)
     return row

@@ -252,9 +252,10 @@
   function renderLibrary() {
     if (!hasLibrary || !library) { body.appendChild(el("div", "st-empty", "This build has no Bleep Library.")); return; }
     const s = library.settings;
-    row("Channel", select(["stable", "beta"], s.channel, (v) => libraryChange({ channel: v })), "Beta has newer modules that are less tested.");
+    row("Channel", select(["stable", "beta", "dev"], s.channel, (v) => libraryChange({ channel: v })), "Beta has newer modules that are less tested. Dev has the latest builds, for accounts with dev access (sign in under Account).");
     body.appendChild(el("div", "st-note", s.libraryUrl + (library.index.ok ? "" : " (not reached)")));
     body.appendChild(checkbox("Check for module updates at start", s.updateCheck !== false, (on) => libraryChange({ updateCheck: on })));
+    body.appendChild(checkbox("Install module updates automatically (checked every minute; running boards switch to the new version)", s.autoUpdate === true, (on) => libraryChange({ autoUpdate: on })));
     if (host === "plugin") body.appendChild(el("div", "st-note", "These settings and the modules are shared with Bleep App and the other plugins: one data folder."));
     const url = el("input");
     url.type = "text"; url.value = s.libraryUrl; url.spellcheck = false;

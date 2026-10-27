@@ -38,6 +38,8 @@ scripts/release/release.py --all --level patch --registry http://localhost:8080 
 
 Each plugin has its own version counter. With nothing published yet, `x`, `0.x` and `0.0.x` give 0.1.0.
 
+**Dev builds.** `--dev` (instead of `--level`) releases a development build into the dev channel, numbered `<next patch>-dev.<commit time>`; `--dev --add-platform latest` adds this machine's build to the one of the same commit. CI does this after every push: see [dev-builds.md](dev-builds.md).
+
 Other options: `--channel beta`, `--notes TEXT`, `--list`, `-y` (no confirmation), `--dry-run`. A dry run needs no token and changes nothing.
 
 **What it does.** It zips the build (named for this machine: `macos-arm64`, …), asks the API for the published versions, creates a draft release, uploads the zip (the server checks size and SHA-256), and publishes. Publishing writes `entry.json` and a new `v1/index.json` into the bucket; clients see the release when the index changes. Versions are immutable: a release is never overwritten, a fix is a new version.

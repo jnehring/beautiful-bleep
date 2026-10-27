@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 #include <cctype>
 #include <cstdlib>
+#include "Account.h"
 #include "Client.h"
 #include "../common/SafeJson.h"
 
@@ -17,12 +18,18 @@ namespace {
 constexpr size_t kMaxJsonBytes = size_t(16) << 20;      // an index, an entry, a list
 constexpr size_t kMaxPackageBytes = size_t(1024) << 20;  // a module or a plugin
 
-bool fetchBytes(const juce::String& address, std::vector<uint8_t>& out, std::string& error, size_t maxBytes = kMaxPackageBytes) {
+bool fetchBytes(const juce::String& address, std::vector<uint8_t>& out, std::string& error, size_t maxBytes = kMaxPackageBytes, const std::string& bearer = {}) {
     int status = 0;
     const juce::URL url(address);
+    // The dev channel is for signed-in accounts: the personal token goes in a header.
+    const juce::String headers = bearer.empty() ? juce::String() : "Authorization: Bearer " + juce::String(bearer);
     auto stream = url.createInputStream(juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
-                                            .withConnectionTimeoutMs(15000).withStatusCode(&status).withNumRedirectsToFollow(5));
+                                            .withExtraHeaders(headers).withConnectionTimeoutMs(15000).withStatusCode(&status).withNumRedirectsToFollow(5));
     if (!stream) { error = "cannot reach " + address.toStdString(); return false; }
+    if ((status == 401 || status == 403) && address.contains("/api/registry/dev/")) {
+        error = "the dev channel needs a signed-in account with dev access (sign in under Account; ask for access)";
+        return false;
+    }
     if (status >= 400) { error = address.toStdString() + ": " + std::to_string(status); return false; }
     const auto announced = stream->getTotalLength();
     if (announced > 0 && (uint64_t)announced > maxBytes) { error = address.toStdString() + " is too large"; return false; }
@@ -33,9 +40,9 @@ bool fetchBytes(const juce::String& address, std::vector<uint8_t>& out, std::str
     return true;
 }
 
-bool fetchJson(const juce::String& address, juce::var& out, std::string& error) {
+bool fetchJson(const juce::String& address, juce::var& out, std::string& error, const std::string& bearer = {}) {
     std::vector<uint8_t> bytes;
-    if (!fetchBytes(address, bytes, error, kMaxJsonBytes)) return false;
+    if (!fetchBytes(address, bytes, error, kMaxJsonBytes, bearer)) return false;
     out = bleep::safejson::parse(juce::String::fromUTF8(reinterpret_cast<const char*>(bytes.data()), (int)bytes.size()));
     if (out.isVoid()) { error = address.toStdString() + " is not JSON"; return false; }
     return true;
@@ -43,14 +50,28 @@ bool fetchJson(const juce::String& address, juce::var& out, std::string& error) 
 
 std::string str(const juce::var& v) { return v.isString() ? v.toString().toStdString() : std::string(); }
 
-/// "1.2.3" → a comparable number; -1 for anything else.
-long long versionKey(const std::string& v) {
-    // "1.2.3", or "1.2.3-dev": a development build (bleep package), which ranks above the release of the same number.
+/// A version as a comparable key. "1.2.3" is a release; "1.2.3-dev.202610271432" a development build, made at that time (YYYYMMDDHHMM);
+/// a plain "1.2.3-dev" (bleep package on this machine) is one without a build time. A development build ranks above the release of
+/// the same number, and development builds among themselves by their build time.
+struct VersionKey {
+    long long base = -1;    ///< major.minor.patch, then 1 for a development build; -1: not a version
+    long long build = 0;    ///< the build time of a development build
+    bool valid() const { return base >= 0; }
+    bool operator<(const VersionKey& o) const { return base != o.base ? base < o.base : build < o.build; }
+};
+
+VersionKey versionKey(const std::string& v) {
     int a = 0, b = 0, c = 0, used = 0;
-    if (std::sscanf(v.c_str(), "%d.%d.%d%n", &a, &b, &c, &used) != 3) return -1;
-    const bool dev = v.compare(used, std::string::npos, "-dev") == 0;
-    if (!dev && v.size() != (size_t)used) return -1;
-    return ((((long long)a << 40) | ((long long)b << 20) | c) << 1) | (dev ? 1 : 0);
+    if (std::sscanf(v.c_str(), "%d.%d.%d%n", &a, &b, &c, &used) != 3 || a < 0 || b < 0 || c < 0) return {};
+    const std::string rest = v.substr((size_t)used);
+    long long build = 0;
+    bool dev = false;
+    if (rest == "-dev") dev = true;
+    else if (rest.size() == 17 && rest.compare(0, 5, "-dev.") == 0 && std::all_of(rest.begin() + 5, rest.end(), [](unsigned char ch) { return std::isdigit(ch); })) {
+        dev = true;
+        build = std::atoll(rest.c_str() + 5);
+    } else if (!rest.empty()) return {};
+    return { ((((long long)a << 40) | ((long long)b << 20) | c) << 1) | (dev ? 1 : 0), build };
 }
 
 /// A slug or version becomes a folder name: no separators, no "..", nothing that could leave the modules folder.
@@ -61,14 +82,16 @@ bool safeSlug(const std::string& s) {
     return true;
 }
 
-bool safeVersion(const std::string& v) {  // exactly "1.2.3"
+bool safeVersion(const std::string& v) {  // exactly "1.2.3", or "1.2.3-dev.202610271432"
+    const std::string number = v.substr(0, v.find("-dev."));
+    if (number.size() != v.size() && (v.size() != number.size() + 17 || !versionKey(v).valid())) return false;
     int dots = 0;
-    if (v.empty() || v.size() > 32 || v.front() == '.' || v.back() == '.') return false;
-    for (const char c : v) {
+    if (number.empty() || number.size() > 32 || number.front() == '.' || number.back() == '.') return false;
+    for (const char c : number) {
         if (c == '.') { if (++dots > 2) return false; }
         else if (!std::isdigit((unsigned char)c)) return false;
     }
-    return dots == 2 && v.find("..") == std::string::npos;
+    return dots == 2 && number.find("..") == std::string::npos;
 }
 
 bool isInside(const juce::File& child, const juce::File& root) { return child != root && child.isAChildOf(root); }
@@ -168,6 +191,7 @@ Settings Settings::load(const juce::File& dataDir) {
     if (v["channel"].isString()) s.channel = str(v["channel"]);
     s.firstRunDone = v["firstRunDone"].isBool() && (bool)v["firstRunDone"];
     if (v["updateCheck"].isBool()) s.updateCheck = (bool)v["updateCheck"];
+    if (v["autoUpdate"].isBool()) s.autoUpdate = (bool)v["autoUpdate"];
     return s;
 }
 
@@ -177,6 +201,7 @@ bool Settings::save(const juce::File& dataDir) const {
     o->setProperty("channel", juce::String(channel));
     o->setProperty("firstRunDone", firstRunDone);
     o->setProperty("updateCheck", updateCheck);
+    o->setProperty("autoUpdate", autoUpdate);
     dataDir.createDirectory();
     return dataDir.getChildFile("settings.json").replaceWithText(juce::JSON::toString(juce::var(o)));
 }
@@ -203,7 +228,15 @@ Client::Client(Settings settings, juce::File dataDir, int64_t now)
 juce::String Client::url(const std::string& path) const {
     juce::String base(settings_.libraryUrl);
     if (!base.endsWithChar('/')) base << '/';
-    return base + "registry/v1/" + juce::String(path);
+    // The dev channel is only served to accounts with dev access, by the library's API (/api/registry/dev/).
+    return base + (settings_.channel == "dev" ? "api/registry/dev/v1/" : "registry/v1/") + juce::String(path);
+}
+
+std::string Client::bearer() const {
+    if (settings_.channel != "dev") return {};
+    std::string account = settings_.libraryUrl;
+    while (!account.empty() && account.back() == '/') account.pop_back();
+    return makeTokenStore(dataDir_)->load(account);   // the sign-in of the app and the plugins (Account)
 }
 
 juce::File Client::modulesFolder(const std::string& source) const { return dataDir_.getChildFile("modules").getChildFile(source); }
@@ -241,13 +274,13 @@ bool parseIndex(const juce::var& json, const std::string& channel, Index& out, s
 }  // namespace
 
 bool versionNewer(const std::string& a, const std::string& b) {
-    const long long x = versionKey(a), y = versionKey(b);
-    return x >= 0 && y >= 0 && x > y;
+    const VersionKey x = versionKey(a), y = versionKey(b);
+    return x.valid() && y.valid() && y < x;
 }
 
 bool Client::fetchIndex(Index& out, std::string& error) const {
     juce::var json;
-    if (!fetchJson(url("index.json"), json, error)) return false;
+    if (!fetchJson(url("index.json"), json, error, bearer())) return false;
     if (!parseIndex(json, settings_.channel, out, error)) return false;
     // Keep what was fetched, so the next start (or no network) still knows the library. A failure to write is not the library's fault.
     const auto file = dataDir_.getChildFile("cache").getChildFile("index.json");
@@ -308,7 +341,7 @@ bool Client::installVersion(const std::string& slug, const std::string& version,
 
 bool Client::installEntry(const std::string& slug, const std::string& entryPath, const std::string& expectVersion, bool pruneOlder, InstalledModule& out, std::string& error) const {
     juce::var entry;
-    if (!fetchJson(url(entryPath), entry, error)) return false;
+    if (!fetchJson(url(entryPath), entry, error, bearer())) return false;
     juce::var file;
     if (auto* files = entry["files"].getArray())
         for (const auto& f : *files)
@@ -321,7 +354,7 @@ bool Client::installEntry(const std::string& slug, const std::string& entryPath,
     if (path.empty() || path.find('/') != std::string::npos || path.find("..") != std::string::npos) { error = "a bad file name in the entry"; return false; }
     const std::string dir = entryPath.substr(0, entryPath.rfind('/') + 1);
     std::vector<uint8_t> bytes;
-    if (!fetchBytes(url(dir + path), bytes, error)) return false;
+    if (!fetchBytes(url(dir + path), bytes, error, kMaxPackageBytes, bearer())) return false;
     const Digest sha = sha256(bytes.data(), bytes.size());
     if (toHex(sha.data(), 32) != str(file["sha256"])) { error = "the download is not the file the library lists"; return false; }
     if (!check(bytes, slug, version, file["uploaded"].isBool() && (bool)file["uploaded"], out, error)) return false;
@@ -352,7 +385,7 @@ bool Client::installPlugin(const std::string& slug, const juce::File& folder, st
     for (const auto& x : index.plugins) if (x.slug == slug) p = &x;
     if (!p) { error = "the library has no plugin " + slug; return false; }
     juce::var entry;
-    if (!fetchJson(url(p->entry), entry, error)) return false;
+    if (!fetchJson(url(p->entry), entry, error, bearer())) return false;
     const std::string platform = platformId();
     juce::var file;
     if (auto* files = entry["files"].getArray())
@@ -364,7 +397,7 @@ bool Client::installPlugin(const std::string& slug, const juce::File& folder, st
     if (!safeVersion(version)) { error = "a bad version in the entry of " + slug; return false; }
     if (path.empty() || path.find('/') != std::string::npos || path.find("..") != std::string::npos) { error = "a bad file name in the entry"; return false; }
     std::vector<uint8_t> bytes;
-    if (!fetchBytes(url(p->entry.substr(0, p->entry.rfind('/') + 1) + path), bytes, error)) return false;
+    if (!fetchBytes(url(p->entry.substr(0, p->entry.rfind('/') + 1) + path), bytes, error, kMaxPackageBytes, bearer())) return false;
     const Digest sha = sha256(bytes.data(), bytes.size());
     if (toHex(sha.data(), 32) != str(file["sha256"])) { error = "the download is not the file the library lists"; return false; }
     const juce::File temp = dataDir_.getChildFile("tmp").getChildFile(juce::String(slug) + "-" + juce::String::toHexString(juce::Random::getSystemRandom().nextInt()));
@@ -468,11 +501,11 @@ std::vector<InstalledModule> Client::installed(bool recheck, bool allVersions) c
     for (const auto& slugDir : modulesFolder("registry").findChildFiles(juce::File::findDirectories, false)) {
         const std::string slug = slugDir.getFileName().toStdString();
         juce::File best;
-        long long bestKey = -1;
+        VersionKey bestKey;
         for (const auto& v : slugDir.findChildFiles(juce::File::findDirectories, false)) {
             const std::string version = v.getFileName().toStdString();
-            if (allVersions && versionKey(version) >= 0) consider(v.getChildFile(juce::String(slug) + "-" + juce::String(version) + ".bleepmod"), slug, version, "registry");
-            else if (versionKey(version) > bestKey) { bestKey = versionKey(version); best = v; }
+            if (allVersions && versionKey(version).valid()) consider(v.getChildFile(juce::String(slug) + "-" + juce::String(version) + ".bleepmod"), slug, version, "registry");
+            else if (bestKey < versionKey(version)) { bestKey = versionKey(version); best = v; }
         }
         if (!best.isDirectory()) continue;
         const std::string version = best.getFileName().toStdString();
@@ -481,11 +514,13 @@ std::vector<InstalledModule> Client::installed(bool recheck, bool allVersions) c
     // copied by hand: <slug>-<version>.bleepmod (a file that does not say its version is taken as 0.0.0)
     for (const auto& f : modulesFolder("local").findChildFiles(juce::File::findFiles, false, "*.bleepmod")) {
         std::string name = f.getFileNameWithoutExtension().toStdString();
-        const bool dev = name.size() > 4 && name.compare(name.size() - 4, 4, "-dev") == 0;
-        if (dev) name.resize(name.size() - 4);
+        std::string suffix;   // "-dev", or "-dev.202610271432": a development build
+        const auto stamp = name.rfind("-dev.");
+        if (stamp != std::string::npos && name.size() - stamp == 17) { suffix = name.substr(stamp); name.resize(stamp); }
+        else if (name.size() > 4 && name.compare(name.size() - 4, 4, "-dev") == 0) { suffix = "-dev"; name.resize(name.size() - 4); }
         const auto dash = name.rfind('-');
-        const std::string slug = dash == std::string::npos ? name : name.substr(0, dash), version = dash == std::string::npos ? "" : name.substr(dash + 1) + (dev ? "-dev" : "");
-        consider(f, slug, versionKey(version) >= 0 ? version : "0.0.0", "local");
+        const std::string slug = dash == std::string::npos ? name : name.substr(0, dash), version = dash == std::string::npos ? "" : name.substr(dash + 1) + suffix;
+        consider(f, slug, versionKey(version).valid() ? version : "0.0.0", "local");
     }
     {   // forget what is no longer installed
         std::lock_guard<std::mutex> l(cacheMutex);

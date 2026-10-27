@@ -26,6 +26,15 @@ Modules: `release.py --modules --level patch` releases the packaged modules (bui
 package-module.py; `--package` makes them first). Each module counts its own version; one whose content did not change
 since its newest published version is skipped, so only what changed is released.
 
+Development builds (the CI after every push): --dev releases into the dev channel, which only accounts with dev access see.
+    scripts/release/release.py --all --dev                  plugins; each plugin counts from its newest public version
+    scripts/release/release.py --modules --dev              modules, all but the unchanged ones
+    scripts/release/release.py --all --dev --add-platform latest      the same build, from another machine
+The version is the next patch after the newest public version with the build time: 1.4.3 -> 1.4.4-dev.202610271432. The build time is
+the time of the commit being built (UTC, --build-time overrides it), the same on every machine that builds it, so Linux, macOS and
+Windows builds of one commit end up in one release. A development build ranks above the release of its number and among its kind by
+build time; the library keeps the newest 20 of each plugin and module. The token must be one that may release into dev.
+
 Token: a release token an admin created with
     docker compose exec api python -m app.cli token-create NAME
 read from $BLEEP_RELEASE_TOKEN or --token-file. It is never accepted as an argument, which would
@@ -109,6 +118,25 @@ def parse_version(v: str) -> tuple[int, int, int]:
     return int(m[1]), int(m[2]), int(m[3])
 
 
+DEV_VERSION = re.compile(r"(\d+\.\d+\.\d+)-dev\.(\d{12})")
+
+
+def build_time() -> str:
+    """The time of the commit being built, UTC as YYYYMMDDHHMM: the same on every machine that builds it (now, outside a repository)."""
+    import datetime
+    try:
+        out = subprocess.run(["git", "-C", str(ROOT), "show", "-s", "--format=%ct", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+        moment = datetime.datetime.fromtimestamp(int(out), datetime.timezone.utc)
+    except (subprocess.CalledProcessError, OSError, ValueError):
+        moment = datetime.datetime.now(datetime.timezone.utc)
+    return moment.strftime("%Y%m%d%H%M")
+
+
+def dev_version(published: list[str], stamp: str) -> str:
+    """The development build after the newest public version: 1.4.3 -> 1.4.4-dev.<stamp> (nothing published: 0.1.0-dev.<stamp>)."""
+    return f"{next_version('patch', published)}-dev.{stamp}"
+
+
 def next_version(level: str, published: list[str]) -> str:
     """The next version at `level` (see the module doc) given the published versions."""
     have = sorted(parse_version(v) for v in published)
@@ -172,6 +200,15 @@ class Registry:
 
     def versions(self, slug: str, kind: str = "plugin") -> list[str]:
         return [v["version"] for v in self._request("GET", f"/{kind}/{slug}/versions")]
+
+    def newest(self, slug: str, kind: str = "plugin", dev: bool = False) -> dict | None:
+        """The newest published release {version, channel, files: [{path, sha256, platform}]}, development builds counted with `dev`; None if there is none."""
+        try:
+            return self._request("GET", f"/{kind}/{slug}/newest?channel={'dev' if dev else 'stable'}")
+        except RegistryError as e:
+            if " 404 " in str(e):
+                return None
+            raise
 
     def entry(self, slug: str, version: str, kind: str = "plugin") -> dict | None:
         """The published entry.json of a release (what clients read), or None if there is none."""
@@ -282,13 +319,19 @@ def release_modules(args, registry: "Registry") -> int:
             pkg = pdir / f"{slug}.bleepmod"
             digest = sha256(pkg)  # the package zip is reproducible: the same inputs give the same bytes
             published = sorted(registry.versions(slug, "module"), key=parse_version)
+            if args.dev:   # compared with the newest of all: a development build, or the release it would otherwise repeat
+                newest = registry.newest(slug, "module", dev=True)
+                same = newest is not None and any(f.get("sha256") == digest for f in newest["files"])
+                plan.append((slug, pkg, newest["version"] if newest else None, None if same and not args.force else dev_version(published, args.build_time)))
+                continue
             newest = registry.entry(slug, published[-1], "module") if published else None
             same = newest is not None and any(f.get("sha256") == digest for f in newest["files"])
             plan.append((slug, pkg, published[-1] if published else None, None if same and not args.force else next_version(args.level, published)))
     except RegistryError as e:
         sys.exit(str(e))
     todo = [p for p in plan if p[3]]
-    print(f"Library {args.registry}, modules, channel {args.channel}, level {args.level}: {len(todo)} to release, {len(plan) - len(todo)} unchanged")
+    print(f"Library {args.registry}, modules, channel {args.channel}, " + (f"build {args.build_time}" if args.dev else f"level {args.level}") +
+          f": {len(todo)} to release, {len(plan) - len(todo)} unchanged")
     for slug, pkg, old, new in plan:
         print(f"  {slug:22} {(old or 'none'):>8} -> {new or 'unchanged'}")
     if args.dry_run or not todo:
@@ -311,7 +354,7 @@ def release_modules(args, registry: "Registry") -> int:
             return 1
         done += 1
         print(f"  {slug} {old or 'none'} -> {version}: published ({pkg.stat().st_size / 1024:.0f} KB)")
-    print(f"Index: {args.registry.rstrip('/')}/registry/v1/index.json")
+    print(f"Index: {args.registry.rstrip('/')}/registry/v1/index.json" if not args.dev else "Released into the dev channel.")
     return 0
 
 
@@ -348,6 +391,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="the website's URL (or registry in config/bleep.local.json, $BLEEP_REGISTRY_URL; default: libraryUrl of config/library.json)")
     ap.add_argument("--token-file", help="file holding the release token (or releaseTokenFile in the config, $BLEEP_RELEASE_TOKEN)")
     ap.add_argument("--channel", choices=("stable", "beta"), default=settings.get("channel", "stable"))
+    ap.add_argument("--dev", action="store_true", help="a development build into the dev channel: next patch after the public version, -dev.<build time> (no --level)")
+    ap.add_argument("--build-time", metavar="YYYYMMDDHHMM", help="with --dev: the build time in the version (default: the time of HEAD's commit, UTC)")
     ap.add_argument("--notes", default="", help="release notes")
     ap.add_argument("--build-dir", type=Path, default=ROOT / "build" / "patch")
     ap.add_argument("--config", default="Release", help="build configuration of the artefacts (default Release)")
@@ -355,6 +400,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--dry-run", action="store_true", help="show what would be released; change nothing")
     ap.add_argument("-y", "--yes", action="store_true", help="do not ask for confirmation")
     args = ap.parse_args(argv)
+    if args.dev:
+        args.channel = "dev"
+        if not args.add_platform:
+            args.level = args.level or "patch"
+        args.build_time = args.build_time or build_time()
+        if not re.fullmatch(r"\d{12}", args.build_time):
+            ap.error("--build-time is YYYYMMDDHHMM")
+    elif args.build_time:
+        ap.error("--build-time is for --dev")
 
     if args.list:
         for slug, (title, _) in PLUGINS.items():
@@ -384,7 +438,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.level:
             ap.error("--level and --add-platform are exclusive")
         try:
-            if args.add_platform != "latest":
+            if args.add_platform != "latest" and not args.dev:
                 parse_version(args.add_platform)
         except ValueError as e:
             ap.error(str(e))
@@ -410,6 +464,22 @@ def main(argv: list[str] | None = None) -> int:
             if artefact is None:
                 sys.exit(f"{slug}: no build at {args.build_dir / PLUGINS[slug][1].format(cfg=args.config)} (run ./bleep build plugins, or pass --build)")
             published = registry.versions(slug)
+            if args.dev:
+                newest = registry.newest(slug, dev=True)
+                version = dev_version(published, args.build_time)
+                have = newest["version"] if newest else None
+                if args.add_platform:   # this commit's build, made by the machine that releases first
+                    if not (have and have.endswith(f"-dev.{args.build_time}")):
+                        sys.exit(f"{slug}: the dev build {version} is not published yet; release it first (newest: {have or 'none'})")
+                    if any(f["platform"] == platform_id() for f in newest["files"]):
+                        print(f"  {slug}: {have} has {platform_id()} already")   # a repeated run for the same commit
+                        continue
+                    plan.append((slug, artefact, published, have))
+                elif have and have.endswith(f"-dev.{args.build_time}"):
+                    print(f"  {slug}: {have} is already released")   # a repeated run for the same commit
+                else:
+                    plan.append((slug, artefact, published, version))
+                continue
             if args.add_platform:
                 target = max(published, key=parse_version) if args.add_platform == "latest" and published else args.add_platform
                 if target not in published:
@@ -421,11 +491,11 @@ def main(argv: list[str] | None = None) -> int:
         sys.exit(str(e))
     plat = platform_id()
     print(f"Registry {args.registry}, " + (f"adding platform {plat} to {args.add_platform}" if args.add_platform
-          else f"channel {args.channel}, level {args.level}, platform {plat}"))
+          else f"channel {args.channel}, " + (f"build {args.build_time}" if args.dev else f"level {args.level}") + f", platform {plat}"))
     for slug, artefact, published, version in plan:
         print(f"  {slug:22} {(published[-1] if published else 'none'):>8} -> {version}   {artefact.relative_to(ROOT) if artefact.is_relative_to(ROOT) else artefact}")
-    if args.dry_run:
-        print("Dry run: nothing uploaded.")
+    if args.dry_run or not plan:
+        print("Dry run: nothing uploaded." if args.dry_run else "Nothing to release.")
         return 0
     if not args.yes and input("Release these? [y/N] ").strip().lower() != "y":
         print("Cancelled.")
@@ -452,7 +522,7 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         done += 1
         print(f"  {slug} {old} -> {version}: published ({zip_path.stat().st_size / 1e6:.1f} MB)")
-    print(f"Index: {args.registry.rstrip('/')}/registry/v1/index.json")
+    print("Released into the dev channel." if args.dev else f"Index: {args.registry.rstrip('/')}/registry/v1/index.json")
     return 0
 
 

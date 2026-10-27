@@ -186,6 +186,7 @@ private:
     std::vector<std::shared_ptr<PortSlot>> instances_;
     std::atomic<PortSlot*> table_[kMaxInstances] = {};
     int mainHandle_ = 0;
+    int libraryTicks_ = 0;   ///< timer ticks since the library was asked for module updates (Settings → Library → automatic updates)
     std::string uiLast_;       ///< the last uiCall result, for callers whose buffer was too small
     bool implicit_ = false;    ///< a board kept for cell plugins while there is no Bleep Board
     double sampleRate_ = 48000.0;              ///< message thread: what modules are prepared for

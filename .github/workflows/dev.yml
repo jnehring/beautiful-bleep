@@ -1,0 +1,92 @@
+# SPDX-License-Identifier: MIT
+#
+# Dev builds: every push to main is tested, built and released into the library's dev channel (doc/operations/dev-builds.md).
+# Accounts with dev access install them from Bleep App (Settings -> Library -> Channel: dev); with "Install module updates
+# automatically" a running Ableton Live picks up a new module within a minute.
+#
+# As much as possible runs on the self-hosted runner on our Linux server: the tests, the modules (WebAssembly, the same for
+# every system) and the Linux plugins and app. Only what needs another operating system is built on GitHub's runners and added
+# to the release the server made: macOS and Windows. The version is 1.4.4-dev.<commit time>: every machine works that out from
+# the commit, so the three builds of one commit end up in one release (scripts/release/release.py, --dev).
+#
+# Setup: Settings -> Environments -> New environment "dev" (no reviewers: this must run by itself), with the variable
+# BLEEP_REGISTRY_URL (the website's https address) and the secret BLEEP_DEV_TOKEN, a release token that may only release into
+# the dev channel:  docker compose exec api python -m app.cli token-create ci-dev --channels dev
+# The secrets are only handed to the release step, never to the build, which compiles other people's code (JUCE, Link).
+name: Dev build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One build at a time; a newer push waits for the running one instead of cutting a release in half. Of several waiting,
+# only the newest runs.
+concurrency:
+  group: dev-build
+  cancel-in-progress: false
+
+jobs:
+  server:
+    name: Linux server (tests, modules, Linux plugins)
+    runs-on: [self-hosted, bleep-server]
+    environment: dev
+    timeout-minutes: 90
+    env:
+      BLEEP_WEB_DOCKER: "1"   # the modules are built in the Emscripten image: nothing but Docker is needed on the server
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - run: ./bleep test js presets
+      - run: ./bleep test native
+      # The build rewrites the generated type list; a difference means the committed copy was stale.
+      - name: demo-types.json is current
+        run: git diff --exit-code -- patch/board/ui/demo-types.json
+      - name: Build the modules
+        run: ./bleep build modules
+      - name: Build the plugins and the app
+        run: |
+          cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3
+          cmake --build build/patch --config Release --parallel
+      - name: Release modules and plugins into the dev channel
+        env:
+          BLEEP_REGISTRY_URL: ${{ vars.BLEEP_REGISTRY_URL }}
+          BLEEP_RELEASE_TOKEN: ${{ secrets.BLEEP_DEV_TOKEN }}
+        run: |
+          # unchanged modules are skipped; the plugins of this commit are released once (a re-run is a no-op)
+          ./bleep release modules --dev --no-build -y
+          python3 scripts/release/release.py --all --dev --yes
+
+  other-systems:
+    name: Plugins (${{ matrix.os }})
+    needs: server
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, windows-latest]
+    runs-on: ${{ matrix.os }}
+    environment: dev
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Build (macOS)
+        if: runner.os == 'macOS'
+        run: ./bleep build plugins --plugins-only --no-install
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3
+          cmake --build build/patch --config Release --parallel
+      - name: Add this system to the dev build of the commit
+        shell: bash
+        env:
+          BLEEP_REGISTRY_URL: ${{ vars.BLEEP_REGISTRY_URL }}
+          BLEEP_RELEASE_TOKEN: ${{ secrets.BLEEP_DEV_TOKEN }}
+        run: ${{ runner.os == 'Windows' && 'python' || 'python3' }} scripts/release/release.py --all --dev --add-platform latest --yes

@@ -25,7 +25,7 @@ def create_token(body: TokenIn, db: Session = Depends(get_db), admin: User = Dep
     """Creates a release token. The token itself is in this response only; the database keeps its hash."""
     token = "blp_" + secrets.token_urlsafe(32)
     row = ApiToken(
-        name=body.name, prefix=token[:8], token_hash=hash_token(token), scope="release", created_by=admin.id,
+        name=body.name, prefix=token[:8], token_hash=hash_token(token), scope="release", channels=body.channels, created_by=admin.id,
         expires_at=now() + timedelta(days=body.expires_in_days) if body.expires_in_days else None,
     )
     db.add(row)

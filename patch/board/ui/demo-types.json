@@ -58537,10 +58537,10 @@
   },
   {
     "type": "instrument",
-    "name": "Bleep Instrument",
+    "name": "Bleep Instrument Input",
     "category": "Ports",
     "colour": "#60a5fa",
-    "description": "MIDI In and Audio Out in one plugin (Bleep Instrument).",
+    "description": "The MIDI, transport and macros of a Bleep Instrument. Patch an instrument after it and into the Bleep Instrument Output.",
     "port": "instrument",
     "creatable": false,
     "standaloneOnly": false,
@@ -58691,20 +58691,7 @@
         "decimals": 2
       }
     ],
-    "inputs": [
-      {
-        "id": "l",
-        "name": "Audio L",
-        "type": "audio",
-        "bipolar": true
-      },
-      {
-        "id": "r",
-        "name": "Audio R",
-        "type": "audio",
-        "bipolar": true
-      }
-    ],
+    "inputs": [],
     "outputs": [
       {
         "id": "notes",
@@ -58863,6 +58850,32 @@
         "bipolar": false
       }
     ]
+  },
+  {
+    "type": "instrument-out",
+    "name": "Bleep Instrument Output",
+    "category": "Ports",
+    "colour": "#60a5fa",
+    "description": "The audio of a Bleep Instrument, to its track.",
+    "port": "instrument",
+    "creatable": false,
+    "standaloneOnly": false,
+    "params": [],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "Audio L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Audio R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": []
   },
   {
     "type": "midi-device",
@@ -59463,38 +59476,25 @@
   },
   {
     "type": "audio-insert",
-    "name": "Bleep FX",
+    "name": "Bleep FX Input",
     "category": "Ports",
     "colour": "#60a5fa",
-    "description": "A track's audio through the board and back (Bleep FX).",
+    "description": "The track's audio and the macros of a Bleep FX. Patch an effect after it and into the Bleep FX Output.",
     "port": "audio-insert",
     "creatable": false,
     "standaloneOnly": false,
     "params": [],
-    "inputs": [
-      {
-        "id": "l",
-        "name": "Return L",
-        "type": "audio",
-        "bipolar": true
-      },
-      {
-        "id": "r",
-        "name": "Return R",
-        "type": "audio",
-        "bipolar": true
-      }
-    ],
+    "inputs": [],
     "outputs": [
       {
         "id": "l",
-        "name": "Send L",
+        "name": "L",
         "type": "audio",
         "bipolar": true
       },
       {
         "id": "r",
-        "name": "Send R",
+        "name": "R",
         "type": "audio",
         "bipolar": true
       },
@@ -59547,6 +59547,32 @@
         "bipolar": false
       }
     ]
+  },
+  {
+    "type": "audio-insert-out",
+    "name": "Bleep FX Output",
+    "category": "Ports",
+    "colour": "#60a5fa",
+    "description": "The audio of a Bleep FX, back to its track.",
+    "port": "audio-insert",
+    "creatable": false,
+    "standaloneOnly": false,
+    "params": [],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": []
   },
   {
     "type": "audio-bridge",

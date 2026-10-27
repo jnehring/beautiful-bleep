@@ -80,10 +80,12 @@
     return { tile: t, body: b };
   }
 
-  const newer = (a, b) => {  // is version a newer than b ("1.2.3-dev", a development build, is above the release 1.2.3)
-    const x = a.split(".").map((n) => parseInt(n, 10)), y = b.split(".").map((n) => parseInt(n, 10));
-    for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0);
-    return a.endsWith("-dev") && !b.endsWith("-dev");
+  const newer = (a, b) => {  // is version a newer than b ("1.2.3-dev.202610271432", a development build, is above the release 1.2.3)
+    const parse = (v) => { const m = /^(\d+)\.(\d+)\.(\d+)(-dev(?:\.(\d{12}))?)?$/.exec(v); return m && [+m[1], +m[2], +m[3], m[4] ? 1 : 0, +(m[5] || 0)]; };
+    const x = parse(a), y = parse(b);
+    if (!x || !y) return false;
+    for (let i = 0; i < 5; i++) if (x[i] !== y[i]) return x[i] > y[i];
+    return false;
   };
 
   /// The modules installed from the library for which the library offers a newer version: [{ slug, title, have, offer }].

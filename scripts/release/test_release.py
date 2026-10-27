@@ -41,6 +41,17 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class DevVersions(unittest.TestCase):
+    def test_the_version_after_the_public_one(self):
+        self.assertEqual(release.dev_version(["1.4.2", "1.4.3"], "202610271432"), "1.4.4-dev.202610271432")
+        self.assertEqual(release.dev_version([], "202610271432"), "0.1.0-dev.202610271432")
+
+    def test_the_build_time_is_the_commit_time_in_utc(self):
+        with mock.patch.object(release.subprocess, "run") as run:
+            run.return_value.stdout = "1792000000\n"   # 2026-10-14 17:46:40 UTC
+            self.assertEqual(release.build_time(), "202610141746")
+
+
 class Pinning(unittest.TestCase):
     def test_plain_http_is_for_localhost_only(self):
         release.Registry("https://library.example", "t")
@@ -58,8 +69,11 @@ class FakeLibrary:
         self.published, self.token, self.released = published, "t", []
 
     def check_token(self): pass
-    def versions(self, slug, kind="plugin"): return list(self.published.get(slug, {}))
+    def versions(self, slug, kind="plugin"): return [v for v in self.published.get(slug, {}) if "-dev" not in v]   # the public ones
     def entry(self, slug, version, kind="plugin"): return self.published.get(slug, {}).get(version)
+    def newest(self, slug, kind="plugin", dev=False):
+        have = self.published.get(slug, {})
+        return {"version": max(have, key=lambda v: (release.parse_version(v.split("-")[0]), "-dev" in v, v)), "files": list(have[max(have, key=lambda v: (release.parse_version(v.split("-")[0]), "-dev" in v, v))]["files"])} if have else None
 
     def release(self, slug, version, channel, title, notes, files, kind="plugin", summary="", category="", image=None, license="", origin=None):
         self.licenses = getattr(self, "licenses", {}) | {slug: (license, origin)}
@@ -86,10 +100,10 @@ class ReleaseModules(unittest.TestCase):
                 z.writestr("doc/alpha.png", b"\x89PNG\r\n\x1a\nalpha")
         self.digests[slug] = release.sha256(self.dir / f"{slug}.bleepmod")
 
-    def run_release(self, published, *names, force=False, dry=False, level="patch"):
+    def run_release(self, published, *names, force=False, dry=False, level="patch", dev=False):
         library = FakeLibrary(published)
-        args = argparse.Namespace(packages=self.dir, package=False, plugins=list(names), level=level, channel="stable", notes="", force=force,
-                                  dry_run=dry, yes=True, registry="http://library")
+        args = argparse.Namespace(packages=self.dir, package=False, plugins=list(names), level=level, channel="dev" if dev else "stable", notes="", force=force,
+                                  dry_run=dry, yes=True, registry="http://library", dev=dev, build_time="202610271432")
         out = io.StringIO()
         with redirect_stdout(out):
             code = release.release_modules(args, library)
@@ -136,6 +150,20 @@ class ReleaseModules(unittest.TestCase):
     def test_the_licence_of_the_package_goes_to_the_store(self):
         _, library, _ = self.run_release({}, "alpha", level="x")
         self.assertEqual(library.licenses["alpha"], ("MIT", None))  # a package that states none is MIT (package-module.py)
+
+    def test_development_builds_count_from_the_public_version_and_carry_the_build_time(self):
+        published = {"alpha": {"1.2.3": self.entry("alpha")}, "beta": {"1.0.0": self.entry("beta")}}
+        self.make("beta", b"new code of beta")
+        _, library, out = self.run_release(published, dev=True)
+        self.assertEqual([(s, v) for s, v, *_ in library.released], [("beta", "1.0.1-dev.202610271432")])   # alpha: as published
+        self.assertIn("1 to release, 1 unchanged", out)
+        _, library, _ = self.run_release({}, "alpha", dev=True)
+        self.assertEqual([(s, v) for s, v, *_ in library.released], [("alpha", "0.1.0-dev.202610271432")])
+
+    def test_a_package_equal_to_the_newest_development_build_is_not_released_again(self):
+        published = {"alpha": {"1.2.3": {"files": [{"sha256": "old"}]}, "1.2.4-dev.202610271400": self.entry("alpha")}}
+        _, library, _ = self.run_release(published, "alpha", dev=True)
+        self.assertEqual(library.released, [])
 
     def test_a_dry_run_releases_nothing(self):
         code, library, out = self.run_release({}, dry=True)

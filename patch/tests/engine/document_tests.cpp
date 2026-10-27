@@ -502,6 +502,41 @@ void pinnedVersions() {
     EXPECT(listed);
 }
 
+// ---- a module updated while its board runs (the Library installs a newer version, then the engine recompiles) --------------
+
+void updatedWhileRunning() {
+    g_test = "a module updated while its board runs";
+    auto spec = [](const char* version, float level) {
+        ModuleSpec m;
+        m.type = "hot-swap-test";
+        m.version = version;
+        m.name = "Hot Swap Test";
+        m.params = {ParamSpec::percent("a", "A", 0.0f, 1.0f, 0.5f)};
+        m.outputs = {{"out", "Out", Signal::Control}};
+        (void)level;
+        return m;
+    };
+    auto& reg = Registry::instance();
+    reg.add(spec("0.1.0-dev.202610271400", 1.0f), [](const ModuleSpec& s) { return std::make_unique<VersionedModule>(s); });
+    auto n = node("m", "hot-swap-test");
+    n.getDynamicObject()->setProperty("params", obj({{"a", 0.9}}));
+    const auto d = board::sanitise(doc({n}, {}));
+    std::map<std::string, std::shared_ptr<Module>> modules;
+    auto first = Program::compile(board::parse(d), modules, {}, kRate);
+    const auto before = modules["m"];
+    EXPECT(before && before->spec().version == "0.1.0-dev.202610271400");
+    auto same = Program::compile(board::parse(d), modules, {}, kRate);
+    EXPECT(modules["m"] == before);   // nothing new: the running module stays
+
+    // the update arrives: a newer build is registered, the board compiles again, the node runs the new build with its settings
+    reg.add(spec("0.1.0-dev.202610271500", 2.0f), [](const ModuleSpec& s) { return std::make_unique<VersionedModule>(s); });
+    auto next = Program::compile(board::parse(board::sanitise(d)), modules, {}, kRate);
+    EXPECT(modules["m"] != before && modules["m"]->spec().version == "0.1.0-dev.202610271500");
+    const auto model = board::parse(board::sanitise(d));
+    const auto* parsed = model.node("m");
+    EXPECT(parsed && std::fabs(parsed->params.at("a") - 0.9f) < 1e-5);
+}
+
 }  // namespace
 
 void runDocumentTests() {
@@ -515,4 +550,5 @@ void runDocumentTests() {
     persistenceAndDuplicates();
     undoRedo();
     pinnedVersions();
+    updatedWhileRunning();
 }

@@ -26,6 +26,7 @@ ENV = {
     "registry": "BLEEP_REGISTRY_URL",
     "releaseTokenFile": "BLEEP_RELEASE_TOKEN_FILE",
     "webOnly": "BLEEP_WEB_ONLY",
+    "webDocker": "BLEEP_WEB_DOCKER",   # "1": build the modules in the Emscripten Docker image (the CI server)
     "localModules": "BLEEP_LOCAL_MODULES",
 }
 # Keys that name files and may start with ~
@@ -50,6 +51,8 @@ def load() -> dict:
     for key, var in ENV.items():
         if os.environ.get(var):
             s[key] = os.environ[var]
+    if isinstance(s.get("webDocker"), str):   # from the environment
+        s["webDocker"] = s["webDocker"].lower() in ("1", "true", "yes", "on")
     if not s.get("registry"):
         s["registry"] = _read(CONFIG_DIR / "library.json").get("libraryUrl", "")
     for key in PATHS:

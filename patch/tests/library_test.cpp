@@ -219,6 +219,7 @@ void testClient(const juce::File& fixtures) {
     fixtures.getChildFile("valid.bleepmod").copyFileTo(local.getChildFile("handmade-0.1.0.bleepmod"));
     fixtures.getChildFile("valid.bleepmod").copyFileTo(local.getChildFile("renamed.bleepmod"));
     fixtures.getChildFile("valid.bleepmod").copyFileTo(local.getChildFile("hand-made-0.1.4-dev.bleepmod"));
+    fixtures.getChildFile("valid.bleepmod").copyFileTo(local.getChildFile("stamped-0.2.0-dev.202610271432.bleepmod"));
     fixtures.getChildFile("symlink.bleepmod").copyFileTo(local.getChildFile("broken-0.1.0.bleepmod"));
     {
         std::map<std::string, InstalledModule> by;
@@ -228,6 +229,11 @@ void testClient(const juce::File& fixtures) {
         CHECK(by["hand-made"].allowed && by["hand-made"].version == "0.1.4-dev", "a -dev version in the name is read: a slug with a dash, version 0.1.4-dev");
         CHECK(versionNewer("0.1.4-dev", "0.1.3") && versionNewer("0.1.4-dev", "0.1.4") && !versionNewer("0.1.4", "0.1.4-dev") && !versionNewer("0.1.3", "0.1.4-dev") && versionNewer("0.1.5", "0.1.4-dev"),
               "a -dev version ranks above the release of the same number, and below the next one");
+        CHECK(by["stamped"].allowed && by["stamped"].version == "0.2.0-dev.202610271432", "a dev version with a build time in the name is read: %s", by["stamped"].version.c_str());
+        CHECK(versionNewer("0.2.0-dev.202610271500", "0.2.0-dev.202610271432") && !versionNewer("0.2.0-dev.202610271432", "0.2.0-dev.202610271500") &&
+              versionNewer("0.2.0-dev.202610271432", "0.2.0") && versionNewer("0.2.0-dev.202610271432", "0.2.0-dev") && versionNewer("0.2.1", "0.2.0-dev.202610271432") &&
+              !versionNewer("0.2.0-dev.20261027", "0.2.0") && !versionNewer("1.0", "0.2.0"),
+              "development builds rank by their build time, above the release of their number and below the next one; malformed ones never rank");
         CHECK(by["renamed"].allowed && by["renamed"].version == "0.0.0", "one without its version in the name loads as 0.0.0");
         CHECK(!by["broken"].allowed && !by["broken"].why.empty(), "one that is not a safe package does not: %s", by["broken"].why.c_str());
     }

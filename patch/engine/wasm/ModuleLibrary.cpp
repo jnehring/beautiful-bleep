@@ -301,6 +301,36 @@ void ModuleLibrary::updateAllAsync(std::function<void(bool, std::string)> done) 
     }).detach();
 }
 
+void ModuleLibrary::autoUpdateTick() {
+    {
+        std::lock_guard<std::mutex> l(mutex_);
+        if (!settings_.autoUpdate || !busy_.empty() || autoUpdateRunning_) return;
+        autoUpdateRunning_ = true;
+    }
+    std::thread([this] {
+        const auto c = client();
+        library::Index index;
+        std::string error;
+        bool news = false;
+        if (c->fetchIndex(index, error)) {
+            std::map<std::string, std::string> have;
+            for (const auto& m : c->installed())
+                if (m.source == "registry") have[m.slug] = m.version;
+            for (const auto& m : index.modules) {
+                const auto it = have.find(m.slug);
+                news = news || (it != have.end() && library::versionNewer(m.version, it->second));
+            }
+        }
+        post([this, news] {
+            {
+                std::lock_guard<std::mutex> l(mutex_);
+                autoUpdateRunning_ = false;
+            }
+            if (news) updateAllAsync();
+        });
+    }).detach();
+}
+
 juce::var ModuleLibrary::status() {
     const auto c = client();
     if (library::Client::cacheStale()) recheckInstalledAsync();
@@ -322,6 +352,7 @@ juce::var ModuleLibrary::status() {
     s->setProperty("channel", juce::String(settings_.channel));
     s->setProperty("firstRunDone", settings_.firstRunDone);
     s->setProperty("updateCheck", settings_.updateCheck);
+    s->setProperty("autoUpdate", settings_.autoUpdate);
     o->setProperty("settings", juce::var(s));
     o->setProperty("dataDir", dataDir_.getFullPathName());
     juce::Array<juce::var> installed;

@@ -44,7 +44,11 @@ public:
     /// Installs every module the library offers that is not installed (the default module bundle).
     void installAllAsync(std::function<void(bool, std::string)> done = {});
     /// Updates every module installed from the library for which the library offers a newer version (local modules stay as they are).
+    /// The boards that are running recompile (onTypesChanged): the nodes of an updated module switch to the new version, with their settings.
     void updateAllAsync(std::function<void(bool, std::string)> done = {});
+    /// Called about once a minute on the message thread: with the setting `autoUpdate` on, looks for newer versions and installs them
+    /// (updateAllAsync). Does nothing while another install runs, and nothing at all when the library has no news.
+    void autoUpdateTick();
 
     /// Installs the plugin bundle (every VST3 plugin the library has for this platform) into the user's VST3 folder, on a worker
     /// thread. Refused while Ableton Live runs. The outcome is `pluginJob` in status().
@@ -85,6 +89,7 @@ private:
     int64_t indexAt_ = 0;           ///< unix seconds the saved index was fetched
     bool cacheTried_ = false;
     std::map<std::string, std::string> busy_;
+    bool autoUpdateRunning_ = false;   ///< autoUpdateTick is looking at the index
     std::set<std::string> registered_;   ///< "slug version" of the older versions already in the registry (message thread)
     struct PluginJob { std::string state = "idle", message; bool ok = false; } pluginJob_;   // idle | running | done
     std::atomic<bool> started_{false};

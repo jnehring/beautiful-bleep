@@ -399,3 +399,99 @@ def test_module_json_must_declare_types_and_abi(client, make_admin, capsys):
         files = {"module.json": json.dumps(bad).encode(), "module.wasm": b"\x00asm"}
         up = release_module(client, token, "mod-" + str(abs(hash(json.dumps(bad)))), "1.0.0", files)
         assert up.status_code == 422, bad
+
+
+# ---- the dev channel -------------------------------------------------------------------------------
+
+def dev_token(client, make_admin, channels=("dev",)):
+    login_as_admin(client, make_admin)
+    r = client.post("/api/admin/tokens", json={"name": "ci", "channels": list(channels)})
+    assert r.status_code == 201 and r.json()["channels"] == list(channels)
+    client.post("/api/auth/logout")
+    return r.json()["token"]
+
+
+def test_a_token_releases_only_into_its_channels(client, make_admin):
+    ci = dev_token(client, make_admin)
+    assert release(client, ci, version="0.1.0").status_code == 403                                  # stable: not for a CI token
+    assert release(client, ci, version="0.1.1", channel="dev").status_code == 422                   # a dev channel needs a dev version
+    assert release(client, ci, version="0.1.1-dev.202610271432", channel="stable").status_code == 422
+    assert release(client, ci, version="0.1.1-dev.202610271432", channel="dev").status_code == 200
+
+
+def test_dev_builds_rank_by_build_time_and_do_not_block_releases(client, make_admin):
+    ci = dev_token(client, make_admin)
+    assert release(client, ci, version="0.2.0-dev.202610271500", channel="dev").status_code == 200
+    assert release(client, ci, version="0.2.0-dev.202610271400", channel="dev").status_code == 409   # older build time
+    assert release(client, ci, version="0.2.0-dev.202610271600", channel="dev").status_code == 200
+    assert release(client, ci, version="0.1.9-dev.202611010000", channel="dev").status_code == 409   # lower number, later date
+    # the public side never sees them: not in the version list, not in the index, not in the library listing, not in /registry
+    assert client.post("/api/auth/login", json={"email": "admin@example.com", "password": "admin-password-1"}).status_code == 200
+    token = client.post("/api/admin/tokens", json={"name": "rel"}).json()["token"]
+    client.post("/api/auth/logout")
+    assert release(client, token, version="0.2.0").status_code == 200                                # the release of the same number is fine
+    assert client.get("/api/registry/plugin/bleep-board/versions").json() == [
+        {"version": "0.2.0", "channel": "stable", "published_at": client.get("/api/registry/plugin/bleep-board/versions").json()[0]["published_at"]}]
+    public = json.loads(get_storage().get("v1/index.json"))
+    assert "dev" not in public["channels"] and public["channels"]["beta"]["plugins"]["bleep-board"]["version"] == "0.2.0"
+    assert all(not k.startswith("v1/") or "dev." not in k for k in get_storage().objects)
+    assert [i["version"] for i in client.get("/api/library").json()["items"]] == ["0.2.0"]
+    assert client.get("/api/library/plugin/bleep-board").json()["releases"][0]["version"] == "0.2.0"
+
+
+def test_only_accounts_with_dev_access_get_the_dev_channel(client, make_admin):
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from tests.test_api import PW
+    ci = dev_token(client, make_admin)
+    assert release(client, ci, version="0.3.0-dev.202610271500", channel="dev").status_code == 200
+    path = "/api/registry/dev/v1/index.json"
+    assert client.get(path).status_code == 401
+    tess = TestClient(app)
+    register(tess, "t@example.com", "Tess")
+    assert tess.get(path).status_code == 403
+    assert client.post("/api/auth/login", json={"email": "admin@example.com", "password": "admin-password-1"}).status_code == 200
+    users = client.get("/api/admin/users")
+    assert users.status_code == 200, users.text
+    tester = next(u for u in users.json() if u["email"] == "t@example.com")
+    assert client.patch(f"/api/admin/users/{tester['id']}", json={"dev_access": True}).json()["dev_access"] is True
+    assert client.get(path).status_code == 200                       # an admin always may
+    index = tess.get(path).json()
+    assert index["channels"]["dev"]["plugins"]["bleep-board"]["version"] == "0.3.0-dev.202610271500"
+    entry = tess.get("/api/registry/dev/v1/plugins/bleep-board/0.3.0-dev.202610271500/entry.json")
+    assert entry.status_code == 200 and entry.json()["channel"] == "dev"
+    assert tess.get("/api/registry/dev/v1/plugins/bleep-board/0.3.0-dev.202610271500/bleep-board-0.3.0-dev.202610271500.zip").content == b"zipdata"
+    assert tess.get("/api/registry/dev/v1/nothing.json").status_code == 404
+
+
+def test_old_dev_builds_are_deleted(client, make_admin, monkeypatch):
+    monkeypatch.setattr("app.routers.registry.KEEP_DEV_BUILDS", 2)
+    ci = dev_token(client, make_admin)
+    for minute in ("10", "11", "12"):
+        assert release(client, ci, version=f"0.4.0-dev.2026102713{minute}", channel="dev").status_code == 200
+    keys = [k for k in get_storage().objects if k.startswith("dev/v1/plugins/bleep-board/")]
+    assert not any("202610271310" in k for k in keys) and any("202610271312" in k for k in keys)
+
+
+def test_newest_and_add_platform_in_the_dev_channel(client, make_admin):
+    ci = dev_token(client, make_admin)
+    h = {"Authorization": f"Bearer {ci}"}
+    assert client.get("/api/registry/plugin/bleep-board/newest?channel=dev", headers=h).status_code == 404
+    version = "0.5.0-dev.202610271500"
+    assert release(client, ci, version=version, channel="dev").status_code == 200
+    got = client.get("/api/registry/plugin/bleep-board/newest?channel=dev", headers=h).json()
+    assert got["version"] == version and got["channel"] == "dev" and got["files"][0]["platform"] == "macos-arm64"
+    assert client.get("/api/registry/plugin/bleep-board/newest", headers=h).status_code == 404   # stable: nothing public
+    other = declare("bleep-board-linux.zip", b"linuxzip", platform="linux-x86_64")
+    r = client.post(f"/api/registry/plugin/bleep-board/releases/{version}/platforms", json={"files": [other]}, headers=h)
+    assert r.status_code == 200
+    assert client.put(f"/api/registry/plugin/bleep-board/releases/{version}/files/bleep-board-linux.zip", content=b"linuxzip", headers=h).status_code == 204
+    entry = json.loads(get_storage().get(f"dev/v1/plugins/bleep-board/{version}/entry.json"))
+    assert sorted(f["platform"] for f in entry["files"]) == ["linux-x86_64", "macos-arm64"]
+    # a release token without the dev channel may not look at it
+    login = client.post("/api/auth/login", json={"email": "admin@example.com", "password": "admin-password-1"})
+    assert login.status_code == 200
+    stable = client.post("/api/admin/tokens", json={"name": "rel"}).json()["token"]
+    assert client.get("/api/registry/plugin/bleep-board/newest?channel=dev", headers={"Authorization": f"Bearer {stable}"}).status_code == 403
+    assert client.post(f"/api/registry/plugin/bleep-board/releases/{version}/platforms", json={"files": [other]},
+                       headers={"Authorization": f"Bearer {stable}"}).status_code == 403

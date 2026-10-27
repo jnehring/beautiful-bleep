@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 Role = Literal["admin", "user"]
 LICENSE_PATTERN = r"^[A-Za-z0-9.+() -]+$"  # an SPDX id or expression, e.g. "GPL-3.0-only" or "MIT AND AGPL-3.0-only"
@@ -24,6 +24,7 @@ class UserOut(BaseModel):
     bio: str
     role: Role
     is_active: bool
+    dev_access: bool = False
     email_verified: bool
     created_at: datetime
 
@@ -60,11 +61,13 @@ class PasswordIn(BaseModel):
 class AdminUserIn(ProfileIn):
     role: Role | None = None
     is_active: bool | None = None
+    dev_access: bool | None = None
 
 
 class TokenIn(BaseModel):
     name: str = Field(max_length=80)
     expires_in_days: int | None = Field(default=None, ge=1, le=3650)
+    channels: list[Literal["stable", "beta", "dev"]] = Field(default_factory=lambda: ["stable", "beta"], min_length=1)
     _name = field_validator("name")(_clean_name)
 
 
@@ -74,6 +77,7 @@ class TokenOut(BaseModel):
     name: str
     prefix: str
     scope: str
+    channels: list[str] = []
     created_at: datetime
     expires_at: datetime | None
     last_used_at: datetime | None
@@ -108,8 +112,8 @@ class OriginIn(BaseModel):
 
 
 class ReleaseIn(BaseModel):
-    version: str = Field(pattern=r"^\d{1,4}\.\d{1,5}\.\d{1,6}$")
-    channel: Literal["stable", "beta"] = "stable"
+    version: str = Field(pattern=r"^\d{1,4}\.\d{1,5}\.\d{1,6}(-dev\.\d{12})?$")
+    channel: Literal["stable", "beta", "dev"] = "stable"
     title: str = Field(default="", max_length=120)
     notes: str = Field(default="", max_length=20000)
     summary: str = Field(default="", max_length=280)
@@ -118,6 +122,12 @@ class ReleaseIn(BaseModel):
     origin: OriginIn | None = None
     requires: dict = Field(default_factory=dict)
     files: list[FileIn] = Field(min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def _dev_means_dev(self):
+        if ("-dev." in self.version) != (self.channel == "dev"):
+            raise ValueError("a development build (1.2.3-dev.YYYYMMDDHHMM) is released into the dev channel, and only it")
+        return self
 
 
 class PlatformIn(BaseModel):

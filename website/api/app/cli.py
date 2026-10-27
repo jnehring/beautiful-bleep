@@ -4,6 +4,7 @@
     python -m app.cli list
     python -m app.cli promote EMAIL
     python -m app.cli demote EMAIL
+    python -m app.cli dev-access EMAIL | dev-revoke EMAIL      the dev channel of the library (admins always have it)
     python -m app.cli set-password EMAIL
     python -m app.cli token-create NAME [--days 1..3650] [--publisher P] [--out FILE]
     python -m app.cli token-list
@@ -113,6 +114,14 @@ def promote(args: argparse.Namespace) -> None:
         print(f"{user.email} is now an admin")
 
 
+def dev_access(args: argparse.Namespace) -> None:
+    with SessionLocal() as db:
+        user = _find(db, args.email)
+        user.dev_access = args.grant
+        db.commit()
+        print(f"{user.email} {'may now use' if user.dev_access else 'no longer has'} the dev channel")
+
+
 def demote(args: argparse.Namespace) -> None:
     with SessionLocal() as db:
         user = _find(db, args.email)
@@ -138,6 +147,13 @@ def set_password(args: argparse.Namespace) -> None:
         print(f"Password of {user.email} changed; all their sessions ended")
 
 
+def _channels(value: str) -> str:
+    names = value.split(",")
+    if not names or any(n not in ("stable", "beta", "dev") for n in names):
+        raise argparse.ArgumentTypeError("channels are stable, beta and dev, separated by commas")
+    return value
+
+
 def token_create(args: argparse.Namespace) -> None:
     _check_secret_destination(args.out)
     token = "blp_" + secrets.token_urlsafe(32)
@@ -147,7 +163,7 @@ def token_create(args: argparse.Namespace) -> None:
         if args.publisher and db.scalar(select(User.id).where(User.handle == args.publisher)) is not None:
             sys.exit(f"{args.publisher!r} is already the name of a community author; their modules live in that namespace. Choose another publisher.")
         db.add(ApiToken(
-            name=args.name, prefix=token[:8], token_hash=hash_token(token), scope="release", publisher=args.publisher,
+            name=args.name, prefix=token[:8], token_hash=hash_token(token), scope="release", publisher=args.publisher, channels=args.channels.split(","),
             expires_at=now() + timedelta(days=args.days) if args.days else None,
         ))
         db.commit()
@@ -158,8 +174,8 @@ def token_create(args: argparse.Namespace) -> None:
 def token_list(_: argparse.Namespace) -> None:
     with SessionLocal() as db:
         tokens = db.scalars(select(ApiToken).order_by(ApiToken.id)).all()
-    rows = [("ID", "NAME", "PUBLISHER", "TOKEN", "CREATED", "EXPIRES", "LAST USED")] + [
-        (str(t.id), t.name, t.publisher or "bleep", t.prefix + "...", f"{t.created_at:%Y-%m-%d}",
+    rows = [("ID", "NAME", "PUBLISHER", "CHANNELS", "TOKEN", "CREATED", "EXPIRES", "LAST USED")] + [
+        (str(t.id), t.name, t.publisher or "bleep", ",".join(t.channels or []), t.prefix + "...", f"{t.created_at:%Y-%m-%d}",
          f"{t.expires_at:%Y-%m-%d}" if t.expires_at else "never", f"{t.last_used_at:%Y-%m-%d %H:%M}" if t.last_used_at else "never")
         for t in tokens
     ]
@@ -215,11 +231,17 @@ def main(argv: list[str] | None = None) -> None:
         p = sub.add_parser(name, help=help_)
         p.add_argument("email")
         p.set_defaults(run=fn)
+    for name, grant, help_ in (("dev-access", True, "let a user use the dev channel of the library"),
+                               ("dev-revoke", False, "take the dev channel away from a user")):
+        p = sub.add_parser(name, help=help_)
+        p.add_argument("email")
+        p.set_defaults(run=dev_access, grant=grant)
     p = sub.add_parser("token-create", help="create a release token for scripts/release/release.py")
     p.add_argument("name")
     p.add_argument("--days", type=_bounded_days(1, 3650), help="expire after this many days, 1 to 3650 (default: never)")
     p.add_argument("--out", help="write the token to this file (mode 0600) instead of stdout")
     p.add_argument("--publisher", help="the developer this token releases for (default: bleep, our own releases)")
+    p.add_argument("--channels", default="stable,beta", type=_channels, help="the channels it may release into, e.g. dev for a CI token (default: stable,beta)")
     p.set_defaults(run=token_create)
     sub.add_parser("token-list", help="list release tokens").set_defaults(run=token_list)
     p = sub.add_parser("token-revoke", help="delete a release token")

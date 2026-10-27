@@ -8,6 +8,7 @@ from .config import settings
 class Storage(Protocol):
     def put(self, key: str, data: BinaryIO, content_type: str = "application/octet-stream") -> None: ...
     def get(self, key: str) -> bytes | None: ...
+    def delete(self, key: str) -> None: ...
 
 
 class MemoryStorage:
@@ -19,6 +20,9 @@ class MemoryStorage:
 
     def get(self, key: str) -> bytes | None:
         return self.objects.get(key)
+
+    def delete(self, key: str) -> None:
+        self.objects.pop(key, None)
 
 
 class S3Storage:
@@ -38,6 +42,9 @@ class S3Storage:
             return self._s3.get_object(Bucket=settings.s3_bucket, Key=key)["Body"].read()
         except self._s3.exceptions.NoSuchKey:
             return None
+
+    def delete(self, key: str) -> None:
+        self._s3.delete_object(Bucket=settings.s3_bucket, Key=key)
 
 
 _storage: Storage | None = None

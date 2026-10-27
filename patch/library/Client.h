@@ -25,9 +25,10 @@ bool libraryUrlAllowed(const std::string& url, std::string& why);
 
 struct Settings {
     std::string libraryUrl = BLEEP_LIBRARY_URL;  ///< the site's address; the library lives under /registry/v1/
-    std::string channel = "stable";
+    std::string channel = "stable";   ///< stable, beta, or dev (development builds, for accounts the site gave dev access)
     bool firstRunDone = false;                             ///< the setup assistant has been answered (developers/modules/library.md 5a)
     bool updateCheck = true;                               ///< the app asks the library for updates at every start (Settings → Library)
+    bool autoUpdate = false;                               ///< every minute, installs the newer versions of the modules the library offers, into the running boards
 
     static Settings load(const juce::File& dataDir);       ///< defaults for what is missing
     bool save(const juce::File& dataDir) const;
@@ -42,7 +43,8 @@ std::string platformId();
 juce::File userPluginFolder();
 /// Is Ableton Live running? Replacing a plugin it has loaded can crash it.
 bool abletonLiveRunning();
-/// Is version `a` newer than version `b` ("1.2.3" form; anything else is never newer)?
+/// Is version `a` newer than version `b` ("1.2.3", "1.2.3-dev" or "1.2.3-dev.202610271432"; anything else is never newer)? A development
+/// build is newer than the release of its number, and a later one than an earlier one.
 bool versionNewer(const std::string& a, const std::string& b);
 
 struct IndexModule {
@@ -106,10 +108,12 @@ public:
     juce::File modulesFolder(const std::string& source) const;
     const Settings& settings() const { return settings_; }
 
-    /// The address of a path under /registry/v1/ (an index entry's image, say).
+    /// The address of a path under /registry/v1/ (an index entry's image, say); in the dev channel under /api/registry/dev/v1/.
     juce::String url(const std::string& path) const;
 
 private:
+    /// The personal token to send with every request of the dev channel (only that channel needs an account); empty otherwise.
+    std::string bearer() const;
     bool installEntry(const std::string& slug, const std::string& entryPath, const std::string& expectVersion, bool pruneOlder, InstalledModule& out, std::string& error) const;
     /// Reads a package and fills `out`; `uploaded`: the library says an account uploaded it, so it may only hold what a community module may.
     bool check(const std::vector<uint8_t>& bytes, const std::string& slug, const std::string& version, bool uploaded, InstalledModule& out, std::string& error) const;

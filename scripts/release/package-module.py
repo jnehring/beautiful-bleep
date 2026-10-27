@@ -143,6 +143,8 @@ def published_version(slug: str, data: Path) -> tuple:
     """The highest version of the module the library offers or this machine installed from it, as a tuple (0, 0, 0) when neither."""
     found = [(0, 0, 0)]
     def add(v):
+        if "-dev" in str(v):  # a development build is not what a development build is counted from
+            return
         parts = str(v).split("-")[0].split(".")
         if len(parts) == 3 and all(p.isdigit() for p in parts):
             found.append(tuple(int(p) for p in parts))
@@ -157,9 +159,13 @@ def published_version(slug: str, data: Path) -> tuple:
 
 
 def dev_version(slug: str, data: Path) -> str:
-    """The next version after the published one, marked as a development build: 0.1.3 becomes 0.1.4-dev (a module the library does not have: 0.1.0-dev)."""
+    """The next version after the published one, marked as a development build made now: 0.1.3 becomes 0.1.4-dev.202610271432, the time
+    it was made (a module the library does not have: 0.1.0-dev.…). The CI's builds of the dev channel are numbered the same way, so the
+    later build is the newer."""
+    import datetime
     a, b, c = published_version(slug, data)
-    return "0.1.0-dev" if (a, b, c) == (0, 0, 0) else f"{a}.{b}.{c + 1}-dev"
+    built = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d%H%M")
+    return f"0.1.0-dev.{built}" if (a, b, c) == (0, 0, 0) else f"{a}.{b}.{c + 1}-dev.{built}"
 
 
 def main(argv=None) -> int:
@@ -169,7 +175,7 @@ def main(argv=None) -> int:
     ap.add_argument("--web", type=Path, default=DEFAULT_WEB, help="the output of build-web.sh --modules-only (default: build/web/modules, else the full build's build/web/site)")
     ap.add_argument("--install", type=Path, metavar="DATA", help="also install the packages into DATA/modules/local")
     ap.add_argument("--version", default="0.1.0", help="the version --install names the file with")
-    ap.add_argument("--dev", action="store_true", help="with --install: the next version after the library's, with -dev (0.1.4-dev); older -dev copies of the module are removed")
+    ap.add_argument("--dev", action="store_true", help="with --install: the next version after the library's, as a development build made now (0.1.4-dev.202610271432); older -dev copies of the module are removed")
     a = ap.parse_args(argv)
     slugs = a.modules or sorted(p.parent.name for p in (ROOT / "patch" / "modules").glob("*/module.json"))
     failed = 0
@@ -186,8 +192,8 @@ def main(argv=None) -> int:
             try:
                 version = dev_version(slug, a.install) if a.dev else a.version
                 if a.dev:
-                    for old in (a.install / "modules" / "local").glob(f"{slug}-*-dev.bleepmod"):
-                        if re.fullmatch(re.escape(slug) + r"-\d+\.\d+\.\d+-dev\.bleepmod", old.name):
+                    for old in (a.install / "modules" / "local").glob(f"{slug}-*-dev*.bleepmod"):
+                        if re.fullmatch(re.escape(slug) + r"-\d+\.\d+\.\d+-dev(\.\d{12})?\.bleepmod", old.name):
                             old.unlink()
                 install_local(target, slug, a.install, version)
             except (ValueError, OSError) as e:
