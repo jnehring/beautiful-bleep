@@ -67,7 +67,9 @@ BridgeServer::BridgeServer(engine::Engine& engine, ExtraPorts extra, AfterBlock 
     handles_.reserve(kMaxBridges + 64);
     used_.reserve(kMaxBridges);
     ios_.reserve(kMaxBridges + 64);
-    if (ok()) startRealtimeThread(juce::Thread::RealtimeOptions{}.withPriority(10));
+    // Real-time scheduling needs a permission a container or a locked-down Linux does not give; without it the thread must still run.
+    if (ok() && !startRealtimeThread(juce::Thread::RealtimeOptions{}.withPriority(10)) && !isThreadRunning())
+        startThread(juce::Thread::Priority::high);
 }
 
 BridgeServer::~BridgeServer() {
