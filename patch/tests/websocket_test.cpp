@@ -261,9 +261,10 @@ int main() {
 
     // A slow reader: sendBinary stays cheap and old binary frames are dropped; text is not.
     {
+        const int opened = echo.opens.load();
         Client c;
         EXPECT(c.connect(port) && c.handshake("", port) == 101);
-        EXPECT(waitFor([&] { return echo.connection() && echo.opens.load() > 0; }));
+        EXPECT(waitFor([&] { return echo.opens.load() > opened; }));  // this client's connection, not an earlier one
         auto conn = echo.connection();
         EXPECT(conn != nullptr);
         constexpr int kFrames = 3000;
@@ -305,9 +306,10 @@ int main() {
 
     // Server-initiated close, and sends after close are harmless.
     {
+        const int opened = echo.opens.load();
         Client c;
         EXPECT(c.connect(port) && c.handshake("", port) == 101);
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));  // let onOpen run
+        EXPECT(waitFor([&] { return echo.opens.load() > opened; }));  // let onOpen run
         auto conn = echo.connection();
         conn->close(1001);
         EXPECT(c.expectClose(1001));
