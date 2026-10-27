@@ -24,9 +24,9 @@ namespace bleep::patch {
 /// One of the 16 automatable parameters of a cell plugin: its name follows the preset's panel.
 class SlotParameter : public juce::AudioParameterFloat {
 public:
-    SlotParameter(int slot)
-        : juce::AudioParameterFloat(juce::ParameterID("p" + juce::String(slot + 1), 1), "Param " + juce::String(slot + 1), 0.0f, 1.0f, 0.0f),
-          fallback_("Param " + juce::String(slot + 1)) {}
+    SlotParameter(int slot) : SlotParameter("p" + juce::String(slot + 1), "Param " + juce::String(slot + 1)) {}
+    SlotParameter(const juce::String& id, const juce::String& fallback)
+        : juce::AudioParameterFloat(juce::ParameterID(id, 1), fallback, 0.0f, 1.0f, 0.0f), fallback_(fallback) {}
     juce::String getName(int maxLen) const override {
         const juce::SpinLock::ScopedLockType lock(lock_);
         return (shown_.isNotEmpty() ? shown_ : fallback_).substring(0, maxLen);
@@ -101,10 +101,11 @@ private:
     void applyBoard();
     static BusesProperties busesFor(engine::PortKind kind);
 
+    void pollMacroLabels();
     engine::PortKind kind_;
     engine::EngineInstance instance_;
 
-    std::array<juce::AudioParameterFloat*, engine::kNumMacros> macros_{};
+    std::array<SlotParameter*, engine::kNumMacros> macros_{};
     juce::AudioParameterFloat* mix_ = nullptr;
     juce::AudioParameterChoice* boardChoice_ = nullptr;   ///< This set / App / Web
     bridge::BridgeClient client_;
@@ -134,6 +135,7 @@ private:
     bool stateRestored_ = false;   ///< setStateInformation ran: a saved set, not a fresh instance
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PortProcessor)
+    uint64_t macrosGeneration_ = ~0ull;
 };
 
 }  // namespace bleep::patch

@@ -11,6 +11,10 @@ in Live and use them anywhere on the board.
 parameters in Live. Patch a macro to any input, with an amount, to make one
 knob in Live move several things. Macros exist only in the plugin.
 
+Open the node to name each macro. A macro you leave unnamed is called after what
+it modulates (for example *LFO Morph*), or *Macro 1* when nothing is patched. The
+same names show as the parameter names in Live.
+
 ## How to use it?
 
 Patch *Macro 1* to a filter's cutoff and a reverb's mix, then automate or map

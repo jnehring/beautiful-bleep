@@ -172,6 +172,7 @@ private:
     juce::var uiDispatch(int handle, const juce::String& method, const juce::var& args);
     juce::var uiMessage() const;
     juce::var cellParams(int handle);
+    juce::var macroLabels(int handle);
     /// Cell plugins in a set without Bleep Board get a board of their own, dropped when the last one leaves.
     void updateImplicitBoard();
     /// Puts the instance's preset next to its port node (replacing a cell that is there).

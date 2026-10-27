@@ -220,3 +220,50 @@ juce::var Engine::cellParams(int handle) {
 }
 
 }  // namespace bleep::engine
+/// The names of the instance's macros, for the host's parameter list: [string] (16 for Bleep Board, 8 for Bleep Instrument
+/// and Bleep FX). A macro the user labelled has its label; else the first thing it modulates, "<node> <parameter>"; else "Macro n".
+juce::var Engine::macroLabels(int handle) {
+    juce::Array<juce::var> list;
+    auto s = slotShared(handle);
+    if (!s || !hasBoard()) return juce::var(list);
+    const int count = s->kind == PortKind::Patch ? kNumMacros : 8;
+    const juce::String portId(s->id);
+    const juce::DynamicObject* node = nullptr;
+    if (const auto* a = board_["nodes"].getArray())
+        for (const auto& n : *a) {
+            const juce::String type = n["type"].toString();
+            if (n["port"].toString() == portId && (type == "macros" || type == "instrument" || type == "audio-insert")) {
+                node = n.getDynamicObject();
+                break;
+            }
+        }
+    for (int k = 1; k <= count; ++k) {
+        const juce::String jack = "m" + juce::String(k);
+        juce::String label = "Macro " + juce::String(k);
+        if (node != nullptr) {
+            const juce::String own = node->getProperty("data")["labels"][juce::Identifier(jack)].toString().trim();
+            if (own.isNotEmpty()) {
+                label = own;
+            } else if (const auto* cables = board_["cables"].getArray()) {
+                for (const auto& c : *cables) {
+                    if (c["from"]["node"].toString() != node->getProperty("id").toString() || c["from"]["jack"].toString() != jack) continue;
+                    const auto* target = board::findNode(board_, c["to"]["node"].toString());
+                    if (target == nullptr) continue;
+                    const juce::String to = c["to"]["jack"].toString();
+                    juce::String what = to;
+                    if (const ModuleSpec* spec = Registry::get().find(target->getProperty("type").toString().toStdString(), target->getProperty("version").toString().toStdString())) {
+                        if (const int i = spec->paramIndex(to.toStdString()); i >= 0) what = juce::String(spec->params[(size_t)i].name);
+                        else
+                            for (const auto& in : spec->inputs)
+                                if (in.id == to.toStdString()) what = juce::String(in.name);
+                    }
+                    label = target->getProperty("name").toString() + " " + what;
+                    break;
+                }
+            }
+        }
+        list.add(label);
+    }
+    return juce::var(list);
+}
+

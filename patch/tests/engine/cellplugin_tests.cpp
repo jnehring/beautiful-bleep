@@ -174,6 +174,17 @@ void cellPlugins() {
         for (int i = 0; i < knobs.size(); ++i)
             EXPECT(board::findNode(e->board(), knobs[i]["node"].toString()) != nullptr && knobs[i]["name"].toString().isNotEmpty() &&
                    (double)knobs[i]["value"] >= 0.0 && (double)knobs[i]["value"] <= 1.0);
+        // The macros are named after their labels, else after what they modulate, else "Macro n".
+        {
+            const auto names = ui("macroLabels", "[]");
+            EXPECT(names.isArray() && names.size() == 8 && names[0].toString() == "Macro 1" && names[7].toString() == "Macro 8");
+            juce::String portNode;
+            for (const auto& n : *e->board()["nodes"].getArray())
+                if (n["type"].toString() == "instrument") portNode = n["id"].toString();
+            EXPECT(portNode.isNotEmpty());
+            ui("setData", ("[\"" + portNode + "\",{\"labels\":{\"m2\":\"Morph\"}}]").toRawUTF8());
+            EXPECT(ui("macroLabels", "[]")[1].toString() == "Morph" && ui("macroLabels", "[]")[0].toString() == "Macro 1");
+        }
         FakePort p(*e, inst);
         MidiEvent on;
         on.offset = 0;

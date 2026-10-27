@@ -50,8 +50,7 @@ PortProcessor::PortProcessor(PortKind kind)
     auto addMacros = [&] {
         for (int k = 0; k < numMacros; ++k) {
             const auto id = "macro" + juce::String(k + 1);
-            macros_[(size_t)k] = new juce::AudioParameterFloat(juce::ParameterID(id, 1), "Macro " + juce::String(k + 1),
-                                                               0.0f, 1.0f, 0.0f);
+            macros_[(size_t)k] = new SlotParameter(id, "Macro " + juce::String(k + 1));
             addParameter(macros_[(size_t)k]);
         }
     };
@@ -130,6 +129,24 @@ void PortProcessor::pollSlots() {
             slots_[(size_t)k]->setValueNotifyingHost((float)(double)e["value"]);
     }
     ignoring_ = false;
+    if (titles) updateHostDisplay(ChangeDetails().withParameterInfoChanged(true));
+}
+
+/// The macros are named after their labels on the board, else after what they modulate. Message thread.
+void PortProcessor::pollMacroLabels() {
+    if (macrosGeneration_ == engine().boardGeneration()) return;
+    macrosGeneration_ = engine().boardGeneration();
+    const size_t len = engine().uiCall(handle(), "macroLabels", "[]", nullptr, 0);
+    if (len == 0) return;
+    std::string out(len, '\0');
+    engine().uiCall(handle(), "__last", "[]", out.data(), len);
+    const auto list = juce::JSON::parse(juce::String::fromUTF8(out.data(), (int)len));
+    bool titles = false;
+    for (int k = 0; k < (int)macros_.size() && list.isArray() && k < list.size(); ++k) {
+        if (macros_[(size_t)k] == nullptr || macros_[(size_t)k]->shownName() == list[k].toString()) continue;
+        macros_[(size_t)k]->setShownName(list[k].toString());
+        titles = true;
+    }
     if (titles) updateHostDisplay(ChangeDetails().withParameterInfoChanged(true));
 }
 
@@ -453,6 +470,7 @@ void PortProcessor::timerCallback() {
     }
     if (loadsPresets() && stateRestored_) pollSlots();
     // A new instance starts with a preset; a saved set (setStateInformation ran) keeps what it had, even nothing.
+    if (macros_[0] != nullptr && (kind_ == PortKind::Patch || stateRestored_)) pollMacroLabels();
     if (loadsPresets() && !stateRestored_) {
         stateRestored_ = true;
         if (engine().cellPreset(handle(), nullptr, 0) == 0) loadPreset(PresetLibrary::defaultName(kind_));

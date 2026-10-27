@@ -85,6 +85,11 @@
             if (window.BleepWeb && window.BleepWeb.refreshModules) await window.BleepWeb.refreshModules();
             await edit("convert to " + toType, (b) => { const m = nodeById(id, b); if (!m) return false; apply(m); m.type = toType; });
           },
+          // What the cables leaving output `jack` of this node feed: "<node> <input or knob>", for naming a macro after what it moves.
+          cablesFrom: (jack) => s.board.cables.filter((c) => c.from.node === id && c.from.jack === jack).map((c) => {
+            const dst = nodeById(c.to.node);
+            return dst ? `${dst.name} ${jackName(dst, c.to.jack, false)}` : "?";
+          }),
           cablesInto: (pid) => cablesInto(id, pid).map((c) => {
             const src = nodeById(c.from.node);
             return { id: c.id, amount: c.amount, label: src ? `${src.name} › ${jackName(src, c.from.jack, true)}` : "?" };

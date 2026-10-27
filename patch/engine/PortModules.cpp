@@ -7,6 +7,8 @@
 #include "PortSlot.h"
 #include "Registry.h"
 
+#include <juce_core/juce_core.h>
+
 #include <algorithm>
 #include <cmath>
 
@@ -33,7 +35,22 @@ void writeMacros(const ProcessContext& c, int first) noexcept {
         std::fill(c.outputs[first + k], c.outputs[first + k] + c.numSamples, in ? in->macros[k] : 0.0f);
 }
 
+/// Node data of a node with macros: {"labels": {"m1": "Morph", …}}, the names the user gave them (shown on the node and in Live).
+std::string sanitiseMacroLabels(const std::string& json) {
+    const juce::var in = juce::JSON::parse(juce::String(json));
+    auto* labels = new juce::DynamicObject();
+    for (int k = 1; k <= kNumMacros; ++k) {
+        const juce::String id = "m" + juce::String(k);
+        const juce::String text = in["labels"][juce::Identifier(id)].toString().trim().substring(0, 40);
+        if (text.isNotEmpty()) labels->setProperty(juce::Identifier(id), text);
+    }
+    auto* out = new juce::DynamicObject();
+    out->setProperty("labels", juce::var(labels));
+    return juce::JSON::toString(juce::var(out), true).toStdString();
+}
+
 void addMacroOutputs(ModuleSpec& s) {
+    s.sanitiseData = sanitiseMacroLabels;
     for (int k = 1; k <= kNumHostMacros; ++k)
         s.outputs.push_back({"m" + std::to_string(k), "Macro " + std::to_string(k), Signal::Control, false});
 }
@@ -686,6 +703,7 @@ void registerPortModules(Registry& r) {
         s.params = {ParamSpec::integer("channel", "Channel", 1, patch::kNumChannels, 1)};
         for (int k = 1; k <= patch::kRowsPerChannel; ++k)   // a CV input per row: it adds to the row's knob
             s.inputs.push_back({"cv" + std::to_string(k), "CV " + std::to_string(k), Signal::Control});
+        s.sanitiseData = sanitiseMacroLabels;
         for (int k = 1; k <= patch::kRowsPerChannel; ++k)
             s.params.push_back(ParamSpec::percent("v" + std::to_string(k), "Row " + std::to_string(k), 0.0f, 1.0f, 0.5f)
                                    .inGroup("Row " + std::to_string(k)));
