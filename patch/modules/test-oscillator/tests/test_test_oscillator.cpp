@@ -331,7 +331,7 @@ static void bounded() {
             in.kick = (i / 50) % 2 ? 1.0f : 0.0f;
             in.audio = (float)((i * 7919) % 2001 - 1000) / 100.0f;
             in.audioPatched = true;
-            in.fm = (float)((i * 104729) % 2001 - 1000) / 200.0f;
+            in.fm = (float)((int)((int64_t)i * 104729 % 2001) - 1000) / 200.0f;   // 64 bit: i * 104729 overflows int
             in.pitch = (float)((i / 1000) % 9) - 4.0f;
         });
         EXPECT(test::allFinite(r.sine) && test::allFinite(r.square) && test::allFinite(r.lamp));
