@@ -39,6 +39,7 @@ jobs:
       CMAKE_BUILD_PARALLEL_LEVEL: 6   # compilers at a time: the container has 12 GB, and the JUCE sources need about 1.5 GB each
       # The strict warning flags of the project (JUCE's recommended set) print thousands of lines for the DSP code; a build here
       # is judged by its errors. A build on your own machine still shows the warnings.
+      BLEEP_LTO: "0"   # no link-time optimisation: GCC links each plugin serially for minutes; a dev build does not need it
       CFLAGS: -w
       CXXFLAGS: -w
     steps:

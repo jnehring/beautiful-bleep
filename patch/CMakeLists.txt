@@ -44,6 +44,15 @@ if (BLEEP_LIGHT_TESTS)
     set(BLEEP_BUILD_PLUGINS OFF)
     set(BLEEP_BUILD_APP OFF)
 endif ()
+option(BLEEP_LTO "Link-time optimisation of the plugins and the app (the link takes minutes; off for dev builds: BLEEP_LTO=0 in the environment)" ON)
+if (DEFINED ENV{BLEEP_LTO})
+    set(BLEEP_LTO "$ENV{BLEEP_LTO}")
+endif ()
+if (BLEEP_LTO)
+    set(BLEEP_LTO_FLAGS juce::juce_recommended_lto_flags)
+else ()
+    set(BLEEP_LTO_FLAGS)
+endif ()
 option(BLEEP_COPY_PLUGINS "Copy built plugins into the user's plugin folders" OFF)
 option(BLEEP_UI_DEV "Development builds: serve the board UI from the source tree instead of the embedded copy" OFF)
 # Spec §5.2: VST3 only, Ableton Live only (for now).
@@ -618,8 +627,9 @@ function(bleep_add_plugin)
         elseif (MSVC)
             target_link_options(${P_TARGET}_${fmt} PRIVATE "/WHOLEARCHIVE:$<TARGET_FILE:${P_TARGET}>")
         else ()
-            target_link_libraries(${P_TARGET}_${fmt} PRIVATE
-                "-Wl,--whole-archive" "$<TARGET_FILE:${P_TARGET}>" "-Wl,--no-whole-archive")
+            # As a link option, so it comes before JUCE's own plain link of the same archive: the other way round GNU ld
+            # takes the members that plain link pulled in a second time ("multiple definition").
+            target_link_options(${P_TARGET}_${fmt} PRIVATE "LINKER:--whole-archive,$<TARGET_FILE:${P_TARGET}>,--no-whole-archive")
         endif ()
     endforeach ()
     target_link_libraries(${P_TARGET}
@@ -630,7 +640,7 @@ function(bleep_add_plugin)
             juce::juce_gui_extra
         PUBLIC
             juce::juce_recommended_config_flags
-            juce::juce_recommended_lto_flags
+            ${BLEEP_LTO_FLAGS}
             juce::juce_recommended_warning_flags)
 endfunction()
 
@@ -681,7 +691,7 @@ target_compile_definitions(BleepAudioBridge PUBLIC JUCE_WEB_BROWSER=0 JUCE_USE_C
     JUCE_VST3_CAN_REPLACE_VST2=0)
 target_link_libraries(BleepAudioBridge
     PRIVATE juce::juce_audio_utils
-    PUBLIC juce::juce_recommended_config_flags juce::juce_recommended_lto_flags juce::juce_recommended_warning_flags)
+    PUBLIC juce::juce_recommended_config_flags ${BLEEP_LTO_FLAGS} juce::juce_recommended_warning_flags)
 
 # ---- the standalone app (spec §11) -------------------------------------------------
 if (BLEEP_BUILD_APP)
@@ -765,7 +775,7 @@ if (BLEEP_BUILD_APP)
         juce::juce_audio_utils juce::juce_gui_extra
         $<$<BOOL:${BLEEP_LINK}>:Ableton::Link>
         ${BLEEP_SYSTEM_AUDIO_LIBS}
-        juce::juce_recommended_config_flags juce::juce_recommended_lto_flags juce::juce_recommended_warning_flags)
+        juce::juce_recommended_config_flags ${BLEEP_LTO_FLAGS} juce::juce_recommended_warning_flags)
     if (APPLE)
         target_link_libraries(BleepApp PRIVATE "-framework CoreAudio" "-framework Foundation")
     endif ()
