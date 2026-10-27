@@ -40,7 +40,11 @@ jobs:
         with:
           persist-credentials: false
       - run: ./bleep test js presets
-      - run: ./bleep test native
+      - name: Native tests
+        # The demo patches are timed: the server renders six shards side by side on shared cores, so "too slow" here means slower than real time
+        env:
+          BLEEP_DEMO_CPU_LIMIT: "1.0"
+        run: ./bleep test native
       # The build rewrites the generated type list; a difference means the committed copy was stale.
       - name: demo-types.json is current
         run: git diff --exit-code -- patch/board/ui/demo-types.json

@@ -18,6 +18,7 @@
 #include <ctime>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <functional>
 #include <set>
 
@@ -28,6 +29,12 @@ namespace {
 constexpr float kPeakLimit = 1.0f;    // a patch must not clip
 constexpr double kSilence = 0.008;    // RMS below this (about −42 dB) over the last 8 s counts as silent
 constexpr double kCpuLimit = 0.6;     // seconds of CPU per second of audio
+// The limit depends on the machine: a shared build server runs the shards side by side. BLEEP_DEMO_CPU_LIMIT (1.0 = real time) overrides it.
+double cpuLimit() {
+    const char* v = std::getenv("BLEEP_DEMO_CPU_LIMIT");
+    const double x = v ? std::atof(v) : 0.0;
+    return x > 0.0 ? x : kCpuLimit;
+}
 constexpr double kSampleRate = 48000.0;
 constexpr double kSeconds = 12.0;
 int g_failures = 0;
@@ -235,7 +242,7 @@ void check(const juce::var& entry, bool verbose) {
     if (!std::isfinite(r.peak)) fail(name, "output is not finite");
     else if (r.peak > kPeakLimit) fail(name, "peak " + juce::String(r.peak, 2) + " is far over full scale");
     if (r.rms < kSilence) fail(name, "is silent after 4 s (rms " + juce::String(db, 1) + " dB)");
-    if (r.cpu > kCpuLimit) fail(name, "uses " + juce::String(100.0 * r.cpu, 0) + " % of real time");
+    if (r.cpu > cpuLimit()) fail(name, "uses " + juce::String(100.0 * r.cpu, 0) + " % of real time");
 }
 
 }  // namespace
