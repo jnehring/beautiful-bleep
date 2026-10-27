@@ -4,7 +4,8 @@
 # nothing from the server and no access to Docker. Start it with docker-compose.yml (doc/operations/dev-builds.md).
 FROM emscripten/emsdk:4.0.10
 
-ARG RUNNER_VERSION=2.321.0
+# GitHub refuses runners below its minimum version, so a pin goes stale: by default the build takes the latest release.
+ARG RUNNER_VERSION=latest
 ARG JUCE_VERSION=8.0.9
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -25,7 +26,12 @@ ENV BLEEP_JUCE_DIR=/opt/JUCE \
 RUN useradd --create-home --uid 1001 runner && mkdir -p /cache /home/runner/actions-runner && chown -R runner /cache /home/runner
 USER runner
 WORKDIR /home/runner/actions-runner
-RUN curl -fsSL https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz | tar xz
+RUN v="${RUNNER_VERSION}"; \
+    if [ "$v" = latest ]; then \
+        v=$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/actions/runner/releases/latest | sed 's|.*/v||'); \
+    fi; \
+    echo "GitHub Actions runner $v"; \
+    curl -fsSL "https://github.com/actions/runner/releases/download/v${v}/actions-runner-linux-x64-${v}.tar.gz" | tar xz
 USER root
 RUN ./bin/installdependencies.sh && rm -rf /var/lib/apt/lists/*
 COPY entrypoint.sh /entrypoint.sh

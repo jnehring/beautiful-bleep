@@ -44,7 +44,7 @@ Dev builds are not public. They live in the bucket under `dev/` which `/registry
    docker compose up -d --build
    ```
 
-   The token only registers runners; the entrypoint removes it from the environment before the job starts. Rebuild the image (`docker compose build --pull`) now and then, and bump `RUNNER_VERSION` in the Dockerfile when GitHub asks. Several jobs at once: `docker compose up -d --scale runner=2` (the workflow runs one build at a time anyway).
+   The token only registers runners; the entrypoint removes it from the environment before the job starts. Rebuild the image (`docker compose build --pull --no-cache`) every month or two: the build takes the latest runner release, and GitHub refuses runners below its minimum version (pin one with `--build-arg RUNNER_VERSION=x.y.z`). Several jobs at once: `docker compose up -d --scale runner=2` (the workflow runs one build at a time anyway).
 
    The deploy runner of [deploy.md](deploy.md) (label `bleep-server`, needs the Docker socket to restart the website) stays separate on the host and only ever runs `deploy.yml`.
 2. **A dev-only release token** (cannot touch `stable` or `beta`):
