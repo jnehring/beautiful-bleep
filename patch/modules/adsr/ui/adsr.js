@@ -26,7 +26,9 @@
     const a = real(view, st, "attack"), d = real(view, st, "decay"), r = real(view, st, "release");
     const s = view.value(st, "sustain");
     // the curve knobs are bipolar percent: normalised 0..1 -> -1..1
-    const ca = view.value(st, "attackcurve") * 2 - 1, cd = view.value(st, "decaycurve") * 2 - 1, cr = view.value(st, "releasecurve") * 2 - 1;
+    // (an engine from before the curves has no such params: straight defaults then)
+    const bend = (id) => (view.type.params.some((q) => q.id === id) ? view.value(st, id) * 2 - 1 : 0);
+    const ca = bend("attackcurve"), cd = bend("decaycurve"), cr = bend("releasecurve");
     // stage widths: compressed with a root so a 5 ms attack and a 10 s release both show
     const wa = 0.12 + Math.sqrt(a), wd = 0.12 + Math.sqrt(d), ws = 0.9, wr = 0.12 + Math.sqrt(r);
     const tot = wa + wd + ws + wr;
