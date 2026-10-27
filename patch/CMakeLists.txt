@@ -651,7 +651,7 @@ bleep_add_plugin(TARGET BleepFx PRODUCT "Bleep FX" CODE BpFx KIND AudioInsert
 
 # Opens the real board window on a real engine for a few seconds (not in ctest).
 if (BLEEP_BUILD_TESTS)
-    juce_add_gui_app(bleep_board_smoke PRODUCT_NAME "Bleep Board Smoke")
+    juce_add_gui_app(bleep_board_smoke PRODUCT_NAME "Bleep Board Smoke" NEEDS_WEB_BROWSER TRUE)
     target_sources(bleep_board_smoke PRIVATE tests/board_smoke.cpp board/BoardWindow.cpp board/RecordingsSettings.cpp board/BoardFiles.cpp ${BLEEP_ENGINE_SOURCES})
     target_include_directories(bleep_board_smoke PRIVATE ${BLEEP_ENGINE_INCLUDES})
     target_compile_definitions(bleep_board_smoke PRIVATE JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0
@@ -726,6 +726,7 @@ if (BLEEP_BUILD_APP)
 
     juce_add_gui_app(BleepApp
         PRODUCT_NAME "Bleep App"
+        NEEDS_WEB_BROWSER TRUE   # Linux: the WebKit and GTK headers and libraries for the board's web view
         COMPANY_NAME "Beautiful Bleep"
         BUNDLE_ID "com.brilliantbleep.patch.app"
         VERSION ${PROJECT_VERSION}
