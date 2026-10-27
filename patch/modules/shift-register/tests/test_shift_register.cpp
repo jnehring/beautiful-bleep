@@ -5,6 +5,7 @@
 #include "ShiftRegisterDsp.h"
 #include "dsp/tests/TestUtil.h"
 
+#include <bit>
 #include <cmath>
 #include <vector>
 
