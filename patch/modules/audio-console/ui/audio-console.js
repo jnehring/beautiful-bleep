@@ -444,7 +444,7 @@
 
       // ---- the Record panel -------------------------------------------------------------------------------------------
       rec.append(el("div", "ac-rt", "Record"));
-      const top = el("div", "ac-cols");
+      const cols = el("div", "ac-cols");
       const c1 = el("div", "ac-col"), c2 = el("div", "ac-col"), c3 = el("div", "ac-col");
       const recBtn = el("button", "ac-recbtn", "Record");
       recBtn.addEventListener("click", () => view.api.command("record", 1));
@@ -493,8 +493,8 @@
         chips.append(c);
       }
       viewGroup.append(chips);
-      top.append(c1, c2, c3, viewGroup);
-      rec.append(top);
+      cols.append(c1, c2, c3, viewGroup);
+      rec.append(cols);
       ac.settingsHost = c3;  // the Setup and Record settings sections are moved in here once the controls exist
       const setups = el("div", "ac-cols");
       ac.setups = setups;
