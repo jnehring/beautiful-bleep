@@ -210,3 +210,16 @@ article.post { max-width: 720px; }
 .copy-row { display: flex; align-items: flex-end; gap: 8px; margin: 8px 0; }
 .copy-row label { flex: 1; display: block; font-size: .8rem; color: var(--muted); }
 .copy-row input { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; font-family: ui-monospace, Menlo, monospace; font-size: .85rem; }
+
+/* Search */
+.search { position: relative; }
+.search input { font: inherit; font-size: .9rem; width: 220px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--fg); }
+.search input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.search-results { position: absolute; z-index: 20; top: calc(100% + 6px); right: 0; width: min(460px, 92vw); max-height: 70vh; overflow: auto; margin: 0; padding: 4px; list-style: none; background: var(--card); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.15); }
+.search-results a { display: block; padding: 8px 10px; border-radius: 6px; color: var(--fg); text-decoration: none; }
+.search-results a.active { background: var(--code); }
+.search-results .aud { margin-left: 8px; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.search-results small { display: block; margin-top: 2px; color: var(--muted); line-height: 1.35; }
+.search-results mark { background: color-mix(in srgb, var(--accent) 30%, transparent); color: inherit; border-radius: 2px; }
+.search-results .empty { padding: 10px; color: var(--muted); font-size: .9rem; }
+@media (max-width: 700px) { .search { order: 3; width: 100%; } .search input { width: 100%; } }

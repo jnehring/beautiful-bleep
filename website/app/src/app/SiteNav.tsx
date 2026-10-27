@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 "use client";
 import { usePathname } from "next/navigation";
+import SearchBox from "./SearchBox";
 import { api, useUser } from "@/lib/auth";
 import { ACCOUNT_MENU, ADMIN_MENU, isAdminActive, isAdminPath, AUDIENCES, audienceOf, isAccountActive, isAccountPath, isActive, isModulesPath, type Audience } from "@/lib/audiences";
 
@@ -39,6 +40,7 @@ export default function SiteNav() {
             </>
           ) : null}
         </nav>
+        <SearchBox />
       </header>
       {user && isAccountPath(path) && (
         <nav className="submenu" aria-label="Account menu">
