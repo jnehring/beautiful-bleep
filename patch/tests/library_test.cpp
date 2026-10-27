@@ -8,6 +8,9 @@
 
 #include <cstdio>
 #include <cstring>
+#include <memory>
+#include <mutex>
+#include <string>
 #if !JUCE_WINDOWS
 #include <sys/stat.h>
 #endif
@@ -324,10 +327,15 @@ void testAccount() {
     const juce::var bad = account.call("POST", "/api/presets", juce::JSON::parse(R"({"title":""})"));
     CHECK((int)bad["status"] == 422 && bad["error"].toString() == "title: String should have at least 1 character", "the library's reason: %s", bad["error"].toString().toRawUTF8());
     {   // the assistant's answer, piece by piece (Server-Sent Events): blocks arrive whole, a split multi-byte character is never cut
-        std::string lastBearer, lastUrl;
-        StreamTransport streaming = [&](const HttpRequest& r, const StreamEvents& e) {
-            lastBearer = r.bearer;
-            lastUrl = r.url;
+        // The stream threads are detached and may still run when this block is over (a cancelled stream): they own their state.
+        struct Seen { std::mutex m; std::string bearer, url; };
+        const auto seen = std::make_shared<Seen>();
+        StreamTransport streaming = [seen](const HttpRequest& r, const StreamEvents& e) {
+            {
+                std::lock_guard<std::mutex> lock(seen->m);
+                seen->bearer = r.bearer;
+                seen->url = r.url;
+            }
             if (r.body.find("limit") != std::string::npos) {
                 e.head(429, 30);
                 const std::string body = R"({"detail":"The daily AI budget is used up"})";
@@ -359,7 +367,10 @@ void testAccount() {
         }
         CHECK(status == 200 && done, "status %d, done %d", status, (int)done);
         CHECK(text == "event: text\ndata: {\"delta\":\"\xC3\xA9\"}\n\nevent: done\ndata: {}\n\n", "all of it, in order: %s", text.c_str());
-        CHECK(lastBearer == "blu_secret" && lastUrl == "https://library.example/api/agent/chat", "the login goes with it");
+        {
+            std::lock_guard<std::mutex> lock(seen->m);
+            CHECK(seen->bearer == "blu_secret" && seen->url == "https://library.example/api/agent/chat", "the login goes with it");
+        }
         CHECK(!streamer.streamRead(started["id"].toString().toStdString(), 100)["error"].isVoid(), "a finished stream is forgotten");
 
         const juce::var refused = streamer.streamStart("/api/agent/chat", juce::JSON::parse(R"({"note":"limit"})"));
