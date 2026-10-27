@@ -24,6 +24,15 @@ PortEditor::PortEditor(PortProcessor& p) : juce::AudioProcessorEditor(p), proces
     status_.setJustificationType(juce::Justification::topLeft);
     addAndMakeVisible(status_);
 
+    notice_.setColour(juce::Label::textColourId, kText);
+    notice_.setColour(juce::Label::backgroundColourId, kBackground.withAlpha(0.85f));
+    notice_.setFont(juce::FontOptions(13.0f));
+    notice_.setJustificationType(juce::Justification::centred);
+    notice_.setText("Bleep Board is not running: the host has no audio device.", juce::dontSendNotification);
+    notice_.setInterceptsMouseClicks(true, false);  // the panel below stays out of reach while nothing runs
+    notice_.setVisible(false);
+    addChildComponent(notice_);
+
     name_.setTextToShowWhenEmpty("Name on the board", kMuted);
     name_.setColour(juce::TextEditor::backgroundColourId, kPanel);
     name_.setColour(juce::TextEditor::textColourId, kText);
@@ -133,6 +142,7 @@ void PortEditor::paint(juce::Graphics& g) {
 }
 
 void PortEditor::resized() {
+    notice_.setBounds(plugin() ? getLocalBounds().withTrimmedTop(kBar) : getLocalBounds().reduced(14, 10).withTrimmedTop(34));
     if (plugin()) {
         auto all = getLocalBounds();
         auto bar = all.removeFromTop(kBar).reduced(6, 4);
@@ -249,6 +259,12 @@ void PortEditor::timerCallback() {
     if (preset_.isVisible() && preset_.getButtonText() == "Preset") {
         const auto name = processor_.presetName();
         if (name.isNotEmpty()) preset_.setButtonText(name);
+    }
+    // Live never prepares a plugin while it has no audio interface: say why nothing works (not for a bridged plugin).
+    const bool noAudio = !processor_.audioPrepared() && !bridged;
+    if (notice_.isVisible() != noAudio) {
+        notice_.setVisible(noAudio);
+        notice_.toFront(false);
     }
     const auto state = e.state(processor_.handle());
     // Bleep Board has no node of its own, apart from its macros.

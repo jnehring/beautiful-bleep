@@ -28,7 +28,7 @@ private:
     bool plugin() const { return processor_.loadsPresets(); }
 
     PortProcessor& processor_;
-    juce::Label title_, status_;
+    juce::Label title_, status_, notice_;   ///< notice_: why nothing runs (no audio device)
     juce::TextEditor name_;
     juce::TextButton prev_{"<"}, next_{">"}, preset_{"Preset"}, openBoard_{"Open Board"}, replace_{"Replace current board"};
     juce::Slider mix_;

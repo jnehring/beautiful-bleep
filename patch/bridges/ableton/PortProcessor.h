@@ -21,7 +21,8 @@
 
 namespace bleep::patch {
 
-/// One of the 16 automatable parameters of a cell plugin: its name follows the preset's panel.
+/// An automatable parameter whose name the board can change: one of the 16 of a cell plugin (the name follows the preset's
+/// panel), or a macro (its label).
 class SlotParameter : public juce::AudioParameterFloat {
 public:
     SlotParameter(int slot) : SlotParameter("p" + juce::String(slot + 1), "Param " + juce::String(slot + 1)) {}
@@ -81,7 +82,9 @@ public:
     void changeProgramName(int, const juce::String&) override {}
 
     void prepareToPlay(double sampleRate, int maximumExpectedSamplesPerBlock) override;
-    void releaseResources() override {}
+    void releaseResources() override { prepared_ = false; }
+    /// Whether the host has prepared this plugin for audio. Live does not while no audio interface is set up.
+    bool audioPrepared() const noexcept { return prepared_; }
     bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
     void processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuffer& midi) override;
     using juce::AudioProcessor::processBlock;
@@ -98,11 +101,12 @@ private:
     void parameterValueChanged(int index, float value) override;
     void parameterGestureChanged(int, bool) override {}
     void pollSlots();
+    void pollMacroLabels();
     void applyBoard();
     static BusesProperties busesFor(engine::PortKind kind);
 
-    void pollMacroLabels();
     engine::PortKind kind_;
+    std::atomic<bool> prepared_{false};
     engine::EngineInstance instance_;
 
     std::array<SlotParameter*, engine::kNumMacros> macros_{};
@@ -131,11 +135,11 @@ private:
     std::array<std::atomic<bool>, kSlots> slotDirty_{};   ///< the host moved it: the knob follows
     bool ignoring_ = false;                               ///< we are setting it ourselves
     uint64_t slotsGeneration_ = ~0ull;
+    uint64_t macrosGeneration_ = ~0ull;
     int slotTick_ = 0;
     bool stateRestored_ = false;   ///< setStateInformation ran: a saved set, not a fresh instance
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PortProcessor)
-    uint64_t macrosGeneration_ = ~0ull;
 };
 
 }  // namespace bleep::patch

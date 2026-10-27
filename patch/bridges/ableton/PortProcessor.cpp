@@ -191,6 +191,7 @@ void PortProcessor::prepareToPlay(double sampleRate, int maxBlock) {
     delay_.setSize(2, kMaxDelay + engine::kMaxHostBlock);
     delay_.clear();
     delayPos_ = 0;
+    prepared_ = true;
 }
 
 void PortProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuffer& midi) {
@@ -469,8 +470,8 @@ void PortProcessor::timerCallback() {
         }
     }
     if (loadsPresets() && stateRestored_) pollSlots();
-    // A new instance starts with a preset; a saved set (setStateInformation ran) keeps what it had, even nothing.
     if (macros_[0] != nullptr && (kind_ == PortKind::Patch || stateRestored_)) pollMacroLabels();
+    // A new instance starts with a preset; a saved set (setStateInformation ran) keeps what it had, even nothing.
     if (loadsPresets() && !stateRestored_) {
         stateRestored_ = true;
         if (engine().cellPreset(handle(), nullptr, 0) == 0) loadPreset(PresetLibrary::defaultName(kind_));
