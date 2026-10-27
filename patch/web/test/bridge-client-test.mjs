@@ -71,7 +71,7 @@ function rig({ isolated = true, mode = "low", storage = null, id = "id-1" } = {}
 const welcome = (o = {}) => ({ op: "welcome", v: 1, hub: "Fake Hub", sampleRate: 48000, block: 512, epoch: 4, leader: "live", ...o });
 const chan = (o) => ({ op: "channel", name: o.key, port: "remote", source: "app", online: true, latency: 0, reactive: false, ...o });
 const sync = (o = {}) => ({ op: "sync", epoch: 4, tempo: 120, beat: 16, playing: true, quantum: 4, leader: "live", hub: 5000, ...o });
-const tick = () => new Promise((r) => setTimeout(r, 4));  // MessagePort delivery takes a few turns of the event loop
+const tick = () => new Promise((r) => setTimeout(r, 40));  // MessagePort delivery takes a few turns of the event loop; on a loaded machine (tests side by side) more than a few ms
 
 // ---- 1. hello → welcome → channels -----------------------------------------------------------------------------------
 {
