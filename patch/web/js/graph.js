@@ -125,7 +125,7 @@ class PortNode {
     const kind = this.remote ? this.remote.kind : this.spec.type;  // [bridge] a bound node is not a local speaker/keyboard
     if (this.remote) this.remote.run(this, n);                       // [bridge]
     const v = this.views;
-    if (kind === "audio-out" || kind === "instrument") {
+    if (kind === "audio-out" || kind === "instrument-out") {
       // Mono into both sides, as a track would.
       const l = v.inputs.subarray(0, CHUNK);
       const r = this.connectedIn[1] ? v.inputs.subarray(CHUNK, 2 * CHUNK) : l;

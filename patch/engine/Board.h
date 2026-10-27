@@ -118,11 +118,16 @@ constexpr double kNodeGap = 24.0;
 /// Copies a cell preset document ({root, nodes, cables, panels?}) into the top level of `doc` with
 /// fresh ids, as the board's Add → Cell does, and returns the new root's id (empty if it has none).
 juce::String insertPreset(juce::var& doc, const juce::var& preset, double x, double y);
-/// Cables a preset cell to its port node the way the plugin plays it: `plays` is the preset's
-/// entry, `effect` says which half of it applies. The Instrument's MIDI jacks feed the cell's note
-/// inputs and its audio comes back to the port; an FX sends the port's audio through.
-void attachHost(juce::var& doc, const juce::String& portNodeId, const juce::String& cellId, const juce::var& plays,
-                bool effect);
+/// Cables a preset cell between the plugin's two port nodes the way the plugin plays it: `plays` is the preset's
+/// entry, `effect` says which half of it applies. The Instrument input's MIDI jacks feed the cell's note
+/// inputs and its audio goes to the output node; an FX sends the input node's audio through.
+void attachHost(juce::var& doc, const juce::String& portNodeId, const juce::String& outNodeId, const juce::String& cellId,
+                const juce::var& plays, bool effect);
+/// Port id suffix of the output node of a Bleep Instrument or Bleep FX (the input node's port id is the instance id).
+constexpr const char* kPortOutSuffix = ":out";
+/// Makes sure the plugin's port node has its output node (port id `<portId>:out`), as boards saved when the plugin was
+/// one node need: cables into the old node's audio inputs move to the new node. Returns whether it changed the board.
+bool ensureOutNode(juce::var& doc, const juce::String& portNodeId);
 /// The top-level cell cabled to a port node, if any (its id, else empty).
 juce::String attachedCell(const juce::var& doc, const juce::String& portNodeId);
 /// Removes a cell with everything inside it, the cables touching them and the panels of the cell.

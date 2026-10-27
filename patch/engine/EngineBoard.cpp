@@ -99,7 +99,10 @@ void Engine::attachPreset(PortSlot& s, const juce::String& portNodeId) {
     const double y = port ? (double)port->getProperty("y") + board::nodeHeight(juce::var(const_cast<juce::DynamicObject*>(port))) + board::kNodeGap : 150.0;
     const auto cell = board::insertPreset(board_, preset, x, y);
     if (cell.isEmpty()) return;
-    board::attachHost(board_, portNodeId, cell, preset["plays"], s.kind == PortKind::AudioInsert);
+    board::ensureOutNode(board_, portNodeId);
+    const auto* out = board::findNodeByPort(board_, juce::String(s.id) + board::kPortOutSuffix);
+    board::attachHost(board_, portNodeId, out ? out->getProperty("id").toString() : portNodeId, cell, preset["plays"],
+                      s.kind == PortKind::AudioInsert);
     board_ = board::sanitise(board_);
 }
 
@@ -219,7 +222,6 @@ juce::var Engine::cellParams(int handle) {
     return juce::var(list);
 }
 
-}  // namespace bleep::engine
 /// The names of the instance's macros, for the host's parameter list: [string] (16 for Bleep Board, 8 for Bleep Instrument
 /// and Bleep FX). A macro the user labelled has its label; else the first thing it modulates, "<node> <parameter>"; else "Macro n".
 juce::var Engine::macroLabels(int handle) {
@@ -267,3 +269,4 @@ juce::var Engine::macroLabels(int handle) {
     return juce::var(list);
 }
 
+}  // namespace bleep::engine

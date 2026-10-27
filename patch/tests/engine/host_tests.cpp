@@ -240,9 +240,9 @@ void cellPluginRunsInItsOwnBlock() {
     }
     EXPECT(wrong == 0);
 
-    // A cable from another plugin into the insert's return joins them: both go through the tick.
+    // A cable from another plugin into the FX output joins them: both go through the tick.
     auto edited = copyOf(e->board());
-    edited["cables"].getArray()->add(cable(portNode(*e, ain), "l", portNode(*e, fx), "l"));
+    edited["cables"].getArray()->add(cable(portNode(*e, ain), "l", ownNode(*e, fx, ":out"), "l"));
     e->commit(edited, "patch");
     EXPECT(e->portLatencySamples(fx) == e->latencySamples() && e->latencySamples() == 2 * kBlock);
     // ... and removing it sets it free again.
@@ -514,9 +514,9 @@ void boardAddedAfterInstrumentsIsMidiInAndAudioOut() {
     EXPECT(board::findNodeByPort(e->board(), juce::String(id) + ":audio") != nullptr);
     EXPECT(portNode(*e, inst).isNotEmpty());
     EXPECT(board::findNodeByPort(e->board(), juce::String(id) + ":audioin") != nullptr);
-    EXPECT(e->board()["nodes"].getArray()->size() == 5);  // Instrument, MIDI In, Audio In, Audio Out, Macros
+    EXPECT(e->board()["nodes"].getArray()->size() == 6);  // Instrument Input and Output, MIDI In, Audio In, Audio Out, Macros
     e->reconcileNow();
-    EXPECT(e->board()["nodes"].getArray()->size() == 5);  // nothing added twice
+    EXPECT(e->board()["nodes"].getArray()->size() == 6);  // nothing added twice
     e->unregisterInstance(main);
     e->unregisterInstance(inst);
     e->collectGarbage();

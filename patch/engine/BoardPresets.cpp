@@ -144,8 +144,8 @@ juce::String insertPreset(juce::var& doc, const juce::var& presetIn, double x, d
     return map[rootId];
 }
 
-void attachHost(juce::var& doc, const juce::String& portNodeId, const juce::String& cellId, const juce::var& plays,
-                bool effect) {
+void attachHost(juce::var& doc, const juce::String& portNodeId, const juce::String& outNodeId, const juce::String& cellId,
+                const juce::var& plays, bool effect) {
     auto* cables = doc["cables"].getArray();
     auto* root = findNode(doc, cellId);
     if (cables == nullptr || root == nullptr) return;
@@ -182,8 +182,26 @@ void attachHost(juce::var& doc, const juce::String& portNodeId, const juce::Stri
                 else if (id == "run") wire(portNodeId, "playing", cellId, id);
             }
     }
-    for (int i = 0; i < outs.size() && i < 2; ++i) wire(cellId, outs[i], portNodeId, i == 0 ? "l" : "r");
-    if (outs.size() == 1) wire(cellId, outs[0], portNodeId, "r");
+    for (int i = 0; i < outs.size() && i < 2; ++i) wire(cellId, outs[i], outNodeId, i == 0 ? "l" : "r");
+    if (outs.size() == 1) wire(cellId, outs[0], outNodeId, "r");
+}
+
+bool ensureOutNode(juce::var& doc, const juce::String& portNodeId) {
+    const auto* node = findNode(doc, portNodeId);
+    if (node == nullptr) return false;
+    const juce::String type = node->getProperty("type").toString(), port = node->getProperty("port").toString();
+    const char* outType = type == "audio-insert" ? "audio-insert-out" : type == "instrument" ? "instrument-out" : nullptr;
+    if (outType == nullptr || port.isEmpty()) return false;
+    const juce::String outPort = port + kPortOutSuffix;
+    if (findNodeByPort(doc, outPort) != nullptr) return false;
+    const ModuleSpec* spec = Registry::get().find(outType);
+    if (spec == nullptr) return false;
+    const juce::String outId = addNode(doc, *spec, (double)node->getProperty("x") + 720.0, (double)node->getProperty("y"), outPort);
+    // A board saved when the plugin was one node: its audio inputs were the return.
+    if (auto* cables = doc["cables"].getArray())
+        for (auto& c : *cables)
+            if (c["to"]["node"].toString() == portNodeId) c["to"].getDynamicObject()->setProperty("node", outId);
+    return true;
 }
 
 juce::String attachedCell(const juce::var& doc, const juce::String& portNodeId) {

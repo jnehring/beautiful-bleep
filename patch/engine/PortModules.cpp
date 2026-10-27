@@ -62,11 +62,11 @@ class MidiInModule final : public Module {
 public:
     enum { Channel, Cc1 };
     enum { Notes, Pitch, Gate, Velocity, Trigger, Pressure, Bend, Mod, CcOut1 };
-    enum { InL, InR };  // Instrument only
     /// Instrument only: the host's time as a clock and a run gate, for cells that play by themselves.
     static constexpr int ClockOut = CcOut1 + kNumCcs, PlayingOut = ClockOut + 1, MacroOut1 = PlayingOut + 1;
 
-    MidiInModule(const ModuleSpec& s, bool audioOut) : Module(s), audioOut_(audioOut) {}
+    /// `instrument`: the Bleep Instrument's input half, which also has the transport and the macros.
+    MidiInModule(const ModuleSpec& s, bool instrument) : Module(s), audioOut_(instrument) {}
 
     void reset() override {
         held_ = 0;
@@ -77,10 +77,7 @@ public:
     void process(const ProcessContext& c) override {
         NoteBuffer& notes = *c.notesOut[Notes];
         notes.clear();
-        if (audioOut_) {
-            writeAudio(c);
-            writeMacros(c, MacroOut1);
-        }
+        if (audioOut_) writeMacros(c, MacroOut1);
         if (c.port == nullptr || c.port->in == nullptr) {
             zeroOutputs(c, spec());  // outputs deactivated (spec §6)
             releaseAll(notes);
@@ -203,20 +200,27 @@ private:
         gate_ = 0.0f;
     }
 
-    void writeAudio(const ProcessContext& c) noexcept {
-        if (c.port == nullptr || c.port->out == nullptr) return;
-        const float* l = c.inputs[InL];
-        const float* r = c.inputConnected[InR] ? c.inputs[InR] : l;
-        std::copy(l, l + c.numSamples, c.port->out->audio[0] + c.offset);
-        std::copy(r, r + c.numSamples, c.port->out->audio[1] + c.offset);
-    }
-
     bool audioOut_;
     int cursor_ = 0;
     int stack_[32] = {};
     int held_ = 0;
     float pitch_ = 0.0f, gate_ = 0.0f, velocity_ = 0.0f, pressure_ = 0.0f, bend_ = 0.0f, mod_ = 0.0f;
     float cc_[kNumCcs] = {};
+};
+
+// ---- Instrument output ---------------------------------------------------------
+
+/// The Bleep Instrument's output half: what is patched into it goes to the track.
+class InstrumentOutModule final : public Module {
+public:
+    using Module::Module;
+    void process(const ProcessContext& c) override {
+        if (c.port == nullptr || c.port->out == nullptr) return;
+        const float* l = c.inputs[0];
+        const float* r = c.inputConnected[1] ? c.inputs[1] : l;
+        std::copy(l, l + c.numSamples, c.port->out->audio[0] + c.offset);
+        std::copy(r, r + c.numSamples, c.port->out->audio[1] + c.offset);
+    }
 };
 
 // ---- MIDI Out ------------------------------------------------------------------
@@ -592,16 +596,21 @@ void registerPortModules(Registry& r) {
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<MidiInModule>(spec, false); });
     }
     {
-        ModuleSpec s = portSpec("instrument", "Bleep Instrument", PortKind::Instrument,
-                                "MIDI In and Audio Out in one plugin (Bleep Instrument).");
+        ModuleSpec s = portSpec("instrument", "Bleep Instrument Input", PortKind::Instrument,
+                                "The MIDI, transport and macros of a Bleep Instrument. Patch an instrument after it and into the Bleep Instrument Output.");
         s.params = {ParamSpec::choice("channel", "Channel", channels, 0)};
         for (auto& p : ccParams()) s.params.push_back(p);
         s.outputs = midiInOutputs();
         s.outputs.push_back({"clock", "Clock", Signal::Gate, false});
         s.outputs.push_back({"playing", "Playing", Signal::Gate, false});
         addMacroOutputs(s);
-        s.inputs = {{"l", "Audio L", Signal::Audio}, {"r", "Audio R", Signal::Audio}};
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<MidiInModule>(spec, true); });
+    }
+    {
+        ModuleSpec s = portSpec("instrument-out", "Bleep Instrument Output", PortKind::Instrument,
+                                "The audio of a Bleep Instrument, to its track.");
+        s.inputs = {{"l", "Audio L", Signal::Audio}, {"r", "Audio R", Signal::Audio}};
+        r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<InstrumentOutModule>(spec); });
     }
     {
         // Standalone only (spec §12): the user adds it and picks a controller; the app feeds it.
@@ -647,12 +656,18 @@ void registerPortModules(Registry& r) {
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, false, true); });
     }
     {
-        ModuleSpec s = portSpec("audio-insert", "Bleep FX", PortKind::AudioInsert,
-                                "A track's audio through the board and back (Bleep FX).");
-        s.outputs = {{"l", "Send L", Signal::Audio, true}, {"r", "Send R", Signal::Audio, true}};
+        ModuleSpec s = portSpec("audio-insert", "Bleep FX Input", PortKind::AudioInsert,
+                                "The track's audio and the macros of a Bleep FX. Patch an effect after it and into the Bleep FX Output.");
+        s.outputs = {{"l", "L", Signal::Audio, true}, {"r", "R", Signal::Audio, true}};
         addMacroOutputs(s);
-        s.inputs = {{"l", "Return L", Signal::Audio}, {"r", "Return R", Signal::Audio}};
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, true, false); });
+    }
+    {
+        // Nothing patched into it passes the track's audio through.
+        ModuleSpec s = portSpec("audio-insert-out", "Bleep FX Output", PortKind::AudioInsert,
+                                "The audio of a Bleep FX, back to its track.");
+        s.inputs = {{"l", "L", Signal::Audio}, {"r", "R", Signal::Audio}};
+        r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioReturnModule>(spec); });
     }
     {
         ModuleSpec s = portSpec("audio-bridge", "Audio Bridge", PortKind::AudioBridge,
@@ -688,6 +703,7 @@ void registerPortModules(Registry& r) {
         s.colour = "#f6c35b";
         for (int k = 1; k <= kNumMacros; ++k)
             s.outputs.push_back({"m" + std::to_string(k), "Macro " + std::to_string(k), Signal::Control, false});
+        s.sanitiseData = sanitiseMacroLabels;
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<MacrosModule>(spec); });
     }
     {
@@ -703,7 +719,6 @@ void registerPortModules(Registry& r) {
         s.params = {ParamSpec::integer("channel", "Channel", 1, patch::kNumChannels, 1)};
         for (int k = 1; k <= patch::kRowsPerChannel; ++k)   // a CV input per row: it adds to the row's knob
             s.inputs.push_back({"cv" + std::to_string(k), "CV " + std::to_string(k), Signal::Control});
-        s.sanitiseData = sanitiseMacroLabels;
         for (int k = 1; k <= patch::kRowsPerChannel; ++k)
             s.params.push_back(ParamSpec::percent("v" + std::to_string(k), "Row " + std::to_string(k), 0.0f, 1.0f, 0.5f)
                                    .inGroup("Row " + std::to_string(k)));

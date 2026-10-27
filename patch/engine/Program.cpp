@@ -30,12 +30,12 @@ struct Resolved {
 
 namespace {
 
-/// An Audio Insert (or Bridge) sends the track's audio into the board and takes it back: one node, so the way
-/// through the board would be a cycle with a feedback delay. Split it into the node (the send) and a return node
-/// that takes the cables into its inputs, and the audio goes out and back in the same chunk.
+/// An Audio Bridge sends the track's audio into the board and takes it back: one node, so the way through the
+/// board would be a cycle with a feedback delay. Split it into the node (the send) and a return node that takes the
+/// cables into its inputs, and the audio goes out and back in the same chunk. (Bleep FX has two nodes of its own.)
 bool hasInsert(const BoardModel& b) {
     for (const auto& n : b.nodes)
-        if (n.type == "audio-insert" || n.type == "audio-bridge") return true;
+        if (n.type == "audio-bridge") return true;
     return false;
 }
 
@@ -44,7 +44,7 @@ BoardModel splitInserts(const BoardModel& in) {
     const ModuleSpec* ret = Registry::get().find(kAudioReturn);
     if (ret == nullptr) return out;
     for (const auto& n : in.nodes) {
-        if (n.type != "audio-insert" && n.type != "audio-bridge") continue;
+        if (n.type != "audio-bridge") continue;
         NodeModel r;
         r.id = n.id + "~r";
         r.type = kAudioReturn;

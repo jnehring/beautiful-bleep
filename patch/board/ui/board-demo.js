@@ -22,6 +22,8 @@
       const found = await BleepWeb.libraryTypes(types);
       const byType = new Map(types.concat(found).map((t) => [t.type, t]));   // a module's own description replaces the list's (the same position)
       types = [...byType.values()];
+      const versions = BleepWeb.typeVersions || {};
+      types = types.map((t) => (versions[t.type] && !t.version ? { ...t, version: versions[t.type] } : t));   // the help page shows it
     }
     // the views of the user's own modules, the built-in ones, and the library's that bring a picture or a help page
     if (priv.BleepCode) priv.BleepCode.registerInstalledViews((window.BleepWeb && BleepWeb.libraryUi) || []);
@@ -347,6 +349,22 @@
     return JSON.parse(JSON.stringify(s));
   }
 
+  /// Bleep Instrument and Bleep FX are two nodes: the input (`n`) and an output node bound to the same channel. A board saved
+  /// with the single node gets the output node here, and the cables that went into the old node's audio inputs move to it.
+  function addOutNode(n, info) {
+    const outType = n.type + "-out";
+    if ((n.type !== "instrument" && n.type !== "audio-insert") || !typeOf(outType)) return;
+    const outPort = info.id + ":out";
+    ports[outPort] = { kind: info.type, track: info.name, live: !!info.live, main: false };
+    if (board.nodes.some((x) => x.port === outPort)) return;
+    const out = node(n.id + "-out", outType, outType === "instrument-out" ? "Bleep Instrument Output" : "Bleep FX Output", n.x + 720, n.y,
+                     { port: outPort, track: info.name, remote: info.key, colour: "#60a5fa" });
+    board.nodes.push(out);
+    for (const c of board.cables) if (c.to.node === n.id) c.to.node = out.id;
+    save();
+    if (window.BleepWeb) BleepWeb.setBoard(board);
+  }
+
   /// [bridge] A Live port (Board = Bleep Play) the hub announced becomes a port node of this board, bound to its channel key:
   /// it stays when the port goes away (a ghost, cables kept), as in the plugins (doc/specs/bridges.md §6).
   function mirrorPort(info) {
@@ -368,6 +386,7 @@
       n.name = info.name;
       save();
     }
+    addOutNode(n, info);
     emit("board", message());
   }
 
