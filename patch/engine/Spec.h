@@ -76,7 +76,7 @@ struct ParamSpec {
     }
     ParamSpec when(std::string param, int lo, int hi) const {
         ParamSpec p = *this;
-        p.show = {std::move(param), lo, hi};
+        p.show = {std::move(param), lo, hi, {}, 0, 0};
         return p;
     }
     ParamSpec namedBy(std::string param, std::vector<std::string> list) const {
@@ -131,7 +131,7 @@ struct JackSpec {
 
     JackSpec when(std::string param, int lo, int hi) const {
         JackSpec j = *this;
-        j.show = {std::move(param), lo, hi};
+        j.show = {std::move(param), lo, hi, {}, 0, 0};
         return j;
     }
     /// Also requires another setting in range (with when()).
@@ -336,12 +336,12 @@ inline std::string ParamSpec::text(float v) const {
         case Format::Toggle: return v >= 0.5f ? "On" : "Off";
         case Format::Semitones: std::snprintf(buf, sizeof buf, "%+d st", (int)std::lround(v)); return buf;
         case Format::FilterMode: {
-            static const char* names[] = {"LP", "BP", "HP", "Notch"};
+            static const char* modes[] = {"LP", "BP", "HP", "Notch"};
             const float m = std::fmin(std::fmax(v, 0.0f), 1.0f) * 3.0f;
             const int i = (int)std::lround(m);
-            if (std::fabs(m - (float)i) < 0.05f) return names[i];
+            if (std::fabs(m - (float)i) < 0.05f) return modes[i];
             const int lo = (int)m;
-            return std::string(names[lo]) + "›" + names[lo < 3 ? lo + 1 : 3];
+            return std::string(modes[lo]) + "›" + modes[lo < 3 ? lo + 1 : 3];
         }
         case Format::Number: break;
     }

@@ -174,7 +174,9 @@ public:
 private:
     SharedMemory() = default;
     Shared* shared_ = nullptr;
-    [[maybe_unused]] void* handle_ = nullptr;  // Windows: the mapping handle
+#if defined(_WIN32)
+    void* handle_ = nullptr;  // the mapping handle
+#endif
     bool owner_ = false;
 };
 

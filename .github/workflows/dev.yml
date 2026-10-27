@@ -37,6 +37,10 @@ jobs:
     timeout-minutes: 90
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: 6   # compilers at a time: the container has 12 GB, and the JUCE sources need about 1.5 GB each
+      # The strict warning flags of the project (JUCE's recommended set) print thousands of lines for the DSP code; a build here
+      # is judged by its errors. A build on your own machine still shows the warnings.
+      CFLAGS: -w
+      CXXFLAGS: -w
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
