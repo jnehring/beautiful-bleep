@@ -75,8 +75,9 @@ def cmake(source: Path, build_dir: Path, config: str, defines: dict, target=None
     if test:
         ctest = ["ctest", "--test-dir", build_dir, "-C", config, "--output-on-failure"]
         # The demo-patch and cell-preset shards render side by side; the rest runs one at a time (some tests share ports and folders).
-        run([*ctest, "-R", "demo-patches|cell-plugin-presets", "--parallel", min(os.cpu_count() or 2, 6)])
-        run([*ctest, "-E", "demo-patches|cell-plugin-presets"])
+        # A test that hangs fails after its timeout (seconds) with the output it had so far, instead of holding a build for 25 minutes.
+        run([*ctest, "-R", "demo-patches|cell-plugin-presets", "--parallel", min(os.cpu_count() or 2, 6), "--timeout", 900])
+        run([*ctest, "-E", "demo-patches|cell-plugin-presets", "--timeout", 300])
 
 
 def onoff(b):
