@@ -35,6 +35,8 @@ jobs:
     runs-on: [self-hosted, bleep-build]   # ci/runner: a container with the toolchain, one job each, no access to Docker or the server
     environment: dev
     timeout-minutes: 90
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 6   # compilers at a time: the container has 12 GB, and the JUCE sources need about 1.5 GB each
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -51,9 +53,7 @@ jobs:
       - name: Build the modules
         run: ./bleep build modules
       - name: Build the plugins and the app
-        run: |
-          cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3
-          cmake --build build/patch --config Release --parallel
+        run: ./bleep build plugins --plugins-only --no-install
       - name: Release modules and plugins into the dev channel
         env:
           BLEEP_REGISTRY_URL: ${{ vars.BLEEP_REGISTRY_URL }}
