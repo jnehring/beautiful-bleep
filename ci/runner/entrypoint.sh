@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 # Registers a runner that takes one job and is gone (--ephemeral); docker compose then starts the next container.
 set -euo pipefail
-: "${REPO:?REPO is owner/name of the repository}" "${GITHUB_PAT:?GITHUB_PAT is a token that may administer this repository's runners}"
+: "${REPO:?REPO is owner/name of the repository}" "${GITHUB_PAT:?GITHUB_PAT is a token that may administer the runners of this repository}"
 
 token=$(curl -fsS -X POST -H "Authorization: Bearer ${GITHUB_PAT}" -H "Accept: application/vnd.github+json" \
     "https://api.github.com/repos/${REPO}/actions/runners/registration-token" | jq -er .token)
