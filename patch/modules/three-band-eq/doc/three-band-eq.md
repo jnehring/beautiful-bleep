@@ -28,3 +28,12 @@ Each channel runs through three biquad filters in a row:
 ![Signal flow: In, low shelf, mid bell, high shelf, Output, Out](three-band-eq-flow.png)
 
 The filters are the standard RBJ designs (shelves with a slope of 1, a peaking bell with the chosen Q). The knobs are smoothed once per block of 32 samples, so moving them does not click. Frequencies are kept below 45 % of the sample rate.
+
+## How to use it?
+
+- **More weight:** raise *Low* by 3–6 dB and set *Low Freq* around 100 Hz.
+- **Less mud:** lower *Mid* by 3–5 dB, *Mid Freq* around 300 Hz, *Mid Q* 1–2.
+- **Brighter:** raise *High* by 2–4 dB with *High Freq* around 8 kHz.
+- **Take out a harsh note:** a narrow cut: *Mid Q* 3–4, *Mid* -6 dB, and sweep *Mid Freq* until it disappears.
+- **Watch the level:** boosts make the sound louder, so turn *Output* down by about as much as you boosted.
+- **Check it:** with all three gains at 0 dB the signal passes unchanged, so you can compare against the original.
