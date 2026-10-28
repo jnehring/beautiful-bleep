@@ -37,7 +37,7 @@ services:
     environment:
       # Site address for Caddy: ":80" = plain HTTP (TLS in front); a domain = Caddy gets its own certificate. See .env.example.
       BLEEP_SITE_ADDRESS: ${BLEEP_SITE_ADDRESS:-:80}
-      # Optional password for the whole site (Caddy basic auth); off while the hash is empty. See .env.example.
+      # Optional password for the website, not /api (Caddy basic auth); off while the hash is empty. See .env.example.
       BLEEP_BASIC_AUTH_USER: ${BLEEP_BASIC_AUTH_USER:-bleep}
       # An empty value would stop Caddy from starting: without a hash a placeholder hash is passed and the switch stays off.
       BLEEP_BASIC_AUTH_HASH: ${BLEEP_BASIC_AUTH_HASH:-$$2a$$14$$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG}

@@ -14,12 +14,16 @@
 	root * /srv
 	encode zstd gzip
 
-	# Optional password for the whole site (HTTP basic auth), e.g. an installation that is online but not public yet.
+	# Optional password for the website (HTTP basic auth), e.g. an installation that is online but not public yet.
 	# Off unless BLEEP_BASIC_AUTH_HASH is set in website/.env (see .env.example). Browsers ask once and then send the
-	# credentials with every request, including /api/* and /registry/*.
+	# credentials with every request to the site, including /registry/*. /api/* is never locked: the API stays open
+	# (the Bleep App and other clients call it without the site password; it has its own accounts and tokens).
 	# BLEEP_BASIC_AUTH_ON is "1" only when a hash is set (compose derives it); an environment variable that is set but empty does
 	# not fall back to the default in Caddy, so the hash below is always a valid one: the placeholder is never used.
-	@locked expression "'{$BLEEP_BASIC_AUTH_ON:}' == '1'"
+	@locked {
+		expression "'{$BLEEP_BASIC_AUTH_ON:}' == '1'"
+		not path /api /api/*
+	}
 	basic_auth @locked {
 		{$BLEEP_BASIC_AUTH_USER:bleep} {$BLEEP_BASIC_AUTH_HASH:$2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG}
 	}
