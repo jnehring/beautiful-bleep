@@ -99,7 +99,7 @@ class Release(Base):
     major: Mapped[int] = mapped_column()
     minor: Mapped[int] = mapped_column()
     patch: Mapped[int] = mapped_column()
-    build: Mapped[int] = mapped_column(Integer, default=0)  # the build time YYYYMMDDHHMM of a development build, 0 for a release
+    build: Mapped[int] = mapped_column(BigInteger, default=0)  # the build time YYYYMMDDHHMM of a development build, 0 for a release
     channel: Mapped[str] = mapped_column(String(16), default="stable")  # stable | beta | dev
     status: Mapped[str] = mapped_column(String(16), default="draft")  # draft | published
     title: Mapped[str] = mapped_column(String(120), default="")
