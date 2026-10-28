@@ -55,6 +55,10 @@ jobs:
       # The build rewrites the generated type list; a difference means the committed copy was stale.
       - name: demo-types.json is current
         run: git diff --exit-code -- patch/board/ui/demo-types.json
+      # The modules written in Bleep Script (AssemblyScript) are compiled with node; without the packages they are skipped.
+      - name: Bleep Script compiler (npm packages)
+        working-directory: patch/script
+        run: npm ci --no-audit --no-fund
       - name: Build the modules
         run: ./bleep build modules
       - name: Build the plugins and the app
