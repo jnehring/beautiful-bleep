@@ -103,11 +103,18 @@ jobs:
       - name: Build (macOS)
         if: runner.os == 'macOS'
         run: ./bleep build plugins --plugins-only --no-install
+      - name: WebView2 (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          # JUCE links the board's web view against the WebView2 NuGet package and looks for it by this location
+          nuget install Microsoft.Web.WebView2 -Version 1.0.1901.177 -OutputDirectory "$RUNNER_TEMP/webview2"
+          echo "WEBVIEW2_DIR=$(cygpath -m "$RUNNER_TEMP/webview2")" >> "$GITHUB_ENV"
       - name: Build (Windows)
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3
+          cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3 -DJUCE_WEBVIEW2_PACKAGE_LOCATION="$WEBVIEW2_DIR"
           cmake --build build/patch --config Release --parallel
       - name: Add this system to the dev build of the commit
         shell: bash

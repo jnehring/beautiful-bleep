@@ -63,7 +63,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libasound2-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev \
             libfreetype-dev libfontconfig1-dev libgl1-mesa-dev libwebkit2gtk-4.1-dev libcurl4-openssl-dev
-      - run: cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3
+      - name: WebView2 (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          # JUCE links the board's web view against the WebView2 NuGet package and looks for it by this location
+          nuget install Microsoft.Web.WebView2 -Version 1.0.1901.177 -OutputDirectory "$RUNNER_TEMP/webview2"
+          echo "WEBVIEW2_DIR=$(cygpath -m "$RUNNER_TEMP/webview2")" >> "$GITHUB_ENV"
+      - run: cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3 ${WEBVIEW2_DIR:+-DJUCE_WEBVIEW2_PACKAGE_LOCATION="$WEBVIEW2_DIR"}
       - run: cmake --build build/patch --config Release --parallel
       - name: Add the platform
         shell: bash
