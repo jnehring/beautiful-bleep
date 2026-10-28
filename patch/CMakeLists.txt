@@ -565,6 +565,16 @@ function(bleep_use_library target)
     target_link_libraries(${target} PRIVATE bleep_wasmtime juce::juce_cryptography)
 endfunction()
 
+# Windows: the board's web view is WebView2 (WebBrowserComponent's resource provider exists only with it), linked statically from the
+# NuGet package (JUCE_WEBVIEW2_PACKAGE_LOCATION). NEEDS_WEBVIEW2 links the loader; this macro tells JUCE's web component to use it.
+if (WIN32)
+    set(BLEEP_WEBVIEW2 TRUE)
+    set(BLEEP_WEBVIEW2_DEFINE JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1)
+else ()
+    set(BLEEP_WEBVIEW2 FALSE)
+    set(BLEEP_WEBVIEW2_DEFINE "")
+endif ()
+
 # bleep_add_plugin(TARGET <t> PRODUCT <name> CODE <4 chars> KIND <PortKind>
 #                  [SYNTH] [MIDI_IN] [MIDI_OUT] [VST3_CATEGORIES ...])
 function(bleep_add_plugin)
@@ -613,6 +623,7 @@ function(bleep_add_plugin)
     target_compile_definitions(${P_TARGET} PUBLIC
         JUCE_WEB_BROWSER=1
         JUCE_USE_CURL=0
+        ${BLEEP_WEBVIEW2_DEFINE}
         JUCE_VST3_CAN_REPLACE_VST2=0)
     target_compile_definitions(${P_TARGET} PRIVATE BLEEP_PORT_KIND=${P_KIND})
     bleep_use_library(${P_TARGET})
@@ -663,10 +674,10 @@ bleep_add_plugin(TARGET BleepFx PRODUCT "Bleep FX" CODE BpFx KIND AudioInsert
 
 # Opens the real board window on a real engine for a few seconds (not in ctest).
 if (BLEEP_BUILD_TESTS)
-    juce_add_gui_app(bleep_board_smoke PRODUCT_NAME "Bleep Board Smoke" NEEDS_WEB_BROWSER TRUE)
+    juce_add_gui_app(bleep_board_smoke PRODUCT_NAME "Bleep Board Smoke" NEEDS_WEB_BROWSER TRUE NEEDS_WEBVIEW2 ${BLEEP_WEBVIEW2})
     target_sources(bleep_board_smoke PRIVATE tests/board_smoke.cpp board/BoardWindow.cpp board/RecordingsSettings.cpp board/BoardFiles.cpp ${BLEEP_ENGINE_SOURCES})
     target_include_directories(bleep_board_smoke PRIVATE ${BLEEP_ENGINE_INCLUDES})
-    target_compile_definitions(bleep_board_smoke PRIVATE JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0
+    target_compile_definitions(bleep_board_smoke PRIVATE JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0 ${BLEEP_WEBVIEW2_DEFINE}
         BLEEP_BOARD_SMOKE_TEST=1 "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
     target_link_libraries(bleep_board_smoke PRIVATE bleep_board_web bleep_dsp juce::juce_gui_extra juce::juce_audio_devices
         juce::juce_recommended_config_flags)
@@ -739,6 +750,7 @@ if (BLEEP_BUILD_APP)
     juce_add_gui_app(BleepApp
         PRODUCT_NAME "Bleep App"
         NEEDS_WEB_BROWSER TRUE   # Linux: the WebKit and GTK headers and libraries for the board's web view
+        NEEDS_WEBVIEW2 ${BLEEP_WEBVIEW2}
         COMPANY_NAME "Beautiful Bleep"
         BUNDLE_ID "com.brilliantbleep.patch.app"
         VERSION ${PROJECT_VERSION}
@@ -764,7 +776,7 @@ if (BLEEP_BUILD_APP)
     target_include_directories(BleepApp PRIVATE ${BLEEP_ENGINE_INCLUDES} ${BLEEP_BRIDGE_INCLUDES} ${BLEEP_HUB_INCLUDES}
         "${CMAKE_CURRENT_SOURCE_DIR}/board" "${CMAKE_CURRENT_SOURCE_DIR}/app")
     target_compile_definitions(BleepApp PRIVATE
-        JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0
+        JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0 ${BLEEP_WEBVIEW2_DEFINE}
         JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:BleepApp,JUCE_PRODUCT_NAME>"
         JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:BleepApp,JUCE_VERSION>"
         BLEEP_LINK=$<BOOL:${BLEEP_LINK}>)
