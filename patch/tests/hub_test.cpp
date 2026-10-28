@@ -396,8 +396,10 @@ void testLiveSlots(engine::Engine& engine, WebHub& hub, bridge::BridgeServer& se
                 slope, silentTail, delayFrames, delayFrames / 48.0);
     EXPECT(silentTail == 0);
     EXPECT(std::fabs(slope - 1e-4) < 1e-4 * 0.02);
-    // The test's browser echoes at once, so only the way back is buffered: one 16 ms buffer (768 frames) plus granularity.
-    EXPECT(delayFrames > 700.0 && delayFrames < 1100.0);
+    // The test's browser echoes at once, so only the way back is buffered: one 16 ms buffer (768 frames) plus granularity. A machine
+    // under load, or an audio thread without real-time priority, adds scheduling delay (1167 on a busy build server); a second
+    // buffer would be 1536 and more, which is what the upper limit is there to catch.
+    EXPECT(delayFrames > 700.0 && delayFrames < 1450.0);
 
     // The plugin that returns the web's audio is asked to report that round trip.
     const int extra = audioOut.extraLatency();
