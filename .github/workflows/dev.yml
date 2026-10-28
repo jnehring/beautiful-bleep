@@ -61,7 +61,13 @@ jobs:
         working-directory: patch/script
         run: npm ci --no-audit --no-fund
       - name: Build the modules
-        run: ./bleep build modules
+        # The build is incremental (patch/web/build_modules.py hashes each module's sources), but the checkout is new every time. The
+        # output lives on the cache volume instead, one folder per Emscripten and JUCE version, so only changed modules are compiled.
+        run: |
+          cache=/cache/modules-$( (emcc --version | head -n 1; git -C "$BLEEP_JUCE_DIR" rev-parse HEAD) | sha256sum | cut -c1-12)
+          mkdir -p "$cache" build/web
+          ln -sfn "$cache" build/web/modules
+          ./bleep build modules
       # With Wasmtime the plugins and the app load the modules as .wasm from the library (like on a developer's machine) and carry no
       # module code: far fewer sources to compile, and the Library section and the automatic module updates work.
       - name: Wasmtime (the wasm module host)

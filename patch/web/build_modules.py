@@ -26,6 +26,7 @@ Output:
 """
 import argparse
 import concurrent.futures
+import functools
 import hashlib
 import json
 import re
@@ -93,6 +94,11 @@ def build_juce_core(juce_dir, out):
 
 
 ROOT = PATCH.parent
+
+
+@functools.cache
+def _emcc_version():
+    return subprocess.run(["emcc", "--version"], capture_output=True, text=True).stdout.splitlines()[:1]
 
 
 def _sha(path):
@@ -197,8 +203,10 @@ def build(d, out, include_dirs, juce=None, force=False):
                + [str(PATCH / "web/src/WebShim.cpp")] + [str(s) for s in sources]
                + ["-o", str(target)])
         # What the result depends on besides file contents: flags, sources, the generated header.
-        key = hashlib.sha256(json.dumps([[c for c in cmd if c != f"-I{tmp}"], header.read_text() if fns else ""],
-                                        default=str).encode()).hexdigest()
+        # The checkout's path is left out and the compiler's version is in: a cached build is reused in another checkout
+        # (the dev build keeps the output between runs), but not after an update of Emscripten.
+        key = hashlib.sha256(json.dumps([[c.replace(str(ROOT), "") for c in cmd if c != f"-I{tmp}"], header.read_text() if fns else "",
+                                         _emcc_version()], default=str).encode()).hexdigest()
         cache_file = out / ".cache" / f"{d.name}.json"
         if not force and _up_to_date(cache_file, key, target):
             return d.name, target, "up to date"
