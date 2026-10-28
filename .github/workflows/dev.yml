@@ -107,7 +107,9 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3
+          # The plugins' web view needs the WebView2 loader (JUCE links it statically from this NuGet package; the version JUCE 8 documents)
+          nuget install Microsoft.Web.WebView2 -Version 1.0.1901.177 -OutputDirectory "$RUNNER_TEMP/nuget" -NonInteractive
+          cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3 -DJUCE_WEBVIEW2_PACKAGE_LOCATION="$(cygpath -m "$RUNNER_TEMP/nuget")"
           cmake --build build/patch --config Release --parallel
       - name: Add this system to the dev build of the commit
         shell: bash
