@@ -114,7 +114,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3 -DJUCE_WEBVIEW2_PACKAGE_LOCATION="$WEBVIEW2_DIR"
+          # BLEEP_BUILD_TESTS=OFF like ./bleep build plugins: the tests ran on the server, and each of the ~25 test programs compiled the engine again
+          cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3 -DBLEEP_BUILD_TESTS=OFF -DJUCE_WEBVIEW2_PACKAGE_LOCATION="$WEBVIEW2_DIR"
           cmake --build build/patch --config Release --parallel
       - name: Add this system to the dev build of the commit
         shell: bash
