@@ -5,8 +5,8 @@
 # automatically" a running Ableton Live picks up a new module within a minute.
 #
 # As much as possible runs on our own Linux server, in the ephemeral build runner container (ci/runner): the tests, the modules (WebAssembly, the same for
-# every system) and the Linux plugins and app. Only what needs another operating system is built on GitHub's runners and added
-# to the release the server made: macOS and Windows. The version is 1.4.4-dev.<commit time>: every machine works that out from
+# every system) and the Linux plugins and app. Only what needs another operating system is built on GitHub's runners, at the same
+# time, and added to the release the server made once it is there: macOS and Windows. The version is 1.4.4-dev.<commit time>: every machine works that out from
 # the commit, so the three builds of one commit end up in one release (scripts/release/release.py, --dev).
 #
 # Setup: Settings -> Environments -> New environment "dev" (no reviewers: this must run by itself), with the variable
@@ -85,7 +85,8 @@ jobs:
 
   other-systems:
     name: Plugins (${{ matrix.os }})
-    needs: server
+    # No `needs: server`: these builds need nothing from it (with Wasmtime the plugins carry no modules), so they run beside it. Only
+    # the last step waits for the server job, whose release this build is added to.
     strategy:
       fail-fast: false
       matrix:
@@ -93,15 +94,36 @@ jobs:
     runs-on: ${{ matrix.os }}
     environment: dev
     timeout-minutes: 90
+    permissions:
+      contents: read
+      actions: read   # the last step reads the result of the server job
+    env:
+      BLEEP_LTO: "0"   # as on the server: no link-time optimisation in a dev build
+      CCACHE_MAXSIZE: 800M   # GitHub keeps 10 GB of caches per repository; every run saves one
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
-      - name: Wasmtime (macOS)
-        if: runner.os == 'macOS'
+      # The compiler cache survives from one run to the next in GitHub's cache (the server keeps its own on /cache): the JUCE modules and
+      # the engine are compiled once, a later run only compiles what changed.
+      - name: ccache
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = macOS ]; then brew install ccache; else choco install ccache ninja --no-progress -y; fi
+          echo "CCACHE_DIR=$RUNNER_TEMP/ccache" >> "$GITHUB_ENV"
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ${{ runner.temp }}/ccache
+          key: ccache-${{ matrix.os }}-${{ github.sha }}
+          restore-keys: ccache-${{ matrix.os }}-
+      - name: Wasmtime (the wasm module host)
+        shell: bash
         run: scripts/build/fetch-wasmtime.sh
       - name: Build (macOS)
         if: runner.os == 'macOS'
+        env:
+          CFLAGS: -w
+          CXXFLAGS: -w
         run: ./bleep build plugins --plugins-only --no-install
       - name: WebView2 (Windows)
         if: runner.os == 'Windows'
@@ -110,13 +132,34 @@ jobs:
           # JUCE links the board's web view against the WebView2 NuGet package and looks for it by this location
           nuget install Microsoft.Web.WebView2 -Version 1.0.1901.177 -OutputDirectory "$RUNNER_TEMP/webview2"
           echo "WEBVIEW2_DIR=$(cygpath -m "$RUNNER_TEMP/webview2")" >> "$GITHUB_ENV"
+      # Ninja instead of the Visual Studio generator (which cannot use ccache); the compiler needs the Visual Studio environment
+      - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+        if: runner.os == 'Windows'
       - name: Build (Windows)
         if: runner.os == 'Windows'
         shell: bash
         run: |
           # BLEEP_BUILD_TESTS=OFF like ./bleep build plugins: the tests ran on the server, and each of the ~25 test programs compiled the engine again
-          cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3 -DBLEEP_BUILD_TESTS=OFF -DJUCE_WEBVIEW2_PACKAGE_LOCATION="$WEBVIEW2_DIR"
-          cmake --build build/patch --config Release --parallel
+          cmake -S patch -B build/patch -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DBLEEP_FORMATS=VST3 -DBLEEP_BUILD_TESTS=OFF -DJUCE_WEBVIEW2_PACKAGE_LOCATION="$WEBVIEW2_DIR"
+          cmake --build build/patch --parallel
+          ccache --show-stats
+      # The release of this commit is made by the server job (the Linux plugins, after the tests passed); this build is added to it.
+      - name: Wait for the server job
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for _ in $(seq 120); do
+            result=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --jq '[.jobs[] | select(.name | startswith("Linux server")) | .conclusion // "pending"][0]')
+            case "$result" in
+              success) exit 0 ;;
+              pending) sleep 30 ;;
+              *) echo "The server job ended with: $result. Nothing is released for this commit, so this build is not added."; exit 1 ;;
+            esac
+          done
+          echo "The server job did not finish in an hour."; exit 1
       - name: Add this system to the dev build of the commit
         shell: bash
         env:

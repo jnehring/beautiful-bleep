@@ -9,7 +9,7 @@ Every push to `main` is tested, built and released into the **dev channel** of t
 | Job | Where | What |
 |---|---|---|
 | `server` | the build runner on the Linux server (label `bleep-build`, a container: `ci/runner`) | JS and preset tests, the native tests, the modules (WebAssembly; the same on every system), then the Linux plugins and app. Releases the modules and the plugins into the dev channel. |
-| `other-systems` | GitHub-hosted `macos-14` and `windows-latest` | builds the plugins (and the app) and adds its platform to the release the server made for the same commit |
+| `other-systems` | GitHub-hosted `macos-14` and `windows-latest` | builds the plugins (and the app) at the same time as the server job, with Wasmtime and a ccache kept in GitHub's cache, then waits for the server job and adds its platform to the release the server made for the same commit |
 
 The jobs do not talk to each other except through the library: the macOS and Windows jobs find the release by its build time.
 
