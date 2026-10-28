@@ -7,7 +7,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..db import get_db
-from ..models import Preset, Release
+from ..deps import get_optional_library_user
+from ..models import Preset, Release, User
 from ..ratings import rating_summaries
 from . import registry
 from .presets import listed_presets
@@ -15,12 +16,25 @@ from ..schemas import LibraryDetailOut, LibraryFileOut, LibraryItemOut, LibraryL
 
 router = APIRouter(prefix="/api/library", tags=["library"])
 
-_NEWEST_FIRST = (Release.major.desc(), Release.minor.desc(), Release.patch.desc())
+
+def _releases(db: Session, user: User | None, kind: str | None = None, slug: str | None = None) -> list[Release]:
+    """Published releases, newest first. Development builds are in only for an account that may use the dev channel."""
+    q = select(Release).where(Release.status == "published")
+    if not registry._may_use_dev(user):
+        q = q.where(Release.channel != "dev")
+    if kind:
+        q = q.where(Release.kind == kind)
+    if slug:
+        q = q.where(Release.slug == slug)
+    return sorted(db.scalars(q), key=registry.rank, reverse=True)
 
 
 def _image_url(r: Release) -> str | None:
     """Where the screenshot is served (the registry paths of Caddy, next to entry.json)."""
-    return f"/registry/v1/{r.kind}s/{r.slug}/{r.version}/{r.image}" if r.image else None
+    if not r.image:
+        return None
+    # A development build is not in the public bucket: the API hands it out (Caddyfile), to accounts with dev access.
+    return ("/api/registry/dev" if r.channel == "dev" else "/registry") + f"/v1/{r.kind}s/{r.slug}/{r.version}/{r.image}"
 
 
 def _category(p: Preset) -> str:
@@ -63,15 +77,13 @@ def listing(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
+    user: User | None = Depends(get_optional_library_user),
 ):
     """One entry per plugin, module or preset (its newest published version), filtered by kind, category and search text,
-    each with its rating."""
+    each with its rating. Accounts with dev access also see development builds."""
     newest: dict[tuple[str, str], Release] = {}
     if kind != "preset":
-        stmt = select(Release).where(Release.status == "published", Release.channel != "dev")
-        if kind:
-            stmt = stmt.where(Release.kind == kind)
-        for r in db.scalars(stmt.order_by(Release.kind, Release.slug, *_NEWEST_FIRST)).all():
+        for r in _releases(db, user, kind):
             newest.setdefault((r.kind, r.slug), r)
     needle = q.strip().lower()
     found = [_item(r) for r in newest.values()
@@ -105,11 +117,10 @@ def preset_detail(author: str, slug: str, db: Session = Depends(get_db)):
 
 
 @router.get("/{kind}/{slug}", response_model=LibraryDetailOut)
-def detail(kind: Literal["plugin", "module", "preset"], slug: str, db: Session = Depends(get_db)):
-    """All published versions of one entry, newest first, each with its files."""
-    rows = db.scalars(
-        select(Release).where(Release.kind == kind, Release.slug == slug, Release.status == "published", Release.channel != "dev").order_by(*_NEWEST_FIRST)
-    ).all()
+def detail(kind: Literal["plugin", "module", "preset"], slug: str, db: Session = Depends(get_db),
+           user: User | None = Depends(get_optional_library_user)):
+    """All published versions of one entry, newest first, each with its files (development builds only for accounts with dev access)."""
+    rows = _releases(db, user, kind, slug)
     if not rows:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No such download")
     rating = rating_summaries(db, kind, [slug]).get(slug)

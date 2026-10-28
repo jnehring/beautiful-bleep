@@ -464,6 +464,26 @@ def test_only_accounts_with_dev_access_get_the_dev_channel(client, make_admin):
     assert tess.get("/api/registry/dev/v1/nothing.json").status_code == 404
 
 
+def test_the_library_shows_development_builds_only_to_accounts_with_dev_access(client, make_admin):
+    from fastapi.testclient import TestClient
+    from app.main import app
+    ci = dev_token(client, make_admin)
+    assert release(client, ci, version="0.5.0-dev.202610271500", channel="dev").status_code == 200
+    assert client.get("/api/library").json()["total"] == 0                       # not logged in
+    assert client.get("/api/library/plugin/bleep-board").status_code == 404
+    tess = TestClient(app)
+    register(tess, "t@example.com", "Tess")
+    assert tess.get("/api/library").json()["total"] == 0                         # logged in, no dev access
+    assert tess.get("/api/library/plugin/bleep-board").status_code == 404
+    assert client.post("/api/auth/login", json={"email": "admin@example.com", "password": "admin-password-1"}).status_code == 200
+    tester = next(u for u in client.get("/api/admin/users").json() if u["email"] == "t@example.com")
+    assert client.patch(f"/api/admin/users/{tester['id']}", json={"dev_access": True}).json()["dev_access"] is True
+    for who in (client, tess):                                                    # an admin always may; Tess now has access
+        items = who.get("/api/library").json()["items"]
+        assert [(i["slug"], i["version"], i["channel"]) for i in items] == [("bleep-board", "0.5.0-dev.202610271500", "dev")]
+        assert [r["channel"] for r in who.get("/api/library/plugin/bleep-board").json()["releases"]] == ["dev"]
+
+
 def test_old_dev_builds_are_deleted(client, make_admin, monkeypatch):
     monkeypatch.setattr("app.routers.registry.KEEP_DEV_BUILDS", 2)
     ci = dev_token(client, make_admin)
