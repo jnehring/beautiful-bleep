@@ -39,6 +39,7 @@ jobs:
       CMAKE_BUILD_PARALLEL_LEVEL: 6   # compilers at a time: the container has 12 GB, and the JUCE sources need about 1.5 GB each
       # The strict warning flags of the project (JUCE's recommended set) print thousands of lines for the DSP code; a build here
       # is judged by its errors. A build on your own machine still shows the warnings.
+      CCACHE_MAXSIZE: 15G   # the default 5 GB is less than one full build; the cache is what makes the next build short
       BLEEP_LTO: "0"   # no link-time optimisation: GCC links each plugin serially for minutes; a dev build does not need it
       CFLAGS: -w
       CXXFLAGS: -w
@@ -61,6 +62,10 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Build the modules
         run: ./bleep build modules
+      # With Wasmtime the plugins and the app load the modules as .wasm from the library (like on a developer's machine) and carry no
+      # module code: far fewer sources to compile, and the Library section and the automatic module updates work.
+      - name: Wasmtime (the wasm module host)
+        run: scripts/build/fetch-wasmtime.sh
       - name: Build the plugins and the app
         run: ./bleep build plugins --plugins-only --no-install
       - name: Release modules and plugins into the dev channel
@@ -86,6 +91,9 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
+      - name: Wasmtime (macOS)
+        if: runner.os == 'macOS'
+        run: scripts/build/fetch-wasmtime.sh
       - name: Build (macOS)
         if: runner.os == 'macOS'
         run: ./bleep build plugins --plugins-only --no-install
