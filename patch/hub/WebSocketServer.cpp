@@ -8,6 +8,9 @@
 #include <cstring>
 
 #ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX   // winsock2.h pulls in windows.h, whose min and max macros break std::min
+#endif
 #include <winsock2.h>
 #include <ws2tcpip.h>
 using socklen_t = int;

@@ -33,7 +33,7 @@ Development builds (the CI after every push): --dev releases into the dev channe
 The version is the next patch after the newest public version with the build time: 1.4.3 -> 1.4.4-dev.202610271432. The build time is
 the time of the commit being built (UTC, --build-time overrides it), the same on every machine that builds it, so Linux, macOS and
 Windows builds of one commit end up in one release. A development build ranks above the release of its number and among its kind by
-build time; the library keeps the newest 20 of each plugin and module. The token must be one that may release into dev.
+build time; the library keeps the newest 3 of each plugin and module. The token must be one that may release into dev.
 
 Token: a release token an admin created with
     docker compose exec api python -m app.cli token-create NAME

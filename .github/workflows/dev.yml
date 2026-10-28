@@ -143,7 +143,8 @@ jobs:
           cmake -S patch -B build/patch -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DBLEEP_FORMATS=VST3 -DBLEEP_BUILD_TESTS=OFF -DJUCE_WEBVIEW2_PACKAGE_LOCATION="$WEBVIEW2_DIR"
-          cmake --build build/patch --parallel
+          # -k 0: go on after an error, so one run shows every file that does not compile
+          cmake --build build/patch --parallel -- -k 0
           ccache --show-stats
       # The release of this commit is made by the server job (the Linux plugins, after the tests passed); this build is added to it.
       - name: Wait for the server job

@@ -19,7 +19,7 @@ A dev build is `1.4.4-dev.202610271432`: the next patch after the newest public 
 
 - A dev build ranks above the release of its number (`1.4.4-dev.…` is newer than `1.4.4`), and dev builds rank among themselves by build time: of two `1.3-dev` builds the later is the newer.
 - Modules that did not change since their newest version (dev or release) are not released again.
-- The library keeps the newest 20 dev builds of each plugin and module.
+- The library keeps the newest 3 dev builds of each plugin and module.
 - `./bleep package` (a module on your own computer) makes `1.4.4-dev.<now>` the same way, so your local copy wins until CI has a newer one.
 
 By hand: `./bleep release plugins --dev`, `./bleep release modules --dev`, `./bleep release plugins --dev --add-platform` (see [release.md](release.md)).

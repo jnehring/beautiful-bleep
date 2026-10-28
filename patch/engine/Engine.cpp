@@ -2,6 +2,9 @@
 // Engine.cpp — lifetime, instances, and finding the engine of the process.
 
 #ifdef _WIN32   // not JUCE_WINDOWS: the JUCE headers come after this
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <windows.h>
 #include <process.h>
 #else
