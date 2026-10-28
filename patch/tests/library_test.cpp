@@ -374,10 +374,18 @@ void testAccount() {
         CHECK(!streamer.streamRead(started["id"].toString().toStdString(), 100)["error"].isVoid(), "a finished stream is forgotten");
 
         const juce::var refused = streamer.streamStart("/api/agent/chat", juce::JSON::parse(R"({"note":"limit"})"));
-        juce::var first;
-        for (int i = 0; i < 50 && !(bool)first["done"]; ++i) first = streamer.streamRead(refused["id"].toString().toStdString(), 200);
-        CHECK((int)first["status"] == 429 && (int)first["retryAfter"] == 30 && first["chunk"].toString().contains("budget"), "an error answer comes whole: %s",
-              juce::JSON::toString(first).toRawUTF8());
+        // The first answer carries the status, the error text follows whole at the end: how many reads that takes depends on the timing.
+        int refusedStatus = -1, refusedRetry = -1, refusedChunks = 0;
+        juce::String refusedText;
+        for (bool refusedDone = false; refusedChunks < 50 && !refusedDone;) {
+            const juce::var r = streamer.streamRead(refused["id"].toString().toStdString(), 200);
+            if (r["status"].isInt()) refusedStatus = (int)r["status"];
+            if (r["retryAfter"].isInt()) refusedRetry = (int)r["retryAfter"];
+            if (r["chunk"].toString().isNotEmpty()) { refusedText += r["chunk"].toString(); ++refusedChunks; }
+            refusedDone = (bool)r["done"];
+        }
+        CHECK(refusedStatus == 429 && refusedRetry == 30 && refusedChunks == 1 && refusedText.contains("budget"), "an error answer comes whole: status %d, retry %d, %d chunks: %s",
+              refusedStatus, refusedRetry, refusedChunks, refusedText.toRawUTF8());
 
         const juce::var gone = streamer.streamStart("/api/agent/chat", juce::JSON::parse(R"({"note":"down"})"));
         juce::var r3;
