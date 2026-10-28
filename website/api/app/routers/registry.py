@@ -33,7 +33,7 @@ Kind = Literal["plugin", "module"]
 Slug = Path(pattern=r"^[a-z0-9][a-z0-9-]{0,62}(\.[a-z0-9][a-z0-9-]{0,62})?$")
 VersionPath = Path(pattern=r"^\d{1,4}\.\d{1,5}\.\d{1,6}(-dev\.\d{12})?$")
 MAX_FILE_BYTES = 1024 * 1024 * 1024
-KEEP_DEV_BUILDS = 20  # per plugin or module: older development builds are deleted when a new one is published
+KEEP_DEV_BUILDS = 3  # per plugin or module: older development builds are deleted when a new one is published
 
 
 def _parse(version: str) -> tuple[int, int, int, int]:
