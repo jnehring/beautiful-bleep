@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Engine.cpp — lifetime, instances, and finding the engine of the process.
 
-#if JUCE_WINDOWS
+#ifdef _WIN32   // not JUCE_WINDOWS: the JUCE headers come after this
 #include <windows.h>
 #include <process.h>
 #else

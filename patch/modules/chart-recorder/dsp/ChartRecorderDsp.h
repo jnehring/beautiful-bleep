@@ -38,8 +38,8 @@ constexpr int kChartDefaultPoints = 1600;         ///< 4 bars at 120 BPM
 constexpr double kChartStop = 1.05;               ///< the pen's end stops, paper units
 constexpr int kChartInkRing = 4096;               ///< written point indices the view has not read
 
-/// Leading zero count of a non-zero 64-bit word (std::countl_zero needs C++20).
-inline int chartClz64(uint64_t v) noexcept { return __builtin_clzll(v); }
+/// Leading zero count of a non-zero 64-bit word.
+inline int chartClz64(uint64_t v) noexcept { return std::countl_zero(v); }
 
 inline const std::array<double, 9>& chartFreeLengths() {
     static const std::array<double, 9> a{1, 2, 5, 10, 30, 60, 120, 300, 600};
