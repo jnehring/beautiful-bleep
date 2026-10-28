@@ -62,13 +62,35 @@ set(BLEEP_JUCE_DIR "" CACHE PATH "Local JUCE checkout (empty: download JUCE 8.0.
 # https://github.com/bytecodealliance/wasmtime/releases (wasmtime-v<version>-<target>-c-api). With it, the test
 # bleep_wasm_parity runs every module as native and as wasm and compares them (library.md section 13, M1).
 set(BLEEP_WASMTIME_DIR "" CACHE PATH "Wasmtime C API folder: builds the wasm module host and bleep_wasm_parity")
+if (MSVC)
+    set(BLEEP_WASMTIME_LIBFILE "lib/wasmtime.lib")   # the static library of the x86_64-windows package (wasmtime.dll.lib is the import library)
+else ()
+    set(BLEEP_WASMTIME_LIBFILE "lib/libwasmtime.a")
+endif ()
 # Default: the Wasmtime that scripts/experiments fetched into <build>/wasm-spike, so the apps get the Library without a flag.
 foreach (_wt "${CMAKE_BINARY_DIR}/wasm-spike/wasmtime" "${CMAKE_CURRENT_SOURCE_DIR}/../build/wasm-spike/wasmtime")
-    if (NOT BLEEP_WASMTIME_DIR AND EXISTS "${_wt}/lib/libwasmtime.a")
+    if (NOT BLEEP_WASMTIME_DIR AND EXISTS "${_wt}/${BLEEP_WASMTIME_LIBFILE}")
         get_filename_component(_wt "${_wt}" ABSOLUTE)
         set(BLEEP_WASMTIME_DIR "${_wt}" CACHE PATH "Wasmtime C API folder: builds the wasm module host and bleep_wasm_parity" FORCE)
     endif ()
 endforeach ()
+# The imported library every target with the wasm module host links.
+function(bleep_define_wasmtime)
+    if (TARGET bleep_wasmtime OR NOT BLEEP_WASMTIME_DIR)
+        return()
+    endif ()
+    add_library(bleep_wasmtime STATIC IMPORTED GLOBAL)
+    set_target_properties(bleep_wasmtime PROPERTIES IMPORTED_LOCATION "${BLEEP_WASMTIME_DIR}/${BLEEP_WASMTIME_LIBFILE}"
+        INTERFACE_INCLUDE_DIRECTORIES "${BLEEP_WASMTIME_DIR}/include")
+    if (APPLE)
+        set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_LINK_LIBRARIES "-framework CoreFoundation;-framework Security")
+    elseif (MSVC)
+        # LIBWASM_STATIC: the headers declare the functions as imported from wasmtime.dll otherwise. The libraries are the ones the Rust
+        # runtime inside wasmtime.lib needs (Wasmtime's C API documentation, Windows).
+        set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_COMPILE_DEFINITIONS LIBWASM_STATIC)
+        set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_LINK_LIBRARIES "ws2_32;advapi32;userenv;ntdll;shell32;ole32;bcrypt")
+    endif ()
+endfunction()
 option(BLEEP_BUILD_APP "Build the standalone Bleep App" ON)
 option(BLEEP_LINK "Include Ableton Link in the app (makes the app binary GPL)" ON)
 set(BLEEP_LINK_DIR "" CACHE PATH "Local Ableton Link checkout (empty: download Link 4.1)")
@@ -308,12 +330,7 @@ if (BLEEP_BUILD_TESTS)
     add_test(NAME patch.library COMMAND bleep_library_test)
 
     if (BLEEP_WASMTIME_DIR)
-        add_library(bleep_wasmtime STATIC IMPORTED)
-        set_target_properties(bleep_wasmtime PROPERTIES IMPORTED_LOCATION "${BLEEP_WASMTIME_DIR}/lib/libwasmtime.a"
-            INTERFACE_INCLUDE_DIRECTORIES "${BLEEP_WASMTIME_DIR}/include")
-        if (APPLE)
-            set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_LINK_LIBRARIES "-framework CoreFoundation;-framework Security")
-        endif ()
+        bleep_define_wasmtime()
         set(BLEEP_WASM_HOST_SOURCES engine/wasm/WasmRuntime.cpp engine/wasm/WasmRecorder.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp engine/wasm/WasmRegistry.cpp engine/wasm/CodeNodes.cpp
             engine/wasm/InstalledModules.cpp engine/wasm/ModuleLibrary.cpp library/Package.cpp library/Client.cpp library/Account.cpp)
         # Every module twice, native and as its .wasm, on the same input (tests/wasm_parity.cpp). Not a ctest: it needs the
@@ -540,14 +557,7 @@ function(bleep_use_library target)
     if (NOT BLEEP_WASMTIME_DIR)
         return()
     endif ()
-    if (NOT TARGET bleep_wasmtime)
-        add_library(bleep_wasmtime STATIC IMPORTED)
-        set_target_properties(bleep_wasmtime PROPERTIES IMPORTED_LOCATION "${BLEEP_WASMTIME_DIR}/lib/libwasmtime.a"
-            INTERFACE_INCLUDE_DIRECTORIES "${BLEEP_WASMTIME_DIR}/include")
-        if (APPLE)
-            set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_LINK_LIBRARIES "-framework CoreFoundation;-framework Security")
-        endif ()
-    endif ()
+    bleep_define_wasmtime()
     target_sources(${target} PRIVATE engine/wasm/WasmRuntime.cpp engine/wasm/WasmRecorder.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp
         engine/wasm/WasmRegistry.cpp engine/wasm/CodeNodes.cpp engine/wasm/InstalledModules.cpp engine/wasm/ModuleLibrary.cpp
         library/Package.cpp library/Client.cpp library/Account.cpp)
