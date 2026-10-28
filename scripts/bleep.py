@@ -78,9 +78,9 @@ def cmake(source: Path, build_dir: Path, config: str, defines: dict, target=None
         # something on the machine (shared memory, the audio device, the Link sockets, the data folder): those run one at a time.
         # A test that hangs fails after its timeout (seconds) with the output it had so far, instead of holding a build for 25 minutes.
         shards, alone = "demo-patches|cell-plugin-presets", r"patch\.(bridge|hub|websocket|live-link|system-audio|recording|library|sampler-module)$"
-        jobs = min(os.cpu_count() or 2, 6)
+        jobs = min(os.cpu_count() or 2, 6)   # the shards are timed against real time and there are six of each: no more than six at once
         run([*ctest, "-R", shards, "--parallel", jobs, "--timeout", 900])
-        run([*ctest, "-E", f"{shards}|{alone}", "--parallel", jobs, "--timeout", 300])
+        run([*ctest, "-E", f"{shards}|{alone}", "--parallel", os.cpu_count() or 2, "--timeout", 300])
         run([*ctest, "-R", alone, "--timeout", 300])
 
 

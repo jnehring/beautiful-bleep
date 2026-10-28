@@ -275,6 +275,7 @@ if (BLEEP_BUILD_TESTS)
     target_link_libraries(bleep_module_harness PRIVATE bleep_dsp juce::juce_core
         juce::juce_recommended_config_flags)
     add_test(NAME patch.modules COMMAND bleep_module_harness)
+    set_tests_properties(patch.modules PROPERTIES COST 100)  # the longest tests start first: ctest has no timings on a fresh build
 
     # Route and Select on a real compiled board (tests/route_select_test.cpp).
     juce_add_console_app(bleep_route_select_test PRODUCT_NAME "Bleep Route Select Test")
@@ -441,6 +442,7 @@ if (BLEEP_BUILD_TESTS AND NOT BLEEP_LIGHT_TESTS)
         bleep_dsp juce::juce_events
         juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
     add_test(NAME patch.controller-modules COMMAND bleep_controller_module_tests)
+    set_tests_properties(patch.controller-modules PROPERTIES COST 100)
 
     juce_add_console_app(bleep_sampler_module_test PRODUCT_NAME "Bleep Sampler Module Test")
     target_sources(bleep_sampler_module_test PRIVATE tests/sampler_module_test.cpp $<TARGET_OBJECTS:bleep_engine_objects>)
