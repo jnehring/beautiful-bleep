@@ -10,6 +10,9 @@
 #include <thread>
 
 #if JUCE_WINDOWS
+#ifndef NOMINMAX
+#define NOMINMAX   // windows.h's min and max macros break std::max
+#endif
 #include <windows.h>
 #include <wincred.h>
 #else
