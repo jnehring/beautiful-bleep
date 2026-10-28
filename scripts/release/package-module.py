@@ -49,6 +49,9 @@ def spec_json(wasm_file: Path) -> str:
     return r.stdout.strip()
 
 
+SUMMARY_MAX = 280
+
+
 def collect(folder: Path, wasm: bytes, spec: str) -> dict[str, bytes]:
     """The files of a module's package: {path inside the zip: bytes}. `spec` is spec_json()."""
     described = json.loads(spec)
@@ -64,6 +67,8 @@ def collect(folder: Path, wasm: bytes, spec: str) -> dict[str, bytes]:
     origin = meta.get("origin")
     if origin:
         meta["summary"] = f"{meta['summary'].rstrip()} Based on {origin['name']} by {origin['author']} ({origin['license']})."
+    if len(meta["summary"]) > SUMMARY_MAX:  # the library refuses it (website/api/app/schemas.py): better to fail while packaging than half way through a release
+        raise ValueError(f"the tile's summary is {len(meta['summary'])} characters, the library takes {SUMMARY_MAX}: shorten the tagline in module.json")
     files = {"module.json": (json.dumps(meta, indent=1, ensure_ascii=False) + "\n").encode(), "module.wasm": wasm, "spec.json": (spec + "\n").encode()}
     if (folder / "LICENSE").is_file() and not (folder / "LICENSE").is_symlink():
         files["LICENSE"] = (folder / "LICENSE").read_bytes()
