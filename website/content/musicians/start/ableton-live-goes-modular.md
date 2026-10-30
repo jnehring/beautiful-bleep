@@ -1,7 +1,7 @@
 ---
 title: Ableton Live goes modular
 description: What Live can do with Beautiful Bleep that it could not do before, and what each connection costs in latency.
-order: 5
+order: 7
 ---
 
 # Ableton Live goes modular

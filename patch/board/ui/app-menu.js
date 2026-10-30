@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
-// app-menu.js — the menu bar: File, Edit, View, Help (one list for all three hosts) and the Help answers.
+// app-menu.js — the menu bar: File, Edit, View, Share, Help (one list for all three hosts) and the Help answers.
 //
 //   The list below (MODEL) is the only definition of the menus. The browser board and the plugin window draw it in the top bar;
 //   the standalone app sends it to the native side (native "setMenu") and builds its menu bar from it. Choosing an item runs its
@@ -36,15 +36,21 @@
     openMenu = null;
   }
 
-  async function showDocs() {
-    if (window.BleepWeb) { window.open(DOCS, "_blank", "noopener"); return; }   // the browser board lives on the site itself
+  // Which of the three hosts this is: Play (the browser board), the plugin, or the standalone app.
+  const edition = () => (window.BleepWeb ? "Play" : document.body.classList.contains("standalone") ? "Standalone" : "Plugin");
+  const GETTING_STARTED = { Play: "start/getting-started-play/", Standalone: "start/getting-started-app/", Plugin: "start/getting-started/" };
+
+  /// A page of the musicians' documentation (`page`: its path under /docs/musicians/; none: the overview).
+  async function showDocs(page) {
+    const path = page ? "/docs/musicians/" + page : DOCS;
+    if (window.BleepWeb) { window.open(path, "_blank", "noopener"); return; }   // the browser board lives on the site itself
     let site = SITE;
     try {
       const st = await native("libraryStatus");
       const u = st && st.settings && st.settings.libraryUrl;
       if (u) site = u.replace(/\/+$/, "");
     } catch (e) { /* the default address */ }
-    await native("openUrl", site + DOCS);
+    await native("openUrl", site + path);
   }
 
   async function readVersion() {
@@ -64,14 +70,15 @@
     await readVersion();
     about = el("div", "am-about");
     about.setAttribute("role", "dialog");
-    about.setAttribute("aria-label", "About Bleep");
+    about.setAttribute("aria-label", "About Beautiful Bleep");
     const box = el("div", "am-box");
     const logo = el("img", "am-logo");
     logo.src = "logo.svg";
     logo.alt = "Beautiful Bleep";
     const ok = el("button", "", "OK");
     ok.addEventListener("click", closeAbout);
-    box.append(logo, el("div", "am-name", "Bleep"), el("div", "am-version", version ? "Version " + version : ""), ok);
+    box.append(logo, el("div", "am-name", "Beautiful Bleep"), el("div", "am-edition", edition()),
+      el("div", "am-version", version ? "Version " + version : ""), ok);
     about.appendChild(box);
     about.addEventListener("pointerdown", (e) => { if (e.target === about) closeAbout(); });
     about.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.stopPropagation(); closeAbout(); } });
@@ -152,6 +159,14 @@
     ]],
     ["Help", [
       { id: "help.docs", label: "Documentation" },
+      { id: "help.start", label: "Getting Started" },
+      { id: "help.firstPatch", label: "Your First Patch" },
+      { id: "help.modulation", label: "Modulation" },
+      { id: "help.cells", label: "Cells and Panels" },
+      null,
+      { id: "help.connecting", label: "Connecting Plugin, App and Play" },
+      { id: "help.shortcuts", label: "Keyboard Shortcuts" },
+      { id: "help.glossary", label: "Glossary" },
       { id: "help.topics", label: "Help Topics…", when: () => !!document.getElementById("help") },
       null,
       { id: "help.about", label: "Info" },
@@ -184,6 +199,13 @@
     "share.cellPlay": () => P.BleepCellShare && P.BleepCellShare.copyLink("play"),
     "share.cellEmbed": () => P.BleepCellShare && P.BleepCellShare.copyLink("embed"),
     "help.docs": () => showDocs(),
+    "help.start": () => showDocs(GETTING_STARTED[edition()]),
+    "help.firstPatch": () => showDocs("learn/first-patch/"),
+    "help.modulation": () => showDocs("learn/modulation/"),
+    "help.cells": () => showDocs("learn/cells-and-panels/"),
+    "help.connecting": () => showDocs("connect/connecting/"),
+    "help.shortcuts": () => showDocs("reference/shortcuts/"),
+    "help.glossary": () => showDocs("reference/glossary/"),
     "help.topics": () => P.BleepHelpView && P.BleepHelpView.show(),
     "help.about": () => showAbout(),
   };

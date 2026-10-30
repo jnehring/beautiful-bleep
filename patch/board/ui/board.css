@@ -646,6 +646,7 @@ body.plugin #side-toggle { display: none; }
           background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 40px rgba(0, 0, 0, .5); }
 .am-logo { width: 96px; height: 96px; margin-bottom: 6px; }
 .am-name { font-size: 16px; font-weight: 600; }
+.am-edition { font-size: 13px; }
 .am-version { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; min-height: 1.2em; margin-bottom: 10px; }
 
 /* ---- the on-screen piano of Bleep Play (play-keys.js) */

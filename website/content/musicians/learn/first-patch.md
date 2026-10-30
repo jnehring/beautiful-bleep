@@ -7,7 +7,7 @@ order: 1
 # Your first patch
 
 This is a five-minute tour of the board in Ableton Live. You need the plugins
-installed ([Install in Live](../start/getting-started.md)) and a synth on a track.
+installed ([Get started in Live](../start/getting-started.md)) and a synth on a track.
 The board is the same in the [Bleep App and in Bleep Play](../start/ways-to-use.md);
 only the first two steps are specific to Live.
 

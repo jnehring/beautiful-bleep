@@ -1,7 +1,7 @@
 ---
 title: Installing unsigned builds
 description: Open the Bleep App and the VST3 plugins on macOS and Windows when the system warns that the developer is unknown.
-order: 4
+order: 6
 ---
 
 # Installing unsigned builds
@@ -30,7 +30,7 @@ works there too.
 ### The VST3 plugins
 
 Copy the `.vst3` files to `~/Library/Audio/Plug-Ins/VST3` as described in
-[Install in Live](getting-started.md). If your DAW does not list them, or says a
+[Get started in Live](getting-started.md). If your DAW does not list them, or says a
 plugin could not be loaded, macOS has quarantined the files. Remove the flag in
 Terminal, then rescan plugins:
 

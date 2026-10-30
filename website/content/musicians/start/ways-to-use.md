@@ -69,6 +69,5 @@ sliders) rather than on the board. **Open Board** shows the preset as a cell
 on the board. Cables between several plugins need the Bleep Board plugin in the set,
 because the board is saved there.
 
-Next: [Install in Live](getting-started.md), [Your first sound](first-sound.md), the
-[Bleep App](../use/standalone.md), or [Bleep Play](/board/) in your
-browser.
+Next: get started with [Bleep Play](getting-started-play.md), [the Bleep
+App](getting-started-app.md) or [the plugins in Live](getting-started.md).

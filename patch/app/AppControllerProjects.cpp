@@ -200,7 +200,7 @@ void AppController::getCommandInfo(juce::CommandID id, juce::ApplicationCommandI
             break;
         case cmdSettings: info.setInfo(u8("Settings…"), "Audio, MIDI, Link, the Library and Security", "File", 0); info.addDefaultKeypress(',', cmd); break;
         case cmdDocs: info.setInfo("Documentation", "Open the documentation in your browser", "Help", 0); break;
-        case cmdAbout: info.setInfo("Info", "About Bleep", "Help", 0); break;
+        case cmdAbout: info.setInfo("Info", "About Beautiful Bleep", "Help", 0); break;
         case cmdPlay:
             info.setInfo(clock_.playing() ? "Stop" : "Play", "Start or stop the transport", "Transport", 0);
             info.addDefaultKeypress(juce::KeyPress::returnKey, cmd);

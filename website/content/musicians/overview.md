@@ -15,9 +15,9 @@ modulation destination.
 
 | I want to… | Read |
 |---|---|
-| Try it right now, no install | [Bleep Play](/board/) in your browser |
-| Use it in Ableton Live | [Install in Live](start/getting-started.md), then [Your first sound](start/first-sound.md) |
-| Use it without a DAW | [The Bleep App](use/standalone.md) |
+| Try it right now, no install | [Get started with Bleep Play](start/getting-started-play.md) |
+| Use it in Ableton Live | [Get started in Live](start/getting-started.md), then [Your first sound](start/first-sound.md) |
+| Use it without a DAW | [Get started with the Bleep App](start/getting-started-app.md) |
 | Understand what runs where | [Ways to use Bleep](start/ways-to-use.md) |
 | Learn to patch | [Your first patch](learn/first-patch.md) |
 
@@ -25,7 +25,7 @@ modulation destination.
 
 | Section | What is in it |
 |---|---|
-| **Start** | [Ways to use Bleep](start/ways-to-use.md), [Install in Live](start/getting-started.md), [Your first sound](start/first-sound.md) |
+| **Start** | [Ways to use Bleep](start/ways-to-use.md), getting started with [Bleep Play](start/getting-started-play.md), [the Bleep App](start/getting-started-app.md) or [Live](start/getting-started.md), [Your first sound](start/first-sound.md) |
 | **Learn** | A short path through the ideas: [Your first patch](learn/first-patch.md), [Modulation](learn/modulation.md), [Cells and panels](learn/cells-and-panels.md) |
 | **Use** | How each part works: [the board](use/board.md), [Voice Cells](use/voice-cells.md), [ports](use/ports.md), [the Bleep App](use/standalone.md), [Settings](use/settings.md), [sharing modules](use/share-modules.md) |
 | **Connect** | Moving audio, MIDI and tempo between Live, the app and Bleep Play: [Connecting](connect/connecting.md) and three recipes |

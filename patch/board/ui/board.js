@@ -749,6 +749,7 @@
     document.body.classList.toggle("plugin", pluginMode);
     dev = !!m.dev;
     standalone = !!m.standalone;
+    document.body.classList.toggle("standalone", standalone);   // the Help menu and Info say which host this is (app-menu.js)
     {  // the preset browser: whole boards (spec §11.5); in a plugin their port nodes map onto the set's ports
       await P.BleepProjectBrowser.init({
         board: () => board, apply: applyMessage, mapPorts: !standalone, cells: !!m.plugin,

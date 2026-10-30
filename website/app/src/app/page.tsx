@@ -25,7 +25,7 @@ export default function Home() {
       <h2>One engine, three places</h2>
       <div className="grid">
         <div className="card"><h3>Web</h3><p>No install, runs in your browser. <a href="/board/">Play now</a>.</p></div>
-        <div className="card"><h3>Plugin</h3><p>VST3 plugins for Ableton Live. <a href="/docs/musicians/start/getting-started/">Install in Live</a>.</p></div>
+        <div className="card"><h3>Plugin</h3><p>VST3 plugins for Ableton Live. <a href="/docs/musicians/start/getting-started/">Get started in Live</a>.</p></div>
         <div className="card"><h3>App</h3><p>The board without a DAW, with MIDI and audio links to Live. <a href="/docs/musicians/use/standalone/">Read more</a>.</p></div>
       </div>
       <p>

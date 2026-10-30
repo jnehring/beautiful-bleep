@@ -1,7 +1,7 @@
 ---
 title: Your first sound
 description: Play a preset with Bleep Instrument or run audio through Bleep FX, with no cables, then open it on the board when you want more.
-order: 3
+order: 5
 ---
 
 # Your first sound
