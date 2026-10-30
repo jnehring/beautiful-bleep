@@ -497,22 +497,66 @@
     return W.bridge;
   };
 
+  // ---- permissions: audio in, audio out, MIDI ----------------------------------------
+  /// Asks the browser for the microphone and MIDI. The output devices have no prompt of their own: their names (and the
+  /// Settings list) come with the microphone; Firefox asks for an output with selectAudioOutput. Call from a click.
+  /// Resolves to what is still missing: [] when everything was given (or the browser has no such thing at all).
+  W.askPermissions = async function () {
+    const missing = [];
+    const md = navigator.mediaDevices;
+    let micOk = !(md && md.getUserMedia);   // a browser without a microphone API has nothing to ask
+    if (!micOk) {
+      try {
+        const s = await md.getUserMedia({ audio: true });
+        for (const t of s.getTracks()) t.stop();   // only the permission: Audio In opens the microphone when it is used
+        micOk = true;
+      } catch (e) { missing.push(e && e.name === "NotFoundError" ? "audio in (no microphone found)" : "audio in (microphone)"); }
+    }
+    const canRoute = typeof AudioContext !== "undefined" && "setSinkId" in AudioContext.prototype;
+    if (canRoute && md && md.enumerateDevices) {
+      const named = async () => (await md.enumerateDevices().catch(() => [])).some((d) => d.kind === "audiooutput" && d.label);
+      let outOk = await named();
+      if (!outOk && md.selectAudioOutput) { try { await md.selectAudioOutput(); outOk = await named(); } catch (e) { /* refused or no gesture left */ } }
+      if (!outOk) missing.push("audio out (the output devices)");
+    }
+    if (navigator.requestMIDIAccess) {
+      try { await W.enableMidi(); } catch (e) { missing.push("MIDI"); }
+    }
+    return missing;
+  };
+
   // ---- the "start audio" button -----------------------------------------------------
   window.addEventListener("DOMContentLoaded", () => {
     // A full-screen shade with the button centred, so nobody has to look for it.
     const shade = document.createElement("div");
-    shade.style.cssText = "position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;" +
-      "background:rgba(5,10,10,0.72);backdrop-filter:blur(2px)";
+    shade.style.cssText = "position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;" +
+      "padding:16px;text-align:center;background:rgba(5,10,10,0.72);backdrop-filter:blur(2px)";
     const b = document.createElement("button");
     b.textContent = "▶ Start audio";
     b.style.cssText = "padding:18px 36px;border-radius:999px;border:1px solid #5eead4;background:#0f1a1a;" +
       "color:#5eead4;font:600 20px system-ui;cursor:pointer;box-shadow:0 0 40px rgba(94,234,212,0.25)";
+    // Shown when a permission is missing: what it is, how to give it, and a way on without it.
+    const msg = document.createElement("div");
+    msg.setAttribute("role", "alert");
+    msg.style.cssText = "display:none;max-width:460px;padding:14px 18px;border-radius:10px;border:1px solid #f87171;background:#1f0f0f;" +
+      "color:#fecaca;font:15px/1.45 system-ui";
+    const skip = document.createElement("button");
+    skip.textContent = "Continue without";
+    skip.style.cssText = "display:none;padding:6px 14px;border:0;background:none;color:#99b3b0;font:14px system-ui;text-decoration:underline;cursor:pointer";
+    skip.onclick = () => shade.remove();
     b.onclick = async () => {
       b.disabled = true;
-      try { await W.start(); W.enableMidi().catch(() => {}); shade.remove(); }
-      catch (e) { b.disabled = false; b.textContent = "Audio failed: " + e.message; }
+      try { await W.start(); }
+      catch (e) { b.disabled = false; b.textContent = "Audio failed: " + e.message; return; }
+      const missing = await W.askPermissions();
+      if (!missing.length) { shade.remove(); return; }
+      msg.textContent = `Bleep Play has no access to ${missing.join(", ")}. ` +
+        "Allow it when the browser asks, or in the site settings (the icon left of the address), then click again.";
+      msg.style.display = skip.style.display = "";
+      b.textContent = "↻ Ask again";
+      b.disabled = false;
     };
-    shade.appendChild(b);
+    shade.append(b, msg, skip);
     document.body.appendChild(shade);
     b.focus();
   });
