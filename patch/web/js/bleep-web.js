@@ -26,6 +26,7 @@
     onStatus: null,
   };
 
+  const OUT_TRACK = "This computer";   // the subtitle of the Audio Out node: the browser plays to a device of this computer
   const post = (m) => node && node.port.postMessage(m);
   const priv = (window.BleepSeal && window.BleepSeal.priv) || window;   // where the board keeps BleepCode (bleep-bridge.js); captured before the seal
 
@@ -396,7 +397,7 @@
           node("env", "adsr", "Envelope", 300, 330),
           node("filter", "filter", "Filter", 560, 60, { params: { cutoff: 0.55 } }),
           node("amp", "vca", "Amp", 800, 100, { params: { gain: 0 } }),
-          node("out", "audio-out", "Speakers", 1040, 100, { port: "p-synth", track: "Synth", colour: "#ff6b6b" }),
+          node("out", "audio-out", "Audio Out", 1040, 100, { port: "p-synth", track: OUT_TRACK, colour: "#ff6b6b" }),
         ],
         cables: [
           cable("k1", "keys", "pitch", "osc", "pitch", 1),
@@ -407,6 +408,15 @@
           cable("k6", "amp", "l", "out", "l", 1),
         ],
       };
+    },
+    /// A board saved before the output was renamed: its Audio Out node still says "Speakers" / "Synth" (the device is picked in the node now).
+    upgradeBoard(b) {
+      for (const n of (b && b.nodes) || []) {
+        if (n.type !== "audio-out") continue;
+        if (n.name === "Speakers") n.name = "Audio Out";
+        if (n.track === "Synth") n.track = OUT_TRACK;
+      }
+      return b;
     },
     get sampleRate() { return ctx ? ctx.sampleRate : 0; },
   });

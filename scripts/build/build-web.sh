@@ -107,6 +107,9 @@ s = open(p).read()
 tag = '<script src="js/user-modules.js"></script>\n  <script src="js/bleepmod.js"></script>\n  <script src="js/library-client.js"></script>\n  <script src="js/web-settings.js"></script>\n  <script src="js/web-media.js"></script>\n  <script src="js/web-recordings.js"></script>\n  <script src="js/bleep-web.js"></script>\n  <script src="js/bridge-ui.js"></script>\n  '
 assert '<script src="board-demo.js"></script>' in s
 s = s.replace('<script src="board-demo.js"></script>', tag + '<script src="board-demo.js"></script>', 1)
+# The Audio Out node's device picker is a view (BleepViews), so it loads after bleep-view.js.
+assert '<script src="macro-labels.js"></script>' in s
+s = s.replace('<script src="macro-labels.js"></script>', '<script src="macro-labels.js"></script>\n  <script src="js/web-output.js"></script>', 1)
 # Content-Security-Policy for the browser build: no inline script and no eval anywhere in the UI; 'wasm-unsafe-eval' only because the
 # modules are WebAssembly. connect-src: the page's own origin (store, registry, account API) and the app's web link on this computer.
 csp = ("default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; "

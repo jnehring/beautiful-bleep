@@ -428,6 +428,7 @@
           baseTypes = await (await fetch("demo-types.json")).json();
           await listTypes();
           board = store.get("bleep-demo-board", null) || (window.BleepWeb && BleepWeb.defaultBoard ? BleepWeb.defaultBoard(node, cable) : demoBoard());
+          if (window.BleepWeb && BleepWeb.upgradeBoard) board = BleepWeb.upgradeBoard(board);
           if (window.BleepWeb) { BleepWeb.setTypes(types); BleepWeb.onVersionTypes = () => emit("typesChanged"); BleepWeb.setBoard(board); }
           return Object.assign(message(), { types: types.concat(versionTypes()), dev: true, standalone: true, settings: true, account: true }, demoLibrary ? { library: true } : {});
         case "commit":
