@@ -23,7 +23,7 @@ export default function SiteFooter() {
       <div className="footer-cols">
         {col("Explore", [["Play", "/board/"], ["Download", "/download/"], ["Bleep Library", "/library/"], ["Documentation", "/docs/musicians/overview/"], ["Blog", "/blog/"]])}
         {col("Project", [["About", "/about/"], ["Contact", "/contact/"], ["GitHub", GITHUB], ["Report an issue", `${GITHUB}/issues`]])}
-        {col("Legal", [["Impressum", "/impressum/"], ["Privacy", "/privacy/"], ["Terms", "/terms/"]])}
+        {col("Legal", [["Impressum", "/impressum/"], ["Privacy", "/privacy/"]])}
       </div>
       <p>Beautiful Bleep is free and open source (GPL, with a module exception).</p>
     </footer>

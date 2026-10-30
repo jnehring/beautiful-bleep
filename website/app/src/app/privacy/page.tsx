@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 import type { Metadata } from "next";
+import ObfuscatedEmail from "../ObfuscatedEmail";
 
 export const metadata: Metadata = { title: "Privacy — Beautiful Bleep" };
 
@@ -12,7 +13,13 @@ export default function PrivacyPage() {
         We collect as little as possible. The site uses no analytics, no advertising and no third-party trackers.
       </p>
       <h2>Controller</h2>
-      <p>[Full name, address and email, as in the <a href="/impressum/">Impressum</a>]</p>
+      <p>
+        Jan Nehring<br />
+        Mahlower Straße 32<br />
+        12049 Berlin<br />
+        Germany<br />
+        Email: <ObfuscatedEmail />
+      </p>
       <h2>Browsing the site</h2>
       <p>
         The web server may log technical data such as your IP address, the page requested and the time. This is
@@ -33,7 +40,7 @@ export default function PrivacyPage() {
       <h2>Your rights</h2>
       <p>
         You can ask for access, correction, deletion, restriction or export of your data, object to processing, and
-        complain to a data protection authority. Write to us through the <a href="/contact/">contact form</a>.
+        complain to a data protection authority. Write to us at <ObfuscatedEmail /> or through the <a href="/contact/">contact form</a>.
       </p>
     </>
   );
