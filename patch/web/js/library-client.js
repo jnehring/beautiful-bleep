@@ -7,6 +7,7 @@
 // verdicts), and hands out the module's .wasm.
 //
 //   BleepLibrary.configure({ base: "/registry/v1/", channel: "stable" })
+//   BleepLibrary.configure({ devAccess: async () => true })   // the signed-in account may see development builds: the dev index
 //   const manifest = await BleepLibrary.manifest();        // { types: {type → slug}, modules: {slug → {version, types, …}} }
 //   const m = await BleepLibrary.fetchModule("reverb");    // { wasm: ArrayBuffer, version, meta, … }
 //
@@ -72,8 +73,10 @@
 
   // localBase: a folder next to the page with the output of `build-web.sh --modules-only` (manifest.json and modules/*.wasm), for
   // development. Its modules replace the library's of the same name, but only while the page is served from localhost.
-  const config = { base: "/registry/v1/", channel: "stable", localBase: "local-modules/", hostname: null };
-  let indexPromise = null;
+  // devAccess: an async function, true when the signed-in account has dev access. The index is then the API's dev index (devBase),
+  // which also lists the development builds; its files are served there too. Not signed in, no access or no answer: the public one.
+  const config = { base: "/registry/v1/", channel: "stable", localBase: "local-modules/", hostname: null, devBase: "/api/registry/dev/v1/", devAccess: null };
+  let indexPromise = null;   // { doc, base, channel }: the index and where its files are
   let localPromise = null;
   const packages = new Map();
 
@@ -90,6 +93,23 @@
   function onLoopback() {
     const h = String(config.hostname || (typeof location !== "undefined" ? location.hostname : "")).toLowerCase();
     return h === "localhost" || h === "127.0.0.1" || h === "[::1]" || h === "::1" || h.endsWith(".localhost");
+  }
+
+  /// The library's index, read once: the dev index for an account with dev access, else the public one of the chosen channel.
+  function libraryIndex() {
+    if (!indexPromise) {
+      indexPromise = (async () => {
+        let dev = false;
+        try { dev = !!(config.devAccess && await config.devAccess()); } catch (e) { dev = false; }
+        if (dev) {
+          try { return { doc: await getJSON(config.devBase + "index.json"), base: config.devBase, channel: "dev" }; }
+          catch (e) { /* signed out meanwhile, or no access after all: the public index */ }
+        }
+        return { doc: await getJSON(config.base + "index.json"), base: config.base, channel: config.channel };
+      })();
+      indexPromise.catch(() => { indexPromise = null; });   // tried again next time
+    }
+    return indexPromise;
   }
 
   /// The local development build's index (manifest.json of build-web.sh --modules-only), or null: none built, or the page is not on this computer.
@@ -115,8 +135,8 @@
     if (mine) await mine.load();
     let mods = {};
     try {
-      if (!indexPromise) indexPromise = getJSON(config.base + "index.json");
-      mods = { ...(await indexPromise).channels[config.channel].modules };
+      const ix = await libraryIndex();
+      mods = { ...ix.doc.channels[ix.channel].modules };
     } catch (e) {
       if (!local && !(mine && mine.list().length)) throw e;  // a local build, or the user's own modules, are enough to run offline
     }
@@ -144,7 +164,7 @@
         if (!mods[slug]) throw new Error(`the library has no module ${slug}`);
         let entryPath = mods[slug].entry;
         if (version) {
-          if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error(`${slug}: ${version} is not a version`);
+          if (!/^\d+\.\d+\.\d+(-dev\.\d{12})?$/.test(version)) throw new Error(`${slug}: ${version} is not a version`);
           if (version === mods[slug].version || mods[slug].user || mods[slug].local) return fetchModule(slug);   // the newest (or a module with just one version)
           entryPath = `modules/${slug}/${version}/entry.json`;
         }
@@ -164,8 +184,9 @@
           return { wasm, version: "local", publisher: "local build", localBuild: true, local: true, meta: {}, bytes: wasm.byteLength, spec: mods[slug].spec || null,
                    view: await text(extra.view), source: await text(extra.source), help: await text(extra.help) };   // spec: the node types of a script module, which no demo-types.json lists
         }
-        const dir = config.base + entryPath.replace(/entry\.json$/, "");
-        const entry = await getJSON(config.base + entryPath);
+        const libBase = (await libraryIndex()).base;   // the dev index's files come from the API too
+        const dir = libBase + entryPath.replace(/entry\.json$/, "");
+        const entry = await getJSON(libBase + entryPath);
         if (version && entry.version !== version) throw new Error(`${slug}: the library's entry for ${version} is for ${entry.version}`);
         const file = entry.files.find((f) => f.platform === "any");
         if (!file) throw new Error(`${slug}: no package in the entry`);

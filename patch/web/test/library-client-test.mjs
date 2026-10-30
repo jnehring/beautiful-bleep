@@ -114,6 +114,32 @@ await test("fetchModule: a package an account uploaded may not bring page script
   });
 });
 
+await test("an account with dev access reads the dev index, and its files, from the API; everyone else the public index", async () => {
+  const devBase = "http://library/api/registry/dev/v1/";
+  const pkg = makeZip(files);
+  const v = "0.2.0-dev.202610301200";
+  const served = {
+    [base + "index.json"]: { format: 1, channels: { stable: { modules: {} } } },   // only development builds so far
+    [devBase + "index.json"]: { format: 1, channels: { dev: { modules: { reverb: { version: v, entry: `modules/reverb/${v}/entry.json`, types: ["reverb"] } } } } },
+    [devBase + `modules/reverb/${v}/entry.json`]: await entryOf("reverb", v, pkg),
+    [devBase + `modules/reverb/${v}/reverb-${v}.bleepmod`]: pkg,
+  };
+  await withLibrary(served, async () => {
+    Library.configure({ base, devBase, devAccess: async () => false });
+    assert.deepEqual((await Library.manifest()).types, {}, "no dev access: the public index");
+    Library.configure({ devAccess: async () => true });
+    assert.deepEqual((await Library.manifest()).types, { reverb: "reverb" });
+    assert.equal((await Library.fetchModule("reverb")).version, v);
+    assert.equal((await Library.fetchModule("reverb", v)).version, v, "a board may pin a development build");
+    Library.configure({ devAccess: async () => { throw new Error("offline"); } });
+    assert.deepEqual((await Library.manifest()).types, {}, "no answer about the account: the public index");
+    delete served[devBase + "index.json"];
+    Library.configure({ devAccess: async () => true });
+    assert.deepEqual((await Library.manifest()).types, {}, "the dev index refused: the public index");
+  });
+  Library.configure({ devAccess: null, devBase: "/api/registry/dev/v1/" });
+});
+
 await test("fetchModule(slug, version): an older version is fetched from its own entry, next to the newest", async () => {
   const old = makeZip(files);
   const fresh = makeZip({ ...files, "spec.json": '[{"type":"reverb","name":"Verb 2"}]\n' });

@@ -68,6 +68,13 @@
     reload: () => location.reload(),
   }) : null;
   if (S) { S.applyLibrary(); W.settings = S.call; }
+  // An account with dev access (signed in on this site) also gets the development builds: the API's dev index.
+  if (window.BleepLibrary) BleepLibrary.configure({ devAccess: async () => {
+    const r = await fetch("/api/auth/me", { credentials: "same-origin" });
+    if (!r.ok) return false;
+    const u = await r.json();
+    return u.role === "admin" || u.dev_access === true;
+  } });
 
   /// The module's package from the library, checked. The bytes are compiled inside the worklet (a Module does not cross to it everywhere).
   function fetchModule(slug, version) {
