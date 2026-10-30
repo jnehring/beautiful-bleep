@@ -172,7 +172,7 @@
     refs.pLink = el("a", "sm-link", "Open in the Bleep Library");
     refs.pLink.href = "#";
     refs.pLink.addEventListener("click", (e) => { e.preventDefault(); if (refs.pLink.dataset.url) native("openUrl", refs.pLink.dataset.url).then((ok) => { if (!ok) window.open(refs.pLink.dataset.url, "_blank", "noopener"); }); });
-    // Share (sharing.md): the same entries as the Share menu of the bar; the plugins have no bar
+    // Share (sharing.md): the same entries as the Share menu of the bar; only the plugins, which have no bar, show them here
     const PB = () => P.BleepProjectBrowser;
     refs.share = [
       ["Share Project…", () => PB().share(), (st) => !st.linked],
@@ -208,7 +208,7 @@
     refs.pLink.hidden = !url;
     refs.pLink.dataset.url = url;
     const st = P.BleepProjectBrowser.shareState();
-    for (const b of refs.share) b.hidden = !st.enabled || !b.on(st);
+    for (const b of refs.share) b.hidden = mode !== "plugin" || !st.enabled || !b.on(st);
   }
 
   // ---------------------------------------------------------------- the menu itself
