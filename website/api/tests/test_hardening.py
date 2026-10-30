@@ -10,13 +10,13 @@ from app.main import MAX_BODY, MAX_PRESET_BODY, body_limit
 
 def test_body_limits_by_path():
     assert body_limit("/api/presets") == MAX_PRESET_BODY   # a preset may carry up to 5 MB of audio
-    assert body_limit("/api/contact") == MAX_BODY
+    assert body_limit("/api/auth/login") == MAX_BODY
     assert body_limit("/api/registry/plugin/p/releases") == MAX_BODY
     assert body_limit("/api/registry/plugin/p/releases/1.0.0/files/p.zip") > 1000 * 1024 * 1024
 
 
 def test_declared_oversize_body_is_413(client):
-    res = client.post("/api/contact", content=b"x" * (MAX_BODY + 1), headers={"Content-Type": "application/json"})
+    res = client.post("/api/auth/login", content=b"x" * (MAX_BODY + 1), headers={"Content-Type": "application/json"})
     assert res.status_code == 413
 
 
@@ -24,12 +24,12 @@ def test_streamed_oversize_body_is_413(client):
     def chunks():  # no Content-Length: chunked
         for _ in range(MAX_BODY // 65536 + 2):
             yield b" " * 65536
-    res = client.post("/api/contact", content=chunks(), headers={"Content-Type": "application/json"})
+    res = client.post("/api/auth/login", content=chunks(), headers={"Content-Type": "application/json"})
     assert res.status_code == 413
 
 
 def test_normal_body_still_passes(client):
-    assert client.post("/api/contact", json={"name": "a", "email": "nope", "message": "x"}).status_code == 422
+    assert client.post("/api/auth/login", json={"email": "nope"}).status_code == 422
 
 
 def _zip(members):
@@ -100,4 +100,4 @@ def test_project_bodies_may_be_bigger_than_other_json():
 
     assert main.body_limit("/api/projects") >= MAX_BYTES * 4 + 5 * 1024 * 1024 * 4 // 3 + 64 * 1024  # the board plus its audio as base64; the endpoint's own 413 decides, not the middleware
     assert main.body_limit("/api/presets") > 5 * 1024 * 1024 * 4 // 3   # the audio of a preset as base64, plus its patch
-    assert main.body_limit("/api/contact") == main.MAX_BODY
+    assert main.body_limit("/api/auth/login") == main.MAX_BODY

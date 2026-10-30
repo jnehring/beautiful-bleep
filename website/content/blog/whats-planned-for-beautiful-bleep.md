@@ -6,7 +6,7 @@ description: A look ahead at Beautiful Bleep. Plugins for more DAWs, a closer br
 
 Beautiful Bleep is new, and most of what it will become is not built yet. [The introduction](/blog/introducing-beautiful-bleep/) described what you can use today. This post is the other half: what we plan to build, roughly in the order we think about it, and what is still open.
 
-Nothing here is a promise or a date. These are plans, and they change when we learn what people need. If one of them matters to you, tell us through the [contact form](/contact/) or on [GitHub](https://github.com/jnehring/beautiful-bleep). That is the best way to move something up the list.
+Nothing here is a promise or a date. These are plans, and they change when we learn what people need. If one of them matters to you, [send us an email](/contact/) or on [GitHub](https://github.com/jnehring/beautiful-bleep). That is the best way to move something up the list.
 
 ## Plugins for other DAWs
 
@@ -75,4 +75,4 @@ We do not plan to turn Beautiful Bleep into a DAW. It is meant to sit inside the
 
 ## Help decide
 
-This list is short on purpose, and the order is not fixed. If you want Bleep in a particular DAW, a particular kind of bridge to Live, or a module we do not have, [write to us](/contact/) or open an issue on [GitHub](https://github.com/jnehring/beautiful-bleep). If you would rather build it yourself, the code is open, the [developer documentation](/docs/developers/overview/) has the way in, and the [Bleep Bus quickstart](/docs/developers/bleep-bus/quickstart/) is a good place to start.
+This list is short on purpose, and the order is not fixed. If you want Bleep in a particular DAW, a particular kind of bridge to Live, or a module we do not have, [send us an email](/contact/) or open an issue on [GitHub](https://github.com/jnehring/beautiful-bleep). If you would rather build it yourself, the code is open, the [developer documentation](/docs/developers/overview/) has the way in, and the [Bleep Bus quickstart](/docs/developers/bleep-bus/quickstart/) is a good place to start.

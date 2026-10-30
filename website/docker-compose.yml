@@ -74,7 +74,6 @@ services:
       BLEEP_SMTP_USER: ${BLEEP_SMTP_USER:-}
       BLEEP_SMTP_PASSWORD: ${BLEEP_SMTP_PASSWORD:-}
       BLEEP_SMTP_FROM: ${BLEEP_SMTP_FROM:-}
-      BLEEP_CONTACT_TO: ${BLEEP_CONTACT_TO:-}
       BLEEP_ALLOWED_ORIGINS: ${BLEEP_ALLOWED_ORIGINS:-}
       # Which proxies' X-Forwarded-For the API believes (default: the private networks Docker uses; see api/Dockerfile).
       FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-}

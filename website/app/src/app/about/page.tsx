@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 import type { Metadata } from "next";
+import ObfuscatedEmail from "../ObfuscatedEmail";
 
 export const metadata: Metadata = { title: "About — Beautiful Bleep" };
 
@@ -16,8 +17,7 @@ export default function AboutPage() {
       <p>Beautiful Bleep is free to use.</p>
       <h2>Feedback</h2>
       <p>
-        This is a very fresh project, and we are happy for feedback. Write to us through the{" "}
-        <a href="/contact/">contact form</a> or open an issue on GitHub.
+        This is a very fresh project, and we are happy for feedback. Send me an email at <ObfuscatedEmail /> or open an issue on GitHub.
       </p>
       <h2>Disclaimer</h2>
       <p>AI was heavily used to build this project.</p>

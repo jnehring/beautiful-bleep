@@ -74,4 +74,4 @@ It works between any plugins in any DAW and does not need Beautiful Bleep at all
 
 If you are a musician, [play in your browser](/board/), then follow [Your first sound](/docs/musicians/start/first-sound/) and [Your first patch](/docs/musicians/learn/first-patch/). The [musician documentation](/docs/musicians/overview/) covers the rest.
 
-If you are a developer, start from the [developer overview](/docs/developers/overview/). The code is on [GitHub](https://github.com/jnehring/beautiful-bleep); this is a young project, so feedback is very welcome, through the [contact form](/contact/) or an issue on GitHub.
+If you are a developer, start from the [developer overview](/docs/developers/overview/). The code is on [GitHub](https://github.com/jnehring/beautiful-bleep); this is a young project, so feedback is very welcome, by [email](/contact/) or an issue on GitHub.

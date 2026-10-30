@@ -44,7 +44,7 @@ The file holds secrets and is git-ignored: never commit it. Lines starting with 
 
 ## Email
 
-Registration confirmation, password reset and the contact form send email. Without `BLEEP_SMTP_HOST` nothing is sent: each message, link included, is written to the API log (`docker compose logs api`), which is how to try it locally.
+Registration confirmation and password reset send email. Without `BLEEP_SMTP_HOST` nothing is sent: each message, link included, is written to the API log (`docker compose logs api`), which is how to try it locally.
 
 | Variable | Default | Meaning |
 |---|---|---|
@@ -53,7 +53,6 @@ Registration confirmation, password reset and the contact form send email. Witho
 | `BLEEP_SMTP_USER` | empty | SMTP login. For Gmail, turn on 2-step verification and create an app password. |
 | `BLEEP_SMTP_PASSWORD` | empty | SMTP password (the app password for Gmail, without spaces). |
 | `BLEEP_SMTP_FROM` | the SMTP user | Sender address of outgoing messages. |
-| `BLEEP_CONTACT_TO` | the SMTP user | Where the contact form delivers messages. |
 | `BLEEP_EMAIL_VERIFICATION` | `true` | `true`: registering sends a confirmation link. `false`: nobody is asked to confirm (password reset still works). |
 
 ## Password for the whole site

@@ -31,8 +31,6 @@ class Settings(BaseSettings):
     smtp_from: str | None = None
     # Without smtp_host the message is only logged. The log line has recipient and subject; the body (with the one-time link) only if this is on (local development).
     log_mail_bodies: bool = False
-    # Where contact-form messages go. Defaults to smtp_user.
-    contact_to: str | None = None
     # The site's public address, for the links in emails (no trailing slash).
     public_url: str = "http://localhost:8080"
     # false: registration sends no confirmation link and nobody is asked to confirm. Password reset emails are unaffected.

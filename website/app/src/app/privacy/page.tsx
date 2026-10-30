@@ -32,15 +32,15 @@ export default function PrivacyPage() {
         necessary and expires after 30 days or when you log out. We send emails only to confirm your address and to
         reset your password, through our mail provider ([provider]).
       </p>
-      <h2>Contact form</h2>
+      <h2>Email</h2>
       <p>
-        Your name, email address and message are sent to us by email so we can answer you (Art. 6(1)(f) GDPR). We
-        delete them once the matter is closed, unless the law requires us to keep them.
+        When you email us, we use your address and message only to answer you (Art. 6(1)(f) GDPR). We delete them
+        once the matter is closed, unless the law requires us to keep them.
       </p>
       <h2>Your rights</h2>
       <p>
         You can ask for access, correction, deletion, restriction or export of your data, object to processing, and
-        complain to a data protection authority. Write to us at <ObfuscatedEmail /> or through the <a href="/contact/">contact form</a>.
+        complain to a data protection authority. Write to us at <ObfuscatedEmail />.
       </p>
     </>
   );

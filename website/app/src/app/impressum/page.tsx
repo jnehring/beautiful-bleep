@@ -17,7 +17,7 @@ export default function ImpressumPage() {
         Germany
       </p>
       <h2>Contact</h2>
-      <p>Email: <ObfuscatedEmail /><br />Or use the <a href="/contact/">contact form</a>.</p>
+      <p>Email: <ObfuscatedEmail /></p>
       <h2>Responsible for content (§ 18 Abs. 2 MStV)</h2>
       <p>Jan Nehring, Mahlower Straße 32, 12049 Berlin</p>
       <h2>Open source</h2>
