@@ -118,6 +118,20 @@ csp = ("default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; "
 meta = '<meta http-equiv="Content-Security-Policy" content="%s">\n  ' % csp
 marker = '<meta name="viewport"'
 assert marker in s
-open(p, 'w').write(s.replace(marker, meta + marker, 1))
+s = s.replace(marker, meta + marker, 1)
+# A spinner while the scripts load: the Start audio button only comes at DOMContentLoaded, after all of them (bleep-web.js removes
+# this then). Plain HTML and CSS, painted as soon as <body> is parsed; the same shade as the button's, so one turns into the other.
+loading = ('<div id="bleep-loading" role="status" aria-label="Loading" style="position:fixed;inset:0;z-index:50;display:flex;'
+           'flex-direction:column;gap:16px;align-items:center;justify-content:center;background:rgba(5,10,10,0.72);'
+           'color:#99b3b0;font:15px system-ui">\n'
+           '    <style>@keyframes bleep-spin{to{transform:rotate(360deg)}}</style>\n'
+           '    <div style="width:44px;height:44px;border-radius:50%;border:3px solid rgba(94,234,212,0.2);border-top-color:#5eead4;'
+           'animation:bleep-spin 0.9s linear infinite"></div>\n'
+           '    <div>Loading Bleep…</div>\n'
+           '  </div>\n  ')
+marker = '<header id="top">'
+assert marker in s
+s = s.replace(marker, loading + marker, 1)
+open(p, 'w').write(s)
 PY
 echo "Built $OUT ($(du -sh "$OUT" | cut -f1)); serve it with: python3 -m http.server -d $OUT 8000"

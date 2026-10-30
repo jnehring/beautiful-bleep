@@ -575,6 +575,8 @@
     };
     shade.append(b, msg, skip);
     document.body.appendChild(shade);
+    const loading = document.getElementById("bleep-loading");   // the spinner the web build shows while the scripts load
+    if (loading) loading.remove();
     b.focus();
   });
 
