@@ -5,7 +5,7 @@ import SearchBox from "./SearchBox";
 import { api, useUser } from "@/lib/auth";
 import { ACCOUNT_MENU, ADMIN_MENU, isAdminActive, isAdminPath, AUDIENCES, audienceOf, isAccountActive, isAccountPath, isActive, isModulesPath, type Audience } from "@/lib/audiences";
 
-/** Main menu (Musicians, Developers, Modules, …) and, below it, the current audience's submenu. */
+/** Main menu (Play, Documentation, Library, …) and, below it, the current audience's submenu with a switch between the two docs. */
 export default function SiteNav() {
   const path = usePathname() ?? "/";
   const current = audienceOf(path);
@@ -17,12 +17,10 @@ export default function SiteNav() {
         <a className="brand" href="/"><img src="/logo.svg" alt="" width={28} height={28} />Beautiful Bleep</a>
         <nav aria-label="Main">
           <a href="/board/" aria-current={path.startsWith("/board") ? "true" : undefined}>Play</a>
-          {(Object.keys(AUDIENCES) as Audience[]).map((a) => (
-            <a key={a} href={AUDIENCES[a].home} aria-current={a === current ? "true" : undefined}>{AUDIENCES[a].title}</a>
-          ))}
-          <a href="/blog/" aria-current={path.startsWith("/blog") ? "true" : undefined}>Blog</a>
+          <a href="/docs/" aria-current={path === "/docs" || path === "/docs/" || current ? "true" : undefined}>Documentation</a>
+          <a href="/library/" aria-current={path.startsWith("/library") || isModulesPath(path) ? "true" : undefined}>Library</a>
           <a href="/download/" aria-current={path.startsWith("/download") ? "true" : undefined}>Download</a>
-          <a href="/library/" aria-current={path.startsWith("/library") || isModulesPath(path) ? "true" : undefined}>Bleep Library</a>
+          <a href="/blog/" aria-current={path.startsWith("/blog") ? "true" : undefined}>Blog</a>
         </nav>
         <nav className="account" aria-label="Account">
           {user ? (
@@ -58,6 +56,11 @@ export default function SiteNav() {
       )}
       {current && (
         <nav className="submenu" aria-label={`${AUDIENCES[current].title} menu`}>
+          <span className="audience-switch" role="group" aria-label="Documentation for">
+            {(Object.keys(AUDIENCES) as Audience[]).map((a) => (
+              <a key={a} href={AUDIENCES[a].home} aria-current={a === current ? "true" : undefined}>{AUDIENCES[a].label}</a>
+            ))}
+          </span>
           {AUDIENCES[current].menu.map((item) => (
             <a key={item.href} href={item.href} aria-current={isActive(path, item) ? "page" : undefined}>{item.title}</a>
           ))}

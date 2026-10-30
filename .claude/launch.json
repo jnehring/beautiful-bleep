@@ -34,6 +34,20 @@
         "build/web/site"
       ],
       "port": 8768
+    },
+    {
+      "name": "website",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "website/app",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "3010"
+      ],
+      "port": 3010
     }
   ]
 }

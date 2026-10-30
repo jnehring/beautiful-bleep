@@ -7,6 +7,7 @@ export type MenuItem = { title: string; href: string; match: string[] };
 export const AUDIENCES = {
   musicians: {
     title: "Musicians documentation",
+    label: "Musicians",
     home: "/docs/musicians/overview/",
     match: ["/docs/musicians/"],
     bundles: ["user-docs-full.md"],
@@ -21,6 +22,7 @@ export const AUDIENCES = {
   },
   developers: {
     title: "Developer documentation",
+    label: "Developers",
     home: "/docs/developers/overview/",
     match: ["/docs/developers/"],
     bundles: ["developer-overview-full.md", "quickstart-full.md", "api-reference-full.md", "spec-v0.1-full.md",
@@ -40,7 +42,7 @@ export const AUDIENCES = {
       { title: "Setup and release", href: "/docs/developers/setup/overview/", match: ["/docs/developers/setup/"] },
     ],
   },
-} satisfies Record<string, { title: string; home: string; match: string[]; bundles: string[]; menu: MenuItem[] }>;
+} satisfies Record<string, { title: string; label: string; home: string; match: string[]; bundles: string[]; menu: MenuItem[] }>;
 
 /** The sidebar sections (a section is a folder under website/content), in display order. The module manuals'
  *  category sections and the spec versions are not listed: they follow these, see sectionRank(). */
