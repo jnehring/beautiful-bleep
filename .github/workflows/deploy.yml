@@ -1,20 +1,23 @@
 # SPDX-License-Identifier: MIT
 #
-# Deploys the website stack (website/docker-compose.yml) to the server it runs on, after CI has passed on main.
+# Deploys the website stack (website/docker-compose.yml) to the server it runs on, on every push to main.
 # The job runs on a self-hosted runner on that server (doc/operations/deploy.md): GitHub never connects in, the
 # runner connects out. website/.env (the secrets) is not in the repository: it is copied from the server.
 #
-# Only runs for main: a push (through CI) or a manual run on main. Pull requests and forks never reach it.
+# Only runs for main: a push or a manual run on main. Pull requests and forks never reach it.
 name: Deploy
 
-# DISABLED for now: manual runs only (Actions tab -> Run workflow). Re-enable the automatic deploy by adding, next to
-# `workflow_dispatch:`, the trigger
+# Every push to main deploys directly: ci.yml is manual-only for now, and the tests run in dev.yml on the same push.
+# A broken image build leaves the running site untouched (`up --build` builds before it replaces a container).
+# Once ci.yml runs on push again, deploying only after green CI is the trigger
 #   workflow_run:
 #     workflows: [CI]
 #     types: [completed]
 #     branches: [main]
-# (and the push/pull_request triggers of ci.yml). doc/operations/deploy.md has the server setup.
+# instead of `push:`. doc/operations/deploy.md has the server setup.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -29,7 +32,7 @@ jobs:
   deploy:
     name: Deploy to the server
     if: >-
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      ((github.event_name == 'workflow_dispatch' || github.event_name == 'push') && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'push' &&
        github.event.workflow_run.head_repository.full_name == github.repository)

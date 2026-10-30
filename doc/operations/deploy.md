@@ -5,7 +5,7 @@ Four workflows in `.github/workflows/` (the fourth, `dev.yml`, builds and releas
 | Workflow | Runs | Where | What |
 |---|---|---|---|
 | `ci.yml` | every push to `main`, every pull request | GitHub-hosted runners (free: the repository is public) | repository rules, tests, the website image, Bleep Play, the plugins on Linux, macOS and Windows |
-| `deploy.yml` | after CI is green on a push to `main`; manually on `main` | self-hosted runner on the server | rebuilds and restarts the website stack, waits for the API |
+| `deploy.yml` | every push to `main` (while `ci.yml` is manual-only); manually on `main` | self-hosted runner on the server | rebuilds and restarts the website stack, waits for the API |
 | `release.yml` | manually (Actions tab → Run workflow, with the version level) | GitHub-hosted runners | builds the plugins on macOS, Windows and Linux and releases them to the library; the macOS job publishes the version, the others add their platform |
 
 No Windows server is needed: the Windows and macOS builds come from GitHub's `windows-latest` and `macos-14` runners. The builds are not code-signed (Authenticode, Apple notarization).
@@ -27,7 +27,7 @@ sudo install -m 600 -o gh-runner website/.env /etc/bleep/website.env   # from yo
 4. **Protect it** (Settings):
    - Actions → General → *Fork pull request workflows*: **Require approval for all outside collaborators**. A self-hosted runner executes the code of the workflow that runs on it; `deploy.yml` only runs for `main`, but keep it that way.
    - Branches → protect `main` (require the CI checks), so that only reviewed, green code gets deployed.
-5. **The first deploy:** Actions → Deploy → Run workflow (on `main`). Afterwards every green push to `main` deploys.
+5. **The first deploy:** Actions → Deploy → Run workflow (on `main`). Afterwards every push to `main` deploys.
 
 The stack keeps its volumes (database, library storage, certificates) between deploys; the API runs its database migrations (`alembic upgrade head`) every time it starts. Take a database backup before a migration that drops data.
 
