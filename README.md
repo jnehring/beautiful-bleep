@@ -1,17 +1,70 @@
 # Beautiful Bleep
 
-A modular sound engine as a plugin (Ableton Live), a standalone app and in the browser, built on an open protocol.
-The engine, board and apps in `patch/` are GPL-3.0-only with a [module exception](LICENSE-EXCEPTION.md), so modules can be open source, closed source or paid. The built-in modules are GPL-3.0-only too (the three ported from other code keep their original licence). Bleep Bus (`bus/`), the scripts and the website are MIT. [Licensing in plain terms](website/content/developers/modules/licensing.md).
+**A modular sound engine for Ableton Live, as a standalone app and in your browser, built on an open protocol.**
+
+[Website](https://beautifulbleep.com) · [Play in the browser](https://beautifulbleep.com/play/) · [Download](https://beautifulbleep.com/download/) · [Library](https://beautifulbleep.com/library/) · [Musician docs](https://beautifulbleep.com/docs/musicians/overview/) · [Developer docs](https://beautifulbleep.com/docs/developers/overview/) · [Blog](https://beautifulbleep.com/blog/)
+
+Beautiful Bleep puts all your modules on one canvas, the **board**. You patch them with cables, every knob is a
+modulation destination, and small plugins called **ports** connect the board to your tracks in Live. The same board runs
+in three places: as plugins in Ableton Live, as the standalone **Bleep App**, and in the browser as **Bleep Play**.
+Underneath is **Bleep Bus**, an open (MIT) protocol and C SDK for passing per-sample control signals between audio plugins.
+
+Status: **v0.1, experimental.** The bus layout may change with every 0.x release.
+
+## Documentation
+
+All documentation is on [beautifulbleep.com](https://beautifulbleep.com) (the sources are in [`website/content/`](website/content/)).
+Coding assistants can read [`llms.txt`](https://beautifulbleep.com/llms.txt), which links single-file versions of every section.
+
+### For musicians
+
+| Start here | |
+|---|---|
+| [Ways to use Bleep](https://beautifulbleep.com/docs/musicians/start/ways-to-use/) | Plugin, app or browser: which one is for you |
+| [Get started in Live](https://beautifulbleep.com/docs/musicians/start/getting-started/) | Install the plugins, play a preset, open the board |
+| [Get started with the app](https://beautifulbleep.com/docs/musicians/start/getting-started-app/) | The board without a DAW |
+| [Get started in the browser](https://beautifulbleep.com/docs/musicians/start/getting-started-play/) | Bleep Play, no install |
+| [First sound](https://beautifulbleep.com/docs/musicians/start/first-sound/) | Play a preset with no cables |
+| [Your first patch](https://beautifulbleep.com/docs/musicians/learn/first-patch/) | Five minutes on the board: filter, modulation, modulating the modulator |
+| [Modulation](https://beautifulbleep.com/docs/musicians/learn/modulation/) | How cables move knobs |
+| [Cells and panels](https://beautifulbleep.com/docs/musicians/learn/cells-and-panels/) | Group a patch and give it a front panel |
+| [The board](https://beautifulbleep.com/docs/musicians/use/board/) | Everything about adding modules, cables, grouping and panels |
+| [MIDI controllers](https://beautifulbleep.com/docs/musicians/connect/midi-controllers/) | Connect and map a keyboard or pad controller |
+| [Shortcuts](https://beautifulbleep.com/docs/musicians/reference/shortcuts/) · [Glossary](https://beautifulbleep.com/docs/musicians/reference/glossary/) | Reference |
+
+### For developers
+
+| Start here | |
+|---|---|
+| [Developer overview](https://beautifulbleep.com/docs/developers/overview/) | Which guide is for you, and how the pieces fit |
+| [Architecture](https://beautifulbleep.com/docs/developers/development/architecture/) | Board, engine, wasm modules; plugins vs. app vs. Bleep Play |
+| [Developer setup](https://beautifulbleep.com/docs/developers/setup/overview/) | Tools, one-time steps, [building and releasing](https://beautifulbleep.com/docs/developers/setup/build-and-release/), [running the tests](https://beautifulbleep.com/docs/developers/setup/running-tests/) |
+| [Writing a module](https://beautifulbleep.com/docs/developers/modules/writing-a-module/) | Build a board module; then [publish it to the library](https://beautifulbleep.com/docs/developers/modules/publishing/) |
+| [Bleep Script](https://beautifulbleep.com/docs/developers/bleep-script/overview/) | Modules, routing and patches in AssemblyScript/TypeScript ([quickstart](https://beautifulbleep.com/docs/developers/bleep-script/quickstart/)) |
+| [Bleep Bus](https://beautifulbleep.com/docs/developers/bleep-bus/overview/) | The open protocol ([quickstart](https://beautifulbleep.com/docs/developers/bleep-bus/quickstart/), [spec v0.1](https://beautifulbleep.com/docs/developers/spec/v0.1/00-overview/), [API reference](https://beautifulbleep.com/docs/developers/api-reference/00-overview/)) |
+| [Plugins](https://beautifulbleep.com/docs/developers/plugins/overview/) · [Standalone app](https://beautifulbleep.com/docs/developers/app/standalone-app/) · [Bleep Play](https://beautifulbleep.com/docs/developers/web/bleep-play/) | Working on each of the three hosts |
+| [Bleep Assistant](https://beautifulbleep.com/docs/developers/bleep-assistant/overview/) | The agentic assistant in the board |
+
+Contributing: [CONTRIBUTING.md](CONTRIBUTING.md) and the [CLA](CLA.md).
+
+## Repository overview
 
 | Folder | What | Start here |
 |---|---|---|
-| [`bus/`](bus/) | **Bleep Bus**: the open standard. C library, C++/JUCE helpers, examples, conformance suite | [Quickstart](website/content/developers/bleep-bus/quickstart.md) |
-| [`patch/`](patch/) | **Beautiful Bleep**: the shared engine, the board and the Bleep plugins you add in Live (Bleep Board and the ports); modules (Function, Random, Utility, Filter) run on the board | [Getting started](website/content/musicians/start/getting-started.md) |
-| [`website/`](website/) | The Beautiful Bleep homepage and **all documentation** (`website/content/`) | [Spec v0.1](website/content/developers/spec/v0.1/00-overview.md) |
+| [`bus/`](bus/) | **Bleep Bus**: the open standard. C library, C++/JUCE helpers, examples, conformance suite | [Quickstart](https://beautifulbleep.com/docs/developers/bleep-bus/quickstart/) |
+| [`patch/`](patch/) | **Beautiful Bleep**: the shared engine, the board, the Bleep plugins you add in Live (Bleep Board and the ports), the standalone app and the built-in modules | [Architecture](https://beautifulbleep.com/docs/developers/development/architecture/) |
+| [`website/`](website/) | The [beautifulbleep.com](https://beautifulbleep.com) site (Next.js), its accounts API and **all documentation** (`website/content/`) | [website/README.md](website/README.md) |
+| [`agent/`](agent/) | The Bleep Assistant (Python): agent loop, tools, skills, documentation search and the evaluation benchmark | [Bleep Assistant](https://beautifulbleep.com/docs/developers/bleep-assistant/overview/) |
+| [`presets/`](presets/) | Example board projects (`.bleepboard`) | |
 | [`doc/`](doc/) | The specifications (`doc/specs/`) and internal operations docs (`doc/operations/`: build, release, website) | [Index](doc/README.md) |
-| [`scripts/`](scripts/) | Build, run, check, docs and release scripts (below) | |
+| [`scripts/`](scripts/) | Build, run, check, docs and release scripts (below) | [scripts/README.md](scripts/README.md) |
+| [`config/`](config/) · [`ci/`](ci/) | Shared and per-machine settings; the self-hosted CI runner | |
 
-## Scripts
+Dependency rules (checked in CI by `scripts/check/check-repo.py`): `bus/` depends
+on nothing else here; `patch/` uses the bus only through its public API;
+nothing depends on `website/`.
+
+## Building from source
 
 One command does the everyday work: `./bleep` (see [`scripts/README.md`](scripts/README.md)). It works from any directory.
 This machine's settings (JUCE checkout, release token file, registry, Live set) go into `config/bleep.local.json`
@@ -55,9 +108,9 @@ Live keeps a plugin's code loaded until it quits, so:
 
 Or everything with CMake: `cmake -S . -B build -DBLEEP_JUCE_DIR=/path/to/JUCE && cmake --build build && ctest --test-dir build`.
 
-Status: **v0.1, experimental.** The bus layout may change with every 0.x
-release.
+## License
 
-Dependency rules (checked in CI by `scripts/check/check-repo.py`): `bus/` depends
-on nothing else here; `patch/` uses the bus only through its public API;
-nothing depends on `website/`.
+The engine, board and apps in `patch/` are GPL-3.0-only with a [module exception](LICENSE-EXCEPTION.md), so modules can
+be open source, closed source or paid. The built-in modules are GPL-3.0-only too (the three ported from other code keep
+their original licence). Bleep Bus (`bus/`), the scripts and the website are MIT.
+[Licensing in plain terms](https://beautifulbleep.com/docs/developers/modules/licensing/).
