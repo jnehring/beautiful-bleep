@@ -249,10 +249,12 @@ void AppController::syncPorts() {
             p->inBlock.reserve(engine::kMaxMidiEvents);
             p->outBlock.resize(engine::kMaxMidiEvents);
             if (w.isVirtual) {
+#if JUCE_LINUX || JUCE_BSD || JUCE_MAC || JUCE_IOS   // JUCE declares createNewDevice only there
                 p->input = juce::MidiInput::createNewDevice(w.name, this);
                 p->output = juce::MidiOutput::createNewDevice(w.name);
                 if (p->input) p->input->start();
-                if (!p->input && !p->output) continue;  // no virtual ports on this system (Windows without MIDI Services)
+#endif
+                if (!p->input && !p->output) continue;  // no virtual ports on this system (Windows: JUCE has no virtual MIDI devices there)
             }
             if (w.in) p->inHandle = addInstance(PortKind::MidiIn, w.id + ":in", w.name);
             if (w.out) p->outHandle = addInstance(PortKind::MidiOut, w.id + ":out", w.name);
