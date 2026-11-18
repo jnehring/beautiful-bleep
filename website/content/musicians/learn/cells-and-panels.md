@@ -44,6 +44,16 @@ To put a knob on a panel, right-click it (or its module) and choose **Add to
 panel**. A control can also load another panel, which is how large panels are
 split into tabs.
 
+For more control over how a panel knob moves a sound, put a
+[Dial](/docs/musicians/modules/dial/) inside the cell, add the Dial to the panel, and
+patch its *Out* onto the parameter. The Dial's **Min** and **Max** set how far
+the parameter moves from one end of the knob to the other. Between the Dial and
+the parameter you can add other modules to change the curve: a
+[Math](/docs/musicians/modules/math/) row set to *Power* makes the knob gentle at one end
+and steep at the other, and a [Shape Table](/docs/musicians/modules/shape-table/) lets you
+draw any curve you like. A [Function](/docs/musicians/modules/function/) patched into the
+Dial's *Value* adds movement of its own around the position you set.
+
 A panel shows what you play with, not everything. The rest stays one right-click
 away: a control's menu has **Open module view**.
 
