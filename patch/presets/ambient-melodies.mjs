@@ -18,7 +18,7 @@ function slowPentatonicDrift() {
   }).input("chance", "Chance").stereoOut();
   const rc = p.add("recall", [0, 1], { tmode: "Chance", tbias: 0.45, trecall: 0.15, tloop: 8, gatelength: 0.2, xspread: 0.7, rate: 0.35, sync: "Free", seed: 61 });
   const q = p.add("quantizer", [1, 1], { root: "D", scale: "Major Pentatonic", range: 1, hysteresis: 0.05 });
-  const o = p.add("oscillator", [2, 0], { octave: "0", shape: 0.05 }, { name: "Sine" });
+  const o = p.add("oscillator", [2, 0], { octave: "0", wave: "Sine", wave2: "Triangle", morph: 0.15 }, { name: "Sine" });
   const lpg = p.add("low-pass-gate", [3, 0], { level: 0, response: 0.7, ping: 1, resonance: 0.1, brightness: 0.8, mode: "Both", cell: "Slow memory" });
   const env = p.add("adsr", [2, 1], { attack: 0.6, decay: 3, sustain: 0, release: 2 }, { name: "Swell" });
   p.cable(p.cin, "chance", rc, "tbias", 0.3).cable(rc, "x1", q, "in").cable(q, "out", o, "pitch").cable(rc, "t1", lpg, "ping").cable(rc, "t1", env, "gate").cable(env, "env", lpg, "cv")

@@ -148,7 +148,56 @@ static void migrateLfoSync(NodeModel& node) {
     node.params["division"] = (float)(d - division->choices.begin()) / (float)(division->choices.size() - 1);
 }
 
-BoardModel parse(const juce::var& doc) {
+/// The Oscillator once had one Shape knob (0 sine, 1/3 triangle, 2/3 saw, 1 square, neighbours crossfaded)
+/// and an output per waveform plus a sub octave. A document saved like that gets the Waveform / Secondary /
+/// Morph setting that sounds the same. When a node used just one of the old Sine, Triangle, Saw or Square
+/// outputs (and not Out), that waveform becomes its Waveform and the cables leave Out instead. Anything else
+/// (Sub, two waveforms at once) has no counterpart and is dropped by sanitise. Runs before sanitise and parse.
+juce::var migrateOscillators(const juce::var& in) {
+    auto* nodes = in["nodes"].getArray();
+    if (nodes == nullptr) return in;
+    const auto old = [](const juce::var& n) {
+        return n["type"].toString() == "oscillator" && n["params"].hasProperty("shape") && !n["params"].hasProperty("wave");
+    };
+    if (std::none_of(nodes->begin(), nodes->end(), old)) return in;
+    juce::var doc = fromJson(toJson(in));   // a deep copy: the caller's document stays as it was
+    static const char* const names[] = {"sine", "triangle", "saw", "square"};
+    auto* cables = doc["cables"].getArray();
+    for (auto& n : *doc["nodes"].getArray()) {
+        if (!old(n)) continue;
+        auto* params = n["params"].getDynamicObject();
+        const float m = juce::jlimit(0.0f, 1.0f, (float)n["params"]["shape"]) * 3.0f;
+        const int i = std::min((int)m, 2);
+        float t = m - (float)i;
+        int wave = i;
+        if (t > 0.995f) wave = i + 1, t = 0.0f;   // stored 1/3 and 2/3 land just below a waveform
+        params->removeProperty("shape");
+        params->setProperty("wave", (float)wave / 3.0f);
+        params->setProperty("wave2", (float)std::min(i + 1, 3) / 3.0f);
+        params->setProperty("morph", t < 0.005f ? 0.0f : t);
+        if (cables == nullptr) continue;
+        const juce::String id = n["id"].toString();
+        juce::String used;
+        bool single = true;
+        for (const auto& c : *cables) {
+            if (c["from"]["node"].toString() != id) continue;
+            const juce::String jack = c["from"]["jack"].toString();
+            if (used.isEmpty()) used = jack;
+            else if (used != jack) single = false;
+        }
+        const auto it = std::find_if(std::begin(names), std::end(names), [&](const char* w) { return used == w; });
+        if (!single || it == std::end(names)) continue;
+        params->setProperty("wave", (float)(it - std::begin(names)) / 3.0f);
+        params->setProperty("morph", 0.0f);
+        for (auto& c : *cables)
+            if (c["from"]["node"].toString() == id)
+                if (auto* from = c["from"].getDynamicObject()) from->setProperty("jack", "out");
+    }
+    return doc;
+}
+
+BoardModel parse(const juce::var& saved) {
+    const juce::var doc = migrateOscillators(saved);
     const auto& reg = Registry::get();
     BoardModel m;
     m.id = sstr(doc, "id");

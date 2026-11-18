@@ -3,7 +3,7 @@
 // Shared building blocks for the demo patches (demos/<module>.mjs): a melody
 // source and a drum beat, so most of a demo's nodes are the module it shows.
 // Everything here plays with the transport and needs no input.
-import { steps, drumGrid, pattern } from "./kit.mjs";
+import { steps, drumGrid, pattern, oscWaves } from "./kit.mjs";
 
 /// A plucked melody: Step Sequencer → Oscillator → ADSR-driven VCA. Mono audio out on `amp`'s "l".
 ///   notes: semitones above the root per step (null/"." rest, "_" tie), see kit.steps()
@@ -16,7 +16,7 @@ export function melody(p, at, notes, opts = {}) {
     length: Math.min(32, notes.length), rate: opts.rate || "1/8", root: opts.root || "A",
     scale: opts.scale || "Minor Pentatonic", octave: opts.octave ?? 0, gatelength: opts.gatelength ?? 0.45,
   }, { data: steps(notes, opts.vel) });
-  const osc = p.add("oscillator", [c + 1, r], { shape: opts.shape ?? 0.8, ...(opts.osc || {}) }, { name: opts.oscName || "Source" });
+  const osc = p.add("oscillator", [c + 1, r], { ...oscWaves(opts.shape ?? 0.8), ...(opts.osc || {}) }, { name: opts.oscName || "Source" });
   const env = p.add("adsr", [c + 1, r + 1], { attack: 0.005, decay: 0.25, sustain: 0.2, release: 0.2, ...(opts.env || {}) },
     { name: "Amp Env" });
   const amp = p.add("vca", [c + 2, r], {}, { name: "VCA" });

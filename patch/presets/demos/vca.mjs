@@ -26,7 +26,7 @@ function expPluck() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/8", root: "C", scale: "Major Pentatonic", octave: 0, gatelength: 0.4 },
     { data: steps([0, 4, 7, 12, 9, 7, 4, 2, 0, 4, 9, 7, 12, 9, 7, 4]) });
-  const osc = p.add("oscillator", [1, 0], { shape: 0.8 });
+  const osc = p.add("oscillator", [1, 0], { wave: "Saw", wave2: "Square", morph: 0.4 });
   const env = p.add("adsr", [1, 1], { attack: 0.003, decay: 0.6, sustain: 0.15, release: 0.3 }, { name: "Amp Env" });
   const amp = p.add("vca", [2, 0], { gain: 0, response: "Exponential" });
   p.cable(seq, "pitch", osc, "pitch").cable(seq, "gate", env, "gate").cable(seq, "trigger", env, "retrig")
@@ -43,8 +43,8 @@ function tremolo() {
   });
   const m = melody(p, [0, 0], [0, "_", "_", "_", "_", "_", "_", "_", 5, "_", "_", "_", "_", "_", "_", "_"], {
     rate: "1/4", root: "E", scale: "Dorian", octave: -1, shape: 0.6, gatelength: 1, env: { attack: 0.1, decay: 0.3, sustain: 1, release: 0.6 } });
-  const o2 = p.add("oscillator", [1, 2], { shape: 0.6, coarse: 7, fine: 6 }, { name: "Fifth" });
-  const o3 = p.add("oscillator", [1, 3], { shape: 0.6, coarse: 12, fine: -7 }, { name: "Octave" });
+  const o2 = p.add("oscillator", [1, 2], { wave: "Triangle", wave2: "Saw", morph: 0.8, coarse: 7, fine: 6 }, { name: "Fifth" });
+  const o3 = p.add("oscillator", [1, 3], { wave: "Triangle", wave2: "Saw", morph: 0.8, coarse: 12, fine: -7 }, { name: "Octave" });
   const sum = p.add("audio-mixer", [2, 2], { level1: -3, level2: -6, level3: -9, master: 0 }, { name: "Chord" });
   p.cable(m.seq, "pitch", o2, "pitch").cable(m.seq, "pitch", o3, "pitch").cable(m.osc, "out", sum, "in1l").cable(o2, "out", sum, "in2l").cable(o3, "out", sum, "in3l");
   const trem = p.add("vca", [3, 0], { gain: 1.2, response: "Linear" }, { name: "Tremolo VCA" });
@@ -64,8 +64,8 @@ function linearSwell() {
   });
   const m = melody(p, [0, 0], [0, "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", 7, "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_"], {
     rate: "1/4", root: "A", scale: "Minor Pentatonic", octave: -1, shape: 0.9, gatelength: 1, env: { attack: 0.01, sustain: 1 } });
-  const o2 = p.add("oscillator", [1, 2], { shape: 0.9, coarse: 7, fine: 9 }, { name: "Fifth" });
-  const o3 = p.add("oscillator", [1, 3], { shape: 0.9, coarse: 12, fine: -8 }, { name: "Octave" });
+  const o2 = p.add("oscillator", [1, 2], { wave: "Saw", wave2: "Square", morph: 0.7, coarse: 7, fine: 9 }, { name: "Fifth" });
+  const o3 = p.add("oscillator", [1, 3], { wave: "Saw", wave2: "Square", morph: 0.7, coarse: 12, fine: -8 }, { name: "Octave" });
   const sum = p.add("audio-mixer", [2, 2], { level1: -3, level2: -6, level3: -9, master: 0 }, { name: "Chord" });
   p.cable(m.seq, "pitch", o2, "pitch").cable(m.seq, "pitch", o3, "pitch").cable(m.osc, "out", sum, "in1l").cable(o2, "out", sum, "in2l").cable(o3, "out", sum, "in3l");
   const env = p.add("adsr", [3, 2], { attack: 3, decay: 1, sustain: 0.8, release: 4 }, { name: "Swell" });
@@ -83,7 +83,7 @@ function ducking() {
   });
   const m = melody(p, [0, 4], [0, "_", "_", "_", 7, "_", "_", "_", 5, "_", "_", "_", 3, "_", "_", "_"], {
     rate: "1/4", root: "F", scale: "Natural Minor", octave: 0, shape: 1, gatelength: 1, env: { attack: 0.02, decay: 0.3, sustain: 1, release: 0.3 } });
-  const o2 = p.add("oscillator", [1, 6], { shape: 1, coarse: 7, fine: 8 }, { name: "Fifth" });
+  const o2 = p.add("oscillator", [1, 6], { wave: "Square", coarse: 7, fine: 8 }, { name: "Fifth" });
   const sum = p.add("audio-mixer", [2, 6], { level1: -3, level2: -7, master: 0 }, { name: "Chord" });
   p.cable(m.seq, "pitch", o2, "pitch").cable(m.amp, "l", sum, "in1l").cable(o2, "out", sum, "in2l");
   const d = beat(p, [0, 0], { style: "four", level: -5 });
@@ -104,8 +104,8 @@ function trancegate() {
   });
   const m = melody(p, [0, 4], [0, "_", "_", "_", "_", "_", "_", "_", 5, "_", "_", "_", "_", "_", "_", "_"], {
     rate: "1/4", root: "A", scale: "Minor Pentatonic", octave: -1, shape: 1, gatelength: 1, env: { attack: 0.01, sustain: 1, decay: 0.2, release: 0.2 } });
-  const o2 = p.add("oscillator", [1, 6], { shape: 1, coarse: 7, fine: 10 }, { name: "Fifth" });
-  const o3 = p.add("oscillator", [1, 7], { shape: 1, coarse: 12, fine: -9 }, { name: "Octave" });
+  const o2 = p.add("oscillator", [1, 6], { wave: "Square", coarse: 7, fine: 10 }, { name: "Fifth" });
+  const o3 = p.add("oscillator", [1, 7], { wave: "Square", coarse: 12, fine: -9 }, { name: "Octave" });
   const sum = p.add("audio-mixer", [2, 6], { level1: -3, level2: -6, level3: -8, master: 0 }, { name: "Chord" });
   p.cable(m.seq, "pitch", o2, "pitch").cable(m.seq, "pitch", o3, "pitch").cable(m.amp, "l", sum, "in1l").cable(o2, "out", sum, "in2l").cable(o3, "out", sum, "in3l");
   const grid = p.add("drum-grid", [0, 0], {}, { data: drumGrid(["Gate", "Kick", "", "", "", "", "", ""], [pattern("Gate", ["xx.xx.x.xx.xx.xx", "X...X...X...X...", "", "", "", "", "", ""])]) });

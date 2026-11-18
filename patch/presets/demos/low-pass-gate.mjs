@@ -26,7 +26,7 @@ function pluckRun() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/8", root: "C", scale: "Major Pentatonic", octave: 0, gatelength: 0.4 },
     { data: steps([0, 4, 7, 12, 9, 7, 4, 2, 0, 4, 9, 7, 12, 9, 7, 4], [110, 80, 90, 100, 85, 70, 90, 80, 110, 80, 95, 85, 105, 90, 75, 85]) });
-  const osc = p.add("oscillator", [1, 0], { shape: 1 });
+  const osc = p.add("oscillator", [1, 0], { wave: "Square" });
   const g = p.add("low-pass-gate", [2, 0], { level: 0, response: 0.45, ping: 0.85, resonance: 0.2, brightness: 0.8, cell: "Classic", mode: "Both" });
   p.cable(seq, "pitch", osc, "pitch").cable(osc, "out", g, "l").cable(osc, "out", g, "r").cable(seq, "trigger", g, "ping").cable(seq, "velocity", g, "velocity");
   finish(p, [3, 0], g, 5, { size: 0.6, decay: 3, mix: 0.3 });
@@ -41,8 +41,8 @@ function bongos() {
   });
   const grid = p.add("drum-grid", [0, 0], {}, { data: drumGrid(["Kick", "Snare", "Closed Hat", "Open Hat", "Clap", "Tom", "Tom 2", "Perc"], [pattern("Skins", [
     "X..x..x.x..x..x.", "..x.....x...x...", "", "", "", "", "", ""])]) });
-  const o1 = p.add("oscillator", [1, 0], { shape: 0, octave: "-1", coarse: 0 }, { name: "Low Skin" });
-  const o2 = p.add("oscillator", [1, 1], { shape: 0.2, coarse: 5, octave: "0" }, { name: "High Skin" });
+  const o1 = p.add("oscillator", [1, 0], { wave: "Sine", octave: "-1", coarse: 0 }, { name: "Low Skin" });
+  const o2 = p.add("oscillator", [1, 1], { wave: "Sine", wave2: "Triangle", morph: 0.6, coarse: 5, octave: "0" }, { name: "High Skin" });
   const g1 = p.add("low-pass-gate", [2, 0], { level: 0, response: 0.3, ping: 0.9, resonance: 0.5, brightness: 0.7, cell: "Fast" }, { name: "LPG Low" });
   const g2 = p.add("low-pass-gate", [2, 1], { level: 0, response: 0.25, ping: 0.9, resonance: 0.4, brightness: 0.8, cell: "Fast" }, { name: "LPG High" });
   p.cable(o1, "out", g1, "l").cable(o1, "out", g1, "r").cable(grid, "gate1", g1, "ping").cable(grid, "velocity1", g1, "velocity")
@@ -61,7 +61,7 @@ function slowPad() {
   });
   const m = melody(p, [0, 0], [0, "_", "_", "_", "_", "_", "_", "_", 5, "_", "_", "_", "_", "_", "_", "_"], {
     rate: "1/4", root: "F", scale: "Lydian", octave: -1, shape: 1, gatelength: 1, env: { attack: 0.01, decay: 0.2, sustain: 1, release: 0.3 } });
-  const o2 = p.add("oscillator", [1, 2], { shape: 0.8, coarse: 7, fine: 8 }, { name: "Fifth" });
+  const o2 = p.add("oscillator", [1, 2], { wave: "Saw", wave2: "Square", morph: 0.4, coarse: 7, fine: 8 }, { name: "Fifth" });
   const mx = p.add("audio-mixer", [2, 2], { level1: -2, level2: -6, master: 0 }, { name: "Blend" });
   p.cable(m.seq, "pitch", o2, "pitch").cable(m.amp, "l", mx, "in1l").cable(o2, "out", mx, "in2l");
   const lfo = p.add("lfo", [3, 2], { sync: "Tempo", division: "2 bars", wave: "Sine", polarity: "Unipolar" }, { name: "Breath" });
@@ -95,7 +95,7 @@ function bleedPercLoop() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/8", root: "G", scale: "Major Pentatonic", octave: 0, gatelength: 0.3 },
     { data: steps([0, ".", 7, 4, ".", 9, 7, ".", 12, ".", 9, 7, 4, ".", 2, "."], [100, 0, 80, 90, 0, 85, 70, 0, 110, 0, 85, 75, 95, 0, 80, 0].map((v) => (v || 90) + 25)) });
-  const osc = p.add("oscillator", [1, 0], { shape: 0.5 });
+  const osc = p.add("oscillator", [1, 0], { wave: "Triangle", wave2: "Saw", morph: 0.5 });
   const g = p.add("low-pass-gate", [2, 0], { level: 0, response: 0.6, ping: 1, resonance: 0.3, brightness: 0.8, bleed: 0.2, cell: "Fast", mode: "Both" });
   const lfo = p.add("lfo", [2, 1], { rate: 0.1 }, { name: "Tone" });
   p.cable(seq, "pitch", osc, "pitch").cable(osc, "out", g, "l").cable(osc, "out", g, "r").cable(seq, "trigger", g, "ping").cable(seq, "velocity", g, "velocity")

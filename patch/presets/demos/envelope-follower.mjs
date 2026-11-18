@@ -66,8 +66,8 @@ function droneSwell() {
     tags: ["swell", "slow", "drone", "loudness"],
   });
   const mix = beat(p, [0, 0], { style: "sparse", level: -4 });
-  const osc = p.add("oscillator", [0, 4], { shape: 0.4, octave: "-1", fine: -6 }, { name: "Drone A" });
-  const osc2 = p.add("oscillator", [0, 5], { shape: 0.4, octave: "-1", coarse: 7, fine: 5 }, { name: "Drone B" });
+  const osc = p.add("oscillator", [0, 4], { wave: "Triangle", wave2: "Saw", morph: 0.2, octave: "-1", fine: -6 }, { name: "Drone A" });
+  const osc2 = p.add("oscillator", [0, 5], { wave: "Triangle", wave2: "Saw", morph: 0.2, octave: "-1", coarse: 7, fine: 5 }, { name: "Drone B" });
   const f = p.add("envelope-follower", [3, 3], { attack: 0.6, release: 1.8, gain: 6, detector: "RMS" });
   const amp = p.add("vca", [4, 4], {}, { name: "Swell" });
   const sum = p.add("audio-mixer", [2, 4], { level1: -6, level2: -6 }, { name: "Drone Sum" });
@@ -84,7 +84,7 @@ function slewedPitch() {
   });
   const r = p.add("random", [0, 0], { sync: "1/4", spread: 0.5, quantize: true, seed: 11 }, { name: "Pitch Steps" });
   const f = p.add("envelope-follower", [1, 0], { attack: 0.25, release: 0.45, gain: 1, rectify: "None (signed)" });
-  const osc = p.add("oscillator", [2, 0], { shape: 0.7, octave: "-1" });
+  const osc = p.add("oscillator", [2, 0], { wave: "Saw", wave2: "Square", morph: 0.1, octave: "-1" });
   const flt = p.add("filter", [3, 0], { cutoff: 1400, resonance: 0.3 });
   p.cable(r, "out", f, "in").cable(f, "env", osc, "pitch", 0.4).cable(osc, "out", flt, "l").cable(osc, "out", flt, "r");
   toOut(p, [4, 0], [[flt, "l", -18, -0.3], [flt, "r", -18, 0.3]], 0);

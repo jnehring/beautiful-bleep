@@ -1,13 +1,13 @@
 // chord-quantizer: five demo patches. Each plays by itself with the transport.
 // SPDX-License-Identifier: MIT
-import { patch, steps, drumGrid, pattern } from "../kit.mjs";
+import { patch, steps, drumGrid, pattern, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// A mono voice: Oscillator -> VCA with its own ADSR. src: {n, pitch, gate, trig} (trig: false = no retrigger).
 /// o: shape, osc (extra knobs), env, cutoff/res (adds a low-pass), name. Returns {osc, env, amp, out: {n, j}}.
 function voice(p, at, src, o = {}) {
   const [c, r] = at;
-  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.7, ...(o.osc || {}) }, { name: o.name || "Source" });
+  const osc = p.add("oscillator", [c, r], { ...oscWaves(o.shape ?? 0.7), ...(o.osc || {}) }, { name: o.name || "Source" });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.3, sustain: 0.3, release: 0.25, ...(o.env || {}) }, { name: o.envName || "Amp Env" });
   const amp = p.add("vca", [c + 1, r], {}, { name: "VCA" });
   if (src.pitch !== null) p.cable(src.pn || src.n, src.pitch || "pitch", osc, "pitch");
@@ -44,7 +44,7 @@ function chordPad(p, at, cq, src, o = {}) {
   const [c, r] = at;
   const mix = p.add("audio-mixer", [c + 1, r], { master: -3, level1: -6, level2: -6, level3: -6, level4: -6, pan1: -0.6, pan2: -0.2, pan3: 0.2, pan4: 0.6 }, { name: "Chord Mix" });
   for (let i = 0; i < 4; i++) {
-    const osc = p.add("oscillator", [c, r + i], { shape: o.shape ?? 0.6, fine: (i - 1.5) * (o.detune ?? 6), octave: String(o.octave ?? 0) }, { name: `Voice ${i + 1}` });
+    const osc = p.add("oscillator", [c, r + i], { ...oscWaves(o.shape ?? 0.6), fine: (i - 1.5) * (o.detune ?? 6), octave: String(o.octave ?? 0) }, { name: `Voice ${i + 1}` });
     p.cable(cq, `voice${i + 1}`, osc, "pitch").cable(osc, "out", mix, `in${i + 1}l`).cable(osc, "out", mix, `in${i + 1}r`);
   }
   const env = p.add("adsr", [c + 1, r + 1], { attack: 0.01, decay: 0.5, sustain: 0.5, release: 0.5, ...(o.env || {}) }, { name: "Chord Env" });
@@ -70,7 +70,7 @@ function padChanges() {
   const pad = chordPad(p, [2, 0], cq, seq, { shape: 0.55, env: { attack: 0.6, decay: 1, sustain: 0.8, release: 1.2 }, cutoff: 1600, octave: 0 });
   const lfo = p.add("lfo", [2, 4], { rate: 0.1, wave: "Sine" }, { name: "Breath" });
   p.cable(lfo, "out", pad.flt, "cutoff", 0.2);
-  const bass = p.add("oscillator", [2, 5], { shape: 0.1, octave: "-1" }, { name: "Root Bass" });
+  const bass = p.add("oscillator", [2, 5], { wave: "Sine", wave2: "Triangle", morph: 0.3, octave: "-1" }, { name: "Root Bass" });
   const bv = p.add("vca", [3, 5], { gain: 0.5 }, { name: "Bass Level" });
   p.cable(cq, "root", bass, "pitch").cable(bass, "out", bv, "l");
   finish(p, [6, 0], [{ n: pad.flt, l: "l", r: "r", level: 2 }, { n: bv, level: -10 }], { vmix: 0.4, decay: 5, size: 0.7, master: 0 });
@@ -119,7 +119,7 @@ function diatonicHarmoniser() {
   const cq = p.add("chord-quantizer", [1, 0], { mode: "Diatonic", root: "C", scale: "Major", stack: "Triad", voicing: "Close", range: 2 });
   feed(p, seq, cq);
   const pad = chordPad(p, [2, 0], cq, seq, { shape: 0.45, env: { attack: 0.03, decay: 0.8, sustain: 0.3, release: 0.5 }, cutoff: 2400, octave: -1 });
-  const lead = p.add("oscillator", [2, 5], { shape: 0.2, octave: "+1" }, { name: "Melody" });
+  const lead = p.add("oscillator", [2, 5], { wave: "Sine", wave2: "Triangle", morph: 0.6, octave: "+1" }, { name: "Melody" });
   const lenv = p.add("adsr", [3, 5], { attack: 0.005, decay: 0.3, sustain: 0.25, release: 0.2 }, { name: "Melody Env" });
   const lamp = p.add("vca", [4, 5], {}, { name: "Melody VCA" });
   p.cable(seq, "pitch", lead, "pitch").cable(seq, "gate", lenv, "gate").cable(seq, "trigger", lenv, "retrig").cable(lead, "out", lamp, "l").cable(lenv, "env", lamp, "gain");

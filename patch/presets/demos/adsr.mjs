@@ -35,8 +35,8 @@ function swell() {
   const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/2", root: "F", scale: "Major", octave: 0, gatelength: 0.9 },
     { data: steps([0, "_", 4, "_", 7, "_", 5, "_"]) });
   const env = p.add("adsr", [1, 2], { attack: 1.4, decay: 1.2, sustain: 0.7, release: 2.5 }, { name: "Swell" });
-  const o1 = p.add("oscillator", [1, 0], { shape: 0.8, fine: -7 }, { name: "Saw A" });
-  const o2 = p.add("oscillator", [1, 1], { shape: 0.8, fine: 7, octave: "+1" }, { name: "Saw B" });
+  const o1 = p.add("oscillator", [1, 0], { wave: "Saw", wave2: "Square", morph: 0.4, fine: -7 }, { name: "Saw A" });
+  const o2 = p.add("oscillator", [1, 1], { wave: "Saw", wave2: "Square", morph: 0.4, fine: 7, octave: "+1" }, { name: "Saw B" });
   const mix = p.add("audio-mixer", [2, 0], { level1: -8, level2: -11, pan1: -0.4, pan2: 0.4, master: 6 });
   const f = p.add("filter", [3, 0], { cutoff: 1400, resonance: 0.15, type: "SVF Multimode" });
   const vca = p.add("vca", [4, 0], {});
@@ -56,7 +56,7 @@ function touch() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/8", root: "E", scale: "Minor Pentatonic", octave: 0, gatelength: 0.5 },
     { data: steps([0, 3, 7, 10, 7, 3, 12, 10, 0, 3, 7, 12, 10, 7, 3, 5], [127, 45, 70, 35, 110, 40, 85, 30, 120, 50, 65, 100, 40, 90, 35, 60]) });
-  const osc = p.add("oscillator", [1, 0], { shape: 0.6 });
+  const osc = p.add("oscillator", [1, 0], { wave: "Triangle", wave2: "Saw", morph: 0.8 });
   const env = p.add("adsr", [1, 1], { attack: 0.004, decay: 0.3, sustain: 0.25, release: 0.25, velamount: 0.6 }, { name: "Touch Env" });
   const f = p.add("filter", [2, 0], { cutoff: 700, resonance: 0.25, type: "SVF Multimode" });
   const vca = p.add("vca", [3, 0], {});
@@ -74,7 +74,7 @@ function bass() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/8", root: "A", scale: "Natural Minor", octave: -2, gatelength: 0.75 },
     { data: steps([0, "_", 0, ".", 3, "_", ".", 5, 0, "_", 0, ".", 7, "_", 5, 3]) });
-  const osc = p.add("oscillator", [1, 0], { shape: 0.3 });
+  const osc = p.add("oscillator", [1, 0], { wave: "Sine", wave2: "Triangle", morph: 0.9 });
   const env = p.add("adsr", [1, 1], { attack: 0.004, decay: 0.18, sustain: 0.65, release: 0.1 }, { name: "Bass Env" });
   const f = p.add("filter", [2, 0], { cutoff: 600, resonance: 0.2, type: "Ladder Tanh", drive: 0.3 });
   const vca = p.add("vca", [3, 0], {});

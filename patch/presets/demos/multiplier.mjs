@@ -18,8 +18,8 @@ function bells() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/4", root: "C", scale: "Major Pentatonic", octave: 0, gatelength: 0.3 },
     { data: steps([0, 7, 4, 9, 12, 9, 7, 2]) });
-  const a = p.add("oscillator", [1, 0], { shape: 0 }, { name: "Carrier" });
-  const b = p.add("oscillator", [1, 1], { shape: 0, coarse: 5.4, octave: "+1" }, { name: "Modulator" });
+  const a = p.add("oscillator", [1, 0], { wave: "Sine" }, { name: "Carrier" });
+  const b = p.add("oscillator", [1, 1], { wave: "Sine", coarse: 5.4, octave: "+1" }, { name: "Modulator" });
   const m = p.add("multiplier", [2, 0], { gain1: 1 });
   const env = p.add("adsr", [2, 1], { attack: 0.002, decay: 1.2, sustain: 0, release: 1 }, { name: "Bell Env" });
   const vca = p.add("vca", [3, 0], {});
@@ -72,8 +72,8 @@ function stereoPair() {
   });
   const m0 = melody(p, [0, 0], [0, 7, 3, 10, 5, 12, 8, 3], { rate: "1/8", shape: 0.75, root: "D", scale: "Dorian", gatelength: 0.5,
     env: { attack: 0.004, decay: 0.3, sustain: 0.25, release: 0.2 } });
-  const a = p.add("oscillator", [1, 2], { shape: 0, coarse: 7 }, { name: "Mod Left" });
-  const b = p.add("oscillator", [1, 3], { shape: 0, coarse: 3.4, octave: "+1" }, { name: "Mod Right" });
+  const a = p.add("oscillator", [1, 2], { wave: "Sine", coarse: 7 }, { name: "Mod Left" });
+  const b = p.add("oscillator", [1, 3], { wave: "Sine", coarse: 3.4, octave: "+1" }, { name: "Mod Right" });
   const m = p.add("multiplier", [3, 0], { gain1: 1, gain2: 1 });
   p.cable(m0.seq, "pitch", a, "pitch").cable(m0.seq, "pitch", b, "pitch").cable(m0.amp, "l", m, "x1").cable(m0.amp, "l", m, "x2")
     .cable(a, "out", m, "y1").cable(b, "out", m, "y2");
@@ -91,7 +91,7 @@ function robotDrums() {
     tags: ["drums", "ring modulation", "robot", "oversampling"],
   });
   const drums = beat(p, [0, 0], { style: "broken", level: -8 });
-  const sine = p.add("oscillator", [3, 2], { shape: 0, octave: "-1", coarse: 3 }, { name: "Robot Tone" });
+  const sine = p.add("oscillator", [3, 2], { wave: "Sine", octave: "-1", coarse: 3 }, { name: "Robot Tone" });
   const m = p.add("multiplier", [3, 0], { gain1: 1.4, oversampling: "2x" });
   p.cable(drums, "outl", m, "x1").cable(sine, "out", m, "y1");
   const mix = p.add("audio-mixer", [4, 0], { level1: 0, level2: -2, master: 3 });

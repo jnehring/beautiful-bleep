@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 // Automata: five demo patches. Each plays by itself with the transport.
-import { patch } from "../kit.mjs";
+import { patch, oscWaves } from "../kit.mjs";
 import { beat } from "../demo-kit.mjs";
 
 const oct = (n) => (n > 0 ? "+" : "") + n;
 /// Oscillator -> ADSR -> VCA (optional filter), played by a pitch jack and a gate jack: [node, jack] pairs.
 function voice(p, at, pitch, gate, o = {}) {
   const [c, r] = at, name = o.name || "Voice";
-  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.6, octave: oct(o.octave ?? 0), ...(o.osc || {}) }, { name });
+  const osc = p.add("oscillator", [c, r], { ...oscWaves(o.shape ?? 0.6), octave: oct(o.octave ?? 0), ...(o.osc || {}) }, { name });
   const env = p.add("adsr", [c, r + 1], { attack: 0.004, decay: 0.3, sustain: 0, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
   const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
   if (pitch) p.cable(pitch[0], pitch[1], osc, "pitch");
@@ -112,7 +112,7 @@ function rewriteRewind() {
   const lfo = p.add("lfo", [0, 3], { wave: "Square", rate: 0.22, polarity: "Unipolar" }, { name: "Rewinder" });
   p.cable(lfo, "out", am, "rewind");
   const lead = voice(p, [2, 0], [am, "pitch"], [am, "gate"], { name: "Pluck", shape: 0.5, env: { decay: 0.3, sustain: 0.1, release: 0.3 }, filter: { cutoff: 2200, resonance: 0.3 } });
-  const pad = p.add("oscillator", [2, 3], { shape: 0.2, octave: "-1" }, { name: "Drone" });
+  const pad = p.add("oscillator", [2, 3], { wave: "Sine", wave2: "Triangle", morph: 0.6, octave: "-1" }, { name: "Drone" });
   const padAmp = p.add("vca", [3, 3], { gain: 0.25 }, { name: "Drone Level" });
   p.cable(pad, "out", padAmp, "l");
   const mix = p.add("audio-mixer", [5, 0], { level1: -1, level2: -14, master: 0 }, { name: "Mix" });

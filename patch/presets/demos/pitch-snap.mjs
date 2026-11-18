@@ -96,11 +96,11 @@ function playAlong() {
     { data: { slots: [{ deg: 1, q: "diatonic-triad", len: 4 }, { deg: 6, q: "diatonic-triad", len: 4 }, { deg: 3, q: "diatonic-triad", len: 4 }, { deg: 7, q: "diatonic-triad", len: 4 }] } });
   const m = sloppy(p, [0, 2], [0, 4, 7, 12, 9, 7, 3, 5, 7, 12, 14, 12, 9, 7, 3, 0], { rate: "1/8", root: "A", wander: 0.03, vib: 0.01, shape: 0.75, octave: 0, gatelength: 0.9 });
   const s = snap(p, [3, 2], m, { amount: 1, speed: 0.8, drift: 0, source: "Bus A", target: "Chord", tracking: "Steady" });
-  const bass = p.add("oscillator", [4, 5], { shape: 0.2, octave: "-2" }, { name: "Bass" });
+  const bass = p.add("oscillator", [4, 5], { wave: "Sine", wave2: "Triangle", morph: 0.6, octave: "-2" }, { name: "Bass" });
   const bamp = p.add("vca", [5, 5], { gain: 0.6 }, { name: "Bass Level" });
   p.cable(s, "target", bass, "pitch").cable(bass, "out", bamp, "l");
   const pad = [1, 2, 3].map((i) => {
-    const o = p.add("oscillator", [1, 8 + i], { shape: 0.4, octave: "-1", fine: (i - 2) * 6 }, { name: `Pad ${i}` });
+    const o = p.add("oscillator", [1, 8 + i], { wave: "Triangle", wave2: "Saw", morph: 0.2, octave: "-1", fine: (i - 2) * 6 }, { name: `Pad ${i}` });
     p.cable(hm, `tone${i}`, o, "pitch");
     return o;
   });

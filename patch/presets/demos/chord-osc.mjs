@@ -98,7 +98,7 @@ function arpFromChord() {
   const sw = p.add("switch", [2, 1], { fade: 0.002 }, { name: "Chord Tone" });
   ["p1", "p2", "p3", "p4"].forEach((j, i) => p.cable(o, j, sw, `in${i + 1}`));
   const clk = p.add("step-sequencer", [0, 2], { length: 1, rate: "1/16", root: "C", gatelength: 0.4 }, { data: steps([0]), name: "Arp Clock" });
-  const osc = p.add("oscillator", [3, 1], { shape: 0.7, octave: "+1" }, { name: "Arp Voice" });
+  const osc = p.add("oscillator", [3, 1], { wave: "Saw", wave2: "Square", morph: 0.1, octave: "+1" }, { name: "Arp Voice" });
   const env = p.add("adsr", [3, 2], { attack: 0.003, decay: 0.15, sustain: 0.0, release: 0.1 }, { name: "Arp Env" });
   const av = p.add("vca", [4, 1], {}, { name: "Arp VCA" });
   p.cable(clk, "trigger", sw, "step").cable(sw, "out", osc, "pitch").cable(clk, "gate", env, "gate").cable(clk, "trigger", env, "retrig")

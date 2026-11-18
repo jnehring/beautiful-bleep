@@ -13,7 +13,7 @@ function sq(p, at, notes, knobs = {}, vel) {
 /// Oscillator → ADSR → VCA from a pitch and gate source ({node, pitch, gate, trigger, velocity}), optional filter after.
 function voice(p, at, src, o = {}) {
   const [c, r] = at, name = o.name || "Voice";
-  const osc = p.add("oscillator", [c, r], { shape: 0.8, ...(o.osc || {}) }, { name });
+  const osc = p.add("oscillator", [c, r], { wave: "Saw", wave2: "Square", morph: 0.4, ...(o.osc || {}) }, { name });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.25, sustain: 0.2, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
   const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
   p.cable(src.node, src.pitch || "pitch", osc, "pitch").cable(src.node, src.gate || "gate", env, "gate");
@@ -62,7 +62,7 @@ function holdToBrighten() {
     tags: ["gate", "momentary", "filter", "performance"],
   });
   const s = sq(p, [0, 0], [0, ".", 0, 7, ".", 5, 3, 0], { rate: "1/16", root: "E", scale: "Phrygian", octave: -1 });
-  const v = voice(p, [1, 0], { node: s }, { osc: { shape: 0.95 }, env: { decay: 0.2, sustain: 0.4, release: 0.1 }, filter: { cutoff: 220, resonance: 0.3 } });
+  const v = voice(p, [1, 0], { node: s }, { osc: { wave: "Saw", wave2: "Square", morph: 0.85 }, env: { decay: 0.2, sustain: 0.4, release: 0.1 }, filter: { cutoff: 220, resonance: 0.3 } });
   const b = p.add("button", [0, 2], { mode: "Momentary" }, { name: "Open Up" });
   const e = p.add("adsr", [1, 2], { attack: 0.12, decay: 0.3, sustain: 1, release: 0.5 }, { name: "Sweep Env" });
   p.cable(b, "gate", e, "gate").cable(e, "env", v.filter, "cutoff", 0.65);
@@ -77,9 +77,9 @@ function toggleBellLayer() {
     tags: ["toggle", "layer", "bells", "latch"],
   });
   const a = sq(p, [0, 0], [0, ".", 7, ".", 3, ".", 5, "."], { rate: "1/4", root: "C", scale: "Natural Minor", octave: -1 });
-  const base = voice(p, [1, 0], { node: a }, { name: "Base", osc: { shape: 0.4 }, env: { attack: 0.03, decay: 0.8, sustain: 0.4, release: 0.6 }, filter: { cutoff: 1400 } });
+  const base = voice(p, [1, 0], { node: a }, { name: "Base", osc: { wave: "Triangle", wave2: "Saw", morph: 0.2 }, env: { attack: 0.03, decay: 0.8, sustain: 0.4, release: 0.6 }, filter: { cutoff: 1400 } });
   const b = sq(p, [0, 3], [12, 19, 15, 24, 19, 15, 22, 17], { rate: "1/8", root: "C", scale: "Natural Minor", octave: 1, gatelength: 0.3 });
-  const bell = voice(p, [1, 3], { node: b }, { name: "Bells", osc: { shape: 0 }, env: { decay: 0.5, sustain: 0, release: 0.5 } });
+  const bell = voice(p, [1, 3], { node: b }, { name: "Bells", osc: { wave: "Sine", morph: 0 }, env: { decay: 0.5, sustain: 0, release: 0.5 } });
   const btn = p.add("button", [0, 5], { mode: "Toggle" }, { name: "Bells On" });
   const fade = p.add("adsr", [3, 5], { attack: 1.2, decay: 0.1, sustain: 1, release: 1.5 }, { name: "Fade" });
   const lay = p.add("vca", [3, 3], {}, { name: "Layer VCA" });
@@ -94,7 +94,7 @@ function toggleBellLayer() {
 /// Beat + bass, plus one extra drum fired by a Button output. Returns nothing; wires everything to Out 1/2.
 function drumsWith(p, kind, jack, drumKnobs, style, mixLevel) {
   const s = sq(p, [0, 0], [0, ".", 0, 12, ".", 7, 0, "."], { rate: "1/16", root: "A", scale: "Minor Pentatonic", octave: -2, gatelength: 0.5 });
-  const bass = voice(p, [1, 0], { node: s }, { osc: { shape: 0.9 }, env: { decay: 0.18, sustain: 0.35, release: 0.08 }, filter: { cutoff: 420, resonance: 0.3 } });
+  const bass = voice(p, [1, 0], { node: s }, { osc: { wave: "Saw", wave2: "Square", morph: 0.7 }, env: { decay: 0.18, sustain: 0.35, release: 0.08 }, filter: { cutoff: 420, resonance: 0.3 } });
   const drums = beat(p, [0, 3], { style, level: -9 });
   const b = p.add("button", [3, 0], {}, { name: kind === "punch-clap" ? "Clap Pad" : "Cymbal Pad" });
   const extra = p.add(kind, [4, 1], drumKnobs);

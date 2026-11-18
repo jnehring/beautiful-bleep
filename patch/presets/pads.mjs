@@ -118,9 +118,9 @@ function ribbonEnsemble() {
       "Notes in, Out L/R. The shared input Cutoff moves the filter.\n\n" +
       "Tip: play chords in the middle register and let them sit for a few bars to hear the width move.",
   }).settings({ voices: 6, spread: 0.6 }).input("cut", "Cutoff");
-  const o1 = p.add("oscillator", [0, 0], { shape: 1, fine: -10, pw: 0.35 }, { name: "Pulse 1" });
-  const o2 = p.add("oscillator", [0, 1], { shape: 1, fine: 0, pw: 0.5 }, { name: "Pulse 2" });
-  const o3 = p.add("oscillator", [0, 2], { shape: 1, fine: 10, pw: 0.6 }, { name: "Pulse 3" });
+  const o1 = p.add("oscillator", [0, 0], { wave: "Square", fine: -10, pw: 0.35 }, { name: "Pulse 1" });
+  const o2 = p.add("oscillator", [0, 1], { wave: "Square", fine: 0, pw: 0.5 }, { name: "Pulse 2" });
+  const o3 = p.add("oscillator", [0, 2], { wave: "Square", fine: 10, pw: 0.6 }, { name: "Pulse 3" });
   const org = p.add("organic-lfos", [0, 3], { rate: 0.2, spread: 0.8 });
   const flt = p.add("filter", [1, 0], { cutoff: 2200, resonance: 0.12, keytrack: 0.5, type: "SVF Multimode" });
   p.cable(org, "out1", o1, "pw", 0.3).cable(org, "out2", o2, "pw", 0.3).cable(org, "out3", o3, "pw", 0.3);
@@ -162,7 +162,7 @@ function breathOrgan() {
       "Notes in, Out L/R. The shared input Breath adds to the level of the noise.\n\n" +
       "Tip: play octaves or fifths; the narrow band rings clearly on simple intervals.",
   }).settings({ voices: 8, spread: 0.5 }).input("breath", "Breath");
-  const tri = p.add("oscillator", [0, 0], { shape: 0.2 }, { name: "Tone" });
+  const tri = p.add("oscillator", [0, 0], { wave: "Sine", wave2: "Triangle", morph: 0.6 }, { name: "Tone" });
   const noise = p.add("noise", [0, 1], { colour: -0.2, level: 1 });
   const bp = p.add("filter", [1, 1], { cutoff: 440, resonance: 0.85, keytrack: 1, type: "SVF Bandpass (unit gain)" }, { name: "Breath Band" });
   const air = p.add("vca", [2, 1], { gain: 3 }, { name: "Breath Level" });
@@ -191,8 +191,9 @@ function cellarFog() {
   const envf = envelope(p, [0, 2], { attack: 3, decay: 3, sustain: 0.5, release: 2.5, velamount: 0.2 }, "Filter Env");
   const drift = p.add("lfo", [0, 3], { rate: 0.15, wave: "Random Smooth" }, { name: "Drift" });
   const flt = p.add("filter", [1, 0], { cutoff: 220, resonance: 0.25, drive: 0.25, keytrack: 0.5, type: "Ladder Tanh" });
-  p.cable(p.vin, "pitch", saw, "pitch").cable(saw, "out", flt, "l", 0.6).cable(saw, "sub", flt, "l", 0.4)
-    .cable(noise, "brown", flt, "l", 0.25).cable(saw, "out", flt, "r", 0.6).cable(saw, "sub", flt, "r", 0.4)
+  const sub = p.subOsc(saw, [0, 4]);
+  p.cable(p.vin, "pitch", saw, "pitch").cable(saw, "out", flt, "l", 0.6).cable(sub, "out", flt, "l", 0.4)
+    .cable(noise, "brown", flt, "l", 0.25).cable(saw, "out", flt, "r", 0.6).cable(sub, "out", flt, "r", 0.4)
     .cable(noise, "brown", flt, "r", 0.25).cable(p.vin, "pitch", flt, "pitch")
     .cable(envf, "env", flt, "cutoff", 0.25).cable(drift, "out", flt, "cutoff", 0.04).cable(p.cin, "cut", flt, "cutoff", 0.5);
   ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 2, decay: 1.5, sustain: 0.9, release: 2.5, velamount: 0.2 });

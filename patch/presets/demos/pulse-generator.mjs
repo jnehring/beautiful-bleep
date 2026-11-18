@@ -78,7 +78,7 @@ function gateEcho() {
   });
   const m = melody(p, [0, 0], [0, ".", 3, 7, ".", 5, ".", 10, 12, ".", 7, ".", 3, 5, ".", "."], { rate: "1/8", root: "G", scale: "Minor Pentatonic", shape: 0.4, env: { decay: 0.2, sustain: 0.3, release: 0.15 }, gatelength: 0.4 });
   const dly = p.add("pulse-generator", [0, 1], { mode: "External Width", delay: 0.19, width: 0.1, rise: 0.15, fall: 0.3 }, { name: "Gate Delay" });
-  const osc2 = p.add("oscillator", [1, 1], { shape: 0.2, octave: "0" }, { name: "Echo Source" });
+  const osc2 = p.add("oscillator", [1, 1], { wave: "Sine", wave2: "Triangle", morph: 0.6, octave: "0" }, { name: "Echo Source" });
   const env2 = p.add("adsr", [1, 2], { attack: 0.01, decay: 0.3, sustain: 0.3, release: 0.4 }, { name: "Echo Env" });
   const amp2 = p.add("vca", [2, 1], {}, { name: "Echo VCA" });
   const up = p.add("utility", [0, 2], { scalex: 1, offset: 0.0833 }, { name: "Fifth Up" });

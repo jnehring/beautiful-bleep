@@ -60,8 +60,8 @@ function flipflop() {
   const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/8", root: "A", scale: "Minor Pentatonic", octave: 0, gatelength: 0.5 },
     { data: steps([0, 3, 7, 12, 7, 3, 10, 7, 5, 8, 12, 15, 12, 8, 7, 3]) });
   const env = p.add("adsr", [1, 0], { attack: 0.003, decay: 0.2, sustain: 0.1, release: 0.15 }, { name: "Note Env" });
-  const oA = p.add("oscillator", [1, 1], { shape: 0.85 }, { name: "Saw Arp" });
-  const oB = p.add("oscillator", [1, 2], { shape: 0.1, octave: "+1" }, { name: "Soft Arp" });
+  const oA = p.add("oscillator", [1, 1], { wave: "Saw", wave2: "Square", morph: 0.55 }, { name: "Saw Arp" });
+  const oB = p.add("oscillator", [1, 2], { wave: "Sine", wave2: "Triangle", morph: 0.3, octave: "+1" }, { name: "Soft Arp" });
   const vA = p.add("vca", [2, 1], {});
   const vB = p.add("vca", [2, 2], {});
   const gA = p.add("adsr", [3, 1], { attack: 0.01, decay: 0.1, sustain: 1, release: 0.05 }, { name: "Layer A" });
@@ -138,7 +138,7 @@ function poly() {
     .cable(l, "and", k.kick, "trig").cable(l, "xor", k.rim, "trig").cable(l, "or", k.hats, "closed").cable(l, "nor", k.snare, "trig");
   const lead = p.add("step-sequencer", [0, 4], { length: 15, rate: "1/8", root: "A", scale: "Minor Pentatonic", octave: 0, gatelength: 0.4 },
     { data: steps([0, 3, 7, 3, 12, 7, 3, 0, 5, 7, 10, 7, 12, 10, 7]) });
-  const osc = p.add("oscillator", [1, 4], { shape: 0.6 });
+  const osc = p.add("oscillator", [1, 4], { wave: "Triangle", wave2: "Saw", morph: 0.8 });
   const env = p.add("adsr", [1, 5], { attack: 0.004, decay: 0.2, sustain: 0.1, release: 0.15 });
   const vca = p.add("vca", [2, 4], {});
   p.cable(lead, "pitch", osc, "pitch").cable(lead, "gate", env, "gate").cable(lead, "trigger", env, "retrig").cable(osc, "out", vca, "l").cable(env, "env", vca, "gain");

@@ -1,13 +1,13 @@
 // xy-scope: five demo patches. Each plays by itself with the transport.
 // SPDX-License-Identifier: MIT
-import { patch, steps, drumGrid, pattern } from "../kit.mjs";
+import { patch, steps, drumGrid, pattern, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// A mono voice: Oscillator -> VCA with its own ADSR. src: {n, pitch, gate, trig} (trig: false = no retrigger).
 /// o: shape, osc (extra knobs), env, cutoff/res (adds a low-pass), name. Returns {osc, env, amp, out: {n, j}}.
 function voice(p, at, src, o = {}) {
   const [c, r] = at;
-  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.7, ...(o.osc || {}) }, { name: o.name || "Source" });
+  const osc = p.add("oscillator", [c, r], { ...oscWaves(o.shape ?? 0.7), ...(o.osc || {}) }, { name: o.name || "Source" });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.3, sustain: 0.3, release: 0.25, ...(o.env || {}) }, { name: o.envName || "Amp Env" });
   const amp = p.add("vca", [c + 1, r], {}, { name: "VCA" });
   if (src.pitch !== null) p.cable(src.pn || src.n, src.pitch || "pitch", osc, "pitch");
@@ -49,18 +49,18 @@ function lockedFifth() {
     tags: ["lissajous", "fifth", "still gate", "bells"],
   });
   const seq = slowRoot(p, [0, 0], [0, 0, 5, 3], { root: "D", octave: 0 });
-  const x = p.add("oscillator", [1, 0], { shape: 0, octave: "-1" }, { name: "X Sine" });
-  const y = p.add("oscillator", [1, 1], { shape: 0, octave: "-1", coarse: 7 }, { name: "Y Sine" });
+  const x = p.add("oscillator", [1, 0], { wave: "Sine", octave: "-1" }, { name: "X Sine" });
+  const y = p.add("oscillator", [1, 1], { wave: "Sine", octave: "-1", coarse: 7 }, { name: "Y Sine" });
   p.cable(seq, "pitch", x, "pitch").cable(seq, "pitch", y, "pitch");
   const sc = p.add("xy-scope", [2, 0], { phosphor: "Green", persistence: 0.5, timebase: 0.02, tolerance: "Loose", xgain: 1, ygain: 1 });
   p.cable(x, "out", sc, "x").cable(y, "out", sc, "y");
   const env = p.add("adsr", [3, 3], { attack: 0.003, decay: 1.6, sustain: 0, release: 0.8 }, { name: "Bell Env" });
-  const bell = p.add("oscillator", [3, 2], { shape: 0, octave: "+1", coarse: 12 }, { name: "Bell" });
+  const bell = p.add("oscillator", [3, 2], { wave: "Sine", octave: "+1", coarse: 12 }, { name: "Bell" });
   const bamp = p.add("vca", [4, 2], {}, { name: "Bell VCA" });
   p.cable(seq, "pitch", bell, "pitch").cable(sc, "still", env, "gate").cable(sc, "still", env, "retrig").cable(bell, "out", bamp, "l").cable(env, "env", bamp, "gain");
   const pad = p.add("audio-mixer", [3, 0], { level1: -20, level2: -22, pan1: -0.5, pan2: 0.5, master: -3 }, { name: "Sine Pad" });
   p.cable(sc, "outx", pad, "in1l").cable(sc, "outx", pad, "in1r").cable(sc, "outy", pad, "in2l").cable(sc, "outy", pad, "in2r");
-  const drone = p.add("oscillator", [3, 4], { shape: 0.1, octave: "-2" }, { name: "Drone" });
+  const drone = p.add("oscillator", [3, 4], { wave: "Sine", wave2: "Triangle", morph: 0.3, octave: "-2" }, { name: "Drone" });
   const dv = p.add("vca", [4, 4], { gain: 0.4 }, { name: "Drone Level" });
   p.cable(seq, "pitch", drone, "pitch").cable(drone, "out", dv, "l");
   finish(p, [5, 0], [{ n: pad, l: "outl", r: "outr", level: 0 }, { n: bamp, level: -16, pan: 0.2 }, { n: dv, level: -20 }], { vmix: 0.4, decay: 4, master: 0 });
@@ -76,7 +76,7 @@ function stereoWidth() {
   const seq = slowRoot(p, [0, 0], [0, 3, 5, 7], { root: "E", scale: "Minor Pentatonic", octave: -1 });
   const mix = p.add("audio-mixer", [2, 0], { level1: -6, level2: -6, master: -3 }, { name: "Pad Mix" });
   [0, 1].forEach((i) => {
-    const o = p.add("oscillator", [1, i], { shape: 0.6, fine: i ? 7 : -7, octave: i ? "0" : "-1" }, { name: `Pad ${i + 1}` });
+    const o = p.add("oscillator", [1, i], { wave: "Triangle", wave2: "Saw", morph: 0.8, fine: i ? 7 : -7, octave: i ? "0" : "-1" }, { name: `Pad ${i + 1}` });
     p.cable(seq, "pitch", o, "pitch").cable(o, "out", mix, `in${i + 1}l`).cable(o, "out", mix, `in${i + 1}r`);
   });
   const flt = p.add("filter", [3, 0], { cutoff: 1400, resonance: 0.2 });
@@ -98,7 +98,7 @@ function waveformView() {
   });
   const m = melody(p, [0, 0], [0, ".", 0, 0, ".", 7, ".", 5, 0, ".", 0, 3, ".", 5, 7, 5], { rate: "1/8", root: "A", scale: "Minor Pentatonic", octave: -2, shape: 0.5, gatelength: 0.8, env: { decay: 0.2, sustain: 0.7, release: 0.1 } });
   const lfo = p.add("lfo", [1, 3], { rate: 0.1, wave: "Triangle", polarity: "Unipolar" }, { name: "Shape Drift" });
-  p.cable(lfo, "out", m.osc, "shape", 0.5);
+  p.cable(lfo, "out", m.osc, "morph", 1);
   const sc = p.add("xy-scope", [4, 0], { mode: "Y-T", phosphor: "Amber", timebase: 0.01, trigger: "Y Rising", persistence: 0.2 });
   p.cable(m.amp, "l", sc, "y").cable(m.amp, "l", sc, "x");
   const drums = beat(p, [0, 4], { style: "four", level: -10 });
@@ -113,8 +113,8 @@ function fmKnots() {
     tags: ["fm", "knot", "bells", "figure"],
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/4", root: "C", scale: "Major Pentatonic", octave: 1, gatelength: 0.3 }, { data: steps([0, 4, 7, 4, 9, 7, 4, 2]) });
-  const car = p.add("oscillator", [1, 0], { shape: 0, octave: "0" }, { name: "Carrier" });
-  const mod = p.add("oscillator", [1, 1], { shape: 0, octave: "0", coarse: 7, fm: 0.35 }, { name: "Modulated" });
+  const car = p.add("oscillator", [1, 0], { wave: "Sine", octave: "0" }, { name: "Carrier" });
+  const mod = p.add("oscillator", [1, 1], { wave: "Sine", octave: "0", coarse: 7, fm: 0.35 }, { name: "Modulated" });
   p.cable(seq, "pitch", car, "pitch").cable(seq, "pitch", mod, "pitch").cable(car, "out", mod, "fm");
   const env = p.add("adsr", [1, 2], { attack: 0.003, decay: 0.9, sustain: 0, release: 0.5 }, { name: "Bell Env" });
   const vx = p.add("vca", [2, 0], {}, { name: "X VCA" });
@@ -134,13 +134,13 @@ function ratioVoice() {
     description: "A fixed sine on X and a sweeping sine on Y: the scope measures their ratio and its Ratio output, as a pitch, plays a third voice that follows the interval between them. Change the sweep rate and the follower glides along; try Timebase for a clearer picture.",
     tags: ["ratio", "interval", "follower", "sweep"],
   });
-  const x = p.add("oscillator", [0, 0], { shape: 0, octave: "-1" }, { name: "X Sine" });
-  const y = p.add("oscillator", [0, 1], { shape: 0, octave: "-1", coarse: 5 }, { name: "Y Sine" });
+  const x = p.add("oscillator", [0, 0], { wave: "Sine", octave: "-1" }, { name: "X Sine" });
+  const y = p.add("oscillator", [0, 1], { wave: "Sine", octave: "-1", coarse: 5 }, { name: "Y Sine" });
   const lfo = p.add("lfo", [0, 2], { rate: 0.08, wave: "Triangle" }, { name: "Sweep" });
   p.cable(lfo, "out", y, "pitch", 0.25);
   const sc = p.add("xy-scope", [1, 0], { phosphor: "Amber", persistence: 0.4, timebase: 0.02, tolerance: "Normal" });
   p.cable(x, "out", sc, "x").cable(y, "out", sc, "y");
-  const f = p.add("oscillator", [2, 0], { shape: 0.55, octave: "0" }, { name: "Follower" });
+  const f = p.add("oscillator", [2, 0], { wave: "Triangle", wave2: "Saw", morph: 0.65, octave: "0" }, { name: "Follower" });
   const env = p.add("adsr", [2, 1], { attack: 0.2, decay: 0.5, sustain: 0.7, release: 0.8 }, { name: "Follower Env" });
   const fv = p.add("vca", [3, 0], {}, { name: "Follower VCA" });
   const lfo2 = p.add("lfo", [2, 2], { wave: "Square", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Follower Gate" });

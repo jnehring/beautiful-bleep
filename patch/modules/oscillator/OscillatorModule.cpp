@@ -1,19 +1,24 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Oscillator node: triangle core with waveform morph, through-zero FM, hard sync, sub.
+// Oscillator node: triangle core, a waveform and a secondary one with Morph between them, linear (optionally
+// through zero) or exponential FM and hard sync. One output.
 #include "OscillatorDsp.h"
 #include "Registry.h"
+
+#include <algorithm>
+#include <cmath>
 
 namespace bleep::engine {
 namespace {
 
 using patch::OscillatorDsp;
 using patch::OscillatorParams;
+using patch::OscWave;
 
 class OscillatorModule final : public Module {
 public:
-    enum { Octave, Coarse, Fine, Shape, PulseWidth, FmDepth };
+    enum { Octave, Coarse, Fine, Wave, Wave2, Morph, PulseWidth, FmDepth, FmMode, HardSync, ThroughZero };
     enum { Pitch, Fm, Sync };
-    enum { Out, Sine, Triangle, Saw, Square, Sub };
+    enum { Out };
 
     using Module::Module;
 
@@ -26,22 +31,23 @@ public:
     void process(const ProcessContext& c) override {
         const float octave = setting(Octave) - 3.0f;  // choice index 0..6 → −3..+3
         OscillatorParams p;
+        p.wave = wave(setting(Wave));
+        p.wave2 = wave(setting(Wave2));
+        p.expFm = setting(FmMode) >= 0.5f;
+        p.hardSync = setting(HardSync) >= 0.5f;
+        p.throughZero = setting(ThroughZero) >= 0.5f;
         for (int i = 0; i < c.numSamples; ++i) {
             p.pitch = octave + value(c, Coarse, i) / 12.0f + value(c, Fine, i) / 1200.0f + c.inputs[Pitch][i];
-            p.shape = value(c, Shape, i);
+            p.morph = value(c, Morph, i);
             p.pulseWidth = value(c, PulseWidth, i);
             p.fmDepth = value(c, FmDepth, i);
-            const auto o = dsp_.tick(p, c.inputs[Fm][i], c.inputs[Sync][i]);
-            c.outputs[Out][i] = o.out;
-            c.outputs[Sine][i] = o.sine;
-            c.outputs[Triangle][i] = o.triangle;
-            c.outputs[Saw][i] = o.saw;
-            c.outputs[Square][i] = o.square;
-            c.outputs[Sub][i] = o.sub;
+            c.outputs[Out][i] = dsp_.tick(p, c.inputs[Fm][i], c.inputs[Sync][i]);
         }
     }
 
 private:
+    static OscWave wave(float index) noexcept { return (OscWave)std::clamp((int)std::lround(index), 0, 3); }
+
     OscillatorDsp dsp_;
 };
 
@@ -53,19 +59,23 @@ void registerOscillatorModule(Registry& r) {
     s.name = "Oscillator";
     s.category = "Sources/Oscillators";
     s.colour = "#5eead4";
-    s.description = "Triangle-core oscillator: waveform morph, through-zero FM, hard sync and a sub octave.";
+    s.description = "Triangle-core oscillator: two waveforms with a morph between them, through-zero FM and hard sync.";
     ParamSpec coarse = ParamSpec::number("coarse", "Coarse", -12.0f, 12.0f, 0.0f, "st", 1);
+    const std::vector<std::string> waves = {"Sine", "Triangle", "Saw", "Square"};
     ParamSpec fine = ParamSpec::number("fine", "Fine", -100.0f, 100.0f, 0.0f, "ct", 0);
     s.params = {ParamSpec::choice("octave", "Octave", {"-3", "-2", "-1", "0", "+1", "+2", "+3"}, 3),
                 coarse,
                 fine,
-                ParamSpec::percent("shape", "Shape", 0.0f, 1.0f, 2.0f / 3.0f),
+                ParamSpec::choice("wave", "Waveform", waves, 2),
+                ParamSpec::choice("wave2", "Secondary", waves, 3),
+                ParamSpec::percent("morph", "Morph", 0.0f, 1.0f, 0.0f),
                 ParamSpec::percent("pw", "Pulse Width", 0.05f, 0.95f, 0.5f),
-                ParamSpec::percent("fm", "FM Depth", 0.0f, 1.0f, 0.0f)};
+                ParamSpec::percent("fm", "FM Depth", 0.0f, 1.0f, 0.0f),
+                ParamSpec::choice("fmmode", "FM Mode", {"Linear", "Exponential"}, 0),
+                ParamSpec::toggle("hardsync", "Hard Sync", true),
+                ParamSpec::toggle("tzfm", "Through-Zero", true)};
     s.inputs = {{"pitch", "Pitch", Signal::Pitch}, {"fm", "FM", Signal::Audio}, {"sync", "Sync", Signal::Gate}};
-    s.outputs = {{"out", "Out", Signal::Audio, true},      {"sine", "Sine", Signal::Audio, true},
-                 {"triangle", "Triangle", Signal::Audio, true}, {"saw", "Saw", Signal::Audio, true},
-                 {"square", "Square", Signal::Audio, true}, {"sub", "Sub", Signal::Audio, true}};
+    s.outputs = {{"out", "Out", Signal::Audio, true}};
     r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<OscillatorModule>(spec); });
 }
 

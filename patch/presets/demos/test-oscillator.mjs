@@ -106,8 +106,8 @@ function lampFilter() {
   });
   const t = p.add("test-oscillator", [0, 0], { freq: 1.5, range: "×1", loopgain: 1.1, settle: 1.2, drift: 0.7, level: 0.01 });
   const seq = seqOf(p, [0, 2], [0, "_", "_", "_", "_", "_", "_", "_", 5, "_", "_", "_", "_", "_", "_", "_"], { root: "A", scale: "Natural Minor", octave: -1, rate: "1/4", gate: 1 });
-  const o1 = p.add("oscillator", [1, 0], { shape: 0.85, fine: -8 }, { name: "Voice 1" });
-  const o2 = p.add("oscillator", [1, 1], { shape: 0.85, fine: 8, coarse: 7 }, { name: "Voice 2" });
+  const o1 = p.add("oscillator", [1, 0], { wave: "Saw", wave2: "Square", morph: 0.55, fine: -8 }, { name: "Voice 1" });
+  const o2 = p.add("oscillator", [1, 1], { wave: "Saw", wave2: "Square", morph: 0.55, fine: 8, coarse: 7 }, { name: "Voice 2" });
   const mix = p.add("audio-mixer", [2, 0], { level1: -8, level2: -10, pan1: -0.4, pan2: 0.4, master: 0 }, { name: "Voices" });
   const f = p.add("filter", [3, 0], { cutoff: 500, resonance: 0.35 });
   p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", mix, "in1l").cable(o2, "out", mix, "in2l")

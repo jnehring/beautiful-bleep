@@ -50,7 +50,7 @@ function putVoice(p, inner, at, name, prefix) {
 /// Oscillator → ADSR → VCA from a pitch and gate source ({node, pitch, gate, trigger, velocity}), optional filter after.
 function mono(p, at, src, o = {}) {
   const [c, r] = at, name = o.name || "Voice";
-  const osc = p.add("oscillator", [c, r], { shape: 0.8, ...(o.osc || {}) }, { name });
+  const osc = p.add("oscillator", [c, r], { wave: "Saw", wave2: "Square", morph: 0.4, ...(o.osc || {}) }, { name });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.25, sustain: 0.2, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
   const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
   p.cable(src.node, src.pitch, osc, "pitch").cable(src.node, src.gate, env, "gate");
@@ -105,7 +105,7 @@ function chordStack() {
   const roll = p.add("roll", [0, 0], { humanise: 0.2, scale: "Natural Minor", root: "A" }, { data: rollData([slot(4, progression)]) });
   const pad = putVoice(p, polyVoice("Stack Pad", { cutoff: 1500, env: { attack: 0.08, decay: 0.5, sustain: 0.7, release: 0.9 } }), [1, 0], "Pad", "pd_");
   p.cable(roll, "notes", pad, "notes");
-  const bass = mono(p, [1, 2], { node: roll, pitch: "lowpitch", gate: "lowgate", velocity: "velocity" }, { name: "Bass", osc: { shape: 0.4, octave: -1 }, env: { attack: 0.01, decay: 0.3, sustain: 0.6, release: 0.3 }, filter: { cutoff: 420, resonance: 0.2 } });
+  const bass = mono(p, [1, 2], { node: roll, pitch: "lowpitch", gate: "lowgate", velocity: "velocity" }, { name: "Bass", osc: { wave: "Triangle", wave2: "Saw", morph: 0.2, octave: -1 }, env: { attack: 0.01, decay: 0.3, sustain: 0.6, release: 0.3 }, filter: { cutoff: 420, resonance: 0.2 } });
   const d = beat(p, [4, 2], { style: "half", level: -10 });
   finish(p, [4, 0], { stereo: [{ node: pad }, { node: d, from: ["outl", "outr"] }], monos: [{ node: bass.out }], levels: [-6, -4, -4], master: 4, verb: { size: 0.6, decay: 2.4, mix: 0.25 } });
   return p;
@@ -149,7 +149,7 @@ function ratchetChance() {
     tags: ["ratchet", "chance", "seed", "lead"],
   });
   const roll = p.add("roll", [0, 0], { length: 0.9, humanise: 0.3, seed: 11, scale: "Minor Pentatonic", root: "A" }, { data: rollData([slot(2, ratchets)]) });
-  const lead = mono(p, [1, 0], { node: roll, pitch: "lastpitch", gate: "lastgate", trigger: "trigger", velocity: "velocity" }, { name: "Lead", osc: { shape: 0.85 }, env: { decay: 0.16, sustain: 0.1, release: 0.12 }, filter: { cutoff: 2800, resonance: 0.25 } });
+  const lead = mono(p, [1, 0], { node: roll, pitch: "lastpitch", gate: "lastgate", trigger: "trigger", velocity: "velocity" }, { name: "Lead", osc: { wave: "Saw", wave2: "Square", morph: 0.55 }, env: { decay: 0.16, sustain: 0.1, release: 0.12 }, filter: { cutoff: 2800, resonance: 0.25 } });
   const d = beat(p, [1, 3], { style: "broken", level: -9 });
   const dly = p.add("zone-delay", [3, 0], { zone: 3, time: 0.32, feedback: 0.35, mix: 0.25 });
   const m = p.add("audio-mixer", [2, 0], { level1: 0, master: 0, limiter: true }, { name: "Level" });
@@ -174,8 +174,8 @@ function lowAndHigh() {
     tags: ["low", "high", "split", "polyphonic"],
   });
   const roll = p.add("roll", [0, 0], { scale: "Natural Minor", root: "A", length: 0.9 }, { data: rollData([slot(4, twoLines.concat(twoLines.map((x) => [x[0] + 8 * T, x[1], x[2], x[3], x[4], x[5]])))]) });
-  const bass = mono(p, [1, 0], { node: roll, pitch: "lowpitch", gate: "lowgate", velocity: "velocity" }, { name: "Bass", osc: { shape: 0.3, octave: -1 }, env: { decay: 0.25, sustain: 0.5, release: 0.15 }, filter: { cutoff: 380, resonance: 0.3 } });
-  const lead = mono(p, [1, 3], { node: roll, pitch: "highpitch", gate: "highgate", velocity: "velocity" }, { name: "Lead", osc: { shape: 0.7 }, env: { attack: 0.01, decay: 0.3, sustain: 0.3, release: 0.3 }, filter: { cutoff: 3000 } });
+  const bass = mono(p, [1, 0], { node: roll, pitch: "lowpitch", gate: "lowgate", velocity: "velocity" }, { name: "Bass", osc: { wave: "Sine", wave2: "Triangle", morph: 0.9, octave: -1 }, env: { decay: 0.25, sustain: 0.5, release: 0.15 }, filter: { cutoff: 380, resonance: 0.3 } });
+  const lead = mono(p, [1, 3], { node: roll, pitch: "highpitch", gate: "highgate", velocity: "velocity" }, { name: "Lead", osc: { wave: "Saw", wave2: "Square", morph: 0.1 }, env: { attack: 0.01, decay: 0.3, sustain: 0.3, release: 0.3 }, filter: { cutoff: 3000 } });
   const pad = putVoice(p, polyVoice("Soft Pad", { cutoff: 900, env: { attack: 0.4, decay: 0.5, sustain: 0.8, release: 1.2 } }), [1, 5], "Soft Pad", "sp_");
   p.cable(roll, "notes", pad, "notes");
   finish(p, [4, 1], { stereo: [{ node: pad }], monos: [{ node: bass.out }, { node: lead.out }], levels: [-12, -3, -9], master: 3, verb: { size: 0.5, decay: 2, mix: 0.25 } });

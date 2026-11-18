@@ -400,7 +400,7 @@
         format: 1, id: "web",
         nodes: [
           node("keys", "keyboard", "Keyboard", 40, 60),
-          node("osc", "oscillator", "Oscillator", 300, 40, { params: { octave: 0.5, shape: 0.9, pw: 0.5, coarse: 0.5, fine: 0.5, fm: 0 } }),
+          node("osc", "oscillator", "Oscillator", 300, 40, { params: { octave: 0.5, wave: 2 / 3, wave2: 1, morph: 0.7, pw: 0.5, coarse: 0.5, fine: 0.5, fm: 0 } }),
           node("env", "adsr", "Envelope", 300, 330),
           node("filter", "filter", "Filter", 560, 60, { params: { cutoff: 0.55 } }),
           node("amp", "vca", "Amp", 800, 100, { params: { gain: 0 } }),
@@ -409,7 +409,7 @@
         cables: [
           cable("k1", "keys", "pitch", "osc", "pitch", 1),
           cable("k2", "keys", "gate", "env", "gate", 1),
-          cable("k3", "osc", "saw", "filter", "l", 1),
+          cable("k3", "osc", "out", "filter", "l", 1),
           cable("k4", "filter", "l", "amp", "l", 1),
           cable("k5", "env", "env", "amp", "gain", 1),
           cable("k6", "amp", "l", "out", "l", 1),
@@ -418,6 +418,7 @@
     },
     /// A board saved before the output was renamed: its Audio Out node still says "Speakers" / "Synth" (the device is picked in the node now).
     upgradeBoard(b) {
+      migrateOscillators(b);
       for (const n of (b && b.nodes) || []) {
         if (n.type !== "audio-out") continue;
         if (n.name === "Speakers") n.name = "Audio Out";
@@ -427,6 +428,29 @@
     },
     get sampleRate() { return ctx ? ctx.sampleRate : 0; },
   });
+
+  /// Boards saved before the Oscillator had Waveform / Secondary / Morph (one Shape knob, an output per waveform and
+  /// a Sub): the same sound in today's form, as the engine's board::migrateOscillators (engine/Board.cpp). A node that
+  /// used just one of the old Sine, Triangle, Saw or Square outputs gets that waveform, its cables leave Out. In place.
+  function migrateOscillators(b) {
+    const names = ["sine", "triangle", "saw", "square"];
+    for (const n of (b && b.nodes) || []) {
+      const p = n.params;
+      if (n.type !== "oscillator" || !p || p.shape === undefined || p.wave !== undefined) continue;
+      const m = Math.min(Math.max(+p.shape || 0, 0), 1) * 3, i = Math.min(Math.floor(m), 2);
+      let t = m - i, wave = i;
+      if (t > 0.995) { wave = i + 1; t = 0; }
+      delete p.shape;
+      p.wave = wave / 3; p.wave2 = Math.min(i + 1, 3) / 3; p.morph = t < 0.005 ? 0 : t;
+      const from = ((b.cables) || []).filter((c) => c.from && c.from.node === n.id);
+      const jacks = new Set(from.map((c) => c.from.jack));
+      const k = jacks.size === 1 ? names.indexOf([...jacks][0]) : -1;
+      if (k < 0) continue;
+      p.wave = k / 3; p.morph = 0;
+      for (const c of from) c.from.jack = "out";
+    }
+    return b;
+  }
 
   // ---- the computer keyboard plays the MIDI In nodes ------------------------------
   // Physical keys (so any layout has the piano in the same place), semitones above C; Z and X (Y and X on a German keyboard) move the octave.

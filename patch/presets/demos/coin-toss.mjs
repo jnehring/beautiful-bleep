@@ -67,8 +67,8 @@ function fate() {
   });
   const g = grid(p, [0, 0], ["x.x.x.x.x.x.x.x.", "", "", ""], "Eighths");
   const c = p.add("coin-toss", [1, 0], { prob1: 0.55, loop: "8 tosses", seed: 17 });
-  const oA = p.add("oscillator", [2, 0], { shape: 0.8, coarse: -3, octave: "-1" }, { name: "Low Note" });
-  const oB = p.add("oscillator", [2, 1], { shape: 0.5, coarse: 4 }, { name: "High Note" });
+  const oA = p.add("oscillator", [2, 0], { wave: "Saw", wave2: "Square", morph: 0.4, coarse: -3, octave: "-1" }, { name: "Low Note" });
+  const oB = p.add("oscillator", [2, 1], { wave: "Triangle", wave2: "Saw", morph: 0.5, coarse: 4 }, { name: "High Note" });
   const eA = p.add("adsr", [3, 0], { attack: 0.004, decay: 0.3, sustain: 0.2, release: 0.2 }, { name: "Low Env" });
   const eB = p.add("adsr", [3, 1], { attack: 0.004, decay: 0.25, sustain: 0.1, release: 0.2 }, { name: "High Env" });
   const vA = p.add("vca", [4, 0], {});
@@ -91,7 +91,7 @@ function roulette() {
   });
   const bar = p.add("lfo", [0, 0], { wave: "Square", sync: "Tempo", division: "1/1", polarity: "Unipolar", pw: 0.2 }, { name: "Bar" });
   const c = p.add("coin-toss", [1, 0], { prob1: 0.5, mode1: "Latch", memory1: 0.25, seed: 5 });
-  const mk = (row, coarses, name) => coarses.map((cs, i) => p.add("oscillator", [2, row + i * 0.5], { shape: 0.65, coarse: cs, fine: (i - 1) * 6 }, { name: `${name} ${i + 1}` }));
+  const mk = (row, coarses, name) => coarses.map((cs, i) => p.add("oscillator", [2, row + i * 0.5], { wave: "Triangle", wave2: "Saw", morph: 0.95, coarse: cs, fine: (i - 1) * 6 }, { name: `${name} ${i + 1}` }));
   const a = mk(0, [-3, 0, 4], "Am");
   const f = mk(2, [-7, -3, 0], "F");
   const mx = (nodes, row) => {

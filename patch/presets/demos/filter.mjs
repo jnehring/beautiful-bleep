@@ -36,7 +36,7 @@ function phaserPad() {
   });
   const m = melody(p, [0, 0], [0, "_", "_", "_", 7, "_", "_", "_", 3, "_", "_", "_", 5, "_", "_", "_"], {
     rate: "1/4", root: "D", scale: "Dorian", octave: -1, shape: 1, gatelength: 1, env: { attack: 0.3, decay: 0.5, sustain: 0.8, release: 1.2 } });
-  const o2 = p.add("oscillator", [1, 2], { shape: 1, fine: 12, coarse: 7 }, { name: "Fifth" });
+  const o2 = p.add("oscillator", [1, 2], { wave: "Square", fine: 12, coarse: 7 }, { name: "Fifth" });
   p.cable(m.seq, "pitch", o2, "pitch");
   const g = p.add("audio-mixer", [2, 2], { level1: -2, level2: -9, master: 0 }, { name: "Blend" });
   p.cable(m.osc, "out", g, "in1l").cable(o2, "out", g, "in2l");

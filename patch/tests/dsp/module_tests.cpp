@@ -139,20 +139,37 @@ static void oscillator() {
     EXPECT_NEAR(OscillatorDsp::frequency(p.pitch), 440.0, 0.01);
     int crossings = 0;
     float last = 0.0f, peak = 0.0f;
+    p.wave = OscWave::Sine;
     for (int i = 0; i < 48000; ++i) {
-        const auto f = o.tick(p, 0.0f, 0.0f);
-        if (last < 0.0f && f.sine >= 0.0f) ++crossings;
-        last = f.sine;
-        peak = std::max(peak, std::fabs(f.saw));
+        const float y = o.tick(p, 0.0f, 0.0f);
+        if (last < 0.0f && y >= 0.0f) ++crossings;
+        last = y;
     }
+    p.wave = OscWave::Saw;
+    for (int i = 0; i < 48000; ++i) peak = std::max(peak, std::fabs(o.tick(p, 0.0f, 0.0f)));
     EXPECT(crossings >= 439 && crossings <= 441);  // one second of 440 Hz
     EXPECT(peak < 1.2f);  // band-limited saw: small polyBLEP overshoot only
+
+    // Exponential FM: a steady +0.25 at full depth is one octave up (2^(4 · 0.25)).
+    p.wave = OscWave::Sine;
+    p.expFm = true;
+    p.fmDepth = 1.0f;
+    crossings = 0;
+    last = 0.0f;
+    for (int i = 0; i < 48000; ++i) {
+        const float y = o.tick(p, 0.25f, 0.0f);
+        if (last < 0.0f && y >= 0.0f) ++crossings;
+        last = y;
+    }
+    EXPECT(crossings >= 879 && crossings <= 881);
+    p.expFm = false;
+    p.wave = OscWave::Saw;
 
     // Deep through-zero FM stays finite and bounded.
     p.fmDepth = 1.0f;
     for (int i = 0; i < 48000; ++i) {
-        const auto f = o.tick(p, std::sin(i * 0.05f), 0.0f);
-        EXPECT(std::isfinite(f.out) && std::fabs(f.out) <= 1.5f);
+        const float y = o.tick(p, std::sin(i * 0.05f), 0.0f);
+        EXPECT(std::isfinite(y) && std::fabs(y) <= 1.5f);
         if (g_failures) return;
     }
 }

@@ -72,10 +72,10 @@ function fourVoiceFm() {
       "carrier B off the octave by up to a semitone, for slow beating.\n\n" +
       "Tip: open the cell and change the cable amounts from the send VCAs into the oscillators' FM jacks: they are the routing matrix.",
   }).settings({ voices: 6, mode: "Poly", spread: 0.3 }).input("index", "Index").input("detune", "Detune");
-  const A = p.add("oscillator", [0, 0], { octave: "0", fm: 0.4 }, { name: "Op A" });
-  const B = p.add("oscillator", [0, 1], { octave: "+1", fm: 0.4, fine: 3 }, { name: "Op B" });
-  const C = p.add("oscillator", [0, 2], { octave: "+1", fm: 0.35 }, { name: "Op C" });
-  const D = p.add("oscillator", [0, 3], { octave: "+1", coarse: 7.02, fm: 0.2 }, { name: "Op D" });
+  const A = p.add("oscillator", [0, 0], { wave: "Sine", octave: "0", fm: 0.4 }, { name: "Op A" });
+  const B = p.add("oscillator", [0, 1], { wave: "Sine", octave: "+1", fm: 0.4, fine: 3 }, { name: "Op B" });
+  const C = p.add("oscillator", [0, 2], { wave: "Sine", octave: "+1", fm: 0.35 }, { name: "Op C" });
+  const D = p.add("oscillator", [0, 3], { wave: "Sine", octave: "+1", coarse: 7.02, fm: 0.2 }, { name: "Op D" });
   const eA = envelope(p, [1, 0], { attack: 0.003, decay: 1.1, sustain: 0.45, release: 0.5, velamount: 0.4 }, "Env A");
   const eB = envelope(p, [1, 1], { attack: 0.004, decay: 0.6, sustain: 0.25, release: 0.3, velamount: 0.4 }, "Env B");
   const eC = envelope(p, [1, 2], { attack: 0.002, decay: 0.45, sustain: 0.2, release: 0.25, velamount: 0.7 }, "Env C");
@@ -89,10 +89,10 @@ function fourVoiceFm() {
   p.cable(p.cin, "detune", B, "pitch", semis(1));
   p.cable(p.cin, "index", mult, "x1", 0.45).cable(eC, "env", mult, "y1").cable(mult, "out1", vC, "gain")
     .cable(p.cin, "index", mult, "x2", 0.45).cable(eD, "env", mult, "y2").cable(mult, "out2", vD, "gain");
-  p.cable(D, "sine", vD, "l").cable(vD, "l", C, "fm").cable(vD, "l", B, "fm", 0.5)
-    .cable(C, "sine", vC, "l").cable(vC, "l", A, "fm").cable(vC, "l", B, "fm", 0.4);
-  p.cable(A, "sine", vA, "l").cable(eA, "env", vA, "gain")
-    .cable(B, "sine", vB, "l").cable(eB, "env", vB, "gain");
+  p.cable(D, "out", vD, "l").cable(vD, "l", C, "fm").cable(vD, "l", B, "fm", 0.5)
+    .cable(C, "out", vC, "l").cable(vC, "l", A, "fm").cable(vC, "l", B, "fm", 0.4);
+  p.cable(A, "out", vA, "l").cable(eA, "env", vA, "gain")
+    .cable(B, "out", vB, "l").cable(eB, "env", vB, "gain");
   p.cable(vA, "l", p.vout, "l", 0.6).cable(vA, "l", p.vout, "r", 0.35)
     .cable(vB, "l", p.vout, "l", 0.3).cable(vB, "l", p.vout, "r", 0.5)
     .cable(eA, "active", p.vout, "active");
@@ -178,13 +178,14 @@ function undertonePair() {
       "step, which changes every rhythm at once. Detune pulls oscillator B off the fifth.\n\n" +
       "Tip: automate Rotate one step per bar for a slow shuffle of the polyrhythm.",
   }).input("pitch", "Pitch", "pitch").input("drone", "Drone").input("rotate", "Rotate").input("detune", "Detune").stereoOut();
-  const oA = p.add("oscillator", [0, 0], { shape: 0.4, octave: "-1" }, { name: "Osc A" });
-  const oB = p.add("oscillator", [0, 1], { shape: 0.4, octave: "-1", coarse: 7, fine: 2 }, { name: "Osc B" });
+  const oA = p.add("oscillator", [0, 0], { wave: "Triangle", wave2: "Saw", morph: 0.2, octave: "-1" }, { name: "Osc A" });
+  const oB = p.add("oscillator", [0, 1], { wave: "Triangle", wave2: "Saw", morph: 0.2, octave: "-1", coarse: 7, fine: 2 }, { name: "Osc B" });
   const rdA = p.add("rotating-divider", [0, 2], { set: "Primes", base: "1/8", output: "Gate", sync: "Next Step", width: 0.3 }, { name: "Prime Rhythm" });
   const rdB = p.add("rotating-divider", [0, 3], { set: "Fibonacci", base: "1/4", output: "Gate", sync: "Next Step", width: 0.3 }, { name: "Fibonacci Rhythm" });
+  const sA = p.subOsc(oA, [3, 0], "Sub A"), sB = p.subOsc(oB, [3, 1], "Sub B");
   const voices = [  // source, jack, rhythm, output, decay, level, mixer channel
-    [oA, "out", rdA, "out2", 0.5, 0.8, 1], [oA, "sub", rdA, "out1", 0.9, 0.9, 1],
-    [oB, "out", rdB, "out3", 0.4, 0.7, 2], [oB, "sub", rdB, "out1", 0.8, 0.9, 2],
+    [oA, "out", rdA, "out2", 0.5, 0.8, 1], [sA, "out", rdA, "out1", 0.9, 0.9, 1],
+    [oB, "out", rdB, "out3", 0.4, 0.7, 2], [sB, "out", rdB, "out1", 0.8, 0.9, 2],
   ];
   const mix = p.add("audio-mixer", [4, 1], { level1: -4, pan1: -0.5, level2: -4, pan2: 0.5, level3: -9, pan3: 0, send1: -16, send2: -16, send3: -18, return: -6, master: -2 });
   voices.forEach(([src, jack, rd, out, decay, level, ch], i) => {
@@ -195,7 +196,7 @@ function undertonePair() {
   });
   const dA = p.add("vca", [3, 2], { gain: 0.14 }, { name: "Drone A" });
   const dB = p.add("vca", [3, 3], { gain: 0.14 }, { name: "Drone B" });
-  p.cable(oA, "sub", dA, "l").cable(oA, "out", dA, "l", 0.4).cable(oB, "sub", dB, "l").cable(oB, "out", dB, "l", 0.4)
+  p.cable(sA, "out", dA, "l").cable(oA, "out", dA, "l", 0.4).cable(sB, "out", dB, "l").cable(oB, "out", dB, "l", 0.4)
     .cable(p.cin, "drone", dA, "gain", 0.25).cable(p.cin, "drone", dB, "gain", 0.25)
     .cable(dA, "l", mix, "in3l", 0.7).cable(dB, "l", mix, "in3r", 0.7);
   p.cable(p.cin, "pitch", oA, "pitch").cable(p.cin, "pitch", oB, "pitch").cable(p.cin, "detune", oB, "pitch", semis(0.5))
@@ -414,7 +415,7 @@ function bassMaker() {
   })();
   const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/16", gatelength: 0.55, variation: 0.08, varrange: 12, root: "E", scale: "Natural Minor", octave: -2 }, { data });
   const snap = boardScale(p, [1, 0], { sample: "Continuous", slew: 0.04, octave: 0 });
-  const osc = p.add("oscillator", [2, 0], { shape: 0.67 }, { name: "Saw" });
+  const osc = p.add("oscillator", [2, 0], { wave: "Saw" }, { name: "Saw" });
   const env = p.add("adsr", [2, 1], { attack: 0.002, decay: 0.28, sustain: 0.25, release: 0.08, velamount: 0.85 }, { name: "Filter Env" });
   const flt = p.add("filter", [3, 0], { cutoff: 260, resonance: 0.45, drive: 0.4, keytrack: 0.4, type: "Ladder Tanh" });
   const aenv = p.add("adsr", [3, 1], { attack: 0.002, decay: 0.3, sustain: 0.7, release: 0.06, velamount: 0.6 }, { name: "Amp Env" });
@@ -422,7 +423,7 @@ function bassMaker() {
   p.cable(p.cin, "mutate", seq, "variation", 0.5).cable(p.cin, "tr", seq, "transpose")
     .cable(seq, "pitch", snap, "ina").cable(seq, "trigger", snap, "triga").cable(p.cin, "slide", snap, "a.slew", 0.2)
     .cable(snap, "outa", osc, "pitch").cable(snap, "outa", flt, "pitch")
-    .cable(osc, "out", flt, "l", 0.5).cable(osc, "sub", flt, "l", 0.5)
+    .cable(osc, "out", flt, "l", 0.5).cable(p.subOsc(osc, [2, 2]), "out", flt, "l", 0.5)
     .cable(seq, "gate", env, "gate").cable(seq, "trigger", env, "retrig").cable(seq, "velocity", env, "velocity")
     .cable(seq, "gate", aenv, "gate").cable(seq, "trigger", aenv, "retrig").cable(seq, "velocity", aenv, "velocity")
     .cable(env, "env", flt, "cutoff", 0.4).cable(p.cin, "cut", flt, "cutoff", 0.5)
@@ -517,19 +518,19 @@ function toneWheelOrgan() {
   const vibAmt = p.add("vca", [1, 4], { gain: 0.35 }, { name: "Vibrato Depth" });
   p.cable(vib, "out", vibAmt, "l").cable(p.cin, "vib", vibAmt, "gain", 0.5);
   bars.forEach(([name, octave, coarse], i) => {
-    const o = p.add("oscillator", [0, i % 4], { octave, coarse }, { name: `Drawbar ${name}` });
+    const o = p.add("oscillator", [0, i % 4], { wave: "Sine", octave, coarse }, { name: `Drawbar ${name}` });
     p.cable(p.vin, "pitch", o, "pitch").cable(vibAmt, "l", o, "pitch", semis(0.3));
-    if (i < 4) p.cable(o, "sine", mixA, `in${i + 1}l`);
-    else if (i < 8) p.cable(o, "sine", mixB, `in${i - 3}l`);
-    else p.cable(o, "sine", mixC, "in3l");
+    if (i < 4) p.cable(o, "out", mixA, `in${i + 1}l`);
+    else if (i < 8) p.cable(o, "out", mixB, `in${i - 3}l`);
+    else p.cable(o, "out", mixC, "in3l");
   });
   p.cable(p.cin, "bright", mixB, "level1", 0.1).cable(p.cin, "bright", mixB, "level2", 0.1).cable(p.cin, "bright", mixB, "level3", 0.1).cable(p.cin, "bright", mixB, "level4", 0.1);
   // Percussion: the twelfth, with a quick decay, scaled by Perc.
-  const po = p.add("oscillator", [0, 3], { octave: "+1", coarse: 7.02 }, { name: "Percussion Tone" });
+  const po = p.add("oscillator", [0, 3], { wave: "Sine", octave: "+1", coarse: 7.02 }, { name: "Percussion Tone" });
   const penv = envelope(p, [1, 2], { attack: 0.001, decay: 0.22, sustain: 0, release: 0.05, velamount: 0 }, "Percussion Env");
   const pmul = p.add("multiplier", [1, 3], { biasy1: 0.45 }, { name: "Perc × Amount" });
   const pamp = p.add("vca", [1, 1], {}, { name: "Percussion" });
-  p.cable(p.vin, "pitch", po, "pitch").cable(po, "sine", pamp, "l").cable(penv, "env", pmul, "x1").cable(p.cin, "perc", pmul, "y1", 0.55)
+  p.cable(p.vin, "pitch", po, "pitch").cable(po, "out", pamp, "l").cable(penv, "env", pmul, "x1").cable(p.cin, "perc", pmul, "y1", 0.55)
     .cable(pmul, "out1", pamp, "gain").cable(pamp, "l", mixC, "in1l", 0.9);
   // Key click.
   const noise = p.add("noise", [0, 5], { colour: 0.6 }, { name: "Click Noise" });

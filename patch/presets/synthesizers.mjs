@@ -52,8 +52,8 @@ function wideRibbonPulse() {
       "Notes in, Out L/R. The shared input Sway adds to the width movement of both oscillators; turn it up for a deeper effect.\n\n" +
       "Tip: hold wide, open chords. The motion is slow, so long notes show it best.",
   }).settings({ voices: 8, spread: 0.7 }).input("sway", "Sway");
-  const o1 = p.add("oscillator", [0, 0], { shape: 1, pw: 0.5, fine: -9 }, { name: "Pulse Left" });
-  const o2 = p.add("oscillator", [0, 1], { shape: 1, pw: 0.5, fine: 9 }, { name: "Pulse Right" });
+  const o1 = p.add("oscillator", [0, 0], { wave: "Square", pw: 0.5, fine: -9 }, { name: "Pulse Left" });
+  const o2 = p.add("oscillator", [0, 1], { wave: "Square", pw: 0.5, fine: 9 }, { name: "Pulse Right" });
   const lfo = p.add("lfo", [0, 2], { rate: 0.35, fade: 0.4 }, { name: "Sway LFO" });
   const flt = p.add("filter", [1, 0], { cutoff: 4200, keytrack: 0.4, type: "1-Pole Low-pass" });
   p.cable(p.vin, "pitch", o1, "pitch").cable(p.vin, "pitch", o2, "pitch").cable(p.vin, "pitch", flt, "pitch")
@@ -133,8 +133,8 @@ function lunarGateChords() {
       "Notes in, Out L/R. The shared input Brightness adds to the gate's brightness: how open the tone is while the gate rings.\n\n" +
       "Tip: play firmly; harder velocity opens the gate further and leaves a longer tail.",
   }).settings({ voices: 8, spread: 0.4 }).input("bright", "Brightness");
-  const o1 = p.add("oscillator", [0, 0], { shape: 0.67, fine: -6 }, { name: "Saw" });
-  const o2 = p.add("oscillator", [0, 1], { shape: 0.9, pw: 0.35, fine: 6 }, { name: "Pulse" });
+  const o1 = p.add("oscillator", [0, 0], { wave: "Saw", fine: -6 }, { name: "Saw" });
+  const o2 = p.add("oscillator", [0, 1], { wave: "Saw", wave2: "Square", morph: 0.7, pw: 0.35, fine: 6 }, { name: "Pulse" });
   const lpg = p.add("low-pass-gate", [1, 0], { level: 0, response: 0.55, ping: 0.9, resonance: 0.15, brightness: 0.5, drive: 0.2, cell: "Classic" });
   p.cable(p.vin, "pitch", o1, "pitch").cable(p.vin, "pitch", o2, "pitch")
     .cable(o1, "out", lpg, "l", 0.6).cable(o2, "out", lpg, "l", 0.45).cable(o1, "out", lpg, "r", 0.6).cable(o2, "out", lpg, "r", 0.45)
@@ -192,7 +192,7 @@ function hollowReed() {
       "Notes in, Out L/R. The shared input Spread moves the two bands apart: closer sounds nasal, wider sounds hollow.\n\n" +
       "Tip: play single lines and slow, close harmonies. Keep the vibrato to the pitch wheel on your keyboard.",
   }).settings({ voices: 6, spread: 0.2 }).input("spread", "Spread");
-  const osc = p.add("oscillator", [0, 0], { shape: 1, pw: 0.18 });
+  const osc = p.add("oscillator", [0, 0], { wave: "Square", pw: 0.18 });
   const noise = p.add("noise", [0, 1], { colour: 0.4, level: 0.5 });
   const envn = envelope(p, [0, 2], { attack: 0.001, decay: 0.07, sustain: 0, release: 0.05, velamount: 0.5 }, "Breath Env");
   const nvca = p.add("vca", [1, 2], {}, { name: "Breath VCA" });

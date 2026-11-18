@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Pitch Follower: five demo patches. Each plays by itself with the transport.
-import { patch } from "../kit.mjs";
+import { patch, oscWaves } from "../kit.mjs";
 import { melody } from "../demo-kit.mjs";
 
 // Mixer to Out 1/2: channels are [node, jack, dB, pan] (mono sources). Optional reverb after the mixer.
@@ -18,7 +18,7 @@ function toOut(p, at, chans, o = {}) {
 // A synth voice driven by a follower: Pitch -> oscillator, Gate -> ADSR -> VCA.
 function followed(p, at, f, o = {}) {
   const [c, r] = at;
-  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.5, octave: o.octave ?? "0", coarse: o.coarse ?? 0, ...(o.osc || {}) }, { name: o.name || "Follower Voice" });
+  const osc = p.add("oscillator", [c, r], { ...oscWaves(o.shape ?? 0.5), octave: o.octave ?? "0", coarse: o.coarse ?? 0, ...(o.osc || {}) }, { name: o.name || "Follower Voice" });
   const env = p.add("adsr", [c, r + 1], { attack: 0.01, decay: 0.3, sustain: 0.6, release: 0.2, ...(o.env || {}) }, { name: "Voice Env" });
   const amp = p.add("vca", [c + 1, r], {}, { name: "Voice VCA" });
   p.cable(f, "pitch", osc, "pitch").cable(f, "gate", env, "gate").cable(osc, "out", amp, "l").cable(env, "env", amp, "gain");
@@ -53,8 +53,8 @@ function brightnessFollowsNote() {
     scale: "Dorian", gatelength: 0.5, env: { decay: 0.3, sustain: 0.3, release: 0.05 } });
   const f = p.add("pitch-follower", [3, 0], { low: 120, high: 2000, glide: 0.25, hold: 0.1, confidence: 0.7, guard: "Light", vote: "3" });
   p.cable(m.amp, "l", f, "in");
-  const d1 = p.add("oscillator", [3, 3], { shape: 0.67, octave: "-2", fine: -7 }, { name: "Drone Low" });
-  const d2 = p.add("oscillator", [3, 4], { shape: 0.67, octave: "-1", coarse: 7, fine: 6 }, { name: "Drone Fifth" });
+  const d1 = p.add("oscillator", [3, 3], { wave: "Saw", octave: "-2", fine: -7 }, { name: "Drone Low" });
+  const d2 = p.add("oscillator", [3, 4], { wave: "Saw", octave: "-1", coarse: 7, fine: 6 }, { name: "Drone Fifth" });
   const mix = p.add("audio-mixer", [4, 3], { level1: -6, level2: -9 }, { name: "Drone Sum" });
   const flt = p.add("filter", [5, 3], { cutoff: 300, resonance: 0.45, type: "Ladder Tanh", keytrack: 1, drive: 0.1 }, { name: "Follower Filter" });
   p.cable(d1, "out", mix, "in1l").cable(d2, "out", mix, "in2l").cable(mix, "outl", flt, "l").cable(mix, "outl", flt, "r").cable(f, "pitch", flt, "pitch");
@@ -81,7 +81,7 @@ function onlyClearTonesPass() {
   p.cable(tone, "l", src, "in1l").cable(nvca, "l", src, "in2l");
   const f = p.add("pitch-follower", [5, 3], { low: 100, high: 1500, glide: 0.01, hold: 0.03, confidence: 0.85, guard: "Light", vote: "Off" });
   p.cable(src, "outl", f, "in");
-  const v = followed(p, [6, 3], f, { shape: 0.0, octave: "+1", env: { attack: 0.003, decay: 0.35, sustain: 0.3, release: 0.4 }, name: "Chime" });
+  const v = followed(p, [6, 3], f, { shape: 0, octave: "+1", env: { attack: 0.003, decay: 0.35, sustain: 0.3, release: 0.4 }, name: "Chime" });
   const conf = p.add("vca", [8, 3], {}, { name: "Confidence VCA" });
   p.cable(v.amp, "l", conf, "l").cable(f, "confidence", conf, "gain");
   const dl = p.add("delay", [9, 3], { sync: "Tempo", ratel: "1/8.", rater: "1/4", feedback: 0.4, highcut: 5000, mix: 0.3, mode: "Ping-Pong" });
@@ -98,7 +98,7 @@ function guardAndVote() {
   });
   const m = melody(p, [0, 0], [0, 7, 3, 10, 5, 12, 7, 2, 0, 5, 8, 3], { rate: "1/8", shape: 0.4, root: "C", octave: -1, scale: "Minor Pentatonic",
     gatelength: 0.6, env: { decay: 0.25, sustain: 0.5, release: 0.04 } });
-  const h = p.add("oscillator", [1, 3], { shape: 0.4, coarse: 12 }, { name: "2nd Harmonic" });
+  const h = p.add("oscillator", [1, 3], { wave: "Triangle", wave2: "Saw", morph: 0.2, coarse: 12 }, { name: "2nd Harmonic" });
   p.cable(m.seq, "pitch", h, "pitch");
   const hv = p.add("vca", [2, 3], {}, { name: "Harmonic VCA" });
   p.cable(h, "out", hv, "l").cable(m.env, "env", hv, "gain");
@@ -108,7 +108,7 @@ function guardAndVote() {
   p.cable(rich, "outl", f, "in");
   const q = p.add("quantizer", [5, 0], { root: "C", scale: "Minor Pentatonic", range: 3, hysteresis: 0.15 });
   p.cable(f, "pitch", q, "in");
-  const osc = p.add("oscillator", [6, 0], { shape: 0.67, octave: "0" }, { name: "Quantized Voice" });
+  const osc = p.add("oscillator", [6, 0], { wave: "Saw", octave: "0" }, { name: "Quantized Voice" });
   const env = p.add("adsr", [6, 1], { attack: 0.003, decay: 0.28, sustain: 0.1, release: 0.15 }, { name: "Pluck Env" });
   const amp = p.add("vca", [7, 0], {}, { name: "Pluck VCA" });
   const flt = p.add("filter", [8, 0], { cutoff: 2200, resonance: 0.3 });
@@ -128,8 +128,8 @@ function glideAndEnv() {
     { rate: "1/8", shape: 0.1, root: "F", octave: 0, scale: "Dorian", gatelength: 1, env: { attack: 0.03, decay: 0.2, sustain: 0.9, release: 0.1 } });
   const f = p.add("pitch-follower", [3, 0], { low: 150, high: 1200, glide: 0.45, hold: 0.4, confidence: 0.7, guard: "Light", vote: "3", release: 0.5 });
   p.cable(m.amp, "l", f, "in");
-  const osc = p.add("oscillator", [4, 0], { shape: 0.67, octave: "-1", fine: -5 }, { name: "Glide Voice" });
-  const sub = p.add("oscillator", [4, 1], { shape: 0.4, octave: "-1", fine: 6 }, { name: "Glide Voice 2" });
+  const osc = p.add("oscillator", [4, 0], { wave: "Saw", octave: "-1", fine: -5 }, { name: "Glide Voice" });
+  const sub = p.add("oscillator", [4, 1], { wave: "Triangle", wave2: "Saw", morph: 0.2, octave: "-1", fine: 6 }, { name: "Glide Voice 2" });
   const mix = p.add("audio-mixer", [5, 0], { level1: -6, level2: -9 }, { name: "Voice Sum" });
   const flt = p.add("filter", [6, 0], { cutoff: 350, resonance: 0.4, type: "Ladder Tanh" }, { name: "Env Filter" });
   const amp = p.add("vca", [7, 0], { gain: 1 }, { name: "Level" });

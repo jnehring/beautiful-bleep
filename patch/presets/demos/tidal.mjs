@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Tidal: five demo patches. Each plays by itself with the transport.
-import { patch, steps } from "../kit.mjs";
+import { patch, steps, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// Mono/stereo source (`src`, jacks l/r) → trim → reverb → Out.
@@ -26,8 +26,8 @@ function pad(p, at, notes, o = {}) {
   const [c, r] = at;
   const seq = p.add("step-sequencer", [c, r], { length: notes.length, rate: o.rate || "1/2", root: o.root || "A", scale: o.scale || "Minor Pentatonic",
     octave: o.octave ?? -1, gatelength: o.gate ?? 0.95 }, { data: steps(notes) });
-  const o1 = p.add("oscillator", [c + 1, r], { shape: o.shape ?? 0.5, fine: -9 }, { name: "Osc L" });
-  const o2 = p.add("oscillator", [c + 1, r + 1], { shape: o.shape ?? 0.5, fine: 9 }, { name: "Osc R" });
+  const o1 = p.add("oscillator", [c + 1, r], { ...oscWaves(o.shape ?? 0.5), fine: -9 }, { name: "Osc L" });
+  const o2 = p.add("oscillator", [c + 1, r + 1], { ...oscWaves(o.shape ?? 0.5), fine: 9 }, { name: "Osc R" });
   const amp = p.add("vca", [c + 2, r], { gain: o.gain ?? 1 }, { name: "VCA" });
   const f = p.add("filter", [c + 3, r], { cutoff: 1400, resonance: 0.2, ...(o.filter || {}) }, { name: "Filter" });
   p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", amp, "l").cable(o2, "out", amp, "r")
@@ -43,7 +43,7 @@ function slowTide() {
   });
   const v = voice(p, [0, 0], [0, 7, 12, 7, 3, 10, 7, 3, 0, 5, 8, 12, 8, 5, 3, 7], { rate: "1/8", shape: 0.6, root: "E", scale: "Natural Minor", env: { decay: 0.4, sustain: 0.3 }, filter: { cutoff: 600, resonance: 0.15, drive: 0 } });
   const t = p.add("tidal", [3, 1], { freq: 0.4, skew: 0.35, curve: 0.2, spread: 0.5, mode: "Loop", range: "Slow", relation: "Phase" });
-  p.cable(t, "a", v.filt, "cutoff", 0.5).cable(t, "b", v.filt, "resonance", 0.15).cable(t, "c", v.osc, "shape", 0.4);
+  p.cable(t, "a", v.filt, "cutoff", 0.5).cable(t, "b", v.filt, "resonance", 0.15).cable(t, "c", v.osc, "morph", 0.8);
   finish(p, [4, 0], v.filt, { stereo: true, trim: 3, verb: { size: 0.6, decay: 3.5, mix: 0.3 } });
   return p;
 }
@@ -92,7 +92,7 @@ function decays() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/8", root: "C", scale: "Dorian", octave: 0, gatelength: 0.3 },
     { data: steps([0, 7, ".", 10, 12, ".", 7, 3, 0, ".", 5, 7, ".", 10, 7, ".",]) });
-  const osc = p.add("oscillator", [1, 0], { shape: 0.9 }, { name: "Source" });
+  const osc = p.add("oscillator", [1, 0], { wave: "Saw", wave2: "Square", morph: 0.7 }, { name: "Source" });
   const t = p.add("tidal", [1, 1], { freq: 3, skew: 0.1, curve: -0.3, spread: 0.5, mode: "AD", range: "Medium", polarity: "Unipolar" });
   const amp = p.add("vca", [2, 0], {});
   const f = p.add("filter", [3, 0], { cutoff: 300, resonance: 0.4 }, { name: "Filter" });

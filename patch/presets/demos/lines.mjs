@@ -52,7 +52,7 @@ function putVoice(p, inner, at, name, prefix) {
 /// Oscillator → ADSR → VCA from a pitch and gate source ({node, pitch, gate, trigger, velocity}), optional filter after.
 function mono(p, at, src, o = {}) {
   const [c, r] = at, name = o.name || "Voice";
-  const osc = p.add("oscillator", [c, r], { shape: 0.8, ...(o.osc || {}) }, { name });
+  const osc = p.add("oscillator", [c, r], { wave: "Saw", wave2: "Square", morph: 0.4, ...(o.osc || {}) }, { name });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.25, sustain: 0.2, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
   const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
   p.cable(src.node, src.pitch, osc, "pitch").cable(src.node, src.gate, env, "gate");
@@ -103,10 +103,10 @@ function driftingFour() {
     tags: ["drift", "polymetric", "four tracks", "minor"],
   });
   const s = p.add("lines", [0, 0], { length1: 16, length2: 5, length3: 7, length4: 9, scale: "Natural Minor", root: "A", octave2: 1, octave4: -1, gate: 0.5 }, { data: songData([pattern(16, [bass16, lead5, arp7, stab9])]) });
-  const bass = mono(p, [1, 0], track(s, 1), { name: "Bass", osc: { shape: 0.4, octave: -1 }, env: { decay: 0.2, sustain: 0.4, release: 0.12 }, filter: { cutoff: 480, resonance: 0.25 } });
-  const lead = mono(p, [1, 2], track(s, 2), { name: "Lead", osc: { shape: 0.75 }, env: { decay: 0.35, sustain: 0.15, release: 0.3 }, filter: { cutoff: 2600 } });
-  const arp = mono(p, [1, 4], track(s, 3), { name: "Arp", osc: { shape: 0.3 }, env: { decay: 0.14, sustain: 0.05, release: 0.12 }, filter: { cutoff: 3500 } });
-  const stab = mono(p, [1, 6], track(s, 4), { name: "Stab", osc: { shape: 0.9 }, env: { decay: 0.3, sustain: 0.05, release: 0.25 }, filter: { cutoff: 1200, resonance: 0.3 } });
+  const bass = mono(p, [1, 0], track(s, 1), { name: "Bass", osc: { wave: "Triangle", wave2: "Saw", morph: 0.2, octave: -1 }, env: { decay: 0.2, sustain: 0.4, release: 0.12 }, filter: { cutoff: 480, resonance: 0.25 } });
+  const lead = mono(p, [1, 2], track(s, 2), { name: "Lead", osc: { wave: "Saw", wave2: "Square", morph: 0.25 }, env: { decay: 0.35, sustain: 0.15, release: 0.3 }, filter: { cutoff: 2600 } });
+  const arp = mono(p, [1, 4], track(s, 3), { name: "Arp", osc: { wave: "Sine", wave2: "Triangle", morph: 0.9 }, env: { decay: 0.14, sustain: 0.05, release: 0.12 }, filter: { cutoff: 3500 } });
+  const stab = mono(p, [1, 6], track(s, 4), { name: "Stab", osc: { wave: "Saw", wave2: "Square", morph: 0.7 }, env: { decay: 0.3, sustain: 0.05, release: 0.25 }, filter: { cutoff: 1200, resonance: 0.3 } });
   const d = beat(p, [4, 4], { style: "sparse", level: -10 });
   finish(p, [5, 0], { stereo: [{ node: d, from: ["outl", "outr"] }], monos: [{ node: bass.out }, { node: lead.out }, { node: arp.out }, { node: stab.out }], levels: [-4, -2, -8, -9, -9], verb: { size: 0.5, decay: 2, mix: 0.2 } });
   return p;
@@ -122,8 +122,8 @@ function ratchetSlide() {
     cell(10, 47, 0, 8, 2, 90), cell(12, 43, 0, 6, 1, 4), cell(14, 38, 0, 12, 2, 220)];
   const maybe = [1, 3, 5, 7, 9, 11, 13, 15].map((r, i) => cell(r, [76, 79, 83, 79, 76, 74, 79, 71][i], 80, 3, 3, [255, 150, 200, 110, 255, 120, 180, 90][i]));
   const s = p.add("lines", [0, 0], { length1: 16, length2: 16, scale: "Phrygian", root: "E", seed: 6 }, { data: songData([pattern(16, [bassCells, maybe])]) });
-  const bass = mono(p, [1, 0], track(s, 1), { name: "Bass", osc: { shape: 0.2, octave: -1 }, env: { decay: 0.2, sustain: 0.6, release: 0.1 }, filter: { cutoff: 700, resonance: 0.35 } });
-  const lead = mono(p, [1, 2], track(s, 2, { trigger: false }), { name: "Answer", osc: { shape: 0.85 }, env: { decay: 0.12, sustain: 0.05, release: 0.1 }, filter: { cutoff: 2800 } });
+  const bass = mono(p, [1, 0], track(s, 1), { name: "Bass", osc: { wave: "Sine", wave2: "Triangle", morph: 0.6, octave: -1 }, env: { decay: 0.2, sustain: 0.6, release: 0.1 }, filter: { cutoff: 700, resonance: 0.35 } });
+  const lead = mono(p, [1, 2], track(s, 2, { trigger: false }), { name: "Answer", osc: { wave: "Saw", wave2: "Square", morph: 0.55 }, env: { decay: 0.12, sustain: 0.05, release: 0.1 }, filter: { cutoff: 2800 } });
   const d = beat(p, [4, 2], { style: "four", level: -10 });
   finish(p, [5, 0], { stereo: [{ node: d, from: ["outl", "outr"] }], monos: [{ node: bass.out }, { node: lead.out }], levels: [-4, -2, -7], verb: { size: 0.35, decay: 1.2, mix: 0.12 } });
   return p;
@@ -137,10 +137,10 @@ function oddSpeeds() {
   });
   const s = p.add("lines", [0, 0], { speed1: "x1", speed2: "x2/3", speed3: "x3/2", speed4: "x3/4", length1: 12, length2: 12, length3: 12, length4: 12, scale: "Dorian", root: "D", gate: 0.5 },
     { data: songData([pattern(16, [line([50, 57, 53, 60], 3, 0, 8), line([74, 77, 76, 72, 69, 72], 2, 0, 6), line([62, 65, 69, 74, 69, 65], 2, 0, 3), line([86, null, 81, null, 77, null], 2, 0, 3)])]) });
-  const a = mono(p, [1, 0], track(s, 1), { name: "Low", osc: { shape: 0.4, octave: -1 }, env: { attack: 0.01, decay: 0.5, sustain: 0.5, release: 0.4 }, filter: { cutoff: 600 } });
-  const b = mono(p, [1, 2], track(s, 2), { name: "Mid", osc: { shape: 0.6 }, env: { decay: 0.35, sustain: 0.2, release: 0.3 }, filter: { cutoff: 2000 } });
-  const c = mono(p, [1, 4], track(s, 3), { name: "Pluck", osc: { shape: 0.3 }, env: { decay: 0.15, sustain: 0.05, release: 0.15 }, filter: { cutoff: 3200 } });
-  const e = mono(p, [1, 6], track(s, 4), { name: "Bell", osc: { shape: 0.1 }, env: { decay: 0.6, sustain: 0, release: 0.5 } });
+  const a = mono(p, [1, 0], track(s, 1), { name: "Low", osc: { wave: "Triangle", wave2: "Saw", morph: 0.2, octave: -1 }, env: { attack: 0.01, decay: 0.5, sustain: 0.5, release: 0.4 }, filter: { cutoff: 600 } });
+  const b = mono(p, [1, 2], track(s, 2), { name: "Mid", osc: { wave: "Triangle", wave2: "Saw", morph: 0.8 }, env: { decay: 0.35, sustain: 0.2, release: 0.3 }, filter: { cutoff: 2000 } });
+  const c = mono(p, [1, 4], track(s, 3), { name: "Pluck", osc: { wave: "Sine", wave2: "Triangle", morph: 0.9 }, env: { decay: 0.15, sustain: 0.05, release: 0.15 }, filter: { cutoff: 3200 } });
+  const e = mono(p, [1, 6], track(s, 4), { name: "Bell", osc: { wave: "Sine", wave2: "Triangle", morph: 0.3 }, env: { decay: 0.6, sustain: 0, release: 0.5 } });
   finish(p, [4, 2], { monos: [{ node: a.out }, { node: b.out }, { node: c.out }, { node: e.out }], levels: [-3, -4, -6, -10], verb: { size: 0.6, decay: 3, mix: 0.3 } });
   return p;
 }
@@ -155,9 +155,9 @@ function orderList() {
   const verse2 = pattern(16, [bass16.map((c) => [c[0], c[1] + (c[0] > 7 ? 5 : 0), c[2], c[3], 0, 0]), line([79, 77, 75, 72, 74], 1, 0, 6), line([58, 62, 65, 62], 4, 0, 6)]);
   const answer = pattern(32, [line([34, null, null, null, 41, null, null, null, 39, null, null, null, 36, null, null, null], 2, 0, 12), line([84, 82, 79, 75, 77, 72, 70], 4, 0, 8), line([60, null, 63, null, 67, null, 70, null, 72, null], 3, 0, 6)]);
   const s = p.add("lines", [0, 0], { drift: "Per pattern", length1: 16, length2: 5, length3: 16, scale: "Natural Minor", root: "C" }, { data: songData([verse, verse2, answer], [0, 0, 1, 2]) });
-  const bass = mono(p, [1, 0], track(s, 1), { name: "Bass", osc: { shape: 0.4, octave: -1 }, env: { decay: 0.2, sustain: 0.5, release: 0.12 }, filter: { cutoff: 520, resonance: 0.2 } });
-  const lead = mono(p, [1, 2], track(s, 2), { name: "Lead", osc: { shape: 0.75 }, env: { decay: 0.3, sustain: 0.15, release: 0.3 }, filter: { cutoff: 2400 } });
-  const keys = mono(p, [1, 4], track(s, 3), { name: "Keys", osc: { shape: 0.2 }, env: { decay: 0.4, sustain: 0.2, release: 0.3 }, filter: { cutoff: 2000 } });
+  const bass = mono(p, [1, 0], track(s, 1), { name: "Bass", osc: { wave: "Triangle", wave2: "Saw", morph: 0.2, octave: -1 }, env: { decay: 0.2, sustain: 0.5, release: 0.12 }, filter: { cutoff: 520, resonance: 0.2 } });
+  const lead = mono(p, [1, 2], track(s, 2), { name: "Lead", osc: { wave: "Saw", wave2: "Square", morph: 0.25 }, env: { decay: 0.3, sustain: 0.15, release: 0.3 }, filter: { cutoff: 2400 } });
+  const keys = mono(p, [1, 4], track(s, 3), { name: "Keys", osc: { wave: "Sine", wave2: "Triangle", morph: 0.6 }, env: { decay: 0.4, sustain: 0.2, release: 0.3 }, filter: { cutoff: 2000 } });
   const d = beat(p, [4, 3], { style: "four", level: -10 });
   finish(p, [5, 0], { stereo: [{ node: d, from: ["outl", "outr"] }], monos: [{ node: bass.out }, { node: lead.out }, { node: keys.out }], levels: [-4, -2, -8, -9], verb: { size: 0.4, decay: 1.6, mix: 0.15 } });
   return p;
@@ -173,7 +173,7 @@ function threeTrackChords() {
     { data: songData([pattern(16, [line([53, 56, 58, 60, 56, 55, 58, 53], 1, 0, 15), line([60, 63, 65, 67, 68, 65], 1, 0, 15), line([68, 72, 70, 67, 65], 1, 0, 15), line([84, null, 80, null, 77, null, 79], 1, 0, 6)])]) });
   const pad = putVoice(p, polyVoice("Drift Pad", { shapeA: 0.5, shapeB: 0.67, cutoff: 1300, env: { attack: 0.3, decay: 0.6, sustain: 0.8, release: 1.4 } }), [1, 0], "Drift Pad", "dp_");
   for (const k of [1, 2, 3]) p.cable(s, "notes" + k, pad, "notes");
-  const bell = mono(p, [1, 3], track(s, 4), { name: "Bell", osc: { shape: 0.1 }, env: { decay: 0.7, sustain: 0, release: 0.6 } });
+  const bell = mono(p, [1, 3], track(s, 4), { name: "Bell", osc: { wave: "Sine", wave2: "Triangle", morph: 0.3 }, env: { decay: 0.7, sustain: 0, release: 0.6 } });
   finish(p, [4, 0], { stereo: [{ node: pad }], monos: [{ node: bell.out }], levels: [-6, -12], verb: { size: 0.75, decay: 4, mix: 0.35 } });
   return p;
 }

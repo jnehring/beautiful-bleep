@@ -13,7 +13,7 @@ const loopData = (list) => ({ notes: list.map(([s, l, n, v = 0.8]) => [s, l, n, 
 function mono(p, at, src, o = {}) {
   const [c, r] = at;
   const ntc = p.add("notes-to-cv", [c, r], { retrigger: "On", ...(o.ntc || {}) });
-  const osc = p.add("oscillator", [c + 1, r], { shape: 0.8, ...(o.osc || {}) }, { name: o.name || "Voice" });
+  const osc = p.add("oscillator", [c + 1, r], { wave: "Saw", wave2: "Square", morph: 0.4, ...(o.osc || {}) }, { name: o.name || "Voice" });
   const env = p.add("adsr", [c + 1, r + 1], { attack: 0.005, decay: 0.3, sustain: 0.2, release: 0.25, ...(o.env || {}) }, { name: "Voice Env" });
   const amp = p.add("vca", [c + 2, r], {}, { name: "Voice VCA" });
   p.cable(src.node, src.jack || "notes", ntc, "notes").cable(ntc, "pitch", osc, "pitch").cable(ntc, "gate", env, "gate")
@@ -64,7 +64,7 @@ function groove() {
   const loop = loopData([[0, 0.5, 45, 0.95], [1, 0.5, 45, 0.7], [1.5, 0.5, 48, 0.8], [2, 0.5, 50, 0.85], [3, 0.5, 52, 0.8], [3.5, 0.5, 50, 0.7],
     [4, 0.5, 45, 0.95], [5, 0.5, 45, 0.7], [5.5, 0.5, 52, 0.85], [6, 0.5, 50, 0.8], [7, 0.5, 48, 0.8], [7.5, 0.5, 45, 0.75]]);
   const l = p.add("note-looper", [2, 0], { bars: 2, mode: "Play" }, { data: loop });
-  const v = mono(p, [4, 0], { node: l }, { osc: { shape: 0.95 }, env: { decay: 0.18, sustain: 0.45, release: 0.08 }, filter: { cutoff: 520, resonance: 0.35, drive: 0.15 } });
+  const v = mono(p, [4, 0], { node: l }, { osc: { wave: "Saw", wave2: "Square", morph: 0.85 }, env: { decay: 0.18, sustain: 0.45, release: 0.08 }, filter: { cutoff: 520, resonance: 0.35, drive: 0.15 } });
   withBeat(p, [8, 0], v.out, v.jack, "four", { lead: -2 });
   return p;
 }
@@ -78,7 +78,7 @@ function ghostNotes() {
   const pitches = [57, 60, 64, 67, 64, 60, 69, 67, 64, 60, 57, 60, 64, 72, 69, 67];
   const loop = loopData(pitches.map((n, i) => [i * 0.25, 0.2, n, i % 4 === 0 ? 0.95 : 0.65]));
   const l = p.add("note-looper", [2, 0], { bars: 1, probability: 0.55, seed: 5 }, { data: loop });
-  const v = mono(p, [4, 0], { node: l }, { osc: { shape: 0.5 }, env: { decay: 0.15, sustain: 0, release: 0.15 }, filter: { cutoff: 3600, resonance: 0.2 } });
+  const v = mono(p, [4, 0], { node: l }, { osc: { wave: "Triangle", wave2: "Saw", morph: 0.5 }, env: { decay: 0.15, sustain: 0, release: 0.15 }, filter: { cutoff: 3600, resonance: 0.2 } });
   space(p, [8, 0], v.out, v.jack, { level: 6, delay: { zone: 3, time: 0.375, feedback: 0.45, mix: 0.3 }, verb: { size: 0.5, decay: 2.5, mix: 0.25 } });
   return p;
 }
@@ -91,7 +91,7 @@ function halfSpeed() {
   });
   const loop = loopData([[0, 1, 69, 0.8], [1, 0.5, 72, 0.6], [1.5, 0.5, 76, 0.7], [2, 1.5, 74, 0.8], [4, 1, 72, 0.7], [5, 1, 67, 0.6], [6, 2, 69, 0.8]]);
   const l = p.add("note-looper", [2, 0], { bars: 2, speed: "Half" }, { data: loop });
-  const v = mono(p, [4, 0], { node: l }, { osc: { shape: 0.1 }, env: { attack: 0.03, decay: 1, sustain: 0.3, release: 1.2 } });
+  const v = mono(p, [4, 0], { node: l }, { osc: { wave: "Sine", wave2: "Triangle", morph: 0.3 }, env: { attack: 0.03, decay: 1, sustain: 0.3, release: 1.2 } });
   space(p, [8, 0], v.out, v.jack, { level: 5, delay: { zone: 4, time: 0.75, feedback: 0.5, mix: 0.3, tone: -0.3 }, verb: { size: 0.85, decay: 7, mix: 0.45 } });
   return p;
 }
@@ -107,7 +107,7 @@ function tidiedTake() {
   const l = p.add("note-looper", [2, 0], { bars: 1, quantize: "1/8", strength: 0 }, { data: loop });
   const lfo = p.add("lfo", [1, 2], { rate: 0.12, wave: "Triangle", polarity: "Unipolar" }, { name: "Strength LFO" });
   p.cable(lfo, "out", l, "strength");
-  const v = mono(p, [4, 0], { node: l }, { osc: { shape: 0.7 }, env: { decay: 0.22, sustain: 0.1, release: 0.15 }, filter: { cutoff: 2400, resonance: 0.25 } });
+  const v = mono(p, [4, 0], { node: l }, { osc: { wave: "Saw", wave2: "Square", morph: 0.1 }, env: { decay: 0.22, sustain: 0.1, release: 0.15 }, filter: { cutoff: 2400, resonance: 0.25 } });
   withBeat(p, [8, 0], v.out, v.jack, "broken", { lead: 0, verb: { size: 0.4, decay: 1.6, mix: 0.15 } });
   return p;
 }
@@ -122,7 +122,7 @@ function loopIntoEcho() {
   const l = p.add("note-looper", [2, 0], { bars: 2 }, { data: loop });
   const e = p.add("note-echo", [4, 0], { rate: "1/8", repeats: 6, decay: 0.18, steps: 1, spread: 0.5, fan: "Up-Down", length: 0.6, root: "A", scale: "Minor Pentatonic" });
   p.cable(l, "notes", e, "notes");
-  const v = mono(p, [6, 0], { node: e }, { osc: { shape: 0.3 }, env: { decay: 0.45, sustain: 0.05, release: 0.4 }, filter: { cutoff: 3000 } });
+  const v = mono(p, [6, 0], { node: e }, { osc: { wave: "Sine", wave2: "Triangle", morph: 0.9 }, env: { decay: 0.45, sustain: 0.05, release: 0.4 }, filter: { cutoff: 3000 } });
   space(p, [10, 0], v.out, v.jack, { level: 4, delay: { zone: 4, time: 0.5, feedback: 0.4, mix: 0.25 }, verb: { size: 0.8, decay: 5, mix: 0.4 } });
   return p;
 }

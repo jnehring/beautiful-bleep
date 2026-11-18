@@ -28,7 +28,7 @@ function drawn() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/4", root: "G", scale: "Major Pentatonic", octave: 0, gatelength: 0.9 },
     { data: steps([0, 4, 7, "_", 9, 7, 4, "_"]) });
-  const osc = p.add("oscillator", [1, 0], { shape: 0.55 });
+  const osc = p.add("oscillator", [1, 0], { wave: "Triangle", wave2: "Saw", morph: 0.65 });
   const seg = p.add("segments", [1, 1], {
     count: 5, time1: 0.01, level1: 1, shape1: 0, time2: 0.12, level2: 0.25, shape2: 0.4, time3: 0.25, level3: 0.8, shape3: -0.2,
     time4: 0.5, level4: 0.35, shape4: 0.3, time5: 0.6, level5: 0, shape5: 0.5,
@@ -67,7 +67,7 @@ function ball() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/2", root: "C", scale: "Major Pentatonic", octave: 0, gatelength: 1 },
     { data: steps([0, ".", 7, ".", 4, ".", 9, "."]) });
-  const osc = p.add("oscillator", [1, 0], { shape: 0, octave: "+1" });
+  const osc = p.add("oscillator", [1, 0], { wave: "Sine", octave: "+1" });
   const seg = p.add("segments", [1, 1], {
     count: 8, time1: 0.004, level1: 1, shape1: 0, time2: 0.2, level2: 0, shape2: 0.5, time3: 0.004, level3: 0.7, shape3: 0, time4: 0.15, level4: 0, shape4: 0.5,
     time5: 0.004, level5: 0.45, shape5: 0, time6: 0.1, level6: 0, shape6: 0.5, time7: 0.004, level7: 0.25, shape7: 0, time8: 0.07, level8: 0, shape8: 0.5,
@@ -109,8 +109,8 @@ function inverse() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 4, rate: "1/1", root: "A", scale: "Natural Minor", octave: -1, gatelength: 0.5 },
     { data: steps([0, 5, 3, 7]) });
-  const o1 = p.add("oscillator", [1, 0], { shape: 0.8, fine: -6 });
-  const o2 = p.add("oscillator", [1, 1], { shape: 0.8, fine: 6, coarse: 7 });
+  const o1 = p.add("oscillator", [1, 0], { wave: "Saw", wave2: "Square", morph: 0.4, fine: -6 });
+  const o2 = p.add("oscillator", [1, 1], { wave: "Saw", wave2: "Square", morph: 0.4, fine: 6, coarse: 7 });
   const mix = p.add("audio-mixer", [2, 0], { level1: -8, level2: -12, master: 0 });
   const f = p.add("filter", [3, 0], { cutoff: 500, resonance: 0.2, type: "SVF Multimode" });
   const seg = p.add("segments", [1, 2], {

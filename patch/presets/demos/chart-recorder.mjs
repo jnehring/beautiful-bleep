@@ -44,8 +44,8 @@ function halfSpeedMemory() {
   });
   const r = p.add("random", [0, 3], { sync: "1/4", spread: 0.5, quantize: true, smooth: 0.4, seed: 17 }, { name: "Source" });
   const c = p.add("chart-recorder", [1, 3], { record: "Always", paper: "Free", lengthfree: "5 s", replaysync: "Free", replayspeed: 0.5, interp: "Smooth", detector: "DC" });
-  const osc = p.add("oscillator", [2, 3], { shape: 0.5, octave: "0" }, { name: "Stretched Voice" });
-  const osc2 = p.add("oscillator", [2, 4], { shape: 0.5, octave: "-1" }, { name: "Live Voice" });
+  const osc = p.add("oscillator", [2, 3], { wave: "Triangle", wave2: "Saw", morph: 0.5, octave: "0" }, { name: "Stretched Voice" });
+  const osc2 = p.add("oscillator", [2, 4], { wave: "Triangle", wave2: "Saw", morph: 0.5, octave: "-1" }, { name: "Live Voice" });
   const flt = p.add("filter", [3, 3], { cutoff: 1800, resonance: 0.25 });
   const flt2 = p.add("filter", [3, 4], { cutoff: 900, resonance: 0.25 });
   p.cable(r, "out", c, "in").cable(c, "replay", osc, "pitch", 0.3).cable(r, "out", osc2, "pitch", 0.3)

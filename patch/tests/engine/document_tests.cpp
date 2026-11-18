@@ -537,11 +537,41 @@ void updatedWhileRunning() {
     EXPECT(parsed && std::fabs(parsed->params.at("a") - 0.9f) < 1e-5);
 }
 
+/// Boards saved with the Oscillator's old Shape knob and per-waveform outputs load with the same sound.
+void oldOscillators() {
+    g_test = "old oscillators";
+    auto osc = [](const char* id, double shape) {
+        return obj({{"id", id}, {"type", "oscillator"}, {"parent", ""}, {"params", obj({{"shape", shape}})}});
+    };
+    auto d = doc({osc("a", 0.8), osc("b", 2.0 / 3.0), osc("c", 0.3), osc("d", 0.5), node("f", "filter")},
+                 {cable("a", "out", "f", "l"), cable("b", "out", "f", "l"), cable("c", "sine", "f", "r"),
+                  cable("d", "out", "f", "l"), cable("d", "sub", "f", "r")});
+    const auto model = board::parse(board::sanitise(d));
+    const auto at = [&](const char* id, const char* p) { return model.node(id)->params.at(p); };
+    EXPECT_NEAR(at("a", "wave"), 2.0 / 3.0, 1e-5);   // saw, 40 % toward square
+    EXPECT_NEAR(at("a", "wave2"), 1.0, 1e-5);
+    EXPECT_NEAR(at("a", "morph"), 0.4, 1e-4);
+    EXPECT_NEAR(at("b", "wave"), 2.0 / 3.0, 1e-5);   // a plain saw
+    EXPECT_NEAR(at("b", "morph"), 0.0, 1e-6);
+    EXPECT_NEAR(at("c", "wave"), 0.0, 1e-6);         // only the Sine output was used: a sine at Out
+    EXPECT_NEAR(at("c", "morph"), 0.0, 1e-6);
+    EXPECT_NEAR(at("d", "wave"), 1.0 / 3.0, 1e-5);   // triangle half-way to saw; the Sub cable has nowhere to go
+    EXPECT_NEAR(at("d", "morph"), 0.5, 1e-4);
+    int fromC = 0, sub = 0;
+    for (const auto& c : model.cables) {
+        fromC += c.from.node == "c" && c.from.jack == "out";
+        sub += c.from.jack == "sub";
+    }
+    EXPECT(fromC == 1 && sub == 0);
+    EXPECT(model.cables.size() == 4);
+}
+
 }  // namespace
 
 void runDocumentTests() {
     specMapping();
     sanitising();
+    oldOscillators();
     panelsAreKept();
     panelSources();
     compileCellsAndFeedback();

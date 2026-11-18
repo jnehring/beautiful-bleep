@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 // Shift Register: five demo patches. Each plays by itself with the transport.
-import { patch } from "../kit.mjs";
+import { patch, oscWaves } from "../kit.mjs";
 import { beat } from "../demo-kit.mjs";
 
 const oct = (n) => (n > 0 ? "+" : "") + n;
 /// Oscillator -> ADSR -> VCA (optional filter), played by a pitch jack and a gate jack: [node, jack] pairs.
 function voice(p, at, pitch, gate, o = {}) {
   const [c, r] = at, name = o.name || "Voice";
-  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.6, octave: oct(o.octave ?? 0), ...(o.osc || {}) }, { name });
+  const osc = p.add("oscillator", [c, r], { ...oscWaves(o.shape ?? 0.6), octave: oct(o.octave ?? 0), ...(o.osc || {}) }, { name });
   const env = p.add("adsr", [c, r + 1], { attack: 0.004, decay: 0.3, sustain: 0, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
   const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
   if (pitch) p.cable(pitch[0], pitch[1], osc, "pitch", pitch[2] ?? 1);
@@ -123,7 +123,7 @@ function weighted() {
     tags: ["weights", "mix", "filter", "bass"],
   });
   const sr = p.add("shift-register", [0, 0], { lock: 1, length: 8, sync: "1/8", octaves: 2, root: "E", scale: "Minor Pentatonic", seed: 19, gatelength: 0.8, w1: 1, w2: 0.5, w3: 0.25, w4: -0.4 });
-  const osc = p.add("oscillator", [2, 0], { shape: 0.9, octave: "-2" }, { name: "Bass" });
+  const osc = p.add("oscillator", [2, 0], { wave: "Saw", wave2: "Square", morph: 0.7, octave: "-2" }, { name: "Bass" });
   p.cable(sr, "pitch", osc, "pitch");
   const env = p.add("adsr", [2, 1], { attack: 0.01, decay: 0.3, sustain: 0.6, release: 0.2 }, { name: "Amp Env" });
   const amp = p.add("vca", [3, 0], {}, { name: "VCA" });

@@ -13,7 +13,7 @@ function sq(p, at, notes, knobs = {}, vel) {
 /// Oscillator → ADSR → VCA from a pitch and gate source ({node, pitch, gate, trigger, velocity}), optional filter after.
 function voice(p, at, src, o = {}) {
   const [c, r] = at, name = o.name || "Voice";
-  const osc = p.add("oscillator", [c, r], { shape: 0.8, ...(o.osc || {}) }, { name });
+  const osc = p.add("oscillator", [c, r], { wave: "Saw", wave2: "Square", morph: 0.4, ...(o.osc || {}) }, { name });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.25, sustain: 0.2, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
   const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
   p.cable(src.node, src.pitch || "pitch", osc, "pitch").cable(src.node, src.gate || "gate", env, "gate");
@@ -80,7 +80,7 @@ function twoRowRiff() {
   const seq = p.add("cartesian-sequencer", [0, 0], { gatelength: 0.45, columns: 8, rows: 2, xrate: "1/16", yrate: "Wrap", root: "G", scale: "Dorian" }, {
     data: grid([[0, ".", 7, 5, 3, ".", 7, 10], [12, 10, ".", 7, 5, 3, 0, "."]]),
   });
-  const v = voice(p, [1, 0], { node: seq }, { osc: { shape: 0.8 }, env: { decay: 0.2, sustain: 0.25, release: 0.15 }, filter: { cutoff: 2400, resonance: 0.25 } });
+  const v = voice(p, [1, 0], { node: seq }, { osc: { wave: "Saw", wave2: "Square", morph: 0.4 }, env: { decay: 0.2, sustain: 0.25, release: 0.15 }, filter: { cutoff: 2400, resonance: 0.25 } });
   withBeat(p, [3, 0], v.out, "l", "broken", { lead: 6 });
   return p;
 }
@@ -111,7 +111,7 @@ function modBass() {
   const seq = p.add("cartesian-sequencer", [0, 0], { gatelength: 0.55, columns: 8, rows: 1, xrate: "1/16", yrate: "Wrap", root: "F", scale: "Phrygian", octave: -2, modslew: 0.1 }, {
     data: grid([[0, 0, 12, ".", 0, 3, ".", 7]], { vel: (r, c) => [112, 80, 95, 80, 105, 85, 80, 95][c % 8], mod: (r, c) => [-60, -100, 80, 0, -30, 100, 0, 40][c % 8] }),
   });
-  const v = voice(p, [1, 0], { node: seq }, { osc: { shape: 0.97 }, env: { decay: 0.16, sustain: 0.5, release: 0.07 }, filter: { cutoff: 300, resonance: 0.45, drive: 0.25 } });
+  const v = voice(p, [1, 0], { node: seq }, { osc: { wave: "Saw", wave2: "Square", morph: 0.91 }, env: { decay: 0.16, sustain: 0.5, release: 0.07 }, filter: { cutoff: 300, resonance: 0.45, drive: 0.25 } });
   p.cable(seq, "mod", v.filter, "cutoff", 0.5);
   withBeat(p, [3, 0], v.out, "l", "four", { lead: -5 });
   return p;
@@ -133,7 +133,7 @@ function slowCrosshair() {
   const lx = p.add("lfo", [0, 0], { rate: 0.05 }, { name: "X Drift" });
   const ly = p.add("lfo", [0, 2], { rate: 0.073, wave: "Triangle" }, { name: "Y Drift" });
   p.cable(lx, "out", seq, "x", 0.55).cable(ly, "out", seq, "y", 0.55);
-  const v = voice(p, [1, 0], { node: seq, trigger: false }, { osc: { shape: 0.2 }, env: { attack: 0.3, decay: 1.2, sustain: 0.35, release: 3 }, filter: { cutoff: 2400, type: "1-Pole Low-pass" } });
+  const v = voice(p, [1, 0], { node: seq, trigger: false }, { osc: { wave: "Sine", wave2: "Triangle", morph: 0.6 }, env: { attack: 0.3, decay: 1.2, sustain: 0.35, release: 3 }, filter: { cutoff: 2400, type: "1-Pole Low-pass" } });
   space(p, [4, 0], v.out, "l", { level: 5, delay: { zone: 4, time: 0.6, feedback: 0.55, character: 0.4, wobble: 0.3, mix: 0.4 }, verb: { size: 0.8, decay: 7, mix: 0.45 } });
   return p;
 }
@@ -147,7 +147,7 @@ function rowEndFills() {
   const seq = p.add("cartesian-sequencer", [0, 0], { gatelength: 0.4, columns: 5, rows: 3, xrate: "1/8", yrate: "Wrap", xdirection: "Backward", root: "A", scale: "Natural Minor" }, {
     data: grid([[0, 3, 7, 10, 12], [12, 10, 7, 5, 3], [7, 5, 3, 0, -2]]),
   });
-  const v = voice(p, [1, 0], { node: seq }, { osc: { shape: 0.5 }, env: { decay: 0.3, sustain: 0.1, release: 0.2 }, filter: { cutoff: 2800 } });
+  const v = voice(p, [1, 0], { node: seq }, { osc: { wave: "Triangle", wave2: "Saw", morph: 0.5 }, env: { decay: 0.3, sustain: 0.1, release: 0.2 }, filter: { cutoff: 2800 } });
   const hat = p.add("punch-hats", [1, 3], { level: 0.5, closed: 0.04 });
   const kick = p.add("punch-kick", [1, 4], { level: 0.8, decay: 0.5 });
   const clap = p.add("punch-clap", [1, 5], { level: 0.6 });

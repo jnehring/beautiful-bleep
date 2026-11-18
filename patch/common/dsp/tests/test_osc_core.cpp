@@ -29,7 +29,10 @@ public:
     static constexpr double kC4 = 261.6255653005986;
     void prepare(double sampleRate) noexcept { sampleRate_ = sampleRate; }
     static float frequency(float pitchOctaves) noexcept { return (float)(kC4 * std::exp2((double)pitchOctaves)); }
-    Frame tick(const patch::OscillatorParams& p, float fm, float sync) noexcept {
+    struct Params {
+        float pitch, shape, pulseWidth, fmDepth;
+    };
+    Frame tick(const Params& p, float fm, float sync) noexcept {
         const bool syncHigh = sync >= 0.5f;
         if (syncHigh && !lastSync_) phase_ = 0.0;
         lastSync_ = syncHigh;
@@ -84,14 +87,14 @@ private:
 }  // namespace legacy
 
 void oscillatorUnchanged() {
-    TEST("OscillatorDsp bit-identical to the pre-OscCore code");
+    TEST("OscillatorDsp bit-identical to the pre-OscCore code (Shape as Waveform / Secondary / Morph)");
     for (double sr : {44100.0, 48000.0, 96000.0}) {
         legacy::Oscillator a;
         patch::OscillatorDsp b;
         a.prepare(sr), b.prepare(sr), b.reset();
         float maxDiff = 0.0f;
         for (int n = 0; n < 200000; ++n) {
-            patch::OscillatorParams p;
+            legacy::Oscillator::Params p;
             const double t = n / sr;
             p.pitch = (float)(-3.0 + 9.0 * (0.5 + 0.5 * std::sin(0.31 * t)));  // C1..C7 and beyond (clamp)
             p.shape = (float)(0.5 + 0.6 * std::sin(1.7 * t));                  // also outside 0..1
@@ -99,10 +102,12 @@ void oscillatorUnchanged() {
             p.fmDepth = (float)(0.5 + 0.5 * std::sin(0.13 * t));
             const float fm = (float)std::sin(2.0 * 3.14159265358979 * 523.0 * t);
             const float sync = (n / 517) % 2 == 0 ? 0.0f : 1.0f;
+            patch::OscillatorParams q;
+            q.pitch = p.pitch, q.pulseWidth = p.pulseWidth, q.fmDepth = p.fmDepth;
+            patch::OscillatorDsp::setShape(q, p.shape);  // the old Shape knob as Waveform / Secondary / Morph
             const auto x = a.tick(p, fm, sync);
-            const auto y = b.tick(p, fm, sync);
-            const float d[] = {x.out - y.out, x.sine - y.sine, x.triangle - y.triangle, x.saw - y.saw, x.square - y.square, x.sub - y.sub};
-            for (float v : d) maxDiff = std::max(maxDiff, std::fabs(v));
+            const float y = b.tick(q, fm, sync);
+            maxDiff = std::max(maxDiff, std::fabs(x.out - y));
         }
         EXPECT(maxDiff == 0.0f);
         EXPECT(legacy::Oscillator::frequency(0.37f) == patch::OscillatorDsp::frequency(0.37f));

@@ -1,13 +1,13 @@
 // level-meter: five demo patches. Each plays by itself with the transport.
 // SPDX-License-Identifier: MIT
-import { patch, steps, drumGrid, pattern } from "../kit.mjs";
+import { patch, steps, drumGrid, pattern, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// A mono voice: Oscillator -> VCA with its own ADSR. src: {n, pitch, gate, trig} (trig: false = no retrigger).
 /// o: shape, osc (extra knobs), env, cutoff/res (adds a low-pass), name. Returns {osc, env, amp, out: {n, j}}.
 function voice(p, at, src, o = {}) {
   const [c, r] = at;
-  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.7, ...(o.osc || {}) }, { name: o.name || "Source" });
+  const osc = p.add("oscillator", [c, r], { ...oscWaves(o.shape ?? 0.7), ...(o.osc || {}) }, { name: o.name || "Source" });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.3, sustain: 0.3, release: 0.25, ...(o.env || {}) }, { name: o.envName || "Amp Env" });
   const amp = p.add("vca", [c + 1, r], {}, { name: "VCA" });
   if (src.pitch !== null) p.cable(src.pn || src.n, src.pitch || "pitch", osc, "pitch");
@@ -80,7 +80,7 @@ function duckedPad() {
   const seq = p.add("step-sequencer", [0, 4], { length: 4, rate: "1/1", root: "F", scale: "Major", octave: -1, gatelength: 1 }, { data: steps([0, 4, 5, 7]) }, { name: "Pad Chords" });
   const mix = p.add("audio-mixer", [3, 4], { level1: -6, level2: -6, level3: -6, master: -3, pan1: -0.4, pan2: 0.4 }, { name: "Pad Mix" });
   [0, 7, 12].forEach((s, i) => {
-    const o = p.add("oscillator", [1, 4 + i], { shape: 0.55, coarse: s, fine: (i - 1) * 8 }, { name: `Pad ${i + 1}` });
+    const o = p.add("oscillator", [1, 4 + i], { wave: "Triangle", wave2: "Saw", morph: 0.65, coarse: s, fine: (i - 1) * 8 }, { name: `Pad ${i + 1}` });
     p.cable(seq, "pitch", o, "pitch").cable(o, "out", mix, `in${i + 1}l`).cable(o, "out", mix, `in${i + 1}r`);
   });
   const amp = p.add("vca", [4, 4], { gain: 1 }, { name: "Duck VCA" });

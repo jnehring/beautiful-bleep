@@ -54,7 +54,7 @@ function sirenBells() {
     tags: ["dominant", "quantizer", "pitch tracking", "bells"],
   });
   const lfo = p.add("lfo", [0, 0], { rate: 0.17, wave: "Triangle" }, { name: "Siren Sweep" });
-  const siren = p.add("oscillator", [1, 0], { shape: 0, octave: "0" }, { name: "Siren" });
+  const siren = p.add("oscillator", [1, 0], { wave: "Sine", octave: "0" }, { name: "Siren" });
   p.cable(lfo, "out", siren, "pitch", 1);
   const sv = p.add("vca", [2, 0], { gain: 0.3 }, { name: "Siren Level" });
   p.cable(siren, "out", sv, "l");
@@ -62,11 +62,11 @@ function sirenBells() {
   p.cable(sv, "l", sp, "l");
   const q = p.add("quantizer", [4, 0], { root: "A", scale: "Minor Pentatonic", hysteresis: 0.15, glide: 0 });
   p.cable(sp, "dominant", q, "in");
-  const bell = p.add("oscillator", [5, 0], { shape: 0, octave: "+1" }, { name: "Bell" });
+  const bell = p.add("oscillator", [5, 0], { wave: "Sine", octave: "+1" }, { name: "Bell" });
   const env = p.add("adsr", [5, 1], { attack: 0.003, decay: 1.2, sustain: 0, release: 0.8 }, { name: "Bell Env" });
   const amp = p.add("vca", [6, 0], {}, { name: "Bell VCA" });
   p.cable(q, "out", bell, "pitch").cable(q, "gate", env, "gate").cable(q, "trigger", env, "retrig").cable(bell, "out", amp, "l").cable(env, "env", amp, "gain");
-  const drone = p.add("oscillator", [1, 2], { shape: 0.2, octave: "-2" }, { name: "Drone" });
+  const drone = p.add("oscillator", [1, 2], { wave: "Sine", wave2: "Triangle", morph: 0.6, octave: "-2" }, { name: "Drone" });
   const dv = p.add("vca", [2, 2], { gain: 0.35 }, { name: "Drone Level" });
   p.cable(drone, "out", dv, "l");
   finish(p, [7, 0], [{ n: sp, level: -8 }, { n: amp, level: -6, pan: 0.2 }, { n: dv, level: -6 }], { vmix: 0.45, decay: 4, master: 0 });
@@ -85,7 +85,7 @@ function centroidPad() {
   const seq = gateSeq(p, [0, 4], [0, "_", "_", "_", 3, "_", "_", "_", 5, "_", "_", "_", 3, "_", "_", "_"], "1/4", "Pad Chords");
   const mix = p.add("audio-mixer", [3, 4], { level1: -6, level2: -6, level3: -6, master: -2, pan1: -0.4, pan2: 0.4 }, { name: "Pad Mix" });
   [0, 7, 12].forEach((s, i) => {
-    const o = p.add("oscillator", [1, 4 + i], { shape: 1, coarse: s, fine: (i - 1) * 9, octave: "-1" }, { name: `Pad ${i + 1}` });
+    const o = p.add("oscillator", [1, 4 + i], { wave: "Square", coarse: s, fine: (i - 1) * 9, octave: "-1" }, { name: `Pad ${i + 1}` });
     p.cable(seq, "pitch", o, "pitch").cable(o, "out", mix, `in${i + 1}l`).cable(o, "out", mix, `in${i + 1}r`);
   });
   const flt = p.add("filter", [4, 4], { cutoff: 300, resonance: 0.3, keytrack: 1 }, { name: "Brightness Filter" });
@@ -125,7 +125,7 @@ function tiltedPad() {
   const seq = gateSeq(p, [0, 0], [0, "_", "_", "_", "_", "_", "_", "_", 5, "_", "_", "_", "_", "_", "_", "_"], "1/2", "Pad Roots");
   const mix = p.add("audio-mixer", [3, 0], { level1: -6, level2: -6, level3: -6, master: -2, pan1: -0.5, pan2: 0.5 }, { name: "Pad Mix" });
   [0, 7, 12].forEach((s, i) => {
-    const o = p.add("oscillator", [1, i], { shape: 1, coarse: s, fine: (i - 1) * 8, octave: "-1" }, { name: `Pad ${i + 1}` });
+    const o = p.add("oscillator", [1, i], { wave: "Square", coarse: s, fine: (i - 1) * 8, octave: "-1" }, { name: `Pad ${i + 1}` });
     p.cable(seq, "pitch", o, "pitch").cable(o, "out", mix, `in${i + 1}l`).cable(o, "out", mix, `in${i + 1}r`);
   });
   const lfo = p.add("lfo", [3, 3], { rate: 0.07, wave: "Triangle" }, { name: "Sweep" });

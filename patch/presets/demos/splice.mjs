@@ -51,7 +51,7 @@ function reelKeyboard() {
     description: "One recorded note is replayed as an instrument: a sequencer's Pitch drives the Speed input (1 V per octave) and its trigger restarts the splice, with Loop on One-shot. Change the sequence for a new tune, or Window Size for another timbre; pitch and speed move together, like tape.",
     tags: ["sampler", "melodic", "speed input", "one-shot"],
   });
-  const src = p.add("oscillator", [0, 0], { shape: 0.25 }, { name: "Note" });
+  const src = p.add("oscillator", [0, 0], { wave: "Sine", wave2: "Triangle", morph: 0.75 }, { name: "Note" });
   const env = p.add("adsr", [0, 1], { attack: 0.003, decay: 0.8, sustain: 0.3, release: 0.4 }, { name: "Note Env" });
   const amp = p.add("vca", [1, 0], {}, { name: "VCA" });
   const nseq = p.add("step-sequencer", [0, 2], { length: 1, rate: "1/1", root: "C", octave: -1 }, { data: steps([0]), name: "Note Seq" });

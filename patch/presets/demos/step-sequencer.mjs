@@ -13,7 +13,7 @@ function sq(p, at, notes, knobs = {}, vel) {
 /// Oscillator → ADSR → VCA from a pitch and gate source ({node, pitch, gate, trigger, velocity}), optional filter after.
 function voice(p, at, src, o = {}) {
   const [c, r] = at, name = o.name || "Voice";
-  const osc = p.add("oscillator", [c, r], { shape: 0.8, ...(o.osc || {}) }, { name });
+  const osc = p.add("oscillator", [c, r], { wave: "Saw", wave2: "Square", morph: 0.4, ...(o.osc || {}) }, { name });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.25, sustain: 0.2, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
   const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
   p.cable(src.node, src.pitch || "pitch", osc, "pitch").cable(src.node, src.gate || "gate", env, "gate");
@@ -63,7 +63,7 @@ function pentatonicPluck() {
   });
   const s = sq(p, [0, 0], [0, 4, 7, 9, ".", 12, 9, 7, 4, ".", 2, 4, 7, ".", 9, 12], { rate: "1/16", root: "C", scale: "Major Pentatonic", gatelength: 0.4 },
     [110, 80, 90, 80, 100, 85, 80, 90, 80, 100, 80, 85, 90, 100, 80, 95]);
-  const v = voice(p, [1, 0], { node: s, velocity: "velocity" }, { osc: { shape: 0.55 }, env: { decay: 0.25, sustain: 0.05, release: 0.2 }, filter: { cutoff: 3200, resonance: 0.15 } });
+  const v = voice(p, [1, 0], { node: s, velocity: "velocity" }, { osc: { wave: "Triangle", wave2: "Saw", morph: 0.65 }, env: { decay: 0.25, sustain: 0.05, release: 0.2 }, filter: { cutoff: 3200, resonance: 0.15 } });
   space(p, [4, 0], v.out, "l", { level: 6, delay: { zone: 3, time: 0.4, feedback: 0.4, mix: 0.3 }, verb: { size: 0.5, decay: 2, mix: 0.25 } });
   return p;
 }
@@ -75,7 +75,7 @@ function acidTies() {
     tags: ["bass", "ties", "swing", "acid"],
   });
   const s = sq(p, [0, 0], [0, 0, 12, "_", 0, ".", 10, 0, 7, "_", 0, 3, ".", 0, 12, 10], { rate: "1/16", root: "E", scale: "Phrygian", octave: -2, gatelength: 0.55, swing: 0.56 });
-  const v = voice(p, [1, 0], { node: s }, { osc: { shape: 0.97 }, env: { decay: 0.16, sustain: 0.6, release: 0.06 }, filter: { cutoff: 420, resonance: 0.5, drive: 0.25 } });
+  const v = voice(p, [1, 0], { node: s }, { osc: { wave: "Saw", wave2: "Square", morph: 0.91 }, env: { decay: 0.16, sustain: 0.6, release: 0.06 }, filter: { cutoff: 420, resonance: 0.5, drive: 0.25 } });
   const fe = p.add("adsr", [1, 2], { attack: 0.002, decay: 0.2, sustain: 0.1, release: 0.1 }, { name: "Filter Env" });
   p.cable(s, "gate", fe, "gate").cable(s, "trigger", fe, "retrig").cable(fe, "env", v.filter, "cutoff", 0.5);
   withBeat(p, [3, 0], v.out, "l", "four", { lead: -6 });
@@ -89,7 +89,7 @@ function pingPongBells() {
     tags: ["direction", "ping-pong", "triplets", "bells"],
   });
   const s = sq(p, [0, 0], [0, 2, 4, 7, 9, 11, 12, 14, 16, 19, 21, 24], { rate: "1/8T", root: "D", scale: "Dorian", direction: "Ping-Pong", gatelength: 0.35 });
-  const v = voice(p, [1, 0], { node: s }, { osc: { shape: 0.1 }, env: { decay: 0.6, sustain: 0, release: 0.5 } });
+  const v = voice(p, [1, 0], { node: s }, { osc: { wave: "Sine", wave2: "Triangle", morph: 0.3 }, env: { decay: 0.6, sustain: 0, release: 0.5 } });
   space(p, [4, 0], v.out, "l", { level: 3, delay: { zone: 3, time: 0.5, feedback: 0.45, mix: 0.3, tone: -0.2 }, verb: { size: 0.7, decay: 4.5, mix: 0.35 } });
   return p;
 }
@@ -103,7 +103,7 @@ function shakenTune() {
   const s = sq(p, [0, 0], [0, 3, 7, 3, 10, 7, 3, 5], { rate: "1/16", root: "A", scale: "Minor Pentatonic", variation: 0.45, varrange: 7, seed: 12, gatelength: 0.4 });
   const l = p.add("lfo", [0, 2], { rate: 0.07, polarity: "Unipolar" }, { name: "Chance Swell" });
   p.cable(l, "out", s, "variation", 0.4);
-  const v = voice(p, [1, 0], { node: s }, { osc: { shape: 0.8 }, env: { decay: 0.2, sustain: 0.25, release: 0.15 }, filter: { cutoff: 2200, resonance: 0.25 } });
+  const v = voice(p, [1, 0], { node: s }, { osc: { wave: "Saw", wave2: "Square", morph: 0.4 }, env: { decay: 0.2, sustain: 0.25, release: 0.15 }, filter: { cutoff: 2200, resonance: 0.25 } });
   withBeat(p, [3, 0], v.out, "l", "broken", { lead: 3 });
   return p;
 }
@@ -117,8 +117,8 @@ function chordWalker() {
   const slow = sq(p, [0, 2], [0, 5, 3, 7], { rate: "1/1", root: "A", scale: "Chromatic", octave: -2, gatelength: 0.95 });
   const fig = sq(p, [0, 0], [0, 3, 7, 12, 7, 3, 10, 7], { rate: "1/8", root: "A", scale: "Natural Minor", octave: 0, gatelength: 0.5 });
   p.cable(slow, "pitch", fig, "transpose");
-  const lead = voice(p, [1, 0], { node: fig }, { name: "Figure", osc: { shape: 0.6 }, env: { decay: 0.3, sustain: 0.1, release: 0.25 }, filter: { cutoff: 2600, resonance: 0.15 } });
-  const sub = voice(p, [1, 3], { node: slow }, { name: "Sub", osc: { shape: 0.3 }, env: { attack: 0.02, decay: 0.5, sustain: 0.8, release: 0.3 }, filter: { cutoff: 500 } });
+  const lead = voice(p, [1, 0], { node: fig }, { name: "Figure", osc: { wave: "Triangle", wave2: "Saw", morph: 0.8 }, env: { decay: 0.3, sustain: 0.1, release: 0.25 }, filter: { cutoff: 2600, resonance: 0.15 } });
+  const sub = voice(p, [1, 3], { node: slow }, { name: "Sub", osc: { wave: "Sine", wave2: "Triangle", morph: 0.9 }, env: { attack: 0.02, decay: 0.5, sustain: 0.8, release: 0.3 }, filter: { cutoff: 500 } });
   const mix = p.add("audio-mixer", [4, 0], { level1: -2, level2: -9, master: 0 }, { name: "Mix" });
   p.cable(lead.out, "l", mix, "in1l").cable(lead.out, "l", mix, "in1r").cable(sub.out, "l", mix, "in2l").cable(sub.out, "l", mix, "in2r");
   const d = p.add("zone-delay", [5, 0], { zone: 3, time: 0.4, feedback: 0.35, mix: 0.2, tone: -0.2 });

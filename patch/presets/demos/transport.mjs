@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 // Transport: five demo patches. Each plays by itself with the transport.
-import { patch } from "../kit.mjs";
+import { patch, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 const oct = (n) => (n > 0 ? "+" : "") + n;
 /// Oscillator -> ADSR -> VCA (optional filter), played by a pitch jack and a gate jack: [node, jack] pairs.
 function voice(p, at, pitch, gate, o = {}) {
   const [c, r] = at, name = o.name || "Voice";
-  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.6, octave: oct(o.octave ?? 0), ...(o.osc || {}) }, { name });
+  const osc = p.add("oscillator", [c, r], { ...oscWaves(o.shape ?? 0.6), octave: oct(o.octave ?? 0), ...(o.osc || {}) }, { name });
   const env = p.add("adsr", [c, r + 1], { attack: 0.004, decay: 0.3, sustain: 0, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
   const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
   if (pitch) p.cable(pitch[0], pitch[1], osc, "pitch", pitch[2] ?? 1);
@@ -53,7 +53,7 @@ function playingPad() {
   const drums = beat(p, [2, 0], { style: "half", level: -4 });
   const env = p.add("adsr", [0, 4], { attack: 4, decay: 1, sustain: 1, release: 5, velamount: 0 }, { name: "Fade" });
   p.cable(tr, "playing", env, "gate");
-  const oscs = [-12, -5, 0, 4].map((n, i) => p.add("oscillator", [1, 3 + i], { shape: 0.5 + i * 0.1, coarse: n, fine: (i - 1.5) * 6, octave: "0" }, { name: `Pad ${i + 1}` }));
+  const oscs = [-12, -5, 0, 4].map((n, i) => p.add("oscillator", [1, 3 + i], { ...oscWaves(0.5 + i * 0.1), coarse: n, fine: (i - 1.5) * 6, octave: "0" }, { name: `Pad ${i + 1}` }));
   const sum = p.add("audio-mixer", [2, 4], { level1: -6, level2: -6, level3: -6, level4: -6, pan1: -0.6, pan2: 0.6, pan3: -0.2, pan4: 0.2, master: -4 }, { name: "Pad Mix" });
   oscs.forEach((o, i) => p.cable(o, "out", sum, `in${i + 1}l`));
   const filt = p.add("filter", [3, 4], { cutoff: 1200, resonance: 0.2, type: "Ladder Tanh" }, { name: "Warm" });

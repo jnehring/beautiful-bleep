@@ -60,7 +60,7 @@ function softBass() {
     tags: ["bass", "saturation", "warm", "drive"],
   });
   const seq = seqOf(p, [0, 0], [0, ".", 0, 3, ".", 5, 7, ".", 0, ".", 10, 7, ".", 5, 3, "."], { root: "E", octave: -2, gate: 0.7 });
-  const osc = p.add("oscillator", [1, 0], { shape: 0 });
+  const osc = p.add("oscillator", [1, 0], { wave: "Sine" });
   const st = p.add("shape-table", [3, 0], { drive: 12, mix: 1, out: -6, quality: "4x" }, { data: SOFT });
   const v = gated(p, [2, 0], osc, seq, "out", "pitch", { env: { attack: 0.004, decay: 0.2, sustain: 0.7, release: 0.15 } });
   p.cable(v.amp, "l", st, "l");
@@ -76,7 +76,7 @@ function foldLead() {
     tags: ["fold", "lead", "envelope", "bright"],
   });
   const seq = seqOf(p, [0, 0], [0, 3, 7, 10, 7, 3, 5, ".", 0, 3, 7, 12, 10, 7, 5, 3], { root: "A", gate: 0.6 });
-  const osc = p.add("oscillator", [1, 0], { shape: 0.6 });
+  const osc = p.add("oscillator", [1, 0], { wave: "Triangle", wave2: "Saw", morph: 0.8 });
   const fe = p.add("adsr", [1, 2], { attack: 0.002, decay: 0.3, sustain: 0.2, release: 0.1 }, { name: "Fold Env" });
   const st = p.add("shape-table", [3, 0], { drive: 3, out: -8, quality: "4x" }, { data: FOLD });
   const v = gated(p, [2, 0], osc, seq, "out", "pitch", { env: { decay: 0.3, sustain: 0.5, release: 0.25 } });
@@ -92,7 +92,7 @@ function wrapTable() {
     tags: ["wrap", "table", "oscillator", "evolving"],
   });
   const seq = seqOf(p, [0, 0], [0, "_", "_", "_", 5, "_", "_", "_", 7, "_", "_", "_", 3, "_", "_", "_"], { rate: "1/4", gate: 1, root: "G", octave: -1 });
-  const osc = p.add("oscillator", [1, 0], { shape: 0.3 });
+  const osc = p.add("oscillator", [1, 0], { wave: "Sine", wave2: "Triangle", morph: 0.9 });
   const l = p.add("lfo", [1, 2], { wave: "Triangle", sync: "Tempo", division: "4 bars", polarity: "Unipolar" }, { name: "Drive Sweep" });
   const st = p.add("shape-table", [3, 0], { drive: 6, edge: "Wrap", out: -7, quality: "4x" }, { data: SINE });
   const v = gated(p, [2, 0], osc, seq, "out", "pitch", { env: { attack: 0.2, decay: 0.4, sustain: 0.9, release: 0.8 } });

@@ -565,8 +565,8 @@ export default cell("Two oscillators", { description: "A saw and a pulse, mixed.
   c.stereoOut();
   const a = c.add("oscillator", { coarse: 0 });
   const b = c.add("oscillator", { coarse: 7 });
-  c.cable(a, "saw", c.cout, "l");
-  c.cable(b, "saw", c.cout, "r");
+  c.cable(a, "out", c.cout, "l");
+  c.cable(b, "out", c.cout, "r");
 });
 ```
 
@@ -594,7 +594,7 @@ export default cell("Gated voice", (c) => {
   const amp = c.add("vca");
   c.cable(c.cin, "pitch", osc, "pitch");
   c.cable(c.cin, "gate", amp, "gain");
-  c.cable(osc, "saw", amp, "l");
+  c.cable(osc, "out", amp, "l");
   c.stereo(amp, c.cout);
 });
 ```
@@ -621,7 +621,7 @@ export default cell("Filtered saw", (c) => {
   c.stereoOut();
   const osc = c.add("oscillator", { fine: -12 }, { name: "Saw", at: [0, 0] });
   const lp = c.add("filter", { cutoff: 800, mode: "LP" }, { at: [1, 0] });
-  c.cable(osc, "saw", lp, "l");
+  c.cable(osc, "out", lp, "l");
   c.stereo(lp, c.cout);
 });
 ```
@@ -644,7 +644,7 @@ export default cell("Wobble", (c) => {
   const osc = c.add("oscillator");
   const lfo = c.add("lfo", { rate: 4 });
   const lp = c.add("filter", { cutoff: 1200 });
-  c.cable(osc, "saw", lp, "l");
+  c.cable(osc, "out", lp, "l");
   c.cable(lfo, "out", lp, "cutoff", 0.4);        // an LFO into a knob
   c.stereo(lp, c.cout);
 });
@@ -689,7 +689,7 @@ export default cell("Placed", (c) => {
   c.stereoOut();
   const osc = c.add("oscillator");
   c.place(osc, 40, 40);
-  c.cable(osc, "saw", c.cout, "l");
+  c.cable(osc, "out", c.cout, "l");
 });
 ```
 

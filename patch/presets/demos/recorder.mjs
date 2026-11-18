@@ -65,11 +65,11 @@ function recordingBlip() {
   const gate = gateSeq(p, [0, 6], [0, "_", "_", "_", "_", "_", "_", "_", "_", "_", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "."], "1/4", "Take Gate");
   const { rec } = recorded(p, [0, 0], { gatecontrol: "Starts and Ends", limit: "10 s", preroll: 0 });
   p.cable(gate, "gate", rec, "gate");
-  const lamp = p.add("oscillator", [6, 1], { shape: 0, octave: "+1" }, { name: "Lamp Tone" });
+  const lamp = p.add("oscillator", [6, 1], { wave: "Sine", octave: "+1" }, { name: "Lamp Tone" });
   const env = p.add("adsr", [6, 2], { attack: 0.05, decay: 0.1, sustain: 1, release: 0.3 }, { name: "Lamp Env" });
   const lv = p.add("vca", [7, 1], {}, { name: "Lamp VCA" });
   p.cable(rec, "rec", env, "gate").cable(lamp, "out", lv, "l").cable(env, "env", lv, "gain");
-  const wh = p.add("oscillator", [6, 3], { shape: 0, octave: "+2", coarse: 4 }, { name: "Progress Whistle" });
+  const wh = p.add("oscillator", [6, 3], { wave: "Sine", octave: "+2", coarse: 4 }, { name: "Progress Whistle" });
   const wenv = p.add("adsr", [6, 4], { attack: 0.2, decay: 0.1, sustain: 1, release: 0.5 }, { name: "Whistle Env" });
   const wv = p.add("vca", [7, 3], {}, { name: "Whistle VCA" });
   p.cable(rec, "progress", wh, "pitch", 1).cable(rec, "rec", wenv, "gate").cable(wh, "out", wv, "l").cable(wenv, "env", wv, "gain");
@@ -89,7 +89,7 @@ function armedOnSignal() {
   const rec = p.add("recorder", [4, 0], { limit: "30 s", start: "On Signal", threshold: -40, preroll: 0.5, gatecontrol: "Ignored" });
   p.cable(flt, "l", rec, "l").cable(flt, "l", rec, "r");
   const drums = beat(p, [0, 4], { style: "sparse", level: -8 });
-  const bell = p.add("oscillator", [5, 1], { shape: 0, octave: "+2" }, { name: "Done Bell" });
+  const bell = p.add("oscillator", [5, 1], { wave: "Sine", octave: "+2" }, { name: "Done Bell" });
   const env = p.add("adsr", [5, 2], { attack: 0.003, decay: 1.5, sustain: 0, release: 1 }, { name: "Done Env" });
   const bv = p.add("vca", [6, 1], {}, { name: "Done VCA" });
   p.cable(rec, "done", env, "gate").cable(rec, "done", env, "retrig").cable(bell, "out", bv, "l").cable(env, "env", bv, "gain");
@@ -123,7 +123,7 @@ function limitSweep() {
   const gate = gateSeq(p, [0, 6], [...tie, ".", ".", ".", ".", ".", ".", ".", "."], "1/4", "Long Gate");
   const mix = p.add("audio-mixer", [2, 0], { level1: -6, level2: -6, level3: -6, master: -2, pan1: -0.5, pan2: 0.5 }, { name: "Pad Mix" });
   [0, 7, 12].forEach((s, i) => {
-    const o = p.add("oscillator", [1, i], { shape: 1, coarse: s, fine: (i - 1) * 8, octave: "-1" }, { name: `Pad ${i + 1}` });
+    const o = p.add("oscillator", [1, i], { wave: "Square", coarse: s, fine: (i - 1) * 8, octave: "-1" }, { name: `Pad ${i + 1}` });
     p.cable(o, "out", mix, `in${i + 1}l`).cable(o, "out", mix, `in${i + 1}r`);
   });
   const rec = p.add("recorder", [3, 0], { limit: "10 s", start: "By Hand", preroll: 0, gatecontrol: "Starts and Ends" });

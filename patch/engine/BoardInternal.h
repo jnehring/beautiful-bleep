@@ -25,6 +25,9 @@ inline juce::var jackVar(const CellJack& j) {
     return juce::var(o);
 }
 
+/// Old Oscillator documents (one Shape knob, an output per waveform) in today's form; Board.cpp.
+juce::var migrateOscillators(const juce::var& doc);
+
 inline std::vector<CellJack> parseJacks(const juce::var& list) {
     std::vector<CellJack> out;
     std::set<std::string> seen;

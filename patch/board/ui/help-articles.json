@@ -13,8 +13,20 @@
  },
  {
   "group": "Start",
-  "title": "Install in Live",
-  "description": "Install the Bleep plugins in Ableton Live and find them in the browser.",
+  "title": "Get started with Bleep Play",
+  "description": "Bleep in your browser, no install: start audio, play the keyboard synth, patch a cable and save your project.",
+  "path": "/docs/musicians/start/getting-started-play/"
+ },
+ {
+  "group": "Start",
+  "title": "Get started with the Bleep App",
+  "description": "The board without a DAW: download the app, install the modules, choose your audio interface, make a sound and save a project.",
+  "path": "/docs/musicians/start/getting-started-app/"
+ },
+ {
+  "group": "Start",
+  "title": "Get started in Live",
+  "description": "Install the Bleep plugins in Ableton Live, play a preset, then open the board and patch across your tracks.",
   "path": "/docs/musicians/start/getting-started/"
  },
  {

@@ -117,7 +117,7 @@ function whaleSong() {
   const un = p.add("uncertainty", [0, 2], { f1rate: 0.07, f2rate: 0.05, f1spread: 1, f2spread: 1, seed: 22 });
   const mix = p.add("audio-mixer", [3, 1], { level1: 0, pan1: -0.4, send1: -4, level2: -2, pan2: 0.4, send2: -3, return: -3, master: -1 });
   [["Call 1", -1, 0, "smooth", "fluct1", 7], ["Call 2", -1, 7, "wobble", "fluct2", 5]].forEach(([name, octave, coarse, pitchOut, ampOut, range], i) => {
-    const o = p.add("oscillator", [1, i * 2], { octave: String(octave), coarse, shape: 0 }, { name });
+    const o = p.add("oscillator", [1, i * 2], { octave: String(octave), coarse, wave: "Sine" }, { name });
     const lvl = p.add("utility", [1, i * 2 + 1], { scalex: 0.5, offset: 0.4 }, { name: `${name} Level` });
     const amp = p.add("vca", [2, i], { response: "Linear" }, { name: `${name} VCA` });
     p.cable(wob, pitchOut, o, "pitch", semis(range)).cable(un, ampOut, lvl, "x").cable(lvl, "out", amp, "gain")

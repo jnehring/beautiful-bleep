@@ -21,7 +21,7 @@ function blend(p, at, a, b, la = -3, lb = -6, aj = ["l", "r"], bj = ["outl", "ou
 function chordSource(p, at, notes, opts = {}) {
   // Two detuned saws on one sequencer: a thick carrier. Returns the VCA with mono audio on "l".
   const m = melody(p, at, notes, { shape: 1, rate: "1/4", gatelength: 1, env: { attack: 0.05, decay: 0.5, sustain: 0.9, release: 0.6 }, ...opts });
-  const o2 = p.add("oscillator", [at[0] + 1, at[1] + 2], { shape: 1, fine: 9, coarse: 7 }, { name: "Fifth" });
+  const o2 = p.add("oscillator", [at[0] + 1, at[1] + 2], { wave: "Square", fine: 9, coarse: 7 }, { name: "Fifth" });
   p.cable(m.seq, "pitch", o2, "pitch");
   const g = p.add("audio-mixer", [at[0] + 2, at[1] + 2], { level1: -2, level2: -8, master: 0 }, { name: "Blend" });
   p.cable(m.osc, "out", g, "in1l").cable(o2, "out", g, "in2l");

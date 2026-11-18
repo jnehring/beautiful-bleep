@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Generative: self-playing patches as plain cells. Press play and they make
 // music on their own, in time with the transport; Out L/R out.
-import { cell, category, semis, steps as stepsOf } from "./kit.mjs";
+import { cell, category, semis, steps as stepsOf, oscWaves } from "./kit.mjs";
 
 /// Gate Sequencer data: up to four 32-step tracks as strings. `.` off, `x` hit, `X` accent, `o` ghost, `?` coin-flip hit.
 function gateTracks(rows) {
@@ -200,7 +200,7 @@ function heartbeatDrone() {
       "Tip: automate Depth up slowly as a scene tightens.",
   }).input("cut", "Cutoff").input("depth", "Depth").stereoOut();
   const oscs = [["Root", "-2", 0, 0.12, 0], ["Fifth", "-2", 7, 0.18, 4], ["Third", "-1", 3, 0.3, -3]].map(([name, octave, coarse, shape, fine], i) =>
-    p.add("oscillator", [0, i], { octave, coarse, shape, fine }, { name }));
+    p.add("oscillator", [0, i], { octave, coarse, ...oscWaves(shape), fine }, { name }));
   const breath = p.add("noise", [0, 3], { colour: -0.7, level: 1 }, { name: "Dark Noise" });
   const flt = p.add("filter", [1, 1], { cutoff: 240, resonance: 0.18, drive: 0.1, type: "Ladder Tanh" }, { name: "Drone Filter" });
   oscs.forEach((o, i) => { const amt = [0.5, 0.35, 0.18][i]; p.cable(o, "out", flt, "l", amt).cable(o, "out", flt, "r", amt); });

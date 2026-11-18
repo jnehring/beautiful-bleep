@@ -20,7 +20,7 @@ function sampleHold() {
   const walk = p.add("lfo", [0, 1], { wave: "Triangle", rate: 0.23 }, { name: "Walker" });
   const u = p.add("utility", [1, 0], { mode: "Sample & Hold" });
   const q = p.add("quantizer", [2, 0], { root: "D", scale: "Minor Pentatonic", range: 1.4 });
-  const osc = p.add("oscillator", [3, 0], { shape: 0.7 });
+  const osc = p.add("oscillator", [3, 0], { wave: "Saw", wave2: "Square", morph: 0.1 });
   const env = p.add("adsr", [3, 1], { attack: 0.004, decay: 0.22, sustain: 0.1, release: 0.15 });
   const f = p.add("filter", [4, 0], { cutoff: 1500, resonance: 0.2, type: "Ladder Tanh" });
   const vca = p.add("vca", [5, 0], {});
@@ -39,7 +39,7 @@ function portamento() {
   const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/8", root: "G", scale: "Minor Pentatonic", octave: 0, gatelength: 0.9 },
     { data: steps([0, "_", 7, "_", 12, 10, "_", 7, 3, "_", 5, "_", 12, "_", 15, 12]) });
   const u = p.add("utility", [1, 0], { slew: 0.12 });
-  const osc = p.add("oscillator", [2, 0], { shape: 0.5 });
+  const osc = p.add("oscillator", [2, 0], { wave: "Triangle", wave2: "Saw", morph: 0.5 });
   const f = p.add("filter", [3, 0], { cutoff: 1300, resonance: 0.25, type: "Ladder Tanh" });
   const env = p.add("adsr", [2, 1], { attack: 0.02, decay: 0.2, sustain: 0.8, release: 0.2 });
   const vca = p.add("vca", [4, 0], {});
@@ -100,8 +100,8 @@ function rectified() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 4, rate: "1/1", root: "E", scale: "Minor Pentatonic", octave: 0, gatelength: 1 },
     { data: steps([0, 3, 5, 7]) });
-  const o1 = p.add("oscillator", [1, 0], { shape: 0.6, fine: -6 });
-  const o2 = p.add("oscillator", [1, 1], { shape: 0.6, fine: 6, coarse: 7 });
+  const o1 = p.add("oscillator", [1, 0], { wave: "Triangle", wave2: "Saw", morph: 0.8, fine: -6 });
+  const o2 = p.add("oscillator", [1, 1], { wave: "Triangle", wave2: "Saw", morph: 0.8, fine: 6, coarse: 7 });
   const mix = p.add("audio-mixer", [2, 0], { level1: -6, level2: -9, pan1: -0.3, pan2: 0.3, master: -4 });
   const lfo = p.add("lfo", [1, 3], { rate: 3.2 }, { name: "Tremolo" });
   const u = p.add("utility", [2, 3], { mode: "Rectify" });

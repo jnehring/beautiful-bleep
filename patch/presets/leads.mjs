@@ -103,13 +103,13 @@ function pitchDropPulse() {
       "Notes in, Out L/R. The shared input Width adds to the pulse width.\n\n" +
       "Tip: play staccato, rhythmic lines and move Width for thinner or fatter tones.",
   }).settings({ voices: 1, mode: "Mono", glide: 0.02 }).input("pw", "Width");
-  const osc = p.add("oscillator", [0, 0], { shape: 1, pw: 0.3 });
+  const osc = p.add("oscillator", [0, 0], { wave: "Square", pw: 0.3 });
   const drop = envelope(p, [0, 1], { attack: 0.001, decay: 0.07, sustain: 0, release: 0.05, velamount: 0 }, "Drop Env");
   const lfo = p.add("lfo", [0, 2], { rate: 0.7, wave: "Triangle" }, { name: "Width LFO" });
   const flt = p.add("filter", [1, 0], { cutoff: 3200, resonance: 0.3, drive: 0.2, keytrack: 0.5, type: "SVF Multimode" });
   p.cable(p.vin, "pitch", osc, "pitch").cable(drop, "env", osc, "pitch", semis(7)).cable(lfo, "out", osc, "pw", 0.12)
-    .cable(p.cin, "pw", osc, "pw", 0.35).cable(osc, "out", flt, "l", 0.55).cable(osc, "sub", flt, "l", 0.4)
-    .cable(p.vin, "pitch", flt, "pitch");
+    .cable(p.cin, "pw", osc, "pw", 0.35).cable(osc, "out", flt, "l", 0.55)
+    .cable(p.subOsc(osc, [0, 3]), "out", flt, "l", 0.4).cable(p.vin, "pitch", flt, "pitch");
   ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.002, decay: 0.25, sustain: 0.75, release: 0.12 });
   return p;
 }

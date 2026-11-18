@@ -13,7 +13,7 @@ function sq(p, at, notes, knobs = {}, vel) {
 /// Oscillator → ADSR → VCA from a pitch and gate source ({node, pitch, gate, trigger, velocity}), optional filter after.
 function voice(p, at, src, o = {}) {
   const [c, r] = at, name = o.name || "Voice";
-  const osc = p.add("oscillator", [c, r], { shape: 0.8, ...(o.osc || {}) }, { name });
+  const osc = p.add("oscillator", [c, r], { wave: "Saw", wave2: "Square", morph: 0.4, ...(o.osc || {}) }, { name });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.25, sustain: 0.2, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
   const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
   p.cable(src.node, src.pitch || "pitch", osc, "pitch").cable(src.node, src.gate || "gate", env, "gate");
@@ -64,7 +64,7 @@ function pitchBend() {
   const s = sq(p, [0, 0], [0, 4, 7, 12, 11, 7, 4, 2], { rate: "1/8", root: "A", scale: "Dorian", gatelength: 0.8 });
   const w = p.add("wheel", [0, 2], { value: 0.5, min: -1, max: 1, smooth: 0.03, spring: true }, { name: "Bend Wheel" });
   p.cable(w, "out", s, "transpose", 1 / 6);
-  const v = voice(p, [1, 0], { node: s }, { osc: { shape: 0.8 }, env: { attack: 0.01, decay: 0.3, sustain: 0.5, release: 0.2 }, filter: { cutoff: 2400, resonance: 0.2 } });
+  const v = voice(p, [1, 0], { node: s }, { osc: { wave: "Saw", wave2: "Square", morph: 0.4 }, env: { attack: 0.01, decay: 0.3, sustain: 0.5, release: 0.2 }, filter: { cutoff: 2400, resonance: 0.2 } });
   space(p, [4, 0], v.out, "l", { level: 5, delay: { zone: 3, time: 0.45, feedback: 0.4, mix: 0.25 }, verb: { size: 0.5, decay: 2.2, mix: 0.25 } });
   return p;
 }
@@ -93,7 +93,7 @@ function crunchRide() {
     tags: ["distortion", "drums", "drive", "performance"],
   });
   const s = sq(p, [0, 0], [0, 0, ".", 12, 0, ".", 7, 10], { rate: "1/16", root: "C", scale: "Minor Pentatonic", octave: -2, gatelength: 0.5 });
-  const bass = voice(p, [1, 0], { node: s }, { osc: { shape: 0.9 }, env: { decay: 0.18, sustain: 0.35, release: 0.08 }, filter: { cutoff: 600, resonance: 0.25 } });
+  const bass = voice(p, [1, 0], { node: s }, { osc: { wave: "Saw", wave2: "Square", morph: 0.7 }, env: { decay: 0.18, sustain: 0.35, release: 0.08 }, filter: { cutoff: 600, resonance: 0.25 } });
   const drums = beat(p, [0, 3], { style: "shuffle", level: -9 });
   const mix = p.add("audio-mixer", [3, 0], { level1: -2, level2: -3, master: -2 }, { name: "Mix" });
   p.cable(bass.out, "l", mix, "in1l").cable(bass.out, "l", mix, "in1r").stereo(drums, mix, { from: ["outl", "outr"], to: ["in2l", "in2r"] });

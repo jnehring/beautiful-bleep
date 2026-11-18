@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Function: five demo patches. Each plays by itself with the transport.
-import { patch, steps } from "../kit.mjs";
+import { patch, steps, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// Mono/stereo source (`src`, jacks l/r) → trim → reverb → Out.
@@ -26,8 +26,8 @@ function pad(p, at, notes, o = {}) {
   const [c, r] = at;
   const seq = p.add("step-sequencer", [c, r], { length: notes.length, rate: o.rate || "1/2", root: o.root || "A", scale: o.scale || "Minor Pentatonic",
     octave: o.octave ?? -1, gatelength: o.gate ?? 0.95 }, { data: steps(notes) });
-  const o1 = p.add("oscillator", [c + 1, r], { shape: o.shape ?? 0.5, fine: -9 }, { name: "Osc L" });
-  const o2 = p.add("oscillator", [c + 1, r + 1], { shape: o.shape ?? 0.5, fine: 9 }, { name: "Osc R" });
+  const o1 = p.add("oscillator", [c + 1, r], { ...oscWaves(o.shape ?? 0.5), fine: -9 }, { name: "Osc L" });
+  const o2 = p.add("oscillator", [c + 1, r + 1], { ...oscWaves(o.shape ?? 0.5), fine: 9 }, { name: "Osc R" });
   const amp = p.add("vca", [c + 2, r], { gain: o.gain ?? 1 }, { name: "VCA" });
   const f = p.add("filter", [c + 3, r], { cutoff: 1400, resonance: 0.2, ...(o.filter || {}) }, { name: "Filter" });
   p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", amp, "l").cable(o2, "out", amp, "r")
@@ -56,7 +56,7 @@ function pluckEnv() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/8", root: "D", scale: "Dorian", octave: 0, gatelength: 0.3 },
     { data: steps([0, ".", 7, 3, ".", 10, 7, ".", 5, 3, ".", 7, 12, ".", 10, 7]) });
-  const osc = p.add("oscillator", [1, 0], { shape: 0.9 }, { name: "Source" });
+  const osc = p.add("oscillator", [1, 0], { wave: "Saw", wave2: "Square", morph: 0.7 }, { name: "Source" });
   const amp = p.add("vca", [2, 0], {});
   const f = p.add("function", [1, 1], { rise: 0.004, fall: 0.5, shape: -0.3, spread: 0.55, cycle: false });
   const flt = p.add("filter", [3, 0], { cutoff: 350, resonance: 0.3 }, { name: "Filter" });
@@ -75,7 +75,7 @@ function fourLags() {
   const v = voice(p, [0, 0], [0, 3, 7, 3, 10, 7, 3, 7, 0, 5, 8, 5, 12, 8, 5, 3], { rate: "1/8", shape: 0.5, root: "C", scale: "Natural Minor", env: { decay: 0.35, sustain: 0.3 }, filter: { cutoff: 700, resonance: 0.3 } });
   const f = p.add("function", [3, 1], { rise: 3.5, fall: 4.5, spread: 0.7, shape: 0, cycle: true });
   const verb = finish(p, [4, 0], v.filt, { stereo: true, trim: -3, verb: { size: 0.4, decay: 3.5, mix: 0.35 } });
-  p.cable(f, "a", v.filt, "cutoff", 0.5).cable(f, "b", v.filt, "resonance", 0.4).cable(f, "c", v.osc, "shape", 0.4).cable(f, "d", verb, "size", 0.5);
+  p.cable(f, "a", v.filt, "cutoff", 0.5).cable(f, "b", v.filt, "resonance", 0.4).cable(f, "c", v.osc, "morph", 0.8).cable(f, "d", verb, "size", 0.5);
   return p;
 }
 
@@ -107,7 +107,7 @@ function chain() {
   const pd = pad(p, [0, 0], [0, 4, 2, 7], { rate: "1/1", root: "F", scale: "Major Pentatonic", gain: 0, filter: { cutoff: 1500 } });
   const f1 = p.add("function", [1, 2], { rise: 1.8, fall: 2.4, cycle: false });
   const f2 = p.add("function", [2, 2], { rise: 0.003, fall: 0.9, shape: -0.4, cycle: false });
-  const bell = p.add("oscillator", [3, 2], { shape: 0, octave: "+2" }, { name: "Chime" });
+  const bell = p.add("oscillator", [3, 2], { wave: "Sine", octave: "+2" }, { name: "Chime" });
   const bva = p.add("vca", [4, 2], {});
   p.cable(trig, "gate", f1, "trig").cable(f1, "a", pd.amp, "gain", 0.8).cable(f1, "eoc", f2, "trig")
     .cable(trig, "pitch", bell, "pitch").cable(bell, "out", bva, "l").cable(f2, "a", bva, "gain", 0.5);

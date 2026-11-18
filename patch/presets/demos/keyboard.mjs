@@ -13,7 +13,7 @@ function sq(p, at, notes, knobs = {}, vel) {
 /// Oscillator → ADSR → VCA from a pitch and gate source ({node, pitch, gate, trigger, velocity}), optional filter after.
 function voice(p, at, src, o = {}) {
   const [c, r] = at, name = o.name || "Voice";
-  const osc = p.add("oscillator", [c, r], { shape: 0.8, ...(o.osc || {}) }, { name });
+  const osc = p.add("oscillator", [c, r], { wave: "Saw", wave2: "Square", morph: 0.4, ...(o.osc || {}) }, { name });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.25, sustain: 0.2, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
   const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
   p.cable(src.node, src.pitch || "pitch", osc, "pitch").cable(src.node, src.gate || "gate", env, "gate");
@@ -64,7 +64,7 @@ function transposingKeys() {
   const s = sq(p, [0, 0], [0, 3, 7, 12, 10, 7, 3, 5], { rate: "1/16", root: "C", scale: "Minor Pentatonic", gatelength: 0.5 });
   const k = p.add("keyboard", [0, 2], { velocity: 0.8, glide: 0, octave: 0, priority: "Last" }, { name: "Transpose Keys" });
   p.cable(k, "pitch", s, "transpose");
-  const v = voice(p, [1, 0], { node: s }, { osc: { shape: 0.85 }, env: { decay: 0.2, sustain: 0.3, release: 0.15 }, filter: { cutoff: 2000, resonance: 0.2 } });
+  const v = voice(p, [1, 0], { node: s }, { osc: { wave: "Saw", wave2: "Square", morph: 0.55 }, env: { decay: 0.2, sustain: 0.3, release: 0.15 }, filter: { cutoff: 2000, resonance: 0.2 } });
   withBeat(p, [3, 0], v.out, "l", "half", { lead: 2 });
   return p;
 }
@@ -77,7 +77,7 @@ function glideLead() {
   });
   const m = melody(p, [0, 0], [0, 7, 12, 7, 4, 9, 12, 16], { rate: "1/8", shape: 0.15, root: "A", scale: "Minor Pentatonic", octave: 1, env: { decay: 0.4, sustain: 0.05, release: 0.4 }, gatelength: 0.3 });
   const k = p.add("keyboard", [0, 3], { velocity: 0.8, glide: 0.25, octave: 0, priority: "Last" }, { name: "Lead Keys" });
-  const lead = voice(p, [1, 3], { node: k, trigger: false, velocity: "vel" }, { name: "Lead", osc: { shape: 0.85 }, env: { attack: 0.02, decay: 0.3, sustain: 0.7, release: 0.3 }, filter: { cutoff: 2200, resonance: 0.25 } });
+  const lead = voice(p, [1, 3], { node: k, trigger: false, velocity: "vel" }, { name: "Lead", osc: { wave: "Saw", wave2: "Square", morph: 0.55 }, env: { attack: 0.02, decay: 0.3, sustain: 0.7, release: 0.3 }, filter: { cutoff: 2200, resonance: 0.25 } });
   const mix = p.add("audio-mixer", [4, 0], { level1: 1, level2: -3, master: 0 }, { name: "Mix" });
   p.cable(m.amp, "l", mix, "in1l").cable(m.amp, "l", mix, "in1r").cable(lead.out, "l", mix, "in2l").cable(lead.out, "l", mix, "in2r");
   const d = p.add("zone-delay", [5, 0], { zone: 3, time: 0.45, feedback: 0.4, mix: 0.25, tone: -0.2 });
@@ -93,7 +93,7 @@ function malletLayer() {
     tags: ["mallet", "velocity", "layer", "marimba"],
   });
   const s = sq(p, [0, 0], [0, ".", 0, 7, ".", 5, 0, "."], { rate: "1/8", root: "G", scale: "Dorian", octave: -2, gatelength: 0.6 });
-  const bass = voice(p, [1, 0], { node: s }, { name: "Bass", osc: { shape: 0.5 }, env: { decay: 0.3, sustain: 0.5, release: 0.15 }, filter: { cutoff: 700, resonance: 0.2 } });
+  const bass = voice(p, [1, 0], { node: s }, { name: "Bass", osc: { wave: "Triangle", wave2: "Saw", morph: 0.5 }, env: { decay: 0.3, sustain: 0.5, release: 0.15 }, filter: { cutoff: 700, resonance: 0.2 } });
   const k = p.add("keyboard", [0, 3], { velocity: 0.8, octave: 0 }, { name: "Mallet Keys" });
   const mal = p.add("modal-voice", [1, 3], { strike: 1, strikeTimbre: 0.55, geometry: 0.3, brightness: 0.6, damping: 0.45, position: 0.3, size: 0.35, space: 0.25 }, { name: "Marimba" });
   p.cable(k, "pitch", mal, "pitch").cable(k, "trigger", mal, "strike").cable(k, "vel", mal, "velocity");
@@ -113,9 +113,9 @@ function latchedArp() {
   const k = p.add("keyboard", [0, 0], { velocity: 0.8, octave: 0 }, { name: "Chord Keys" });
   const a = p.add("arpeggiator", [1, 0], { rate: "1/16", pattern: "Up-Down", octaves: 2, latch: "On", gatelength: 0.4 });
   p.cable(k, "notes", a, "notes");
-  const v = voice(p, [2, 0], { node: a, velocity: "velocity" }, { osc: { shape: 0.8 }, env: { decay: 0.2, sustain: 0.2, release: 0.15 }, filter: { cutoff: 2400, resonance: 0.2 } });
+  const v = voice(p, [2, 0], { node: a, velocity: "velocity" }, { osc: { wave: "Saw", wave2: "Square", morph: 0.4 }, env: { decay: 0.2, sustain: 0.2, release: 0.15 }, filter: { cutoff: 2400, resonance: 0.2 } });
   const b = sq(p, [0, 3], [0, 0, ".", 12, 0, ".", 7, 5], { rate: "1/16", root: "A", scale: "Minor Pentatonic", octave: -2, gatelength: 0.5 });
-  const bass = voice(p, [1, 3], { node: b }, { name: "Bass", osc: { shape: 0.9 }, env: { decay: 0.18, sustain: 0.35, release: 0.08 }, filter: { cutoff: 500, resonance: 0.25 } });
+  const bass = voice(p, [1, 3], { node: b }, { name: "Bass", osc: { wave: "Saw", wave2: "Square", morph: 0.7 }, env: { decay: 0.18, sustain: 0.35, release: 0.08 }, filter: { cutoff: 500, resonance: 0.25 } });
   const drums = beat(p, [2, 4], { style: "four", level: -9 });
   const mix = p.add("audio-mixer", [4, 0], { level1: 2, level2: -2, level3: -4, master: -2 }, { name: "Mix" });
   p.cable(v.out, "l", mix, "in1l").cable(v.out, "l", mix, "in1r").cable(bass.out, "l", mix, "in2l").cable(bass.out, "l", mix, "in2r")
@@ -133,7 +133,7 @@ function holdDrone() {
   });
   const m = melody(p, [0, 0], [0, ".", 7, ".", 4, ".", 9, 2], { rate: "1/4", shape: 0.2, root: "D", scale: "Major Pentatonic", octave: 1, env: { decay: 0.8, sustain: 0.1, release: 0.8 } });
   const k = p.add("keyboard", [0, 3], { velocity: 0.8, octave: -1, priority: "Lowest", hold: true }, { name: "Drone Keys" });
-  const dr = voice(p, [1, 3], { node: k, trigger: false }, { name: "Drone", osc: { shape: 0.6 }, env: { attack: 1.5, decay: 0.5, sustain: 1, release: 3 }, filter: { cutoff: 700 } });
+  const dr = voice(p, [1, 3], { node: k, trigger: false }, { name: "Drone", osc: { wave: "Triangle", wave2: "Saw", morph: 0.8 }, env: { attack: 1.5, decay: 0.5, sustain: 1, release: 3 }, filter: { cutoff: 700 } });
   const mix = p.add("audio-mixer", [4, 0], { level1: 2, level2: -3, master: 0 }, { name: "Mix" });
   p.cable(m.amp, "l", mix, "in1l").cable(m.amp, "l", mix, "in1r").cable(dr.out, "l", mix, "in2l").cable(dr.out, "l", mix, "in2r");
   const v = p.add("reverb", [5, 0], { size: 0.8, decay: 8, mix: 0.4 });

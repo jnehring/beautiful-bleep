@@ -40,11 +40,11 @@ function waveTuner() {
     tags: ["wave", "frequency", "tuner", "pitch out"],
   });
   const seq = gateSeq(p, [0, 0], [0, "_", "_", "_", 5, "_", "_", "_", 3, "_", "_", "_", 7, "_", "_", "_"], "1/2", "Drone Notes");
-  const osc = p.add("oscillator", [1, 0], { shape: 0.5, octave: "-1" }, { name: "Drone" });
+  const osc = p.add("oscillator", [1, 0], { wave: "Triangle", wave2: "Saw", morph: 0.5, octave: "-1" }, { name: "Drone" });
   const rc = p.add("rate-counter", [2, 0], { mode: "Wave", perbeat: "1", average: 4 });
   const dv = p.add("vca", [3, 0], { gain: 0.5 }, { name: "Drone Level" });
   p.cable(seq, "pitch", osc, "pitch").cable(osc, "out", rc, "in").cable(osc, "out", dv, "l");
-  const fol = p.add("oscillator", [3, 1], { shape: 0, octave: "+1", coarse: 7 }, { name: "Rate Follower" });
+  const fol = p.add("oscillator", [3, 1], { wave: "Sine", octave: "+1", coarse: 7 }, { name: "Rate Follower" });
   const fv = p.add("vca", [4, 1], { gain: 0.35 }, { name: "Follower Level" });
   p.cable(rc, "hz", fol, "pitch").cable(fol, "out", fv, "l");
   const drums = beat(p, [0, 4], { style: "sparse", level: -9 });
@@ -77,7 +77,7 @@ function sixteenths() {
   const m = melody(p, [0, 0], [0, 7, 12, 7, 0, 7, 12, 7, 3, 10, 15, 10, 5, 12, 17, 12], { rate: "1/16", root: "F", scale: "Natural Minor", octave: 0, shape: 0.8, gatelength: 0.45, env: { decay: 0.1, sustain: 0, release: 0.08 } });
   const rc = p.add("rate-counter", [3, 0], { mode: "Pulse Train", perbeat: "4", average: 12 });
   p.cable(m.seq, "trigger", rc, "in");
-  const drone = p.add("oscillator", [3, 1], { shape: 0.3, octave: "-2" }, { name: "Tempo Drone" });
+  const drone = p.add("oscillator", [3, 1], { wave: "Sine", wave2: "Triangle", morph: 0.9, octave: "-2" }, { name: "Tempo Drone" });
   const dv = p.add("vca", [4, 1], { gain: 0.45 }, { name: "Drone Level" });
   p.cable(rc, "average", drone, "pitch", 1).cable(drone, "out", dv, "l");
   const drums = beat(p, [0, 4], { style: "shuffle", level: -8 });
@@ -100,7 +100,7 @@ function steadyPad() {
   p.cable(rc, "stable", env, "gate");
   const mix = p.add("audio-mixer", [4, 1], { level1: -7, level2: -7, level3: -7, master: -2, pan1: -0.4, pan2: 0.4 }, { name: "Pad Mix" });
   [0, 7, 9].forEach((s, i) => {
-    const o = p.add("oscillator", [1, 2 + i], { shape: 0.7, coarse: s + 3, fine: (i - 1) * 7, octave: "-1" }, { name: `Pad ${i + 1}` });
+    const o = p.add("oscillator", [1, 2 + i], { wave: "Saw", wave2: "Square", morph: 0.1, coarse: s + 3, fine: (i - 1) * 7, octave: "-1" }, { name: `Pad ${i + 1}` });
     p.cable(o, "out", mix, `in${i + 1}l`).cable(o, "out", mix, `in${i + 1}r`);
   });
   const amp = p.add("vca", [5, 1], { gain: 0 }, { name: "Pad VCA" });
@@ -121,7 +121,7 @@ function edgeEcho() {
   p.cable(m.seq, "gate", rc, "in");
   const rim = p.add("punch-rim", [4, 0], { level: 0.6 });
   p.cable(rc, "pulse", rim, "trig");
-  const bell = p.add("oscillator", [4, 1], { shape: 0, octave: "+2" }, { name: "Echo Bell" });
+  const bell = p.add("oscillator", [4, 1], { wave: "Sine", octave: "+2" }, { name: "Echo Bell" });
   const env = p.add("adsr", [4, 2], { attack: 0.003, decay: 0.7, sustain: 0, release: 0.5 }, { name: "Echo Env" });
   const bv = p.add("vca", [5, 1], {}, { name: "Echo VCA" });
   p.cable(m.seq, "pitch", bell, "pitch").cable(rc, "pulse", env, "gate").cable(rc, "pulse", env, "retrig").cable(bell, "out", bv, "l").cable(env, "env", bv, "gain");

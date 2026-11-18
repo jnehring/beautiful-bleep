@@ -16,9 +16,9 @@ export default cell("Stack", { description: "Three oscillators into a filter." }
   c.stereoOut();
   const filter = c.add("filter", { cutoff: 2000 });
   for (let i = 0; i < 3; i++) {
-    const osc = c.add("oscillator", { coarse: i * 7, shape: 0.2 });
+    const osc = c.add("oscillator", { coarse: i * 7, wave: "Sine", wave2: "Triangle", morph: 0.6 });
     c.cable(c.cin, "pitch", osc, "pitch");
-    c.cable(osc, "saw", filter, "l", 0.5);
+    c.cable(osc, "out", filter, "l", 0.5);
   }
   c.stereo(filter, c.cout);
 });
@@ -59,7 +59,7 @@ A script is recognised as a patch script if it has no `@module` and calls `cell(
 
 ### Cables
 
-`c.cable(osc, "saw", filter, "l", 0.5)` reads: from the oscillator's output `saw` to the filter's input `l`, at half strength. A cable can also end at a knob that cables can drive: `c.cable(lfo, "out", filter, "cutoff", 0.3)`. Several cables into one input add up, which is how a hundred oscillators mix into one filter.
+`c.cable(osc, "out", filter, "l", 0.5)` reads: from the oscillator's output `out` to the filter's input `l`, at half strength. A cable can also end at a knob that cables can drive: `c.cable(lfo, "out", filter, "cutoff", 0.3)`. Several cables into one input add up, which is how a hundred oscillators mix into one filter.
 
 Notes connect only to notes; everything else connects freely. A cable to a jack or knob that does not exist is an error that names the module and the jack.
 

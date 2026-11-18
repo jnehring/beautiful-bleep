@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 // Drum Grid: five demo patches. Each plays by itself with the transport.
-import { patch, drumGrid, pattern } from "../kit.mjs";
+import { patch, drumGrid, pattern, oscWaves } from "../kit.mjs";
 import { melody } from "../demo-kit.mjs";
 
 const oct = (n) => (n > 0 ? "+" : "") + n;
 /// Oscillator -> ADSR -> VCA (optional filter), played by a pitch jack and a gate jack: [node, jack] pairs.
 function voice(p, at, pitch, gate, o = {}) {
   const [c, r] = at, name = o.name || "Voice";
-  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.6, octave: oct(o.octave ?? 0), ...(o.osc || {}) }, { name });
+  const osc = p.add("oscillator", [c, r], { ...oscWaves(o.shape ?? 0.6), octave: oct(o.octave ?? 0), ...(o.osc || {}) }, { name });
   const env = p.add("adsr", [c, r + 1], { attack: 0.004, decay: 0.3, sustain: 0, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
   const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
   if (pitch) p.cable(pitch[0], pitch[1], osc, "pitch", pitch[2] ?? 1);
@@ -131,8 +131,8 @@ function accentDynamics() {
   const hats = p.add("punch-hats", [2, 2], { level: 0.45, closed: 0.04 });
   p.cable(g, "gate1", kick, "trig").cable(g, "velocity1", kick, "velocity").cable(g, "gate2", clap, "trig").cable(g, "velocity2", clap, "velocity")
     .cable(g, "gate3", hats, "closed").cable(g, "velocity3", hats, "velocity");
-  const drone = p.add("oscillator", [0, 3], { shape: 0.9, octave: "-2", coarse: -5 }, { name: "Drone" });
-  const drone2 = p.add("oscillator", [0, 4], { shape: 0.9, octave: "-2", coarse: -4.8 }, { name: "Drone 2" });
+  const drone = p.add("oscillator", [0, 3], { wave: "Saw", wave2: "Square", morph: 0.7, octave: "-2", coarse: -5 }, { name: "Drone" });
+  const drone2 = p.add("oscillator", [0, 4], { wave: "Saw", wave2: "Square", morph: 0.7, octave: "-2", coarse: -4.8 }, { name: "Drone 2" });
   const pump = p.add("adsr", [1, 4], { attack: 0.01, decay: 0.45, sustain: 0.15, release: 0.3, velamount: 0 }, { name: "Pump" });
   const filt = p.add("filter", [2, 3], { cutoff: 140, resonance: 0.3, type: "Ladder Tanh", drive: 0.2 }, { name: "Drone Filter" });
   p.cable(g, "accent", pump, "gate").cable(pump, "env", filt, "cutoff", 0.6).cable(drone, "out", filt, "l").cable(drone2, "out", filt, "r");

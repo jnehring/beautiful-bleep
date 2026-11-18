@@ -36,8 +36,8 @@ function average() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 4, rate: "1/1", root: "C", scale: "Major", octave: 0, gatelength: 1 },
     { data: steps([0, 5, 7, 4]) });
-  const o1 = p.add("oscillator", [1, 0], { shape: 0.75 });
-  const o2 = p.add("oscillator", [1, 1], { shape: 0.75, coarse: 7, octave: "0" });
+  const o1 = p.add("oscillator", [1, 0], { wave: "Saw", wave2: "Square", morph: 0.25 });
+  const o2 = p.add("oscillator", [1, 1], { wave: "Saw", wave2: "Square", morph: 0.25, coarse: 7, octave: "0" });
   const rs = [0, 1, 2, 3].map((i) => p.add("random", [0, 2 + i], { rate: 0.4 + 0.17 * i, smooth: 1, sync: "Free", seed: 3 + i, spread: 1 }, { name: `Drift ${i + 1}` }));
   const cv = p.add("cv-mixer", [1, 3], { mode: "Average", level1: 1, level2: 1, level3: 1, level4: 1, master: 1 });
   rs.forEach((r, i) => p.cable(r, "out", cv, "in" + (i + 1)));
@@ -61,8 +61,8 @@ function maxSwell() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 4, rate: "1/1", root: "A", scale: "Dorian", octave: 0, gatelength: 1 },
     { data: steps([0, 3, 7, 5]) });
-  const o1 = p.add("oscillator", [1, 0], { shape: 0.7, fine: -5 });
-  const o2 = p.add("oscillator", [1, 1], { shape: 0.7, fine: 5, coarse: 7 });
+  const o1 = p.add("oscillator", [1, 0], { wave: "Saw", wave2: "Square", morph: 0.1, fine: -5 });
+  const o2 = p.add("oscillator", [1, 1], { wave: "Saw", wave2: "Square", morph: 0.1, fine: 5, coarse: 7 });
   const mix = p.add("audio-mixer", [2, 0], { level1: -6, level2: -9, pan1: -0.4, pan2: 0.4, master: 2 });
   const l1 = p.add("lfo", [0, 3], { sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Slow" });
   const l2 = p.add("lfo", [0, 4], { wave: "Triangle", sync: "Tempo", division: "1/1", polarity: "Unipolar", phase: 90 }, { name: "Faster" });
@@ -84,9 +84,9 @@ function minGate() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 2, rate: "1/1", root: "D", scale: "Natural Minor", octave: 0, gatelength: 1 },
     { data: steps([0, 5]) });
-  const o1 = p.add("oscillator", [1, 0], { shape: 0.7 });
-  const o2 = p.add("oscillator", [1, 1], { shape: 0.7, coarse: 7 });
-  const o3 = p.add("oscillator", [1, 2], { shape: 0.7, coarse: 3, octave: "+1" });
+  const o1 = p.add("oscillator", [1, 0], { wave: "Saw", wave2: "Square", morph: 0.1 });
+  const o2 = p.add("oscillator", [1, 1], { wave: "Saw", wave2: "Square", morph: 0.1, coarse: 7 });
+  const o3 = p.add("oscillator", [1, 2], { wave: "Saw", wave2: "Square", morph: 0.1, coarse: 3, octave: "+1" });
   const mix = p.add("audio-mixer", [2, 0], { level1: -8, level2: -10, level3: -13, pan1: -0.3, pan3: 0.3, master: 0 });
   const a = p.add("lfo", [0, 4], { wave: "Square", sync: "Tempo", division: "1/8", polarity: "Unipolar", pw: 0.7 }, { name: "Eighths" });
   const b = p.add("lfo", [0, 5], { wave: "Square", sync: "Tempo", division: "1/4", polarity: "Unipolar", pw: 0.6, phase: 40 }, { name: "Quarters" });
@@ -118,7 +118,7 @@ function scan() {
   const sweep = p.add("lfo", [1, 5], { wave: "Triangle", rate: 0.07, polarity: "Unipolar" }, { name: "Scan Sweep" });
   p.cable(sweep, "out", cv, "scan");
   const q = p.add("quantizer", [2, 0], { root: "A", scale: "Minor Pentatonic", range: 1.2 });
-  const osc = p.add("oscillator", [3, 0], { shape: 0.65 });
+  const osc = p.add("oscillator", [3, 0], { wave: "Triangle", wave2: "Saw", morph: 0.95 });
   const env = p.add("adsr", [3, 1], { attack: 0.004, decay: 0.25, sustain: 0.15, release: 0.2 });
   const f = p.add("filter", [4, 0], { cutoff: 1800, resonance: 0.2, type: "Ladder Tanh" });
   const vca = p.add("vca", [5, 0], {});

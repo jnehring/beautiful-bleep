@@ -83,6 +83,7 @@
 
   /// A little of the engine's sanitise(): dangling cables go, ports stay.
   function sanitise(next) {
+    if (window.BleepWeb && BleepWeb.upgradeBoard) BleepWeb.upgradeBoard(next);   // old saves in today's form (the Oscillator's Shape)
     const ids = new Set(next.nodes.map((n) => n.id));
     for (const n of board.nodes) {
       const t = typeOf(n.type);

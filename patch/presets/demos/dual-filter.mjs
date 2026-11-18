@@ -75,7 +75,7 @@ function notchPhase() {
   });
   const m = melody(p, [0, 0], [0, "_", "_", "_", 7, "_", "_", "_", 12, "_", "_", "_", 10, "_", "_", "_"], {
     rate: "1/4", root: "F", scale: "Lydian", octave: -1, shape: 1, gatelength: 1, env: { attack: 0.4, decay: 0.5, sustain: 0.9, release: 1.5 } });
-  const o2 = p.add("oscillator", [1, 2], { shape: 1, fine: -10, coarse: 4 }, { name: "Third" });
+  const o2 = p.add("oscillator", [1, 2], { wave: "Square", fine: -10, coarse: 4 }, { name: "Third" });
   p.cable(m.seq, "pitch", o2, "pitch");
   const g = p.add("audio-mixer", [2, 2], { level1: -2, level2: -8, master: 0 }, { name: "Blend" });
   p.cable(m.osc, "out", g, "in1l").cable(o2, "out", g, "in2l");
@@ -99,7 +99,7 @@ function drumSplit() {
   const f = p.add("dual-filter", [3, 0], { cutoff: 900, spread: 1.5, res1: 0.4, res2: 0.4, mode1: 0, mode2: 1, routing: "Serial", drive: 0.5, character: "Saturating", mix: 0.9 });
   const lfo = p.add("lfo", [3, 1], { wave: "Triangle", sync: "Tempo", division: "2 bars" }, { name: "Open" });
   p.stereo(d, f, { from: ["outl", "outr"] }).cable(lfo, "out", f, "cutoff", 0.45);
-  const bass = p.add("oscillator", [3, 3], { octave: "-2", shape: 0.1 }, { name: "Sub" });
+  const bass = p.add("oscillator", [3, 3], { octave: "-2", wave: "Sine", wave2: "Triangle", morph: 0.3 }, { name: "Sub" });
   const seq = p.add("step-sequencer", [2, 3], { length: 16, rate: "1/8", root: "E", scale: "Minor Pentatonic", octave: -1, gatelength: 0.6 },
     { data: steps([0, "_", ".", 0, ".", 3, ".", 5, 0, "_", ".", 0, ".", 7, ".", 5]) });
   const env = p.add("adsr", [4, 3], { attack: 0.005, decay: 0.2, sustain: 0.5, release: 0.15 }, { name: "Sub Env" });

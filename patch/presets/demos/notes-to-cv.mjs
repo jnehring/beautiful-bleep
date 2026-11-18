@@ -1,13 +1,13 @@
 // notes-to-cv: five demo patches. Each plays by itself with the transport.
 // SPDX-License-Identifier: MIT
-import { patch, steps, drumGrid, pattern } from "../kit.mjs";
+import { patch, steps, drumGrid, pattern, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// A mono voice: Oscillator -> VCA with its own ADSR. src: {n, pitch, gate, trig} (trig: false = no retrigger).
 /// o: shape, osc (extra knobs), env, cutoff/res (adds a low-pass), name. Returns {osc, env, amp, out: {n, j}}.
 function voice(p, at, src, o = {}) {
   const [c, r] = at;
-  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.7, ...(o.osc || {}) }, { name: o.name || "Source" });
+  const osc = p.add("oscillator", [c, r], { ...oscWaves(o.shape ?? 0.7), ...(o.osc || {}) }, { name: o.name || "Source" });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.3, sustain: 0.3, release: 0.25, ...(o.env || {}) }, { name: o.envName || "Amp Env" });
   const amp = p.add("vca", [c + 1, r], {}, { name: "VCA" });
   if (src.pitch !== null) p.cable(src.pn || src.n, src.pitch || "pitch", osc, "pitch");

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Neuron: five demo patches. Each plays by itself with the transport.
-import { patch, steps } from "../kit.mjs";
+import { patch, steps, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// Mono/stereo source (`src`, jacks l/r) → trim → reverb → Out.
@@ -26,8 +26,8 @@ function pad(p, at, notes, o = {}) {
   const [c, r] = at;
   const seq = p.add("step-sequencer", [c, r], { length: notes.length, rate: o.rate || "1/2", root: o.root || "A", scale: o.scale || "Minor Pentatonic",
     octave: o.octave ?? -1, gatelength: o.gate ?? 0.95 }, { data: steps(notes) });
-  const o1 = p.add("oscillator", [c + 1, r], { shape: o.shape ?? 0.5, fine: -9 }, { name: "Osc L" });
-  const o2 = p.add("oscillator", [c + 1, r + 1], { shape: o.shape ?? 0.5, fine: 9 }, { name: "Osc R" });
+  const o1 = p.add("oscillator", [c + 1, r], { ...oscWaves(o.shape ?? 0.5), fine: -9 }, { name: "Osc L" });
+  const o2 = p.add("oscillator", [c + 1, r + 1], { ...oscWaves(o.shape ?? 0.5), fine: 9 }, { name: "Osc R" });
   const amp = p.add("vca", [c + 2, r], { gain: o.gain ?? 1 }, { name: "VCA" });
   const f = p.add("filter", [c + 3, r], { cutoff: 1400, resonance: 0.2, ...(o.filter || {}) }, { name: "Filter" });
   p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", amp, "l").cable(o2, "out", amp, "r")
@@ -44,7 +44,7 @@ function chord(p, at, tones, o = {}) {
   const mixB = p.add("audio-mixer", [c + 2, r + 3], { level1: lv, level2: lv, level3: lv, pan1: 0.5, pan2: -0.4, pan3: 0.2, master: 0 }, { name: "Mix 4-6" });
   const vcas = [], oscs = [];
   tones.forEach((t, i) => {
-    const osc = p.add("oscillator", [c, r + i], { shape: o.shape ?? 0, coarse: t[0], octave: t[1] }, { name: `Tone ${i + 1}` });
+    const osc = p.add("oscillator", [c, r + i], { ...oscWaves(o.shape ?? 0), coarse: t[0], octave: t[1] }, { name: `Tone ${i + 1}` });
     const vca = p.add("vca", [c + 1, r + i], { gain: o.gain ?? 0 }, { name: `Level ${i + 1}` });
     p.cable(osc, "out", vca, "l");
     if (o.pitch) p.cable(o.pitch, "pitch", osc, "pitch");
@@ -85,7 +85,7 @@ function melody2() {
   });
   const n = p.add("neuron", [0, 0], { athreshold: 0.45, aleak: 0.6, aw1: 1, apulse: 0.12 });
   const q = p.add("quantizer", [1, 0], { root: "E", scale: "Minor Pentatonic", range: 1 });
-  const osc = p.add("oscillator", [2, 0], { shape: 0.75 }, { name: "Source" });
+  const osc = p.add("oscillator", [2, 0], { wave: "Saw", wave2: "Square", morph: 0.25 }, { name: "Source" });
   const env = p.add("adsr", [2, 1], { attack: 0.004, decay: 0.3, sustain: 0.2, release: 0.25 }, { name: "Amp Env" });
   const amp = p.add("vca", [3, 0], {});
   const f = p.add("filter", [4, 0], { cutoff: 1800, resonance: 0.2 }, { name: "Filter" });
@@ -102,10 +102,10 @@ function callResponse() {
     tags: ["cross", "interaction", "bass", "bell"],
   });
   const n = p.add("neuron", [0, 0], { cross: "Gate", athreshold: 0.5, bthreshold: 0.45, aw3: 0.4, bw3: -0.6 });
-  const bass = p.add("oscillator", [1, 0], { shape: 0.05, octave: "-2" }, { name: "Bass" });
+  const bass = p.add("oscillator", [1, 0], { wave: "Sine", wave2: "Triangle", morph: 0.15, octave: "-2" }, { name: "Bass" });
   const be = p.add("adsr", [1, 1], { attack: 0.005, decay: 0.5, sustain: 0.3, release: 0.3 }, { name: "Bass Env" });
   const ba = p.add("vca", [2, 0], {});
-  const bell = p.add("oscillator", [1, 2], { shape: 0, octave: "+2", coarse: 7 }, { name: "Bell" });
+  const bell = p.add("oscillator", [1, 2], { wave: "Sine", octave: "+2", coarse: 7 }, { name: "Bell" });
   const ee = p.add("adsr", [1, 3], { attack: 0.002, decay: 0.9, sustain: 0, release: 0.8 }, { name: "Bell Env" });
   const ea = p.add("vca", [2, 2], {});
   p.cable(n, "agate", be, "gate").cable(be, "env", ba, "gain").cable(bass, "out", ba, "l")

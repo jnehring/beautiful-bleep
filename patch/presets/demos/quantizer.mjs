@@ -1,13 +1,13 @@
 // quantizer: five demo patches. Each plays by itself with the transport.
 // SPDX-License-Identifier: MIT
-import { patch, steps, drumGrid, pattern } from "../kit.mjs";
+import { patch, steps, drumGrid, pattern, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// A mono voice: Oscillator -> VCA with its own ADSR. src: {n, pitch, gate, trig} (trig: false = no retrigger).
 /// o: shape, osc (extra knobs), env, cutoff/res (adds a low-pass), name. Returns {osc, env, amp, out: {n, j}}.
 function voice(p, at, src, o = {}) {
   const [c, r] = at;
-  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.7, ...(o.osc || {}) }, { name: o.name || "Source" });
+  const osc = p.add("oscillator", [c, r], { ...oscWaves(o.shape ?? 0.7), ...(o.osc || {}) }, { name: o.name || "Source" });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.3, sustain: 0.3, release: 0.25, ...(o.env || {}) }, { name: o.envName || "Amp Env" });
   const amp = p.add("vca", [c + 1, r], {}, { name: "VCA" });
   if (src.pitch !== null) p.cable(src.pn || src.n, src.pitch || "pitch", osc, "pitch");
@@ -53,7 +53,7 @@ function triangleClimb() {
   const v = voice(p, [2, 0], { n: q, pitch: "out", gate: "gate", trig: "trigger" }, { shape: 0.35, env: { decay: 0.4, sustain: 0, release: 0.3 }, osc: { octave: "0" } });
   const dl = p.add("delay", [4, 0], { timel: 333, timer: 500, feedback: 0.45, highcut: 5000, mix: 0.3 });
   p.cable(v.amp, "l", dl, "l").cable(v.amp, "l", dl, "r");
-  const drone = p.add("oscillator", [2, 3], { shape: 0.1, octave: "-2" }, { name: "Drone" });
+  const drone = p.add("oscillator", [2, 3], { wave: "Sine", wave2: "Triangle", morph: 0.3, octave: "-2" }, { name: "Drone" });
   const dv = p.add("vca", [3, 3], { gain: 0.4 }, { name: "Drone Level" });
   p.cable(drone, "out", dv, "l");
   finish(p, [5, 0], [{ n: dl, level: 0 }, { n: v.amp, level: -3 }, { n: dv, level: -12 }], { vmix: 0.3, decay: 3.5, master: 0 });
@@ -105,8 +105,8 @@ function glideSlides() {
   const lfo = p.add("lfo", [0, 0], { rate: 0.25, wave: "Sine" }, { name: "Swell" });
   const q = p.add("quantizer", [1, 0], { root: "G", scale: "Natural Minor", range: 1.5, glide: 0.18, rounding: "Down", hysteresis: 0.15 });
   p.cable(lfo, "out", q, "in", 0.6);
-  const osc = p.add("oscillator", [2, 0], { shape: 0.6, octave: "-1" }, { name: "Voice" });
-  const osc2 = p.add("oscillator", [2, 1], { shape: 0.3, octave: "0", fine: 6 }, { name: "Voice 2" });
+  const osc = p.add("oscillator", [2, 0], { wave: "Triangle", wave2: "Saw", morph: 0.8, octave: "-1" }, { name: "Voice" });
+  const osc2 = p.add("oscillator", [2, 1], { wave: "Sine", wave2: "Triangle", morph: 0.9, octave: "0", fine: 6 }, { name: "Voice 2" });
   const flt = p.add("filter", [3, 0], { cutoff: 1400, resonance: 0.2 });
   p.cable(q, "out", osc, "pitch").cable(q, "out", osc2, "pitch").cable(osc, "out", flt, "l").cable(osc2, "out", flt, "l", 0.6);
   const amp = p.add("vca", [3, 1], { gain: 0.5 }, { name: "Level" });

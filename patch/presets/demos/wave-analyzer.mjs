@@ -63,7 +63,7 @@ function lockFollow() {
     rate: "1/8", root: "C", scale: "Natural Minor", octave: -1, shape: 1, gatelength: 0.8, env: { attack: 0.005, decay: 0.25, sustain: 0.6, release: 0.15 } });
   const wa = p.add("wave-analyzer", [3, 0], { mode: "Lock", listen: 700, threshold: 0.4, bandwidth: "30 Hz", gain: 12, drift: 0.1 });
   p.cable(m.amp, "l", wa, "in");
-  const sh = p.add("oscillator", [4, 1], { shape: 0, octave: "+1" }, { name: "Shadow" });
+  const sh = p.add("oscillator", [4, 1], { wave: "Sine", octave: "+1" }, { name: "Shadow" });
   const shv = p.add("vca", [5, 1], {}, { name: "Shadow VCA" });
   p.cable(wa, "track", sh, "pitch").cable(sh, "out", shv, "l").cable(m.env, "env", shv, "gain", 0.7);
   const mix = p.add("audio-mixer", [5, 0], { level1: -4, level2: -9, master: 0 });

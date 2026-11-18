@@ -1,13 +1,13 @@
 // cv-to-midi: five demo patches. Each plays by itself with the transport.
 // SPDX-License-Identifier: MIT
-import { patch, steps, drumGrid, pattern } from "../kit.mjs";
+import { patch, steps, drumGrid, pattern, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// A mono voice: Oscillator -> VCA with its own ADSR. src: {n, pitch, gate, trig} (trig: false = no retrigger).
 /// o: shape, osc (extra knobs), env, cutoff/res (adds a low-pass), name. Returns {osc, env, amp, out: {n, j}}.
 function voice(p, at, src, o = {}) {
   const [c, r] = at;
-  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.7, ...(o.osc || {}) }, { name: o.name || "Source" });
+  const osc = p.add("oscillator", [c, r], { ...oscWaves(o.shape ?? 0.7), ...(o.osc || {}) }, { name: o.name || "Source" });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.3, sustain: 0.3, release: 0.25, ...(o.env || {}) }, { name: o.envName || "Amp Env" });
   const amp = p.add("vca", [c + 1, r], {}, { name: "VCA" });
   if (src.pitch !== null) p.cable(src.pn || src.n, src.pitch || "pitch", osc, "pitch");
@@ -96,7 +96,7 @@ function bipolar14() {
     description: "A bipolar LFO bends the pitch a few cents and goes out as CC 1 at 14-bit resolution, so slow movement stays smooth instead of stepping. Switch Resolution back to 7 bit, or Input Range to 0 to +1, and compare the table.",
     tags: ["14 bit", "bipolar", "vibrato", "resolution"],
   });
-  const m = lead(p, [0, 0], { notes: [0, "_", "_", 7, "_", 5, "_", "_", 3, "_", 5, 7, "_", "_", 10, "_"], shape: 0.5, cutoff: 2500, osc: { shape: 0.4 } });
+  const m = lead(p, [0, 0], { notes: [0, "_", "_", 7, "_", 5, "_", "_", 3, "_", 5, 7, "_", "_", 10, "_"], shape: 0.5, cutoff: 2500, osc: { wave: "Triangle", wave2: "Saw", morph: 0.2 } });
   m.env.params; // envelope stays as set by lead()
   const lfo = p.add("lfo", [0, 3], { rate: 5, wave: "Sine", fade: 1.5 }, { name: "Vibrato" });
   const c2m = p.add("cv-to-midi", [4, 0], { cc1: 1, range: "−1 … +1", resolution: "14 bit (CC 0–31)", rate: 200 });
@@ -119,7 +119,7 @@ function fourLanes() {
   const l4 = p.add("lfo", [3, 3], { rate: 0.05, wave: "Triangle", polarity: "Unipolar" }, { name: "Space" });
   const c2m = p.add("cv-to-midi", [4, 0], { cc1: 74, channel1: 1, cc2: 71, channel2: 2, cc3: 91, channel3: 3, min3: 20, max3: 100,
     cc4: 93, channel4: 4, min4: 0, max4: 90 });
-  p.cable(l1, "out", m.flt, "cutoff", 0.45).cable(l2, "out", m.flt, "resonance", 0.3).cable(l3, "out", m.osc, "shape", 0.3)
+  p.cable(l1, "out", m.flt, "cutoff", 0.45).cable(l2, "out", m.flt, "resonance", 0.3).cable(l3, "out", m.osc, "morph", 0.6)
     .cable(l1, "out", c2m, "in1").cable(l2, "out", c2m, "in2").cable(l3, "out", c2m, "in3").cable(l4, "out", c2m, "in4");
   monitored(p, [5, 0], c2m);
   const fin = tail(p, [6, 1], m);

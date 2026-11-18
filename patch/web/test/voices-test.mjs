@@ -26,12 +26,12 @@ function board(settings = {}, extraCables = []) {
     nodes: [
       node("keys", "midi-in", {}, { port: "p-keys" }), node("out", "audio-out", {}, { port: "p-out" }),
       node("V", "voice-cell", v, { inputs: [], outputs: [] }),
-      node("vi", "voice-in", {}, { parent: "V" }), node("osc", "oscillator", {}, { parent: "V" }), node("env", "adsr", {}, { parent: "V" }),
+      node("vi", "voice-in", {}, { parent: "V" }), node("osc", "oscillator", { wave: 0 }, { parent: "V" }), node("env", "adsr", {}, { parent: "V" }),
       node("amp", "vca", { gain: 0 }, { parent: "V" }), node("vo", "voice-out", {}, { parent: "V" }),
     ],
     cables: [
       cable("n", "keys", "notes", "V", "notes"), cable("o", "V", "l", "out", "l"),
-      cable("c1", "vi", "pitch", "osc", "pitch"), cable("c2", "vi", "gate", "env", "gate"), cable("c3", "osc", "sine", "amp", "l"),
+      cable("c1", "vi", "pitch", "osc", "pitch"), cable("c2", "vi", "gate", "env", "gate"), cable("c3", "osc", "out", "amp", "l"),
       cable("c4", "env", "env", "amp", "gain"), cable("c5", "amp", "l", "vo", "l"), ...extraCables,
     ],
   };

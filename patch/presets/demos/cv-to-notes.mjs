@@ -1,13 +1,13 @@
 // cv-to-notes: five demo patches. Each plays by itself with the transport.
 // SPDX-License-Identifier: MIT
-import { patch, steps, drumGrid, pattern } from "../kit.mjs";
+import { patch, steps, drumGrid, pattern, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// A mono voice: Oscillator -> VCA with its own ADSR. src: {n, pitch, gate, trig} (trig: false = no retrigger).
 /// o: shape, osc (extra knobs), env, cutoff/res (adds a low-pass), name. Returns {osc, env, amp, out: {n, j}}.
 function voice(p, at, src, o = {}) {
   const [c, r] = at;
-  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.7, ...(o.osc || {}) }, { name: o.name || "Source" });
+  const osc = p.add("oscillator", [c, r], { ...oscWaves(o.shape ?? 0.7), ...(o.osc || {}) }, { name: o.name || "Source" });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.3, sustain: 0.3, release: 0.25, ...(o.env || {}) }, { name: o.envName || "Amp Env" });
   const amp = p.add("vca", [c + 1, r], {}, { name: "VCA" });
   if (src.pitch !== null) p.cable(src.pn || src.n, src.pitch || "pitch", osc, "pitch");
@@ -112,12 +112,12 @@ function chordsFromLine() {
   p.cable(c2n, "notes", hm, "notes");
   const chans = [];
   for (let i = 0; i < 4; i++) {
-    const osc = p.add("oscillator", [3, i], { shape: 0.6, fine: (i - 1.5) * 7 }, { name: `Tone ${i + 1}` });
+    const osc = p.add("oscillator", [3, i], { wave: "Triangle", wave2: "Saw", morph: 0.8, fine: (i - 1.5) * 7 }, { name: `Tone ${i + 1}` });
     p.cable(hm, `tone${i + 1}`, osc, "pitch");
     if (i < 2) { if (i === 0) chans.push({ n: osc, l: "out", level: -14, pan: -0.4, also: [] }); else chans[0].also.push([osc, "out"]); }
     else { if (i === 2) chans.push({ n: osc, l: "out", level: -14, pan: 0.4, also: [] }); else chans[1].also.push([osc, "out"]); }
   }
-  const bass = p.add("oscillator", [3, 4], { shape: 0.1, octave: "-1" }, { name: "Bass" });
+  const bass = p.add("oscillator", [3, 4], { wave: "Sine", wave2: "Triangle", morph: 0.3, octave: "-1" }, { name: "Bass" });
   p.cable(seq, "pitch", bass, "pitch");
   const bamp = p.add("vca", [4, 4], { gain: 0.6 }, { name: "Bass Level" });
   p.cable(bass, "out", bamp, "l");

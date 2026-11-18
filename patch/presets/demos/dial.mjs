@@ -13,7 +13,7 @@ function sq(p, at, notes, knobs = {}, vel) {
 /// Oscillator → ADSR → VCA from a pitch and gate source ({node, pitch, gate, trigger, velocity}), optional filter after.
 function voice(p, at, src, o = {}) {
   const [c, r] = at, name = o.name || "Voice";
-  const osc = p.add("oscillator", [c, r], { shape: 0.8, ...(o.osc || {}) }, { name });
+  const osc = p.add("oscillator", [c, r], { wave: "Saw", wave2: "Square", morph: 0.4, ...(o.osc || {}) }, { name });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.25, sustain: 0.2, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
   const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
   p.cable(src.node, src.pitch || "pitch", osc, "pitch").cable(src.node, src.gate || "gate", env, "gate");
@@ -58,11 +58,11 @@ function withBeat(p, at, from, jack, style, { lead = -2, drums = -4, level = -9,
 function filterSweep() {
   const p = patch("Dial: Filter Sweep", {
     module: "dial", tempo: 108,
-    description: "One Dial, set to the middle of its range, opens the cutoff of a dark saw riff. Drag the big knob up and down while it plays to sweep the filter, or raise Smooth to make the knob glide between positions.",
+    description: "One Dial, set to the middle of its range, opens the cutoff of a dark saw riff. Drag the Value knob up and down while it plays to sweep the filter, or raise Smooth to make the knob glide between positions.",
     tags: ["filter", "sweep", "control", "manual"],
   });
   const s = sq(p, [0, 0], [0, ".", 0, 7, ".", 5, 3, "."], { rate: "1/16", root: "D", scale: "Natural Minor", octave: -1 });
-  const v = voice(p, [1, 0], { node: s }, { osc: { shape: 0.95 }, env: { decay: 0.2, sustain: 0.3, release: 0.1 }, filter: { cutoff: 260, resonance: 0.35, gain: -6 } });
+  const v = voice(p, [1, 0], { node: s }, { osc: { wave: "Saw", wave2: "Square", morph: 0.85 }, env: { decay: 0.2, sustain: 0.3, release: 0.1 }, filter: { cutoff: 260, resonance: 0.35, gain: -6 } });
   const d = p.add("dial", [1, 2], { value: 0.55, min: 0, max: 1, smooth: 0.1 }, { name: "Cutoff Dial" });
   p.cable(d, "out", v.filter, "cutoff", 0.7);
   space(p, [4, 0], v.out, "l", { level: 0, delay: { zone: 3, time: 0.4, feedback: 0.35, mix: 0.25 }, verb: { size: 0.4, decay: 1.8, mix: 0.2 } });
@@ -78,7 +78,7 @@ function steppedTranspose() {
   const s = sq(p, [0, 0], [0, 4, 7, 4, 9, 7, 4, 2], { rate: "1/8", root: "C", scale: "Major Pentatonic" });
   const d = p.add("dial", [0, 2], { value: 0.33, min: 0, max: 1, smooth: 0.02, steps: 12 }, { name: "Transpose Dial" });
   p.cable(d, "out", s, "transpose", 0.5);
-  const v = voice(p, [1, 0], { node: s }, { osc: { shape: 0.5 }, env: { decay: 0.35, sustain: 0.15, release: 0.3 }, filter: { cutoff: 2800, resonance: 0.15 } });
+  const v = voice(p, [1, 0], { node: s }, { osc: { wave: "Triangle", wave2: "Saw", morph: 0.5 }, env: { decay: 0.35, sustain: 0.15, release: 0.3 }, filter: { cutoff: 2800, resonance: 0.15 } });
   space(p, [4, 0], v.out, "l", { delay: { zone: 3, time: 0.45, feedback: 0.4, mix: 0.3 }, verb: { size: 0.5, decay: 2.5, mix: 0.3 } });
   return p;
 }
@@ -103,7 +103,7 @@ function flippedRange() {
     tags: ["inverted", "min max", "bass", "scaling"],
   });
   const s = sq(p, [0, 0], [0, 0, ".", 12, 0, ".", 7, 10], { rate: "1/16", root: "G", scale: "Minor Pentatonic", octave: -2, gatelength: 0.55 });
-  const v = voice(p, [1, 0], { node: s }, { osc: { shape: 0.97 }, env: { decay: 0.16, sustain: 0.4, release: 0.08 }, filter: { cutoff: 300, resonance: 0.4, drive: 0.2, gain: -4 } });
+  const v = voice(p, [1, 0], { node: s }, { osc: { wave: "Saw", wave2: "Square", morph: 0.91 }, env: { decay: 0.16, sustain: 0.4, release: 0.08 }, filter: { cutoff: 300, resonance: 0.4, drive: 0.2, gain: -4 } });
   const d = p.add("dial", [1, 2], { value: 0.4, min: 1, max: 0, smooth: 0.05 }, { name: "Flipped Dial" });
   p.cable(d, "out", v.filter, "cutoff", 0.6).cable(d, "out", v.filter, "drive", 0.5);
   withBeat(p, [3, 0], v.out, "l", "four", { lead: -5 });
@@ -117,12 +117,12 @@ function morphMacro() {
     tags: ["macro", "multi", "morph", "performance"],
   });
   const s = sq(p, [0, 0], [0, 3, 7, 10, 7, 3, 5, 2], { rate: "1/8", root: "A", scale: "Natural Minor" });
-  const v = voice(p, [1, 0], { node: s }, { osc: { shape: 0.1 }, env: { decay: 0.3, sustain: 0.15, release: 0.2 }, filter: { cutoff: 900, resonance: 0.2 } });
+  const v = voice(p, [1, 0], { node: s }, { osc: { wave: "Sine", wave2: "Triangle", morph: 0.3 }, env: { decay: 0.3, sustain: 0.15, release: 0.2 }, filter: { cutoff: 900, resonance: 0.2 } });
   const d = p.add("dial", [1, 2], { value: 0.45, min: 0, max: 1, smooth: 0.15 }, { name: "Macro Dial" });
   const dl = p.add("zone-delay", [4, 0], { zone: 3, time: 0.45, feedback: 0.45, mix: 0.15, tone: -0.2 });
   const vb = p.add("reverb", [5, 0], { size: 0.5, decay: 2.2, mix: 0.25 });
   p.cable(v.out, "l", dl, "l").cable(v.out, "l", dl, "r").stereo(dl, vb).stereo(vb, p.out);
-  p.cable(d, "out", v.osc, "shape", 0.8).cable(d, "out", v.filter, "cutoff", 0.5).cable(d, "out", dl, "mix", 0.5);
+  p.cable(d, "out", v.osc, "morph", 1).cable(d, "out", v.filter, "cutoff", 0.5).cable(d, "out", dl, "mix", 0.5);
   return p;
 }
 

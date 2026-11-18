@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 // Route: five demo patches. Each plays by itself with the transport.
-import { patch, steps, drumGrid, pattern } from "../kit.mjs";
+import { patch, steps, drumGrid, pattern, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// A plucked voice: pitch → Oscillator → VCA with an ADSR from gate/retrigger. Returns the VCA ("l").
 function pluck(p, at, pitch, gate, retrig, osc = {}, env = {}, name = "Voice") {
-  const o = p.add("oscillator", [at[0], at[1]], { shape: 0.7, ...osc }, { name });
+  const o = p.add("oscillator", [at[0], at[1]], { wave: "Saw", wave2: "Square", morph: 0.1, ...osc }, { name });
   const e = p.add("adsr", [at[0], at[1] + 1], { attack: 0.005, decay: 0.25, sustain: 0, release: 0.2, ...env }, { name: name + " Env" });
   const a = p.add("vca", [at[0] + 1, at[1]], {}, { name: name + " VCA" });
   p.cable(pitch[0], pitch[1], o, "pitch").cable(gate[0], gate[1], e, "gate").cable(retrig[0], retrig[1], e, "retrig")
@@ -26,7 +26,7 @@ function melodyToThree() {
   p.cable(rnd, "out", q, "in", 0.8).cable(clk, "trigger", q, "clock");
   const rt = p.add("route", [2, 0], { outputs: 3, fade: 0.01 });
   p.cable(q, "out", rt, "in").cable(bar, "out", rt, "next");
-  const shapes = [{ shape: 0.9 }, { shape: 0.5, pw: 0.25 }, { shape: 0 }];
+  const shapes = [{ wave: "Saw", wave2: "Square", morph: 0.7 }, { wave: "Triangle", wave2: "Saw", morph: 0.5, pw: 0.25 }, { wave: "Sine", morph: 0 }];
   const amps = shapes.map((s, i) => pluck(p, [3, i * 2], [rt, "out" + (i + 1)], [q, "gate"], [clk, "trigger"], s, {}, "Voice " + (i + 1)));
   const drums = beat(p, [0, 8], { style: "half", level: -10 });
   const mix = p.add("audio-mixer", [5, 0], { level1: 0, level2: -2, level3: -2, level4: 0, master: -4 });
@@ -101,7 +101,7 @@ function heldNotes() {
   p.cable(seq, "pitch", rt, "in").cable(bar, "out", rt, "next");
   const mix = p.add("audio-mixer", [3, 0], { level1: -12, level2: -12, level3: -12, level4: -12, master: 0 });
   for (let i = 0; i < 4; i++) {
-    const o = p.add("oscillator", [2, i], { shape: i % 2 ? 0.15 : 0.45, fine: (i - 1.5) * 5, octave: i < 2 ? "0" : "+1" }, { name: "Drone " + (i + 1) });
+    const o = p.add("oscillator", [2, i], { ...oscWaves(i % 2 ? 0.15 : 0.45), fine: (i - 1.5) * 5, octave: i < 2 ? "0" : "+1" }, { name: "Drone " + (i + 1) });
     p.cable(rt, "out" + (i + 1), o, "pitch").cable(o, "out", mix, `in${i + 1}l`).cable(o, "out", mix, `in${i + 1}r`);
   }
   const f = p.add("filter", [4, 0], { cutoff: 1800, resonance: 0.1, type: "SVF Multimode" });

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Wobble: five demo patches. Each plays by itself with the transport.
-import { patch, steps } from "../kit.mjs";
+import { patch, steps, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// Mono/stereo source (`src`, jacks l/r) → trim → reverb → Out.
@@ -26,8 +26,8 @@ function pad(p, at, notes, o = {}) {
   const [c, r] = at;
   const seq = p.add("step-sequencer", [c, r], { length: notes.length, rate: o.rate || "1/2", root: o.root || "A", scale: o.scale || "Minor Pentatonic",
     octave: o.octave ?? -1, gatelength: o.gate ?? 0.95 }, { data: steps(notes) });
-  const o1 = p.add("oscillator", [c + 1, r], { shape: o.shape ?? 0.5, fine: -9 }, { name: "Osc L" });
-  const o2 = p.add("oscillator", [c + 1, r + 1], { shape: o.shape ?? 0.5, fine: 9 }, { name: "Osc R" });
+  const o1 = p.add("oscillator", [c + 1, r], { ...oscWaves(o.shape ?? 0.5), fine: -9 }, { name: "Osc L" });
+  const o2 = p.add("oscillator", [c + 1, r + 1], { ...oscWaves(o.shape ?? 0.5), fine: 9 }, { name: "Osc R" });
   const amp = p.add("vca", [c + 2, r], { gain: o.gain ?? 1 }, { name: "VCA" });
   const f = p.add("filter", [c + 3, r], { cutoff: 1400, resonance: 0.2, ...(o.filter || {}) }, { name: "Filter" });
   p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", amp, "l").cable(o2, "out", amp, "r")
@@ -44,7 +44,7 @@ function chord(p, at, tones, o = {}) {
   const mixB = p.add("audio-mixer", [c + 2, r + 3], { level1: lv, level2: lv, level3: lv, pan1: 0.5, pan2: -0.4, pan3: 0.2, master: 0 }, { name: "Mix 4-6" });
   const vcas = [], oscs = [];
   tones.forEach((t, i) => {
-    const osc = p.add("oscillator", [c, r + i], { shape: o.shape ?? 0, coarse: t[0], octave: t[1] }, { name: `Tone ${i + 1}` });
+    const osc = p.add("oscillator", [c, r + i], { ...oscWaves(o.shape ?? 0), coarse: t[0], octave: t[1] }, { name: `Tone ${i + 1}` });
     const vca = p.add("vca", [c + 1, r + i], { gain: o.gain ?? 0 }, { name: `Level ${i + 1}` });
     p.cable(osc, "out", vca, "l");
     if (o.pitch) p.cable(o.pitch, "pitch", osc, "pitch");
@@ -66,7 +66,7 @@ function threeShapes() {
   const v = voice(p, [0, 0], [0, 7, 12, 7, 3, 10, 7, 3, 0, 5, 8, 12, 8, 5, 3, 7], { rate: "1/8", shape: 0.7, root: "A", env: { decay: 0.3, sustain: 0.2 }, filter: { cutoff: 700, resonance: 0.3 } });
   const w = p.add("wobble", [3, 1], { rate: 1.2, smooth: 0.6, wobble: 0.7, chaos: 0.1, sync: "1/4" });
   const verb = finish(p, [4, 0], v.filt, { stereo: true, trim: -2, verb: { size: 0.5, decay: 3, mix: 0.3 } });
-  p.cable(w, "stepped", v.filt, "cutoff", 0.45).cable(w, "smooth", v.osc, "shape", 0.3).cable(w, "wobble", verb, "size", 0.3);
+  p.cable(w, "stepped", v.filt, "cutoff", 0.45).cable(w, "smooth", v.osc, "morph", 0.6).cable(w, "wobble", verb, "size", 0.3);
   return p;
 }
 
@@ -95,7 +95,7 @@ function bursts() {
   const clap = p.add("punch-clap", [1, 2], { level: 0.5 });
   const s = p.add("step-sequencer", [0, 3], { length: 8, rate: "1/16", root: "A", scale: "Minor Pentatonic", octave: -2, gatelength: 0.8 },
     { data: steps([0, ".", 0, ".", 7, ".", 5, "."]) });
-  const bass = p.add("oscillator", [1, 3], { shape: 0.1 }, { name: "Sub" });
+  const bass = p.add("oscillator", [1, 3], { wave: "Sine", wave2: "Triangle", morph: 0.3 }, { name: "Sub" });
   const env = p.add("adsr", [2, 3], { attack: 0.005, decay: 0.2, sustain: 0.5, release: 0.15 }, { name: "Sub Env" });
   const amp = p.add("vca", [3, 3], {});
   p.cable(w, "clock", kick, "trig").cable(w, "burst", hats, "closed").cable(w, "burst", clap, "trig").cable(w, "stepped", hats, "tune", 0.5)
@@ -116,7 +116,7 @@ function compareMelody() {
   });
   const w = p.add("wobble", [0, 0], { rate: 3, smooth: 0, wobble: 0.2, chaos: 0.2, sync: "1/8", level: 1 });
   const q = p.add("quantizer", [1, 0], { root: "D", scale: "Dorian", range: 1 });
-  const osc = p.add("oscillator", [2, 0], { shape: 0.8 }, { name: "Source" });
+  const osc = p.add("oscillator", [2, 0], { wave: "Saw", wave2: "Square", morph: 0.4 }, { name: "Source" });
   const env = p.add("adsr", [2, 1], { attack: 0.004, decay: 0.4, sustain: 0.5, release: 0.3 }, { name: "Amp Env" });
   const amp = p.add("vca", [3, 0], {});
   const f = p.add("filter", [4, 0], { cutoff: 1800, resonance: 0.2 }, { name: "Filter" });

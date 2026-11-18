@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Uncertainty: five demo patches. Each plays by itself with the transport.
-import { patch, steps } from "../kit.mjs";
+import { patch, steps, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// Mono/stereo source (`src`, jacks l/r) → trim → reverb → Out.
@@ -26,8 +26,8 @@ function pad(p, at, notes, o = {}) {
   const [c, r] = at;
   const seq = p.add("step-sequencer", [c, r], { length: notes.length, rate: o.rate || "1/2", root: o.root || "A", scale: o.scale || "Minor Pentatonic",
     octave: o.octave ?? -1, gatelength: o.gate ?? 0.95 }, { data: steps(notes) });
-  const o1 = p.add("oscillator", [c + 1, r], { shape: o.shape ?? 0.5, fine: -9 }, { name: "Osc L" });
-  const o2 = p.add("oscillator", [c + 1, r + 1], { shape: o.shape ?? 0.5, fine: 9 }, { name: "Osc R" });
+  const o1 = p.add("oscillator", [c + 1, r], { ...oscWaves(o.shape ?? 0.5), fine: -9 }, { name: "Osc L" });
+  const o2 = p.add("oscillator", [c + 1, r + 1], { ...oscWaves(o.shape ?? 0.5), fine: 9 }, { name: "Osc R" });
   const amp = p.add("vca", [c + 2, r], { gain: o.gain ?? 1 }, { name: "VCA" });
   const f = p.add("filter", [c + 3, r], { cutoff: 1400, resonance: 0.2, ...(o.filter || {}) }, { name: "Filter" });
   p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", amp, "l").cable(o2, "out", amp, "r")
@@ -44,7 +44,7 @@ function chord(p, at, tones, o = {}) {
   const mixB = p.add("audio-mixer", [c + 2, r + 3], { level1: lv, level2: lv, level3: lv, pan1: 0.5, pan2: -0.4, pan3: 0.2, master: 0 }, { name: "Mix 4-6" });
   const vcas = [], oscs = [];
   tones.forEach((t, i) => {
-    const osc = p.add("oscillator", [c, r + i], { shape: o.shape ?? 0, coarse: t[0], octave: t[1] }, { name: `Tone ${i + 1}` });
+    const osc = p.add("oscillator", [c, r + i], { ...oscWaves(o.shape ?? 0), coarse: t[0], octave: t[1] }, { name: `Tone ${i + 1}` });
     const vca = p.add("vca", [c + 1, r + i], { gain: o.gain ?? 0 }, { name: `Level ${i + 1}` });
     p.cable(osc, "out", vca, "l");
     if (o.pitch) p.cable(o.pitch, "pitch", osc, "pitch");
@@ -65,7 +65,7 @@ function fluctuating() {
   });
   const v = voice(p, [0, 0], [0, 7, 12, 7, 3, 10, 7, 3, 0, 5, 8, 12, 8, 5, 3, 7], { rate: "1/8", shape: 0.8, root: "G", scale: "Natural Minor", env: { decay: 0.3, sustain: 0.15 }, filter: { cutoff: 650, resonance: 0.3 } });
   const u = p.add("uncertainty", [3, 1], { f1rate: 0.35, f2rate: 0.13, f1spread: 0.9, f2spread: 0.8, fsync: "Free" });
-  p.cable(u, "fluct1", v.filt, "cutoff", 0.5).cable(u, "fluct2", v.osc, "shape", 0.35);
+  p.cable(u, "fluct1", v.filt, "cutoff", 0.5).cable(u, "fluct2", v.osc, "morph", 0.7);
   finish(p, [4, 0], v.filt, { stereo: true, trim: -2, verb: { size: 0.5, decay: 3, mix: 0.3 } });
   return p;
 }
@@ -109,7 +109,7 @@ function integrated() {
   });
   const pd = pad(p, [0, 0], [0, 7, 3, 10, 5, 8, 3, 7], { rate: "1/1", root: "C", scale: "Natural Minor", gain: 1, shape: 0.6, filter: { cutoff: 800, resonance: 0.25 } });
   const u = p.add("uncertainty", [0, 3], { storerate: 0.6, storesync: "Free", integrate: 2, distribution: 0, correlation: 0.3 });
-  p.cable(u, "integrated", pd.filt, "cutoff", 0.7).cable(u, "stored", pd.o1, "shape", 0.2).cable(u, "stored", pd.o2, "shape", -0.2);
+  p.cable(u, "integrated", pd.filt, "cutoff", 0.7).cable(u, "stored", pd.o1, "morph", 0.4).cable(u, "stored", pd.o2, "morph", -0.4);
   finish(p, [5, 0], pd.filt, { stereo: true, trim: -13, verb: { size: 0.6, decay: 4, mix: 0.35 } });
   return p;
 }

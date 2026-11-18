@@ -13,7 +13,7 @@ function sq(p, at, notes, knobs = {}, vel) {
 /// Oscillator → ADSR → VCA from a pitch and gate source ({node, pitch, gate, trigger, velocity}), optional filter after.
 function voice(p, at, src, o = {}) {
   const [c, r] = at, name = o.name || "Voice";
-  const osc = p.add("oscillator", [c, r], { shape: 0.8, ...(o.osc || {}) }, { name });
+  const osc = p.add("oscillator", [c, r], { wave: "Saw", wave2: "Square", morph: 0.4, ...(o.osc || {}) }, { name });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.25, sustain: 0.2, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
   const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
   p.cable(src.node, src.pitch || "pitch", osc, "pitch").cable(src.node, src.gate || "gate", env, "gate");
@@ -74,7 +74,7 @@ function heldPulses() {
   const seq = p.add("stage-sequencer", [0, 0], { gatelength: 0.9, stages: 6, rate: "1/8", root: "D#", scale: "Lydian" }, {
     data: stages([[0, 6, "Hold"], [7, 3, "Hold"], [4, 1, "Every"], [11, 4, "Hold"], [9, 2, "Hold"], [7, 6, "Hold"]]),
   });
-  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { shape: 0.4 }, env: { attack: 0.08, decay: 0.5, sustain: 0.7, release: 0.8 }, filter: { cutoff: 1800 } });
+  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { wave: "Triangle", wave2: "Saw", morph: 0.2 }, env: { attack: 0.08, decay: 0.5, sustain: 0.7, release: 0.8 }, filter: { cutoff: 1800 } });
   space(p, [4, 0], v.out, "l", { level: 4, delay: { zone: 3, time: 0.5, feedback: 0.4, mix: 0.25, tone: -0.2 }, verb: { size: 0.75, decay: 6, mix: 0.4 } });
   return p;
 }
@@ -88,7 +88,7 @@ function gateModes() {
   const seq = p.add("stage-sequencer", [0, 0], { gatelength: 0.45, stages: 8, rate: "1/16", root: "A", scale: "Minor Pentatonic" }, {
     data: stages([[0, 3, "First"], [0, 3, "Every"], [7, 4, "Hold"], [5, 2, "Rest"], [3, 3, "Ratchet", { r: 3 }], [7, 2, "Every"], [10, 4, "First", { accent: true }], [12, 2, "Ratchet", { r: 4 }]]),
   });
-  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { shape: 0.8 }, env: { decay: 0.18, sustain: 0.25, release: 0.12 }, filter: { cutoff: 2200, resonance: 0.25 } });
+  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { wave: "Saw", wave2: "Square", morph: 0.4 }, env: { decay: 0.18, sustain: 0.25, release: 0.12 }, filter: { cutoff: 2200, resonance: 0.25 } });
   withBeat(p, [3, 0], v.out, "l", "broken", { lead: 5 });
   return p;
 }
@@ -102,7 +102,7 @@ function slideBass() {
   const seq = p.add("stage-sequencer", [0, 0], { gatelength: 0.6, slidetime: 0.09, accent: 0.7, stages: 8, rate: "1/16", root: "C", scale: "Phrygian Dominant", octave: -2 }, {
     data: stages([[0, 2, "Hold", { accent: true, v: 115 }], [0, 1, "Every", { v: 80 }], [7, 2, "Hold", { slide: true }], [12, 1, "Every", { v: 85 }], [10, 2, "Hold", { slide: true, accent: true, v: 110 }], [8, 1, "Every", { v: 80 }], [7, 3, "Hold", { slide: true }], [3, 1, "Every", { v: 90 }]]),
   });
-  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { shape: 0.97 }, env: { decay: 0.2, sustain: 0.6, release: 0.07 }, filter: { cutoff: 350, resonance: 0.45, drive: 0.25 } });
+  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { wave: "Saw", wave2: "Square", morph: 0.91 }, env: { decay: 0.2, sustain: 0.6, release: 0.07 }, filter: { cutoff: 350, resonance: 0.45, drive: 0.25 } });
   const ae = p.add("adsr", [1, 2], { attack: 0.003, decay: 0.2, sustain: 0, release: 0.1 }, { name: "Accent Env" });
   p.cable(seq, "accentgate", ae, "gate").cable(ae, "env", v.filter, "cutoff", 0.5);
   withBeat(p, [3, 0], v.out, "l", "four", { lead: -4 });
@@ -118,7 +118,7 @@ function pendulumBells() {
   const seq = p.add("stage-sequencer", [0, 0], { gatelength: 0.4, stages: 12, rate: "1/8", mode: "Pendulum", phrase: "4 bars", root: "G", scale: "Major Pentatonic" }, {
     data: stages([[0, 1, "Every"], [2, 1, "Every"], [4, 2, "First"], [7, 1, "Every"], [9, 1, "Every"], [12, 2, "First"], [14, 1, "Every"], [16, 1, "Every"], [19, 2, "First"], [16, 1, "Every"], [14, 1, "Every"], [12, 2, "First"]]),
   });
-  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { shape: 0.1 }, env: { decay: 0.7, sustain: 0, release: 0.6 } });
+  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { wave: "Sine", wave2: "Triangle", morph: 0.3 }, env: { decay: 0.7, sustain: 0, release: 0.6 } });
   space(p, [4, 0], v.out, "l", { level: 4, delay: { zone: 3, time: 0.5, feedback: 0.45, mix: 0.3, tone: -0.2 }, verb: { size: 0.7, decay: 5, mix: 0.35 } });
   return p;
 }
@@ -132,7 +132,7 @@ function brownianWalk() {
   const seq = p.add("stage-sequencer", [0, 0], { gatelength: 0.5, stages: 10, rate: "1/8", mode: "Brownian", seed: 14, root: "E", scale: "Dorian" }, {
     data: stages([[0, 1, "Every"], [2, 1, "Every"], [4, 2, "First"], [5, 1, "Every"], [7, 2, "First"], [9, 1, "Every"], [11, 1, "Every"], [12, 2, "First"], [14, 1, "Every"], [16, 2, "First"]]),
   });
-  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { shape: 0.6 }, env: { decay: 0.3, sustain: 0.15, release: 0.2 }, filter: { cutoff: 2600, resonance: 0.2 } });
+  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { wave: "Triangle", wave2: "Saw", morph: 0.8 }, env: { decay: 0.3, sustain: 0.15, release: 0.2 }, filter: { cutoff: 2600, resonance: 0.2 } });
   const hat = p.add("punch-hats", [1, 3], { level: 0.4, closed: 0.04 });
   p.cable(seq, "stagestart", hat, "closed");
   const mix = p.add("audio-mixer", [4, 0], { level1: 3, level2: -8, pan2: 0.25, master: 0 }, { name: "Mix" });

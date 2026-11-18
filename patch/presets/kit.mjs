@@ -102,6 +102,7 @@ export class Preset {
     this.help = normaliseHelp(name, opts.help);
     this.empty = !!opts.empty;  // a starter: a voice cell may stay silent
     this.playsOverride = undefined;
+    this.subOscs = [];   // [oscillator, its subOsc()]: the pitch cables are copied when built
     this.nodes = [];
     this.cables = [];
     this.media = {};
@@ -218,6 +219,25 @@ export class Preset {
     this.#setParams(n, values);
     this.nodes.push(n);
     return n;
+  }
+
+  /// A second Oscillator one octave below `osc` on a square wave: what the Oscillator's old Sub output gave.
+  /// It takes `osc`'s tuning, and when the preset is built a copy of every cable into `osc`'s Pitch, Coarse, Fine,
+  /// FM and Sync. Returns the new node; cable its Out where the Sub went.
+  subOsc(osc, at, name = "Sub") {
+    const octave = types.oscillator.params.find((q) => q.id === "octave"), steps = octave.choices.length - 1;
+    const idx = Math.round((osc.params.octave ?? octave.default) * steps);
+    const sub = this.add("oscillator", at, { wave: "Square" }, { name });
+    for (const k of ["coarse", "fine", "fm", "tzfm", "hardsync"]) if (osc.params[k] !== undefined) sub.params[k] = osc.params[k];
+    sub.params.octave = Math.max(idx - 1, 0) / steps;
+    if (idx === 0) sub.params.coarse = Math.max((sub.params.coarse ?? 0.5) - 0.5, 0);   // already −3 octaves: −12 st on Coarse
+    this.subOscs.push([osc, sub]);
+    return sub;
+  }
+  #followSubs() {
+    for (const [osc, sub] of this.subOscs.splice(0))
+      for (const c of this.cables.filter((c) => c.to.node === osc.id && ["pitch", "coarse", "fine", "fm", "sync"].includes(c.to.jack)))
+        this.cables.push({ ...c, id: `k${this.cables.length + 1}`, to: { node: sub.id, jack: c.to.jack } });
   }
 
   #setParams(n, values) {
@@ -355,6 +375,7 @@ export class Preset {
   build(category) {
     if (!this.description) throw new Error(`${this.name}: needs a description`);
     if (!this.help && this.kind !== "patch") throw new Error(`${this.name}: needs help (opts.help: what it is, how to play or patch it)`);
+    this.#followSubs();
     if (this.kind === "patch") return this.#buildPatch();
     this.#wireTempo();
     if (this.kind === "voice") {
@@ -471,6 +492,17 @@ export function checkPlays(name, doc, plays) {
 
 /// One full unit of VCA gain as a share of the Gain knob's 0 – 400 % range.
 const VCA_GAIN_SHARE = 0.25;
+
+/// The Oscillator's Waveform / Secondary / Morph for a position on the old single Shape scale
+/// (0 sine, 1/3 triangle, 2/3 saw, 1 square, neighbours crossfaded): `{ ...oscWaves(0.8) }` is a saw 40 % of the way to square.
+const OSC_WAVES = ["Sine", "Triangle", "Saw", "Square"];
+export function oscWaves(shape) {
+  const m = Math.min(Math.max(shape, 0), 1) * 3;
+  let i = Math.min(Math.floor(m), 2), t = m - i;
+  if (t > 0.97) return { wave: OSC_WAVES[i + 1], wave2: OSC_WAVES[Math.min(i + 2, 3)], morph: 0 };
+  if (t < 0.03) t = 0;
+  return { wave: OSC_WAVES[i], wave2: OSC_WAVES[i + 1], morph: Math.round(t * 100) / 100 };
+}
 
 /// Pitch in 1 V/oct for a cable amount: semitones → the amount on a pitch input.
 export const semis = (n) => n / 12;

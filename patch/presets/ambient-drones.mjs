@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Ambient Drones: long, sustained beds that never settle. Each one sounds on its own as soon as it is placed (no notes,
 // no transport) and moves by itself: slow organic LFOs, drifting oscillators, long reverbs. Out L/R out.
-import { cell, category } from "./kit.mjs";
+import { cell, category, oscWaves } from "./kit.mjs";
 import { bed, sendReturn, hall, constant } from "./ambient-kit.mjs";
 
 // Four detuned saw-triangle oscillators on A and E under a ladder filter that opens and closes like a tide.
@@ -20,7 +20,7 @@ function slowTide() {
   const flt = p.add("filter", [2, 1], { cutoff: 420, resonance: 0.22, drive: 0.08, type: "Ladder Tanh" }, { name: "Tide Filter" });
   [["Root", "-2", 9, -5, 0.2, 0.5, 0.25], ["Root Wide", "-2", 9, 6, 0.2, 0.25, 0.5], ["Fifth", "-1", 4, 0, 0.3, 0.35, 0.35], ["Octave", "-1", 9, 3, 0.45, 0.25, 0.25]]
     .forEach(([name, octave, coarse, fine, shape, l, r], i) => {
-      const o = p.add("oscillator", [1, i], { octave, coarse, fine, shape }, { name });
+      const o = p.add("oscillator", [1, i], { octave, coarse, fine, ...oscWaves(shape) }, { name });
       p.cable(o, "out", flt, "l", l).cable(o, "out", flt, "r", r);
       if (i === 1) p.cable(lfo, "out2", o, "fine", 0.04);
     });
@@ -102,7 +102,7 @@ function deepHum() {
   }).input("warmth", "Warmth").stereoOut();
   const lfo = p.add("organic-lfos", [0, 2], { rate: 0.02, spread: 0.5, drift: 0.5, seed: 31 });
   const hum = p.add("test-oscillator", [1, 0], { freq: 5.5, range: "×10", loopgain: 1.2, drift: 0.5, mains: "50 Hz", level: 0.8 });
-  const sub = p.add("oscillator", [1, 1], { octave: "-3", coarse: 9, shape: 0.1 }, { name: "Sub" });
+  const sub = p.add("oscillator", [1, 1], { octave: "-3", coarse: 9, wave: "Sine", wave2: "Triangle", morph: 0.3 }, { name: "Sub" });
   const dark = p.add("noise", [1, 2], { colour: -0.9, level: 0.6 }, { name: "Air" });
   const flt = p.add("filter", [2, 1], { cutoff: 180, resonance: 0.12, type: "Ladder Tanh" }, { name: "Low Pass" });
   p.cable(hum, "sine", flt, "l", 0.6).cable(hum, "sine", flt, "r", 0.6).cable(sub, "out", flt, "l", 0.5).cable(sub, "out", flt, "r", 0.5)

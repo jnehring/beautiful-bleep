@@ -1,13 +1,13 @@
 // quantizer-suite: five demo patches. Each plays by itself with the transport.
 // SPDX-License-Identifier: MIT
-import { patch, steps, drumGrid, pattern } from "../kit.mjs";
+import { patch, steps, drumGrid, pattern, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// A mono voice: Oscillator -> VCA with its own ADSR. src: {n, pitch, gate, trig} (trig: false = no retrigger).
 /// o: shape, osc (extra knobs), env, cutoff/res (adds a low-pass), name. Returns {osc, env, amp, out: {n, j}}.
 function voice(p, at, src, o = {}) {
   const [c, r] = at;
-  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.7, ...(o.osc || {}) }, { name: o.name || "Source" });
+  const osc = p.add("oscillator", [c, r], { ...oscWaves(o.shape ?? 0.7), ...(o.osc || {}) }, { name: o.name || "Source" });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.3, sustain: 0.3, release: 0.25, ...(o.env || {}) }, { name: o.envName || "Amp Env" });
   const amp = p.add("vca", [c + 1, r], {}, { name: "VCA" });
   if (src.pitch !== null) p.cable(src.pn || src.n, src.pitch || "pitch", osc, "pitch");
@@ -123,7 +123,7 @@ function followChanges() {
   p.cable(rnd, "out", qs, "ina", 0.8).cable(rnd2, "out", qs, "inb", 0.8).cable(clk, "trigger", qs, "triga").cable(clk, "trigger", qs, "trigb");
   const a = voice(p, [2, 0], { pn: qs, n: clk, pitch: "outa" }, { shape: 0.5, env: { decay: 0.3, sustain: 0, release: 0.2 }, name: "Chord Notes" });
   const b = voice(p, [2, 3], { pn: qs, n: clk, pitch: "outb" }, { shape: 0.3, env: { decay: 0.4, sustain: 0, release: 0.3 }, name: "Scale Notes" });
-  const root = p.add("oscillator", [2, 6], { shape: 0.15 }, { name: "Root" });
+  const root = p.add("oscillator", [2, 6], { wave: "Sine", wave2: "Triangle", morph: 0.45 }, { name: "Root" });
   const rv = p.add("vca", [3, 6], { gain: 0.5 }, { name: "Root Level" });
   p.cable(qs, "outc", root, "pitch").cable(root, "out", rv, "l");
   finish(p, [5, 0], [{ n: a.amp, level: 0, pan: -0.2 }, { n: b.amp, level: -3, pan: 0.3 }, { n: rv, level: -8 }], { vmix: 0.3, decay: 3, master: 3 });
@@ -143,7 +143,7 @@ function trackAndHold() {
     "b.mode": "Quantize", "b.root": "E", "b.scale": "Minor Pentatonic", "b.sample": "Continuous", "b.octave": 1, "b.slew": 0, "b.notes": false });
   p.cable(lfo, "out", qs, "ina", 0.8).cable(clk, "trigger", qs, "triga");
   const a = voice(p, [2, 0], { pn: qs, n: clk, pitch: "outa" }, { shape: 0.4, env: { attack: 0.02, decay: 0.8, sustain: 0.5, release: 0.6 }, name: "Held Voice" });
-  const bosc = p.add("oscillator", [2, 3], { shape: 0.15 }, { name: "Tracking Voice" });
+  const bosc = p.add("oscillator", [2, 3], { wave: "Sine", wave2: "Triangle", morph: 0.45 }, { name: "Tracking Voice" });
   const bv = p.add("vca", [3, 3], { gain: 0.35 }, { name: "Tracking Level" });
   p.cable(qs, "outb", bosc, "pitch").cable(bosc, "out", bv, "l");
   const drums = beat(p, [0, 5], { style: "sparse", level: -13 });

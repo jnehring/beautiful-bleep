@@ -97,9 +97,9 @@ function ducking() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 4, rate: "1/1", root: "A", scale: "Natural Minor", octave: 0, gatelength: 1 },
     { data: steps([0, 8, 5, 7]) });
-  const o1 = p.add("oscillator", [1, 0], { shape: 0.8, fine: -6 });
-  const o2 = p.add("oscillator", [1, 1], { shape: 0.8, fine: 6, coarse: 7 });
-  const o3 = p.add("oscillator", [1, 2], { shape: 0.8, coarse: 4, octave: "+1" });
+  const o1 = p.add("oscillator", [1, 0], { wave: "Saw", wave2: "Square", morph: 0.4, fine: -6 });
+  const o2 = p.add("oscillator", [1, 1], { wave: "Saw", wave2: "Square", morph: 0.4, fine: 6, coarse: 7 });
+  const o3 = p.add("oscillator", [1, 2], { wave: "Saw", wave2: "Square", morph: 0.4, coarse: 4, octave: "+1" });
   const pm = p.add("audio-mixer", [2, 0], { level1: -7, level2: -9, level3: -12, pan1: -0.4, pan3: 0.4, master: 0 });
   const f = p.add("filter", [3, 0], { cutoff: 1800, resonance: 0.1, type: "SVF Multimode" });
   const vca = p.add("vca", [4, 0], {});

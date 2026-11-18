@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Six Slopes: five demo patches. Each plays by itself with the transport.
-import { patch, steps } from "../kit.mjs";
+import { patch, steps, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// Mono/stereo source (`src`, jacks l/r) → trim → reverb → Out.
@@ -26,8 +26,8 @@ function pad(p, at, notes, o = {}) {
   const [c, r] = at;
   const seq = p.add("step-sequencer", [c, r], { length: notes.length, rate: o.rate || "1/2", root: o.root || "A", scale: o.scale || "Minor Pentatonic",
     octave: o.octave ?? -1, gatelength: o.gate ?? 0.95 }, { data: steps(notes) });
-  const o1 = p.add("oscillator", [c + 1, r], { shape: o.shape ?? 0.5, fine: -9 }, { name: "Osc L" });
-  const o2 = p.add("oscillator", [c + 1, r + 1], { shape: o.shape ?? 0.5, fine: 9 }, { name: "Osc R" });
+  const o1 = p.add("oscillator", [c + 1, r], { ...oscWaves(o.shape ?? 0.5), fine: -9 }, { name: "Osc L" });
+  const o2 = p.add("oscillator", [c + 1, r + 1], { ...oscWaves(o.shape ?? 0.5), fine: 9 }, { name: "Osc R" });
   const amp = p.add("vca", [c + 2, r], { gain: o.gain ?? 1 }, { name: "VCA" });
   const f = p.add("filter", [c + 3, r], { cutoff: 1400, resonance: 0.2, ...(o.filter || {}) }, { name: "Filter" });
   p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", amp, "l").cable(o2, "out", amp, "r")
@@ -42,7 +42,7 @@ function sixVoices(p, at, tones, o = {}) {
   const mixA = p.add("audio-mixer", [c + 2, r], { level1: o.lvl ?? -10, level2: o.lvl ?? -10, level3: o.lvl ?? -10, pan1: -0.7, pan2: 0, pan3: 0.7, master: 0 }, { name: "Mix 1-3" });
   const mixB = p.add("audio-mixer", [c + 2, r + 3], { level1: o.lvl ?? -10, level2: o.lvl ?? -10, level3: o.lvl ?? -10, pan1: 0.5, pan2: -0.4, pan3: 0.2, master: 0 }, { name: "Mix 4-6" });
   tones.forEach((t, i) => {
-    const osc = p.add("oscillator", [c, r + i], { shape: o.shape ?? 0, coarse: t[0], octave: t[1] }, { name: `Tone ${i + 1}` });
+    const osc = p.add("oscillator", [c, r + i], { ...oscWaves(o.shape ?? 0), coarse: t[0], octave: t[1] }, { name: `Tone ${i + 1}` });
     const vca = p.add("vca", [c + 1, r + i], {}, { name: `Slope ${i + 1}` });
     p.cable(osc, "out", vca, "l");
     if (o.pitch) p.cable(o.pitch, "pitch", osc, "pitch");
@@ -109,7 +109,7 @@ function lockedMotion() {
   });
   const v = voice(p, [0, 0], [0, 0, 7, 0, 10, 0, 7, 5, 0, 0, 7, 0, 12, 10, 7, 5], { rate: "1/16", shape: 0.9, root: "G", octave: -1, env: { decay: 0.18, sustain: 0.4 }, filter: { cutoff: 600, resonance: 0.4 } });
   const s = p.add("six-slopes", [3, 1], { rate: 1, harmonics: 0.4, skew: 0.5, curve: 0, mode: "Loop", sync: "1/2", snap: "Integer" });
-  p.cable(s, "out1", v.filt, "cutoff", 0.5).cable(s, "out2", v.osc, "shape", 0.3).cable(s, "out3", v.filt, "resonance", 0.35);
+  p.cable(s, "out1", v.filt, "cutoff", 0.5).cable(s, "out2", v.osc, "morph", 0.6).cable(s, "out3", v.filt, "resonance", 0.35);
   const drums = beat(p, [0, 4], { style: "four", level: -7 });
   const mix = p.add("audio-mixer", [4, 0], { level1: -8, level2: -12, master: 0 });
   const verb = p.add("reverb", [5, 0], { size: 0.4, decay: 1.8, mix: 0.15, quality: "Eco (8 lines)" });

@@ -24,16 +24,16 @@ const run = (seconds) => {
 const crossings = (x) => { let c = 0; for (let i = 1; i < x.length; ++i) if (x[i - 1] < 0 && x[i] >= 0) c++; return c; };
 
 // 1. oscillator straight to the output: C4 at 261.6 Hz.
-engine.setBoard({ format: 1, id: "t", nodes: [node("osc", "oscillator"), node("out", "audio-out", {}, { port: "p" })],
-  cables: [cable("c1", "osc", "sine", "out", "l")] });
+engine.setBoard({ format: 1, id: "t", nodes: [node("osc", "oscillator", { wave: 0 }), node("out", "audio-out", {}, { port: "p" })],
+  cables: [cable("c1", "osc", "out", "out", "l")] });
 let x = run(1);
 assert.ok(Math.abs(crossings(x) - 261) <= 2, `expected ~261 Hz, got ${crossings(x)}`);
 assert.ok(x.reduce((m, v) => Math.max(m, Math.abs(v)), 0) > 0.9);
 console.log("oscillator → out: ok,", crossings(x), "Hz");
 
 // 2. the amount scales the cable.
-engine.setBoard({ format: 1, id: "t", nodes: [node("osc", "oscillator"), node("out", "audio-out", {}, { port: "p" })],
-  cables: [cable("c1", "osc", "sine", "out", "l", 0.25)] });
+engine.setBoard({ format: 1, id: "t", nodes: [node("osc", "oscillator", { wave: 0 }), node("out", "audio-out", {}, { port: "p" })],
+  cables: [cable("c1", "osc", "out", "out", "l", 0.25)] });
 x = run(0.2);
 const peak = x.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
 assert.ok(peak > 0.24 && peak < 0.26, `peak ${peak}`);
@@ -43,8 +43,8 @@ assert.ok(x.reduce((m, v) => Math.max(m, Math.abs(v)), 0) > 0.49);
 console.log("cable amount (live edit): ok");
 
 // 3. a knob moves the pitch: octave +1 doubles it (a choice knob, set live).
-engine.setBoard({ format: 1, id: "t", nodes: [node("osc", "oscillator", { octave: 4 / 6 }), node("out", "audio-out", {}, { port: "p" })],
-  cables: [cable("c1", "osc", "sine", "out", "l")] });
+engine.setBoard({ format: 1, id: "t", nodes: [node("osc", "oscillator", { octave: 4 / 6, wave: 0 }), node("out", "audio-out", {}, { port: "p" })],
+  cables: [cable("c1", "osc", "out", "out", "l")] });
 x = run(1);
 assert.ok(Math.abs(crossings(x) - 523) <= 3, `octave up: ${crossings(x)}`);
 engine.setKnob("osc", "octave", 3 / 6);
@@ -53,8 +53,8 @@ assert.ok(Math.abs(crossings(run(1)) - 261) <= 2);
 console.log("knob edit: ok");
 
 // 4. CV modulation: a Dial into the oscillator's Coarse knob (+12 st at full amount → one octave up).
-engine.setBoard({ format: 1, id: "t", nodes: [node("osc", "oscillator"), node("dial", "dial", { value: 1, min: 0.5, max: 1 }), node("out", "audio-out", {}, { port: "p" })],
-  cables: [cable("c1", "osc", "sine", "out", "l"), cable("c2", "dial", "out", "osc", "coarse", 0.5)] });
+engine.setBoard({ format: 1, id: "t", nodes: [node("osc", "oscillator", { wave: 0 }), node("dial", "dial", { value: 1, min: 0.5, max: 1 }), node("out", "audio-out", {}, { port: "p" })],
+  cables: [cable("c1", "osc", "out", "out", "l"), cable("c2", "dial", "out", "osc", "coarse", 0.5)] });
 run(0.1);
 const f = crossings(run(1));
 console.log("dial → coarse:", f, "Hz");
@@ -76,8 +76,8 @@ assert.ok(Math.abs(f - 523) <= 3, "Dial at full, amount 0.5 on Coarse (±12 st):
 {
   const seqType = types.find((t) => t.type === "step-sequencer");
   assert.ok(manifest.modules["step-sequencer"], "step-sequencer.wasm is built (needs the JUCE checkout)");
-  engine.setBoard({ format: 1, id: "t", nodes: [node("seq", "step-sequencer"), node("osc", "oscillator"), node("out", "audio-out", {}, { port: "p" })],
-    cables: [cable("c1", "seq", seqType.outputs[0].id, "osc", "pitch"), cable("c2", "osc", "sine", "out", "l")] });
+  engine.setBoard({ format: 1, id: "t", nodes: [node("seq", "step-sequencer"), node("osc", "oscillator", { wave: 0 }), node("out", "audio-out", {}, { port: "p" })],
+    cables: [cable("c1", "seq", seqType.outputs[0].id, "osc", "pitch"), cable("c2", "osc", "out", "out", "l")] });
   run(0.5);
   const first = engine.snapshot();
   // Its default pattern was sanitised by the module and is handed to the board document.
@@ -95,8 +95,8 @@ console.log("all tests passed");
 {
   const p = types.find((t) => t.type === "audio-out").params.find((q) => q.id === "volume");
   const norm = Math.pow((-6.0206 - p.min) / (p.max - p.min), Math.log(0.5) / Math.log((p.centre - p.min) / (p.max - p.min)));
-  engine.setBoard({ format: 1, id: "t", nodes: [node("osc", "oscillator"), node("out", "audio-out", { volume: norm }, { port: "p" })],
-    cables: [cable("c1", "osc", "sine", "out", "l")] });
+  engine.setBoard({ format: 1, id: "t", nodes: [node("osc", "oscillator", { wave: 0 }), node("out", "audio-out", { volume: norm }, { port: "p" })],
+    cables: [cable("c1", "osc", "out", "out", "l")] });
   run(0.2);
   const pk = run(0.2).reduce((m, v) => Math.max(m, Math.abs(v)), 0);
   assert.ok(pk > 0.48 && pk < 0.52, `volume -6 dB peak ${pk}`);
@@ -105,8 +105,8 @@ console.log("all tests passed");
 
 // Bypass: a bypassed effect does not run and passes its audio in to its audio out (the native engine does the same).
 {
-  const board = (bypassed) => ({ format: 1, id: "t", nodes: [node("osc", "oscillator"), node("fx", "filter", { cutoff: 0 }, { bypassed }), node("out", "audio-out", {}, { port: "p" })],
-    cables: [cable("c1", "osc", "sine", "fx", "l"), cable("c2", "fx", "l", "out", "l")] });
+  const board = (bypassed) => ({ format: 1, id: "t", nodes: [node("osc", "oscillator", { wave: 0 }), node("fx", "filter", { cutoff: 0 }, { bypassed }), node("out", "audio-out", {}, { port: "p" })],
+    cables: [cable("c1", "osc", "out", "fx", "l"), cable("c2", "fx", "l", "out", "l")] });
   const peakOf = (x) => x.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
   engine.setBoard(board(false));
   run(0.2);

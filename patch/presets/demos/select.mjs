@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Select: five demo patches. Each plays by itself with the transport.
-import { patch, steps, drumGrid, pattern } from "../kit.mjs";
+import { patch, steps, drumGrid, pattern, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// Mono source → trim → reverb → Out.
@@ -12,7 +12,7 @@ function finish(p, at, src, jack = "l", trim = 0, verb = {}) {
 
 /// A plucked voice: pitch → Oscillator → VCA with an ADSR from gate/retrigger. Returns the VCA ("l").
 function pluck(p, at, pitch, gate, retrig, osc = {}, env = {}) {
-  const o = p.add("oscillator", [at[0], at[1]], { shape: 0.7, ...osc }, { name: "Voice" });
+  const o = p.add("oscillator", [at[0], at[1]], { wave: "Saw", wave2: "Square", morph: 0.1, ...osc }, { name: "Voice" });
   const e = p.add("adsr", [at[0], at[1] + 1], { attack: 0.005, decay: 0.25, sustain: 0, release: 0.2, ...env }, { name: "Amp Env" });
   const a = p.add("vca", [at[0] + 1, at[1]], {}, { name: "VCA" });
   p.cable(pitch[0], pitch[1], o, "pitch").cable(gate[0], gate[1], e, "gate").cable(retrig[0], retrig[1], e, "retrig")
@@ -52,7 +52,7 @@ function sweptTimbres() {
   const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/8", root: "A", scale: "Minor Pentatonic", octave: 0, gatelength: 0.5 },
     { data: steps([0, 7, 3, 10, 12, 10, 7, 3]) });
   const env = p.add("adsr", [0, 1], { attack: 0.003, decay: 0.2, sustain: 0.3, release: 0.15 }, { name: "Amp Env" });
-  const shapes = [{ shape: 0 }, { shape: 0.5, pw: 0.25 }, { shape: 0.85 }, { shape: 0.9, octave: "+1" }];
+  const shapes = [{ wave: "Sine" }, { wave: "Triangle", wave2: "Saw", morph: 0.5, pw: 0.25 }, { wave: "Saw", wave2: "Square", morph: 0.55 }, { wave: "Saw", wave2: "Square", morph: 0.7, octave: "+1" }];
   const o = shapes.map((s, i) => p.add("oscillator", [1, i], s, { name: "Source " + (i + 1) }));
   const sel = p.add("select", [2, 0], { inputs: 4, fade: 0.08 });
   const lfo = p.add("lfo", [2, 2], { rate: 0.08, wave: "Triangle", polarity: "Unipolar" }, { name: "Sweep" });
@@ -83,7 +83,7 @@ function alternating() {
   const flip = p.add("lfo", [1, 4], { wave: "Square", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Every 2 Bars" });
   p.cable(a, "pitch", sel, "in1").cable(b, "pitch", sel, "in2").cable(a, "gate", gsel, "in1").cable(b, "gate", gsel, "in2")
     .cable(flip, "out", sel, "select").cable(flip, "out", gsel, "select");
-  const osc = p.add("oscillator", [2, 0], { shape: 0.75 }, { name: "Voice" });
+  const osc = p.add("oscillator", [2, 0], { wave: "Saw", wave2: "Square", morph: 0.25 }, { name: "Voice" });
   const env = p.add("adsr", [2, 1], { attack: 0.004, decay: 0.2, sustain: 0.25, release: 0.15 }, { name: "Amp Env" });
   const amp = p.add("vca", [3, 0], {});
   p.cable(sel, "out", osc, "pitch").cable(gsel, "out", env, "gate").cable(a, "trigger", env, "retrig").cable(b, "trigger", env, "retrig")
@@ -129,7 +129,7 @@ function followTheSong() {
     tags: ["transport", "rate", "ping-pong", "ambient"],
   });
   const notes = [{ coarse: -5 }, { coarse: 0 }, { coarse: 4 }, { coarse: 7 }];
-  const os = notes.map((n, i) => p.add("oscillator", [0, i], { shape: i % 2 ? 0.15 : 0, fine: (i - 1.5) * 4, ...n }, { name: `Drone ${i + 1}` }));
+  const os = notes.map((n, i) => p.add("oscillator", [0, i], { ...oscWaves(i % 2 ? 0.15 : 0), fine: (i - 1.5) * 4, ...n }, { name: `Drone ${i + 1}` }));
   const sel = p.add("select", [1, 0], { inputs: 4, rate: "2 bars", order: "Ping-Pong", fade: 1.0, curve: "Equal Power" });
   os.forEach((o, i) => p.cable(o, "out", sel, "in" + (i + 1)));
   const f = p.add("filter", [2, 0], { cutoff: 1400, resonance: 0.15, type: "SVF Multimode" });

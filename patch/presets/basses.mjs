@@ -13,12 +13,12 @@ function heavyLadder() {
       "Notes in, Out L/R. The shared input Cutoff moves the filter; raise it for a brighter, more present bass.\n\n" +
       "Tip: double a kick drum rhythm with it and keep the notes short or long, not in between.",
   }).settings({ voices: 1, mode: "Legato", glide: 0.04 }).input("cut", "Cutoff");
-  const o1 = p.add("oscillator", [0, 0], { shape: 0.67, fine: -8 }, { name: "Saw 1" });
-  const o2 = p.add("oscillator", [0, 1], { shape: 0.67, fine: 8 }, { name: "Saw 2" });
+  const o1 = p.add("oscillator", [0, 0], { wave: "Saw", fine: -8 }, { name: "Saw 1" });
+  const o2 = p.add("oscillator", [0, 1], { wave: "Saw", fine: 8 }, { name: "Saw 2" });
   const envf = envelope(p, [0, 2], { attack: 0.003, decay: 0.35, sustain: 0.35, release: 0.15, velamount: 0.5 }, "Filter Env");
   const flt = p.add("filter", [1, 0], { cutoff: 240, resonance: 0.25, drive: 0.35, keytrack: 0.5, type: "Ladder Tanh" });
   p.cable(p.vin, "pitch", o1, "pitch").cable(p.vin, "pitch", o2, "pitch").cable(p.vin, "pitch", flt, "pitch")
-    .cable(o1, "out", flt, "l", 0.45).cable(o2, "out", flt, "l", 0.45).cable(o1, "sub", flt, "l", 0.4)
+    .cable(o1, "out", flt, "l", 0.45).cable(o2, "out", flt, "l", 0.45).cable(p.subOsc(o1, [0, 3]), "out", flt, "l", 0.4)
     .cable(envf, "env", flt, "cutoff", 0.35).cable(p.cin, "cut", flt, "cutoff", 0.5);
   ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.003, decay: 0.4, sustain: 0.85, release: 0.1 });
   return p;
@@ -35,12 +35,12 @@ function slapSnap() {
       "Notes in, Out L/R. The shared input Snap adds to how far the pitch snaps down; turn it up for a bigger pluck, down to zero for a plain bass.\n\n" +
       "Tip: play short, off-beat notes with strong accents and a ghost note between.",
   }).settings({ voices: 1, mode: "Mono" }).input("snap", "Snap");
-  const osc = p.add("oscillator", [0, 0], { shape: 0.85, pw: 0.35 });
+  const osc = p.add("oscillator", [0, 0], { wave: "Saw", wave2: "Square", morph: 0.55, pw: 0.35 });
   const envs = envelope(p, [0, 1], { attack: 0.001, decay: 0.035, sustain: 0, release: 0.03, velamount: 0.4 }, "Snap Env");
   const envf = envelope(p, [0, 2], { attack: 0.001, decay: 0.2, sustain: 0.1, release: 0.1, velamount: 0.7 }, "Filter Env");
   const flt = p.add("filter", [1, 0], { cutoff: 320, resonance: 0.3, keytrack: 0.6, type: "SVF Multimode" });
   p.cable(p.vin, "pitch", osc, "pitch").cable(envs, "env", osc, "pitch", semis(7)).cable(p.cin, "snap", osc, "pitch", semis(5))
-    .cable(osc, "out", flt, "l", 0.7).cable(osc, "sub", flt, "l", 0.4).cable(p.vin, "pitch", flt, "pitch")
+    .cable(osc, "out", flt, "l", 0.7).cable(p.subOsc(osc, [0, 3]), "out", flt, "l", 0.4).cable(p.vin, "pitch", flt, "pitch")
     .cable(envf, "env", flt, "cutoff", 0.4);
   ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.001, decay: 0.28, sustain: 0.3, release: 0.08, velamount: 0.5 });
   return p;
@@ -56,11 +56,11 @@ function ripplePulse() {
       "Notes in, Out L/R. The shared input Ripple adds to the width movement; more of it gives a more obvious chorus-like motion.\n\n" +
       "Tip: play straight eighth notes. Keep the Ripple LFO slower than the notes to hear it, faster to hear a buzz.",
   }).settings({ voices: 1, mode: "Mono", glide: 0.02 }).input("ripple", "Ripple");
-  const osc = p.add("oscillator", [0, 0], { shape: 1, pw: 0.5 });
+  const osc = p.add("oscillator", [0, 0], { wave: "Square", pw: 0.5 });
   const lfo = p.add("lfo", [0, 1], { rate: 3.4 }, { name: "Ripple LFO" });
   const flt = p.add("filter", [1, 0], { cutoff: 700, resonance: 0.3, keytrack: 0.7, type: "SVF Multimode" });
   p.cable(p.vin, "pitch", osc, "pitch").cable(lfo, "out", osc, "pw", 0.3).cable(p.cin, "ripple", osc, "pw", 0.3)
-    .cable(osc, "out", flt, "l", 0.7).cable(osc, "sub", flt, "l", 0.35).cable(p.vin, "pitch", flt, "pitch")
+    .cable(osc, "out", flt, "l", 0.7).cable(p.subOsc(osc, [0, 2]), "out", flt, "l", 0.35).cable(p.vin, "pitch", flt, "pitch")
     .cable(p.vin, "pressure", flt, "cutoff", 0.2);
   ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.003, decay: 0.2, sustain: 0.8, release: 0.1 });
   return p;
@@ -76,11 +76,11 @@ function diveBomb() {
       "Notes in, Out L/R. The shared input Dive adds to the depth of the pitch drop. Turn it down to zero for a plain sub.\n\n" +
       "Tip: play low notes, one at a time, and link them for slides. The note length decides the groove.",
   }).settings({ voices: 1, mode: "Legato", glide: 0.12, glidemode: "Legato only" }).input("dive", "Dive");
-  const osc = p.add("oscillator", [0, 0], { shape: 0, octave: "-1" });
+  const osc = p.add("oscillator", [0, 0], { wave: "Sine", wave2: "Triangle", morph: 0.11, octave: "-1" });
   const envd = envelope(p, [0, 1], { attack: 0.001, decay: 0.07, sustain: 0, release: 0.05, velamount: 0.3 }, "Dive Env");
   const flt = p.add("filter", [1, 0], { cutoff: 700, resonance: 0, drive: 0.45, keytrack: 0.5, type: "Ladder Tanh" });
   p.cable(p.vin, "pitch", osc, "pitch").cable(envd, "env", osc, "pitch", semis(12)).cable(p.cin, "dive", osc, "pitch", semis(10))
-    .cable(osc, "sine", flt, "l", 0.8).cable(osc, "triangle", flt, "l", 0.1).cable(p.vin, "pitch", flt, "pitch");
+    .cable(osc, "out", flt, "l", 0.9).cable(p.vin, "pitch", flt, "pitch");
   ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.002, decay: 1.4, sustain: 0.5, release: 0.25, velamount: 0.4 });
   return p;
 }
@@ -95,10 +95,10 @@ function pixelBass() {
       "Notes in, Out L/R. No shared inputs. The cell is mono with no glide.\n\n" +
       "Tip: play fast, arpeggiated eighth or sixteenth bass lines; combine with a tight drum loop.",
   }).settings({ voices: 1, mode: "Mono", glide: 0 });
-  const o1 = p.add("oscillator", [0, 0], { shape: 1, pw: 0.25 }, { name: "Pulse" });
-  const o2 = p.add("oscillator", [0, 1], { shape: 0, octave: "-1" }, { name: "Triangle" });
+  const o1 = p.add("oscillator", [0, 0], { wave: "Square", pw: 0.25 }, { name: "Pulse" });
+  const o2 = p.add("oscillator", [0, 1], { wave: "Triangle", octave: "-1" }, { name: "Triangle" });
   const amp = ampEnvelope(p, { node: o1, stereo: false }, [1, 1], { attack: 0.001, decay: 0.08, sustain: 0.7, release: 0.04, velamount: 0.1 });
-  p.cable(p.vin, "pitch", o1, "pitch").cable(p.vin, "pitch", o2, "pitch").cable(o2, "triangle", amp.amp, "l", 0.7);
+  p.cable(p.vin, "pitch", o1, "pitch").cable(p.vin, "pitch", o2, "pitch").cable(o2, "out", amp.amp, "l", 0.7);
   return p;
 }
 
@@ -169,12 +169,14 @@ function mouthBass() {
       "Notes in, Out L/R. The shared input Mouth moves the filter's resting cutoff: lower is darker, higher opens up an 'ee'.\n\n" +
       "Tip: play slow, syncopated notes with some overlap, and push the Mouth dial while a note is held.",
   }).settings({ voices: 1, mode: "Legato", glide: 0.05 }).input("mouth", "Mouth");
-  const osc = p.add("oscillator", [0, 0], { shape: 0.67 });
+  const osc = p.add("oscillator", [0, 0], { wave: "Saw" });
   const envm = envelope(p, [0, 1], { attack: 0.01, decay: 0.3, sustain: 0.3, release: 0.15, velamount: 0.5 }, "Mouth Env");
   const flt = p.add("dual-filter", [1, 0], { cutoff: 300, spread: 1.2, res1: 0.6, res2: 0.55, mode1: 0.5, mode2: 0.5, drive: 0.3, keyTrack: 0.6, routing: "Serial" });
   p.cable(p.vin, "pitch", osc, "pitch").cable(p.vin, "pitch", flt, "pitch")
-    .cable(osc, "out", flt, "l", 0.6).cable(osc, "sub", flt, "l", 0.4).cable(osc, "out", flt, "r", 0.6).cable(osc, "sub", flt, "r", 0.4)
+    .cable(osc, "out", flt, "l", 0.6).cable(osc, "out", flt, "r", 0.6)
     .cable(envm, "env", flt, "cutoff", 0.3).cable(envm, "env", flt, "spread", 0.3).cable(p.cin, "mouth", flt, "cutoff", 0.4);
+  const sub = p.subOsc(osc, [0, 2]);
+  p.cable(sub, "out", flt, "l", 0.4).cable(sub, "out", flt, "r", 0.4);
   ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.004, decay: 0.4, sustain: 0.85, release: 0.12 });
   return p;
 }

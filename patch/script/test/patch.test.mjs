@@ -28,7 +28,7 @@ export default cell("SuperSaw", {
     const detune = s.VOICES > 1 ? (i / (s.VOICES - 1) - 0.5) * s.SPREAD * 2 : 0;
     const osc = c.add("oscillator", { fine: detune }, { name: "Saw " + (i + 1) });
     c.cable(c.cin, "pitch", osc, "pitch");
-    c.cable(osc, "saw", filter, "l", 1 / Math.sqrt(s.VOICES));
+    c.cable(osc, "out", filter, "l", 1 / Math.sqrt(s.VOICES));
   }
   c.stereo(filter, c.cout);
 });`;

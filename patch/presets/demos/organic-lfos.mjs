@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Organic LFOs: five demo patches. Each plays by itself with the transport.
-import { patch, steps } from "../kit.mjs";
+import { patch, steps, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// Mono/stereo source (`src`, jacks l/r) → trim → reverb → Out.
@@ -26,8 +26,8 @@ function pad(p, at, notes, o = {}) {
   const [c, r] = at;
   const seq = p.add("step-sequencer", [c, r], { length: notes.length, rate: o.rate || "1/2", root: o.root || "A", scale: o.scale || "Minor Pentatonic",
     octave: o.octave ?? -1, gatelength: o.gate ?? 0.95 }, { data: steps(notes) });
-  const o1 = p.add("oscillator", [c + 1, r], { shape: o.shape ?? 0.5, fine: -9 }, { name: "Osc L" });
-  const o2 = p.add("oscillator", [c + 1, r + 1], { shape: o.shape ?? 0.5, fine: 9 }, { name: "Osc R" });
+  const o1 = p.add("oscillator", [c + 1, r], { ...oscWaves(o.shape ?? 0.5), fine: -9 }, { name: "Osc L" });
+  const o2 = p.add("oscillator", [c + 1, r + 1], { ...oscWaves(o.shape ?? 0.5), fine: 9 }, { name: "Osc R" });
   const amp = p.add("vca", [c + 2, r], { gain: o.gain ?? 1 }, { name: "VCA" });
   const f = p.add("filter", [c + 3, r], { cutoff: 1400, resonance: 0.2, ...(o.filter || {}) }, { name: "Filter" });
   p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", amp, "l").cable(o2, "out", amp, "r")
@@ -44,7 +44,7 @@ function chord(p, at, tones, o = {}) {
   const mixB = p.add("audio-mixer", [c + 2, r + 3], { level1: lv, level2: lv, level3: lv, pan1: 0.5, pan2: -0.4, pan3: 0.2, master: 0 }, { name: "Mix 4-6" });
   const vcas = [], oscs = [];
   tones.forEach((t, i) => {
-    const osc = p.add("oscillator", [c, r + i], { shape: o.shape ?? 0, coarse: t[0], octave: t[1] }, { name: `Tone ${i + 1}` });
+    const osc = p.add("oscillator", [c, r + i], { ...oscWaves(o.shape ?? 0), coarse: t[0], octave: t[1] }, { name: `Tone ${i + 1}` });
     const vca = p.add("vca", [c + 1, r + i], { gain: o.gain ?? 0 }, { name: `Level ${i + 1}` });
     p.cable(osc, "out", vca, "l");
     if (o.pitch) p.cable(o.pitch, "pitch", osc, "pitch");
@@ -66,8 +66,8 @@ function livingPad() {
   const pd = pad(p, [0, 0], [0, 3, 7, 5, 0, 3, 8, 5], { rate: "1/1", root: "C", scale: "Natural Minor", gain: 1, shape: 0.6, filter: { cutoff: 900, resonance: 0.25 } });
   const o = p.add("organic-lfos", [0, 3], { rate: 0.12, spread: 0.5, drift: 0.4, scatter: 1, level: 1, polarity: "Bipolar" });
   const verb = finish(p, [5, 0], pd.filt, { stereo: true, trim: -13, verb: { size: 0.55, decay: 4, mix: 0.35 } });
-  p.cable(o, "out1", pd.filt, "cutoff", 0.45).cable(o, "out2", pd.filt, "resonance", 0.2).cable(o, "out3", pd.o1, "shape", 0.35)
-    .cable(o, "out4", pd.o2, "shape", 0.35).cable(o, "out5", verb, "size", 0.3).cable(o, "out6", verb, "mix", 0.15);
+  p.cable(o, "out1", pd.filt, "cutoff", 0.45).cable(o, "out2", pd.filt, "resonance", 0.2).cable(o, "out3", pd.o1, "morph", 0.7)
+    .cable(o, "out4", pd.o2, "morph", 0.7).cable(o, "out5", verb, "size", 0.3).cable(o, "out6", verb, "mix", 0.15);
   return p;
 }
 
@@ -92,7 +92,7 @@ function lively() {
   });
   const v = voice(p, [0, 0], [0, 7, 12, 7, 3, 10, 7, 3, 0, 5, 8, 12, 8, 5, 3, 7], { rate: "1/8", shape: 0.85, root: "A", env: { decay: 0.28, sustain: 0.1 }, filter: { cutoff: 700, resonance: 0.25 } });
   const o = p.add("organic-lfos", [3, 1], { rate: 1.4, spread: 0.8, drift: 0.7, scatter: 0.8 });
-  p.cable(o, "out3", v.filt, "cutoff", 0.4).cable(o, "out5", v.filt, "resonance", 0.15).cable(o, "out7", v.osc, "shape", 0.3);
+  p.cable(o, "out3", v.filt, "cutoff", 0.4).cable(o, "out5", v.filt, "resonance", 0.15).cable(o, "out7", v.osc, "morph", 0.6);
   finish(p, [4, 0], v.filt, { stereo: true, trim: 1, verb: { size: 0.45, decay: 2, mix: 0.25 } });
   return p;
 }
@@ -120,7 +120,7 @@ function panCloud() {
   });
   const o = p.add("organic-lfos", [0, 4], { rate: 0.3, spread: 0.5, drift: 0.3, twist: 0.5 });
   const oscs = [[0, "-1"], [7, "-1"], [4, "0"], [12, "-1"]].map((t, i) =>
-    p.add("oscillator", [0, i], { shape: 0.4, coarse: t[0], octave: t[1], fine: (i - 1.5) * 6 }, { name: `Tone ${i + 1}` }));
+    p.add("oscillator", [0, i], { wave: "Triangle", wave2: "Saw", morph: 0.2, coarse: t[0], octave: t[1], fine: (i - 1.5) * 6 }, { name: `Tone ${i + 1}` }));
   const mix = p.add("audio-mixer", [1, 0], { level1: -9, level2: -9, level3: -9, level4: -9, master: 0 }, { name: "Pan Mix" });
   const f = p.add("filter", [2, 0], { cutoff: 1500, resonance: 0.15 }, { name: "Filter" });
   oscs.forEach((osc, i) => p.cable(osc, "out", mix, `in${i + 1}l`).cable(osc, "out", mix, `in${i + 1}r`).cable(o, `out${i + 1}`, mix, `pan${i + 1}`, 0.9));

@@ -1,13 +1,13 @@
 // harmony-master: five demo patches. Each plays by itself with the transport.
 // SPDX-License-Identifier: MIT
-import { patch, steps, drumGrid, pattern } from "../kit.mjs";
+import { patch, steps, drumGrid, pattern, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// A mono voice: Oscillator -> VCA with its own ADSR. src: {n, pitch, gate, trig} (trig: false = no retrigger).
 /// o: shape, osc (extra knobs), env, cutoff/res (adds a low-pass), name. Returns {osc, env, amp, out: {n, j}}.
 function voice(p, at, src, o = {}) {
   const [c, r] = at;
-  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.7, ...(o.osc || {}) }, { name: o.name || "Source" });
+  const osc = p.add("oscillator", [c, r], { ...oscWaves(o.shape ?? 0.7), ...(o.osc || {}) }, { name: o.name || "Source" });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.3, sustain: 0.3, release: 0.25, ...(o.env || {}) }, { name: o.envName || "Amp Env" });
   const amp = p.add("vca", [c + 1, r], {}, { name: "VCA" });
   if (src.pitch !== null) p.cable(src.pn || src.n, src.pitch || "pitch", osc, "pitch");
@@ -46,7 +46,7 @@ function tones(p, at, hm, o = {}) {
   [-0.6, -0.2, 0.2, 0.6].forEach((x, i) => { vals[`pan${i + 1}`] = x; vals[`level${i + 1}`] = o.level ?? -6; });
   const mix = p.add("audio-mixer", [c + 1, r], vals, { name: "Chord Mix" });
   for (let i = 0; i < 4; i++) {
-    const osc = p.add("oscillator", [c, r + i], { shape: (o.shapes || [0.6, 0.5, 0.6, 0.4])[i], octave: String(o.octave ?? 0), fine: (i - 1.5) * (o.detune ?? 6) }, { name: `Tone ${i + 1}` });
+    const osc = p.add("oscillator", [c, r + i], { ...oscWaves((o.shapes || [0.6, 0.5, 0.6, 0.4])[i]), octave: String(o.octave ?? 0), fine: (i - 1.5) * (o.detune ?? 6) }, { name: `Tone ${i + 1}` });
     p.cable(hm, `tone${i + 1}`, osc, "pitch").cable(osc, "out", mix, `in${i + 1}l`).cable(osc, "out", mix, `in${i + 1}r`);
   }
   return mix;
@@ -61,7 +61,7 @@ function chordEnv(p, at, mix, src, adsr) {
   return amp;
 }
 function bassOn(p, at, hm, jack, o = {}) {
-  const osc = p.add("oscillator", at, { shape: o.shape ?? 0.15, octave: String(o.octave ?? -1) }, { name: "Bass" });
+  const osc = p.add("oscillator", at, { ...oscWaves(o.shape ?? 0.15), octave: String(o.octave ?? -1) }, { name: "Bass" });
   const amp = p.add("vca", [at[0] + 1, at[1]], { gain: o.gain ?? 0.55 }, { name: "Bass Level" });
   p.cable(hm, jack, osc, "pitch").cable(osc, "out", amp, "l");
   return amp;
@@ -69,7 +69,7 @@ function bassOn(p, at, hm, jack, o = {}) {
 const leadOnBus = (p, at, notes, o = {}) => {
   const seq = p.add("step-sequencer", at, { length: notes.length, rate: o.rate || "1/8", harmony: "Bus A", gatelength: 0.5, octave: o.octave ?? 1, variation: o.variation ?? 0 },
     { data: steps(notes) }, { name: "Follower Lead" });
-  const osc = p.add("oscillator", [at[0] + 1, at[1]], { shape: o.shape ?? 0.3 }, { name: "Lead" });
+  const osc = p.add("oscillator", [at[0] + 1, at[1]], { ...oscWaves(o.shape ?? 0.3) }, { name: "Lead" });
   const env = p.add("adsr", [at[0] + 1, at[1] + 1], { attack: 0.005, decay: 0.3, sustain: 0.1, release: 0.25 }, { name: "Lead Env" });
   const amp = p.add("vca", [at[0] + 2, at[1]], {}, { name: "Lead VCA" });
   p.cable(seq, "pitch", osc, "pitch").cable(seq, "gate", env, "gate").cable(seq, "trigger", env, "retrig").cable(osc, "out", amp, "l").cable(env, "env", amp, "gain");

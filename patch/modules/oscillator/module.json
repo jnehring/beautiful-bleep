@@ -2,7 +2,7 @@
   "name": "Oscillator",
   "slug": "oscillator",
   "license": "GPL-3.0-only",
-  "tagline": "Triangle-core oscillator: waveform morph, through-zero FM, hard sync and a sub octave.",
+  "tagline": "Triangle-core oscillator: two waveforms with a morph between them, through-zero FM and hard sync.",
   "colour": "#5eead4",
   "formats": [
     "Board module"

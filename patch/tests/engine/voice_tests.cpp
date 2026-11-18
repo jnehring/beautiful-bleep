@@ -161,7 +161,7 @@ void voiceCells() {
             c.add(cable("vi", "pitch", "osc", "pitch"));
             c.add(cable("vi", "gate", "env", "gate"));
             c.add(cable("vi", "trigger", "env", "retrig"));
-            c.add(cable("osc", "sine", "amp", "l"));
+            c.add(cable("osc", "out", "amp", "l"));
             c.add(cable("env", "env", "amp", "gain"));
             c.add(cable("amp", "l", "vo", "l"));
             c.add(cable("env", "active", "vo", "active"));
@@ -192,7 +192,7 @@ void voiceCells() {
             c.add(cable("vi", "pitch", "osc", "pitch"));
             c.add(cable("vi", "gate", "env", "gate"));
             c.add(cable("vi", "trigger", "env", "retrig"));
-            c.add(cable("osc", "sine", "amp", "l"));
+            c.add(cable("osc", "out", "amp", "l"));
             c.add(cable("env", "env", "amp", "gain"));
             c.add(cable("amp", "l", "vo", "l"));
             c.add(cable("env", "active", "vo", "active"));

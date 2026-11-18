@@ -90,7 +90,7 @@ function frequencyFollower() {
   p.cable(m.amp, "l", sc, "in1");
   const q = p.add("quantizer", [4, 0], { root: "D", scale: "Natural Minor", glide: 0, hysteresis: 0.2 });
   p.cable(sc, "freq", q, "in");
-  const bell = p.add("oscillator", [5, 0], { shape: 0, octave: "+1", coarse: 7 }, { name: "Follower" });
+  const bell = p.add("oscillator", [5, 0], { wave: "Sine", octave: "+1", coarse: 7 }, { name: "Follower" });
   const env = p.add("adsr", [5, 1], { attack: 0.004, decay: 0.5, sustain: 0.1, release: 0.5 }, { name: "Follower Env" });
   const amp = p.add("vca", [6, 0], {}, { name: "Follower VCA" });
   p.cable(q, "out", bell, "pitch").cable(sc, "valid", env, "gate").cable(sc, "valid", env, "retrig").cable(bell, "out", amp, "l").cable(env, "env", amp, "gain");

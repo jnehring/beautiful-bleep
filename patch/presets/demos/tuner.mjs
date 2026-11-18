@@ -26,7 +26,7 @@ function tuningGame() {
     tags: ["tuning", "gate", "bell", "drift"],
   });
   const lfo = p.add("lfo", [0, 0], { rate: 0.13, wave: "Triangle" });
-  const osc = p.add("oscillator", [1, 0], { shape: 0, octave: "-1", coarse: -3, fine: 0 }, { name: "Drifting Tone" });
+  const osc = p.add("oscillator", [1, 0], { wave: "Sine", octave: "-1", coarse: -3, fine: 0 }, { name: "Drifting Tone" });
   const t = p.add("tuner", [2, 0], { tolerance: 8, damping: 0.05 });
   const bell = p.add("perc-voice", [3, 0], { pitch: 880, tone: 0.9, engine: "Modal", decay: 3, click: 0.1, level: 0.7 }, { name: "Bell" });
   const vb = verb(p, [4, 0], bell, { size: 0.8, decay: 5, mix: 0.4 });
@@ -42,8 +42,8 @@ function detuneMod() {
     tags: ["cents", "modulation", "pan", "filter"],
   });
   const lfo = p.add("lfo", [0, 0], { rate: 0.18, wave: "Sine" });
-  const a = p.add("oscillator", [1, 0], { shape: 0.4, octave: "-1", coarse: -5 }, { name: "Root" });
-  const b = p.add("oscillator", [1, 1], { shape: 0.4, octave: "-1", coarse: 2 }, { name: "Wanderer" });
+  const a = p.add("oscillator", [1, 0], { wave: "Triangle", wave2: "Saw", morph: 0.2, octave: "-1", coarse: -5 }, { name: "Root" });
+  const b = p.add("oscillator", [1, 1], { wave: "Triangle", wave2: "Saw", morph: 0.2, octave: "-1", coarse: 2 }, { name: "Wanderer" });
   const t = p.add("tuner", [2, 1], { tolerance: 6, damping: 0.1 });
   const flt = p.add("filter", [3, 0], { cutoff: 600, resonance: 0.35, type: "SVF Multimode", mode: "LP" });
   const mix = p.add("audio-mixer", [2, 0], { level1: -8, level2: -8, pan1: -0.6 }, { name: "Pad Mix" });
@@ -63,8 +63,8 @@ function driftChime() {
     tags: ["drone", "chime", "pitch cv", "ambient"],
   });
   const lfo = p.add("lfo", [0, 0], { rate: 0.09, wave: "Triangle" });
-  const a = p.add("oscillator", [1, 0], { shape: 0.2, octave: "-1", coarse: -5, fine: -4 }, { name: "Drone A" });
-  const b = p.add("oscillator", [1, 1], { shape: 0.2, octave: "-1", coarse: -5, fine: 5 }, { name: "Drone B" });
+  const a = p.add("oscillator", [1, 0], { wave: "Sine", wave2: "Triangle", morph: 0.6, octave: "-1", coarse: -5, fine: -4 }, { name: "Drone A" });
+  const b = p.add("oscillator", [1, 1], { wave: "Sine", wave2: "Triangle", morph: 0.6, octave: "-1", coarse: -5, fine: 5 }, { name: "Drone B" });
   const t = p.add("tuner", [2, 1], { tolerance: 7, damping: 0.08, low: 60 });
   const mal = p.add("modal-voice", [3, 1], { strike: 1, strikeTimbre: 0.5, geometry: 0.3, brightness: 0.6, damping: 0.4, position: 0.3, size: 0.4, space: 0.25, coarse: 19 }, { name: "Chime" });
   const mix = p.add("audio-mixer", [2, 0], { level1: -9, level2: -9, pan1: -0.4, pan2: 0.4 }, { name: "Drone Mix" });
@@ -86,7 +86,7 @@ function gatedOctave() {
   const m = melody(p, [0, 0], [0, ".", 3, 7, ".", 5, 3, ".", 0, ".", 7, 10, ".", 7, 5, 3],
     { rate: "1/8", shape: 0.3, root: "D", octave: 0, scale: "Natural Minor", gatelength: 0.7, env: { decay: 0.35, sustain: 0.5, release: 0.15 } });
   const t = p.add("tuner", [3, 0], { tolerance: 10, damping: 0.03, low: 80 });
-  const up = p.add("oscillator", [4, 0], { shape: 0.1, octave: "+1" }, { name: "Octave Up" });
+  const up = p.add("oscillator", [4, 0], { wave: "Sine", wave2: "Triangle", morph: 0.3, octave: "+1" }, { name: "Octave Up" });
   const env = p.add("adsr", [4, 1], { attack: 0.02, decay: 0.2, sustain: 0.8, release: 0.3 }, { name: "Gate Env" });
   const amp = p.add("vca", [5, 0], {}, { name: "Gated VCA" });
   p.cable(lfo, "out", m.osc, "pitch", 0.03).cable(m.amp, "l", t, "in")

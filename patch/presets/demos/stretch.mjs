@@ -56,9 +56,9 @@ function scanner() {
     tags: ["freeze", "scrub", "spectral", "lfo", "chords"],
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 4, rate: "1/1", root: "C", scale: "Natural Minor", gatelength: 1 }, {});
-  const osc1 = p.add("oscillator", [1, 0], { shape: 0.3 }, { name: "Root" });
-  const osc2 = p.add("oscillator", [1, 1], { shape: 0.3, coarse: 7 }, { name: "Fifth" });
-  const osc3 = p.add("oscillator", [1, 2], { shape: 0.3, coarse: 3, fine: 6 }, { name: "Third" });
+  const osc1 = p.add("oscillator", [1, 0], { wave: "Sine", wave2: "Triangle", morph: 0.9 }, { name: "Root" });
+  const osc2 = p.add("oscillator", [1, 1], { wave: "Sine", wave2: "Triangle", morph: 0.9, coarse: 7 }, { name: "Fifth" });
+  const osc3 = p.add("oscillator", [1, 2], { wave: "Sine", wave2: "Triangle", morph: 0.9, coarse: 3, fine: 6 }, { name: "Third" });
   const sum = p.add("audio-mixer", [2, 0], { level1: -8, level2: -9, level3: -9, master: 0 }, { name: "Chord" });
   p.cable(seq, "pitch", osc1, "pitch").cable(seq, "pitch", osc2, "pitch").cable(seq, "pitch", osc3, "pitch")
     .cable(osc1, "out", sum, "in1l").cable(osc2, "out", sum, "in2l").cable(osc3, "out", sum, "in3l");

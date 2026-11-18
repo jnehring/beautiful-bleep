@@ -13,7 +13,7 @@ function sq(p, at, notes, knobs = {}, vel) {
 /// Oscillator → ADSR → VCA from a pitch and gate source ({node, pitch, gate, trigger, velocity}), optional filter after.
 function voice(p, at, src, o = {}) {
   const [c, r] = at, name = o.name || "Voice";
-  const osc = p.add("oscillator", [c, r], { shape: 0.8, ...(o.osc || {}) }, { name });
+  const osc = p.add("oscillator", [c, r], { wave: "Saw", wave2: "Square", morph: 0.4, ...(o.osc || {}) }, { name });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.25, sustain: 0.2, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
   const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
   p.cable(src.node, src.pitch || "pitch", osc, "pitch").cable(src.node, src.gate || "gate", env, "gate");
@@ -62,7 +62,7 @@ function filterPlane() {
     tags: ["filter", "resonance", "bass", "two axes"],
   });
   const s = sq(p, [0, 0], [0, 0, ".", 12, 0, ".", 10, 7], { rate: "1/16", root: "F", scale: "Dorian", octave: -2, gatelength: 0.5 });
-  const v = voice(p, [1, 0], { node: s }, { osc: { shape: 0.95 }, env: { decay: 0.2, sustain: 0.4, release: 0.08 }, filter: { cutoff: 250, resonance: 0.2 } });
+  const v = voice(p, [1, 0], { node: s }, { osc: { wave: "Saw", wave2: "Square", morph: 0.85 }, env: { decay: 0.2, sustain: 0.4, release: 0.08 }, filter: { cutoff: 250, resonance: 0.2 } });
   const xy = p.add("xy-pad", [1, 2], { x: 0.45, y: 0.3, smooth: 0.05 }, { name: "Filter Pad" });
   p.cable(xy, "x", v.filter, "cutoff", 0.6).cable(xy, "y", v.filter, "resonance", 0.5);
   withBeat(p, [3, 0], v.out, "l", "four", { lead: -5 });
@@ -91,9 +91,9 @@ function timbreMap() {
     tags: ["timbre", "oscillator", "shape", "morph"],
   });
   const s = sq(p, [0, 0], [0, 3, 7, 10, 12, 10, 7, 3], { rate: "1/8", root: "B", scale: "Natural Minor", octave: -1, gatelength: 0.7 });
-  const v = voice(p, [1, 0], { node: s }, { osc: { shape: 0.3, pw: 0.5 }, env: { attack: 0.02, decay: 0.4, sustain: 0.5, release: 0.3 }, filter: { cutoff: 3200 } });
+  const v = voice(p, [1, 0], { node: s }, { osc: { wave: "Sine", wave2: "Triangle", morph: 0.9, pw: 0.5 }, env: { attack: 0.02, decay: 0.4, sustain: 0.5, release: 0.3 }, filter: { cutoff: 3200 } });
   const xy = p.add("xy-pad", [1, 2], { x: 0.4, y: 0.5, smooth: 0.08 }, { name: "Timbre Pad" });
-  p.cable(xy, "x", v.osc, "shape", 0.8).cable(xy, "y", v.osc, "pw", 0.6);
+  p.cable(xy, "x", v.osc, "morph", 1).cable(xy, "y", v.osc, "pw", 0.6);
   space(p, [4, 0], v.out, "l", { delay: { zone: 3, time: 0.4, feedback: 0.35, mix: 0.25 }, verb: { size: 0.5, decay: 2.5, mix: 0.25 } });
   return p;
 }
@@ -105,7 +105,7 @@ function variationField() {
     tags: ["variation", "gate length", "sequencer", "generative"],
   });
   const s = sq(p, [0, 0], [0, 3, 7, 3, 12, 7, 3, 5], { rate: "1/16", root: "A", scale: "Minor Pentatonic", varrange: 12, gatelength: 0.4 });
-  const v = voice(p, [1, 0], { node: s }, { osc: { shape: 0.75 }, env: { decay: 0.2, sustain: 0.3, release: 0.15 }, filter: { cutoff: 2000, resonance: 0.2 } });
+  const v = voice(p, [1, 0], { node: s }, { osc: { wave: "Saw", wave2: "Square", morph: 0.25 }, env: { decay: 0.2, sustain: 0.3, release: 0.15 }, filter: { cutoff: 2000, resonance: 0.2 } });
   const xy = p.add("xy-pad", [0, 2], { x: 0.2, y: 0.3, smooth: 0.05 }, { name: "Variation Pad" });
   p.cable(xy, "x", s, "variation", 0.7).cable(xy, "y", s, "gatelength", 0.6);
   withBeat(p, [3, 0], v.out, "l", "broken", { lead: 3 });
@@ -119,7 +119,7 @@ function bipolarRange() {
     tags: ["bipolar", "pitch", "min max", "centre"],
   });
   const s = sq(p, [0, 0], [0, ".", 7, ".", 3, ".", 10, 5], { rate: "1/8", root: "E", scale: "Natural Minor", octave: -1, gatelength: 0.8 });
-  const v = voice(p, [1, 0], { node: s }, { osc: { shape: 0.7 }, env: { attack: 0.02, decay: 0.5, sustain: 0.4, release: 0.4 }, filter: { cutoff: 900, resonance: 0.25 } });
+  const v = voice(p, [1, 0], { node: s }, { osc: { wave: "Saw", wave2: "Square", morph: 0.1 }, env: { attack: 0.02, decay: 0.5, sustain: 0.4, release: 0.4 }, filter: { cutoff: 900, resonance: 0.25 } });
   const xy = p.add("xy-pad", [1, 2], { x: 0.5, y: 0.5, min: -1, max: 1, smooth: 0.1 }, { name: "Centre Pad" });
   p.cable(xy, "x", v.osc, "fine", 0.25).cable(xy, "y", v.filter, "cutoff", 0.35);
   space(p, [4, 0], v.out, "l", { delay: { zone: 3, time: 0.5, feedback: 0.4, mix: 0.25 }, verb: { size: 0.55, decay: 3, mix: 0.3 } });

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Switch: five demo patches. Each plays by itself with the transport.
-import { patch, steps, drumGrid, pattern } from "../kit.mjs";
+import { patch, steps, drumGrid, pattern, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// Mono source → trim → reverb → Out.
@@ -20,10 +20,10 @@ function rotation() {
     { data: steps([0, 7, 3, 10, 12, 10, 7, 3]) });
   const env = p.add("adsr", [0, 1], { attack: 0.003, decay: 0.2, sustain: 0.3, release: 0.15 }, { name: "Amp Env" });
   const o = [
-    p.add("oscillator", [1, 0], { shape: 0.85 }, { name: "Saw" }),
-    p.add("oscillator", [1, 1], { shape: 0.5, pw: 0.25 }, { name: "Pulse" }),
-    p.add("oscillator", [1, 2], { shape: 0.1 }, { name: "Triangle" }),
-    p.add("oscillator", [1, 3], { shape: 0.9, octave: "+1" }, { name: "Bright" }),
+    p.add("oscillator", [1, 0], { wave: "Saw", wave2: "Square", morph: 0.55 }, { name: "Saw" }),
+    p.add("oscillator", [1, 1], { wave: "Triangle", wave2: "Saw", morph: 0.5, pw: 0.25 }, { name: "Pulse" }),
+    p.add("oscillator", [1, 2], { wave: "Sine", wave2: "Triangle", morph: 0.3 }, { name: "Triangle" }),
+    p.add("oscillator", [1, 3], { wave: "Saw", wave2: "Square", morph: 0.7, octave: "+1" }, { name: "Bright" }),
   ];
   const sw = p.add("switch", [2, 0], { length: 4, rate: "1/2", fade: 0.05, level2: 0.8, level3: 1, level4: 0.5 });
   o.forEach((x, i) => p.cable(seq, "pitch", x, "pitch").cable(x, "out", sw, "in" + (i + 1)));
@@ -45,15 +45,15 @@ function walk() {
     description: "Four sustained layers, a soft pad, a breathy noise band, a deep sine and a shimmering high chord, are slowly crossfaded by the Switch in Random Walk order, one step at a time, so the texture wanders without ever jumping. Change Seed for another route.",
     tags: ["random walk", "texture", "ambient", "crossfade"],
   });
-  const o1 = p.add("oscillator", [0, 0], { shape: 0.7, fine: -6 }, { name: "Pad A" });
-  const o2 = p.add("oscillator", [0, 1], { shape: 0.7, fine: 6, coarse: 7 }, { name: "Pad B" });
+  const o1 = p.add("oscillator", [0, 0], { wave: "Saw", wave2: "Square", morph: 0.1, fine: -6 }, { name: "Pad A" });
+  const o2 = p.add("oscillator", [0, 1], { wave: "Saw", wave2: "Square", morph: 0.1, fine: 6, coarse: 7 }, { name: "Pad B" });
   const pm = p.add("audio-mixer", [1, 0], { level1: -9, level2: -12, master: 0 });
   const pf = p.add("filter", [2, 0], { cutoff: 900, resonance: 0.1, type: "SVF Multimode" });
   const noise = p.add("noise", [0, 2], { colour: 0.3, level: 0.25 });
   const nf = p.add("filter", [1, 2], { cutoff: 1400, resonance: 0.4, type: "SVF Bandpass (unit gain)" });
-  const sub = p.add("oscillator", [0, 3], { shape: 0, octave: "-2" }, { name: "Deep Sine" });
-  const hi1 = p.add("oscillator", [0, 4], { shape: 0.2, octave: "+1", fine: -9 }, { name: "Shimmer A" });
-  const hi2 = p.add("oscillator", [0, 5], { shape: 0.2, octave: "+1", coarse: 4, fine: 9 }, { name: "Shimmer B" });
+  const sub = p.add("oscillator", [0, 3], { wave: "Sine", octave: "-2" }, { name: "Deep Sine" });
+  const hi1 = p.add("oscillator", [0, 4], { wave: "Sine", wave2: "Triangle", morph: 0.6, octave: "+1", fine: -9 }, { name: "Shimmer A" });
+  const hi2 = p.add("oscillator", [0, 5], { wave: "Sine", wave2: "Triangle", morph: 0.6, octave: "+1", coarse: 4, fine: 9 }, { name: "Shimmer B" });
   const hm = p.add("audio-mixer", [1, 4], { level1: -14, level2: -16, master: 0 });
   const sw = p.add("switch", [3, 0], { length: 4, rate: "1 bar", order: "Random Walk", fade: 0.9, seed: 4, level1: 1, level2: 0.6, level3: 1, level4: 0.7 });
   p.cable(o1, "out", pm, "in1l").cable(o1, "out", pm, "in1r").cable(o2, "out", pm, "in2l").cable(o2, "out", pm, "in2r")
@@ -97,7 +97,7 @@ function drones() {
     tags: ["glide", "drone", "ping-pong", "slow"],
   });
   const notes = [{ coarse: -5 }, { coarse: 0 }, { coarse: 4 }, { coarse: 11 }];
-  const os = notes.map((n, i) => p.add("oscillator", [0, i], { shape: i % 2 ? 0.15 : 0, fine: (i - 1.5) * 4, ...n }, { name: `Drone ${i + 1}` }));
+  const os = notes.map((n, i) => p.add("oscillator", [0, i], { ...oscWaves(i % 2 ? 0.15 : 0), fine: (i - 1.5) * 4, ...n }, { name: `Drone ${i + 1}` }));
   const sw = p.add("switch", [1, 0], { length: 4, rate: "2 bars", order: "Ping-Pong", mode: "Glide", fade: 1.6, curve: "Equal Power" });
   os.forEach((o, i) => p.cable(o, "out", sw, "in" + (i + 1)));
   const f = p.add("filter", [2, 0], { cutoff: 1200, resonance: 0.15, type: "SVF Multimode" });

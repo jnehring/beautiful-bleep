@@ -13,7 +13,7 @@ function sq(p, at, notes, knobs = {}, vel) {
 /// Oscillator → ADSR → VCA from a pitch and gate source ({node, pitch, gate, trigger, velocity}), optional filter after.
 function voice(p, at, src, o = {}) {
   const [c, r] = at, name = o.name || "Voice";
-  const osc = p.add("oscillator", [c, r], { shape: 0.8, ...(o.osc || {}) }, { name });
+  const osc = p.add("oscillator", [c, r], { wave: "Saw", wave2: "Square", morph: 0.4, ...(o.osc || {}) }, { name });
   const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.25, sustain: 0.2, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
   const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
   p.cable(src.node, src.pitch || "pitch", osc, "pitch").cable(src.node, src.gate || "gate", env, "gate");
@@ -80,7 +80,7 @@ function fiveAgainstSeven() {
   const seq = p.add("polymeter-sequencer", [0, 0], { rate: "1/8", root: "A", scale: "Minor Pentatonic", gatescale: 0.8, velocity: 0.8, spread: 0.25 }, {
     data: data([slot({ trig: track("trig", [2, 1, 0, 1, 1]), note: track("note", [0, 2, 1, 3, 4, 2, 1]), oct: track("oct", [0, 0, 0, 1, 0, 0, 0]) })]),
   });
-  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { shape: 0.5 }, env: { decay: 0.35, sustain: 0.1, release: 0.3 }, filter: { cutoff: 3000, resonance: 0.15 } });
+  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { wave: "Triangle", wave2: "Saw", morph: 0.5 }, env: { decay: 0.35, sustain: 0.1, release: 0.3 }, filter: { cutoff: 3000, resonance: 0.15 } });
   space(p, [4, 0], v.out, "l", { level: 5, delay: { zone: 3, time: 0.4, feedback: 0.45, mix: 0.3, tone: -0.2 }, verb: { size: 0.6, decay: 3.5, mix: 0.3 } });
   return p;
 }
@@ -94,7 +94,7 @@ function sevenStepGroove() {
   const seq = p.add("polymeter-sequencer", [0, 0], { rate: "1/16", root: "D", scale: "Natural Minor", octave: -2, gatescale: 0.9, velocity: 0.85, swing: 0.54 }, {
     data: data([slot({ trig: track("trig", [2, 0, 1, 1, 0, 1, 0]), note: track("note", [0, 0, 3, 0, 4]), oct: track("oct", [0, 1, 0]), gate: track("gate", [60, 40, 40, 80, 40, 50, 40]) })]),
   });
-  const bass = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { name: "Bass", osc: { shape: 0.95 }, env: { decay: 0.18, sustain: 0.4, release: 0.08 }, filter: { cutoff: 450, resonance: 0.35, drive: 0.2 } });
+  const bass = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { name: "Bass", osc: { wave: "Saw", wave2: "Square", morph: 0.85 }, env: { decay: 0.18, sustain: 0.4, release: 0.08 }, filter: { cutoff: 450, resonance: 0.35, drive: 0.2 } });
   const hat = p.add("punch-hats", [1, 3], { level: 0.45 });
   p.cable(seq, "trackends", hat, "closed");
   const drums = beat(p, [0, 4], { style: "half", level: -9 });
@@ -141,7 +141,7 @@ function ratchetRolls() {
       ratch: track("ratch", [1, 1, [2, 0], 1, [3, 1], 1, 1, [4, 0]]),
     })]),
   });
-  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { shape: 0.75 }, env: { decay: 0.14, sustain: 0.05, release: 0.1 }, filter: { cutoff: 2800, resonance: 0.2 } });
+  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { wave: "Saw", wave2: "Square", morph: 0.25 }, env: { decay: 0.14, sustain: 0.05, release: 0.1 }, filter: { cutoff: 2800, resonance: 0.2 } });
   withBeat(p, [3, 0], v.out, "l", "sparse", { lead: 6 });
   return p;
 }
@@ -157,7 +157,7 @@ function patternSlots() {
   const seq = p.add("polymeter-sequencer", [0, 0], { rate: "1/8", root: "D", scale: "Dorian", slots: 2, patternchange: "Next bar", gatescale: 0.8, velocity: 0.8 }, { data: data([calm, busy]) });
   const ramp = p.add("lfo", [0, 2], { wave: "Square", sync: "Tempo", division: "8 bars", polarity: "Unipolar", pw: 0.5 }, { name: "Slot Switch" });
   p.cable(ramp, "out", seq, "pattern");
-  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { shape: 0.4 }, env: { decay: 0.4, sustain: 0.1, release: 0.3 }, filter: { cutoff: 2800, resonance: 0.15 } });
+  const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { wave: "Triangle", wave2: "Saw", morph: 0.2 }, env: { decay: 0.4, sustain: 0.1, release: 0.3 }, filter: { cutoff: 2800, resonance: 0.15 } });
   space(p, [4, 0], v.out, "l", { level: 5, delay: { zone: 3, time: 0.45, feedback: 0.4, mix: 0.25 }, verb: { size: 0.55, decay: 2.8, mix: 0.3 } });
   return p;
 }

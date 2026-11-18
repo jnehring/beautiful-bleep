@@ -149,11 +149,11 @@ function raindropPings() {
       "falls at the start of each note.\n\n" +
       "Tip: play fast random notes high on the keyboard, with a reverb after the cell, for a rain texture.",
   }).settings({ voices: 10, spread: 0.7 }).input("res", "Resonance").input("drop", "Drop");
-  const osc = p.add("oscillator", [0, 0], { shape: 0, octave: "+1" });
+  const osc = p.add("oscillator", [0, 0], { wave: "Sine", octave: "+1" });
   const fall = envelope(p, [0, 1], { attack: 0.001, decay: 0.06, sustain: 0, release: 0.05, velamount: 0 }, "Drop Env");
   const lpg = p.add("low-pass-gate", [1, 0], { response: 0.3, ping: 0.85, resonance: 0.45, brightness: 0.55, mode: "Both", cell: "Fast" });
   p.cable(p.vin, "pitch", osc, "pitch").cable(fall, "env", osc, "pitch", -semis(4)).cable(p.cin, "drop", osc, "pitch", -semis(6))
-    .cable(osc, "sine", lpg, "l")
+    .cable(osc, "out", lpg, "l")
     .cable(p.vin, "trigger", lpg, "ping").cable(p.vin, "velocity", lpg, "velocity")
     .cable(p.cin, "res", lpg, "resonance", 0.4)
     .stereo(lpg, p.vout).cable(lpg, "active", p.vout, "active");

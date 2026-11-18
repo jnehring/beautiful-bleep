@@ -16,7 +16,7 @@ function phrase(p, at, notes, knobs = {}, vel) {
 function mono(p, at, src, o = {}) {
   const [c, r] = at;
   const ntc = p.add("notes-to-cv", [c, r], { retrigger: "On", ...(o.ntc || {}) });
-  const osc = p.add("oscillator", [c + 1, r], { shape: 0.8, ...(o.osc || {}) }, { name: o.name || "Voice" });
+  const osc = p.add("oscillator", [c + 1, r], { wave: "Saw", wave2: "Square", morph: 0.4, ...(o.osc || {}) }, { name: o.name || "Voice" });
   const env = p.add("adsr", [c + 1, r + 1], { attack: 0.005, decay: 0.3, sustain: 0.2, release: 0.25, ...(o.env || {}) }, { name: "Voice Env" });
   const amp = p.add("vca", [c + 2, r], {}, { name: "Voice VCA" });
   p.cable(src.node, src.jack || "notes", ntc, "notes").cable(ntc, "pitch", osc, "pitch").cable(ntc, "gate", env, "gate")
@@ -67,7 +67,7 @@ function backwardsTune() {
   const s = phrase(p, [0, 0], [0, 3, 5, 7, 5, 10, 7, 12]);
   const m = p.add("melody-mirror", [2, 0], { mode: "Reverse", length: 8, start: "After Gap", gap: "1 beat" });
   p.cable(s, "notes", m, "notes");
-  const v = mono(p, [4, 0], { node: m }, { osc: { shape: 0.55 }, env: { decay: 0.35, sustain: 0.1, release: 0.3 }, filter: { cutoff: 2800, resonance: 0.15 } });
+  const v = mono(p, [4, 0], { node: m }, { osc: { wave: "Triangle", wave2: "Saw", morph: 0.65 }, env: { decay: 0.35, sustain: 0.1, release: 0.3 }, filter: { cutoff: 2800, resonance: 0.15 } });
   withBeat(p, [8, 0], v.out, v.jack, "sparse", { lead: 5, verb: { size: 0.5, decay: 2.5, mix: 0.25 } });
   return p;
 }
@@ -81,7 +81,7 @@ function upsideDown() {
   const s = phrase(p, [0, 0], [12, 10, 7, 5, 7, 3, 0, 3], { rate: "1/8" });
   const m = p.add("melody-mirror", [2, 0], { mode: "Invert", length: 8, axismode: "First Note", gap: "1 beat", snap: "On", root: "A", scale: "Minor Pentatonic", transpose: 12 });
   p.cable(s, "notes", m, "notes");
-  const v = mono(p, [4, 0], { node: m }, { osc: { shape: 0.2 }, env: { decay: 0.5, sustain: 0.05, release: 0.5 } });
+  const v = mono(p, [4, 0], { node: m }, { osc: { wave: "Sine", wave2: "Triangle", morph: 0.6 }, env: { decay: 0.5, sustain: 0.05, release: 0.5 } });
   space(p, [8, 0], v.out, v.jack, { level: 6, delay: { zone: 3, time: 0.375, feedback: 0.4, mix: 0.3 }, verb: { size: 0.6, decay: 3, mix: 0.3 } });
   return p;
 }
@@ -95,7 +95,7 @@ function callAndResponse() {
   const s = phrase(p, [0, 0], [0, 7, 5, 3, 7, 5, 3, 0], { rate: "1/8", octave: 0 });
   const m = p.add("melody-mirror", [2, 0], { mode: "Answer", reply: "Mirror", length: 8, gap: "1 beat" });
   p.cable(s, "notes", m, "notes");
-  const v = mono(p, [4, 0], { node: m }, { osc: { shape: 0.85 }, env: { decay: 0.2, sustain: 0.3, release: 0.1 }, filter: { cutoff: 1500, resonance: 0.3 } });
+  const v = mono(p, [4, 0], { node: m }, { osc: { wave: "Saw", wave2: "Square", morph: 0.55 }, env: { decay: 0.2, sustain: 0.3, release: 0.1 }, filter: { cutoff: 1500, resonance: 0.3 } });
   withBeat(p, [8, 0], v.out, v.jack, "half", { lead: 3, verb: { size: 0.4, decay: 1.5, mix: 0.15 } });
   return p;
 }
@@ -109,7 +109,7 @@ function turnedMotif() {
   const s = phrase(p, [0, 0], [0, 7, 3, 5], { rate: "1/4", octave: 0 });
   const m = p.add("melody-mirror", [2, 0], { mode: "Rotate", length: 4, rotate: 2, gap: "1/2 beat" });
   p.cable(s, "notes", m, "notes");
-  const v = mono(p, [4, 0], { node: m }, { osc: { shape: 0.4 }, env: { decay: 0.9, sustain: 0.4, release: 0.6 }, filter: { cutoff: 3200 } });
+  const v = mono(p, [4, 0], { node: m }, { osc: { wave: "Triangle", wave2: "Saw", morph: 0.2 }, env: { decay: 0.9, sustain: 0.4, release: 0.6 }, filter: { cutoff: 3200 } });
   space(p, [8, 0], v.out, v.jack, { level: 6, delay: { zone: 4, time: 0.5, feedback: 0.45, mix: 0.3, tone: -0.2 }, verb: { size: 0.8, decay: 5, mix: 0.35 } });
   return p;
 }
@@ -124,7 +124,7 @@ function wanderingTurns() {
   const lfo = p.add("lfo", [1, 2], { rate: 0.04, wave: "Triangle", polarity: "Unipolar" }, { name: "Mode LFO" });
   const m = p.add("melody-mirror", [2, 0], { mode: "Reverse", length: 8, gap: "1 beat", snap: "On", root: "A", scale: "Minor Pentatonic" });
   p.cable(s, "notes", m, "notes").cable(lfo, "out", m, "mode", 0.8);
-  const v = mono(p, [4, 0], { node: m }, { osc: { shape: 0.7 }, env: { decay: 0.3, sustain: 0.15, release: 0.2 }, filter: { cutoff: 2200, resonance: 0.2 } });
+  const v = mono(p, [4, 0], { node: m }, { osc: { wave: "Saw", wave2: "Square", morph: 0.1 }, env: { decay: 0.3, sustain: 0.15, release: 0.2 }, filter: { cutoff: 2200, resonance: 0.2 } });
   withBeat(p, [8, 0], v.out, v.jack, "shuffle", { lead: 4, verb: { size: 0.5, decay: 2.2, mix: 0.2 } });
   return p;
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Quad LFO: five demo patches. Each plays by itself with the transport.
-import { patch, steps } from "../kit.mjs";
+import { patch, steps, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// Mono/stereo source (`src`, jacks l/r) → trim → reverb → Out.
@@ -26,8 +26,8 @@ function pad(p, at, notes, o = {}) {
   const [c, r] = at;
   const seq = p.add("step-sequencer", [c, r], { length: notes.length, rate: o.rate || "1/2", root: o.root || "A", scale: o.scale || "Minor Pentatonic",
     octave: o.octave ?? -1, gatelength: o.gate ?? 0.95 }, { data: steps(notes) });
-  const o1 = p.add("oscillator", [c + 1, r], { shape: o.shape ?? 0.5, fine: -9 }, { name: "Osc L" });
-  const o2 = p.add("oscillator", [c + 1, r + 1], { shape: o.shape ?? 0.5, fine: 9 }, { name: "Osc R" });
+  const o1 = p.add("oscillator", [c + 1, r], { ...oscWaves(o.shape ?? 0.5), fine: -9 }, { name: "Osc L" });
+  const o2 = p.add("oscillator", [c + 1, r + 1], { ...oscWaves(o.shape ?? 0.5), fine: 9 }, { name: "Osc R" });
   const amp = p.add("vca", [c + 2, r], { gain: o.gain ?? 1 }, { name: "VCA" });
   const f = p.add("filter", [c + 3, r], { cutoff: 1400, resonance: 0.2, ...(o.filter || {}) }, { name: "Filter" });
   p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", amp, "l").cable(o2, "out", amp, "r")
@@ -44,7 +44,7 @@ function chord(p, at, tones, o = {}) {
   const mixB = p.add("audio-mixer", [c + 2, r + 3], { level1: lv, level2: lv, level3: lv, pan1: 0.5, pan2: -0.4, pan3: 0.2, master: 0 }, { name: "Mix 4-6" });
   const vcas = [], oscs = [];
   tones.forEach((t, i) => {
-    const osc = p.add("oscillator", [c, r + i], { shape: o.shape ?? 0, coarse: t[0], octave: t[1] }, { name: `Tone ${i + 1}` });
+    const osc = p.add("oscillator", [c, r + i], { ...oscWaves(o.shape ?? 0), coarse: t[0], octave: t[1] }, { name: `Tone ${i + 1}` });
     const vca = p.add("vca", [c + 1, r + i], { gain: o.gain ?? 0 }, { name: `Level ${i + 1}` });
     p.cable(osc, "out", vca, "l");
     if (o.pitch) p.cable(o.pitch, "pitch", osc, "pitch");
@@ -78,7 +78,7 @@ function divided() {
   });
   const v = voice(p, [0, 0], [0, 0, 7, 0, 10, 0, 7, 5, 0, 0, 7, 12, 10, 7, 5, 3], { rate: "1/16", shape: 0.9, root: "D", octave: -1, env: { decay: 0.16, sustain: 0.3 }, filter: { cutoff: 500, resonance: 0.35 } });
   const q = p.add("quad-lfo", [3, 1], { rate1: 1, mode: "Divide", sync: true, divide1: "÷1", divide2: "÷2", divide3: "÷4", divide4: "÷8", wave1: "Triangle", wave2: "Sine", wave3: "Sine", wave4: "Sine" });
-  p.cable(q, "out1", v.osc, "shape", 0.25).cable(q, "out2", v.filt, "cutoff", 0.35).cable(q, "out3", v.filt, "cutoff", 0.3).cable(q, "out4", v.filt, "resonance", 0.15);
+  p.cable(q, "out1", v.osc, "morph", 0.5).cable(q, "out2", v.filt, "cutoff", 0.35).cable(q, "out3", v.filt, "cutoff", 0.3).cable(q, "out4", v.filt, "resonance", 0.15);
   const drums = beat(p, [0, 4], { style: "four", level: -7 });
   const mix = p.add("audio-mixer", [4, 0], { level1: -6, level2: -11, master: 0 });
   const verb = p.add("reverb", [5, 0], { size: 0.4, decay: 1.8, mix: 0.12, quality: "Eco (8 lines)" });
@@ -95,8 +95,8 @@ function stereoSweep() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/2", root: "E", scale: "Minor Pentatonic", octave: -1, gatelength: 0.95 },
     { data: steps([0, 3, 7, 5, 0, 5, 10, 7]) });
-  const o1 = p.add("oscillator", [1, 0], { shape: 0.9, fine: -8 }, { name: "Osc L" });
-  const o2 = p.add("oscillator", [1, 1], { shape: 0.9, fine: 8 }, { name: "Osc R" });
+  const o1 = p.add("oscillator", [1, 0], { wave: "Saw", wave2: "Square", morph: 0.7, fine: -8 }, { name: "Osc L" });
+  const o2 = p.add("oscillator", [1, 1], { wave: "Saw", wave2: "Square", morph: 0.7, fine: 8 }, { name: "Osc R" });
   const fl = p.add("filter", [2, 0], { cutoff: 600, resonance: 0.4 }, { name: "Filter L" });
   const fr = p.add("filter", [2, 1], { cutoff: 600, resonance: 0.4 }, { name: "Filter R" });
   const q = p.add("quad-lfo", [1, 3], { rate1: 0.22, mode: "Phase", spread: 150, wave1: "Sine", polarity: "Unipolar" });
@@ -118,7 +118,7 @@ function freeTexture() {
   const v = voice(p, [0, 0], [0, 7, 3, 10, 12, 7, 5, 3, 0, 5, 8, 7, 12, 10, 7, 3], { rate: "1/8", shape: 0.7, root: "F", scale: "Dorian", env: { decay: 0.3, sustain: 0.2 }, filter: { cutoff: 700, resonance: 0.3 } });
   const q = p.add("quad-lfo", [3, 1], { rate1: 0.13, rate2: 0.31, rate3: 0.77, rate4: 1.9, mode: "Free", level1: 0.8, level2: 0.8, level3: 0.5, level4: 0.5,
     wave1: "Sine", wave2: "Random Smooth", wave3: "Triangle", wave4: "Random Step" });
-  p.cable(q, "sum", v.filt, "cutoff", 0.4).cable(q, "out3", v.osc, "shape", 0.3).cable(q, "out2", v.filt, "resonance", 0.12);
+  p.cable(q, "sum", v.filt, "cutoff", 0.4).cable(q, "out3", v.osc, "morph", 0.6).cable(q, "out2", v.filt, "resonance", 0.12);
   finish(p, [4, 0], v.filt, { stereo: true, trim: -2, verb: { size: 0.5, decay: 3, mix: 0.3 } });
   return p;
 }
@@ -132,7 +132,7 @@ function clockHold() {
   const v = voice(p, [0, 0], [0, 7, 12, 7, 3, 10, 7, 3, 0, 5, 8, 12, 8, 5, 3, 7], { rate: "1/8", shape: 0.8, root: "C", scale: "Natural Minor", env: { decay: 0.25, sustain: 0.2 }, filter: { cutoff: 600, resonance: 0.35 } });
   const hold = p.add("step-sequencer", [3, 2], { length: 8, rate: "1/4", gatelength: 0.5 }, { data: steps([".", ".", 0, ".", ".", ".", 0, 0]) });
   const q = p.add("quad-lfo", [3, 1], { mode: "Quadrature", sync: true, clockratio: "8", wave1: "Triangle", polarity: "Unipolar" });
-  p.cable(v.seq, "trigger", q, "clock").cable(hold, "gate", q, "hold").cable(q, "out1", v.filt, "cutoff", 0.5).cable(q, "out2", v.osc, "shape", 0.3);
+  p.cable(v.seq, "trigger", q, "clock").cable(hold, "gate", q, "hold").cable(q, "out1", v.filt, "cutoff", 0.5).cable(q, "out2", v.osc, "morph", 0.6);
   finish(p, [4, 0], v.filt, { stereo: true, trim: -2, verb: { size: 0.45, decay: 2.2, mix: 0.25 } });
   return p;
 }

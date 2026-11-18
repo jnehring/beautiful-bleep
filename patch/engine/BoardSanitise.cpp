@@ -6,7 +6,8 @@ namespace bleep::engine {
 
 namespace board {
 
-juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
+juce::var sanitise(const juce::var& saved, juce::StringArray* warnings) {
+    const juce::var in = migrateOscillators(saved);
     auto warn = [&](const juce::String& w) {
         if (warnings) warnings->add(w);
     };

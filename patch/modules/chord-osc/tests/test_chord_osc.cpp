@@ -259,7 +259,7 @@ void levels() {
     q.inversion = 2;
     q.voicing = 4;
     patch::OscillatorParams op;
-    op.shape = q.shape;
+    patch::OscillatorDsp::setShape(op, q.shape);
     op.pulseWidth = q.pulseWidth;
     op.fmDepth = q.fmDepth;
     double worst = 0.0;
@@ -268,7 +268,7 @@ void levels() {
         const float fm = std::sin((float)i * 0.05f);
         op.pitch = -1.0f + 13.0f / 1200.0f + q.pitch;
         const float a = c.tick(q, fm, false, 0.0f).root;
-        const float b = o.tick(op, fm, 0.0f).out;
+        const float b = o.tick(op, fm, 0.0f);
         worst = std::max(worst, (double)std::fabs(a - b));
     }
     EXPECT(worst < 1e-6);

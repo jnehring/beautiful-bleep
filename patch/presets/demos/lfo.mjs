@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // LFO: five demo patches. Each plays by itself with the transport.
-import { patch, steps } from "../kit.mjs";
+import { patch, steps, oscWaves } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// Mono/stereo source (`src`, jacks l/r) → trim → reverb → Out.
@@ -26,8 +26,8 @@ function pad(p, at, notes, o = {}) {
   const [c, r] = at;
   const seq = p.add("step-sequencer", [c, r], { length: notes.length, rate: o.rate || "1/2", root: o.root || "A", scale: o.scale || "Minor Pentatonic",
     octave: o.octave ?? -1, gatelength: o.gate ?? 0.95 }, { data: steps(notes) });
-  const o1 = p.add("oscillator", [c + 1, r], { shape: o.shape ?? 0.5, fine: -9 }, { name: "Osc L" });
-  const o2 = p.add("oscillator", [c + 1, r + 1], { shape: o.shape ?? 0.5, fine: 9 }, { name: "Osc R" });
+  const o1 = p.add("oscillator", [c + 1, r], { ...oscWaves(o.shape ?? 0.5), fine: -9 }, { name: "Osc L" });
+  const o2 = p.add("oscillator", [c + 1, r + 1], { ...oscWaves(o.shape ?? 0.5), fine: 9 }, { name: "Osc R" });
   const amp = p.add("vca", [c + 2, r], { gain: o.gain ?? 1 }, { name: "VCA" });
   const f = p.add("filter", [c + 3, r], { cutoff: 1400, resonance: 0.2, ...(o.filter || {}) }, { name: "Filter" });
   p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", amp, "l").cable(o2, "out", amp, "r")
@@ -43,7 +43,7 @@ function vibrato() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/2", root: "G", scale: "Major Pentatonic", octave: 0, gatelength: 1 },
     { data: steps([0, "_", 4, 7, "_", 9, 7, 4]) });
-  const osc = p.add("oscillator", [1, 0], { shape: 0.55 }, { name: "Lead" });
+  const osc = p.add("oscillator", [1, 0], { wave: "Triangle", wave2: "Saw", morph: 0.65 }, { name: "Lead" });
   const env = p.add("adsr", [1, 1], { attack: 0.06, decay: 0.3, sustain: 0.8, release: 0.5 }, { name: "Amp Env" });
   const amp = p.add("vca", [2, 0], {});
   const vib = p.add("lfo", [0, 2], { rate: 5.2, wave: "Sine", fade: 2.5 }, { name: "Vibrato" });

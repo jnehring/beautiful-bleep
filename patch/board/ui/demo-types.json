@@ -4,7 +4,7 @@
     "name": "Oscillator",
     "category": "Sources/Oscillators",
     "colour": "#5eead4",
-    "description": "Triangle-core oscillator: waveform morph, through-zero FM, hard sync and a sub octave.",
+    "description": "Triangle-core oscillator: two waveforms with a morph between them, through-zero FM and hard sync.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,
@@ -63,16 +63,56 @@
         "label": "ct"
       },
       {
-        "id": "shape",
-        "name": "Shape",
-        "kind": "float",
+        "id": "wave",
+        "name": "Waveform",
+        "kind": "choice",
         "default": 0.666666686534882,
+        "steps": 4,
+        "modulatable": true,
+        "cableable": true,
+        "choices": [
+          "Sine",
+          "Triangle",
+          "Saw",
+          "Square"
+        ],
+        "min": 0.0,
+        "max": 3.0,
+        "def": 2.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "wave2",
+        "name": "Secondary",
+        "kind": "choice",
+        "default": 1.0,
+        "steps": 4,
+        "modulatable": true,
+        "cableable": true,
+        "choices": [
+          "Sine",
+          "Triangle",
+          "Saw",
+          "Square"
+        ],
+        "min": 0.0,
+        "max": 3.0,
+        "def": 3.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "morph",
+        "name": "Morph",
+        "kind": "float",
+        "default": 0.0,
         "steps": 0,
         "modulatable": true,
         "cableable": false,
         "min": 0.0,
         "max": 1.0,
-        "def": 0.666666686534882,
+        "def": 0.0,
         "format": "percent",
         "decimals": 2
       },
@@ -103,6 +143,52 @@
         "def": 0.0,
         "format": "percent",
         "decimals": 2
+      },
+      {
+        "id": "fmmode",
+        "name": "FM Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": true,
+        "cableable": true,
+        "choices": [
+          "Linear",
+          "Exponential"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "hardsync",
+        "name": "Hard Sync",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "toggle",
+        "decimals": 2
+      },
+      {
+        "id": "tzfm",
+        "name": "Through-Zero",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "toggle",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -129,36 +215,6 @@
       {
         "id": "out",
         "name": "Out",
-        "type": "audio",
-        "bipolar": true
-      },
-      {
-        "id": "sine",
-        "name": "Sine",
-        "type": "audio",
-        "bipolar": true
-      },
-      {
-        "id": "triangle",
-        "name": "Triangle",
-        "type": "audio",
-        "bipolar": true
-      },
-      {
-        "id": "saw",
-        "name": "Saw",
-        "type": "audio",
-        "bipolar": true
-      },
-      {
-        "id": "square",
-        "name": "Square",
-        "type": "audio",
-        "bipolar": true
-      },
-      {
-        "id": "sub",
-        "name": "Sub",
         "type": "audio",
         "bipolar": true
       }
