@@ -17,7 +17,7 @@
   "use strict";
   // The knobs of a module that matter, in order. Others: its first few modulatable knobs.
   const FACE = {
-    "oscillator": ["wave", "morph", "pw", "fine", "coarse", "octave", "fm"], "dual-osc": ["shapeA", "shapeB", "octaveB", "fineB", "balance", "fmDepth", "fold", "width"],
+    "oscillator": ["wave", "morph", "pw", "fine", "coarse", "octave", "fmdepth"], "dual-osc": ["shapeA", "shapeB", "octaveB", "fineB", "balance", "fmDepth", "fold", "width"],
     "macro-osc": ["model", "tone", "shape", "blend", "decay", "level"], "wavetable-osc": ["bank", "x", "y", "scan", "warp", "subLevel"],
     "chord-osc": ["chord", "voicing", "shape", "detune", "stereo", "glide"], "formant-osc": ["formant", "narrow", "body", "roll", "spread", "fmDepth"],
     "additive-osc": ["partials", "tilt", "oddEven", "stretch", "comb", "chorus"], "swarm": ["chord", "spread", "detune", "warp", "drift", "count"],

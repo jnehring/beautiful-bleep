@@ -115,7 +115,7 @@ function clockOut() {
   const tr = p.add("transport", [0, 0], { tempo: 128, link: false, midiout: true });
   const drums = beat(p, [2, 0], { style: "four", level: -5 });
   const bass = melody(p, [2, 4], [0, 0, ".", 12, 0, ".", 7, 3, 0, 0, ".", 12, 5, ".", 3, 2], { rate: "1/16", root: "A", scale: "Minor Pentatonic", octave: -2, shape: 0.2,
-    gatelength: 0.4, env: { decay: 0.2, sustain: 0.2, release: 0.1 }, osc: { fm: 0 } });
+    gatelength: 0.4, env: { decay: 0.2, sustain: 0.2, release: 0.1 }, osc: { fmdepth: 0 } });
   const filt = p.add("filter", [5, 4], { cutoff: 700, resonance: 0.4, type: "Ladder Tanh", drive: 0.2 }, { name: "Bass Filter" });
   both(p, bass.amp, "l", filt, "l", "r");
   const fin = p.add("audio-mixer", [6, 0], { level1: 0, level2: -4, master: 0 }, { name: "Final" });

@@ -159,7 +159,7 @@ static void registerDualOscModule(Registry& r) {
                 fine("fineB", "Fine B").inGroup("Osc B"),
                 ParamSpec::percent("shapeB", "Shape B", 0.0f, 1.0f, 0.0f).inGroup("Osc B"),
                 ParamSpec::percent("fmDepth", "FM Depth", 0.0f, 1.0f, 0.0f).inGroup("Cross"),
-                ParamSpec::percent("sync", "Sync", 0.0f, 1.0f, 0.0f).inGroup("Cross"),
+                ParamSpec::percent("syncamt", "Sync", 0.0f, 1.0f, 0.0f).inGroup("Cross"),
                 ParamSpec::percent("balance", "Balance", 0.0f, 1.0f, 0.5f).inGroup("Cross"),
                 ParamSpec::percent("fold", "Fold", 0.0f, 1.0f, 0.0f).inGroup("Folder"),
                 ParamSpec::number("symmetry", "Symmetry", -1.0f, 1.0f, 0.0f).inGroup("Folder"),

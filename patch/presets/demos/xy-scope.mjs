@@ -114,7 +114,7 @@ function fmKnots() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/4", root: "C", scale: "Major Pentatonic", octave: 1, gatelength: 0.3 }, { data: steps([0, 4, 7, 4, 9, 7, 4, 2]) });
   const car = p.add("oscillator", [1, 0], { wave: "Sine", octave: "0" }, { name: "Carrier" });
-  const mod = p.add("oscillator", [1, 1], { wave: "Sine", octave: "0", coarse: 7, fm: 0.35 }, { name: "Modulated" });
+  const mod = p.add("oscillator", [1, 1], { wave: "Sine", octave: "0", coarse: 7, fmdepth: 0.35 }, { name: "Modulated" });
   p.cable(seq, "pitch", car, "pitch").cable(seq, "pitch", mod, "pitch").cable(car, "out", mod, "fm");
   const env = p.add("adsr", [1, 2], { attack: 0.003, decay: 0.9, sustain: 0, release: 0.5 }, { name: "Bell Env" });
   const vx = p.add("vca", [2, 0], {}, { name: "X VCA" });

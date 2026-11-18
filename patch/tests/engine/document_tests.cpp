@@ -541,7 +541,7 @@ void updatedWhileRunning() {
 void oldOscillators() {
     g_test = "old oscillators";
     auto osc = [](const char* id, double shape) {
-        return obj({{"id", id}, {"type", "oscillator"}, {"parent", ""}, {"params", obj({{"shape", shape}})}});
+        return obj({{"id", id}, {"type", "oscillator"}, {"parent", ""}, {"params", obj({{"shape", shape}, {"fm", 0.25}})}});
     };
     auto d = doc({osc("a", 0.8), osc("b", 2.0 / 3.0), osc("c", 0.3), osc("d", 0.5), node("f", "filter")},
                  {cable("a", "out", "f", "l"), cable("b", "out", "f", "l"), cable("c", "sine", "f", "r"),
@@ -557,6 +557,9 @@ void oldOscillators() {
     EXPECT_NEAR(at("c", "morph"), 0.0, 1e-6);
     EXPECT_NEAR(at("d", "wave"), 1.0 / 3.0, 1e-5);   // triangle half-way to saw; the Sub cable has nowhere to go
     EXPECT_NEAR(at("d", "morph"), 0.5, 1e-4);
+    EXPECT_NEAR(at("a", "fmdepth"), 0.25, 1e-6);     // FM Depth was the knob "fm"
+    const auto m2 = board::parse(board::sanitise(doc({obj({{"id", "x"}, {"type", "dual-osc"}, {"parent", ""}, {"params", obj({{"sync", 0.7}})}})}, {})));
+    EXPECT_NEAR(m2.node("x")->params.at("syncamt"), 0.7, 1e-6);   // the Dual Osc's Sync knob was "sync"
     int fromC = 0, sub = 0;
     for (const auto& c : model.cables) {
         fromC += c.from.node == "c" && c.from.jack == "out";

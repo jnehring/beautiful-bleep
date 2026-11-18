@@ -70,7 +70,7 @@ void registerOscillatorModule(Registry& r) {
                 ParamSpec::choice("wave2", "Secondary", waves, 3),
                 ParamSpec::percent("morph", "Morph", 0.0f, 1.0f, 0.0f),
                 ParamSpec::percent("pw", "Pulse Width", 0.05f, 0.95f, 0.5f),
-                ParamSpec::percent("fm", "FM Depth", 0.0f, 1.0f, 0.0f),
+                ParamSpec::percent("fmdepth", "FM Depth", 0.0f, 1.0f, 0.0f),
                 ParamSpec::choice("fmmode", "FM Mode", {"Linear", "Exponential"}, 0),
                 ParamSpec::toggle("hardsync", "Hard Sync", true),
                 ParamSpec::toggle("tzfm", "Through-Zero", true)};

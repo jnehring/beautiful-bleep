@@ -400,7 +400,7 @@
         format: 1, id: "web",
         nodes: [
           node("keys", "keyboard", "Keyboard", 40, 60),
-          node("osc", "oscillator", "Oscillator", 300, 40, { params: { octave: 0.5, wave: 2 / 3, wave2: 1, morph: 0.7, pw: 0.5, coarse: 0.5, fine: 0.5, fm: 0 } }),
+          node("osc", "oscillator", "Oscillator", 300, 40, { params: { octave: 0.5, wave: 2 / 3, wave2: 1, morph: 0.7, pw: 0.5, coarse: 0.5, fine: 0.5, fmdepth: 0 } }),
           node("env", "adsr", "Envelope", 300, 330),
           node("filter", "filter", "Filter", 560, 60, { params: { cutoff: 0.55 } }),
           node("amp", "vca", "Amp", 800, 100, { params: { gain: 0 } }),
@@ -436,6 +436,8 @@
     const names = ["sine", "triangle", "saw", "square"];
     for (const n of (b && b.nodes) || []) {
       const p = n.params;
+      if (n.type === "oscillator" && p && p.fm !== undefined && p.fmdepth === undefined) { p.fmdepth = p.fm; delete p.fm; }   // FM Depth was "fm", the FM input's id
+      if (n.type === "dual-osc" && p && p.sync !== undefined && p.syncamt === undefined) { p.syncamt = p.sync; delete p.sync; }   // Sync was "sync", the Sync input's id
       if (n.type !== "oscillator" || !p || p.shape === undefined || p.wave !== undefined) continue;
       const m = Math.min(Math.max(+p.shape || 0, 0), 1) * 3, i = Math.min(Math.floor(m), 2);
       let t = m - i, wave = i;

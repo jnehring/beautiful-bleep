@@ -131,7 +131,7 @@
         "decimals": 2
       },
       {
-        "id": "fm",
+        "id": "fmdepth",
         "name": "FM Depth",
         "kind": "float",
         "default": 0.0,
@@ -26803,7 +26803,7 @@
         "group": "Cross"
       },
       {
-        "id": "sync",
+        "id": "syncamt",
         "name": "Sync",
         "kind": "float",
         "default": 0.0,

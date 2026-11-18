@@ -125,7 +125,7 @@
     layout: [
       { title: "Osc A", params: ["octaveA", "tuneA", "fineA", "shapeA", "widthA"] },
       { title: "Osc B", params: ["octaveB", "tuneB", "fineB", "shapeB", "bTrack", "bRange"] },
-      { title: "Cross", params: ["balance", "fmDepth", "sync", "fmMode"] },
+      { title: "Cross", params: ["balance", "fmDepth", "syncamt", "fmMode"] },
       { title: "Folder & out", params: ["fold", "symmetry", "drift", "width", "quality", "seed"] },
     ],
     template: `

@@ -33,7 +33,7 @@
     if (!w || !h) return;
     const th = BleepView.theme(view.root), st = view._st;
     const wa = Math.round(view.units("wave")), wb = Math.round(view.units("wave2"));
-    const morph = view.value(st, "morph"), pw = real(view, st, "pw"), fm = view.value(st, "fm");
+    const morph = view.value(st, "morph"), pw = real(view, st, "pw"), fm = view.value(st, "fmdepth");
     const tz = view.value(st, "tzfm") >= 0.5, expo = view.units("fmmode") >= 1;
     const oct = view.units("octave") - 3;
     const pitch = oct + real(view, st, "coarse") / 12 + real(view, st, "fine") / 1200;
@@ -94,7 +94,7 @@
     layout: [
       { title: "Pitch", params: ["octave", "coarse", "fine"] },
       { title: "Waveform", params: ["wave", "wave2", "morph", "pw"] },
-      { title: "FM", params: ["fm", "fmmode", "hardsync", "tzfm"] },
+      { title: "FM", params: ["fmdepth", "fmmode", "hardsync", "tzfm"] },
     ],
     afterBuild(view, custom) {
       const cv = custom.querySelector("canvas");

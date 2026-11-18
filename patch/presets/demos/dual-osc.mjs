@@ -63,10 +63,10 @@ function syncSweep() {
     tags: ["sync", "sweep", "growl", "bass"],
   });
   const seq = seqOf(p, [0, 0], [0, ".", 0, 0, 3, ".", 0, 5, 0, ".", 7, ".", 5, 3, 0, "."], { root: "E", octave: -1, rate: "1/8", gate: 0.6 });
-  const osc = p.add("dual-osc", [1, 0], { shapeA: 0.85, shapeB: 0.85, octaveB: 0, sync: 0.4, balance: 0, fold: 0.05 });
+  const osc = p.add("dual-osc", [1, 0], { shapeA: 0.85, shapeB: 0.85, octaveB: 0, syncamt: 0.4, balance: 0, fold: 0.05 });
   const lfo = p.add("lfo", [1, 2], { wave: "Saw Up", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Sync Ramp" });
   const v = play(p, [2, 0], osc, seq, ["outL", "outR"], { env: { decay: 0.25, sustain: 0.6, release: 0.12 } });
-  p.cable(seq, "pitch", osc, "pitchB").cable(lfo, "out", osc, "sync", 0.9);
+  p.cable(seq, "pitch", osc, "pitchB").cable(lfo, "out", osc, "syncamt", 0.9);
   const lp = p.add("filter", [3, 0], { cutoff: 2500, resonance: 0.2 });
   p.stereo(v.amp, lp, { from: v.out });
   const drums = beat(p, [0, 4], { style: "broken", level: -7 });

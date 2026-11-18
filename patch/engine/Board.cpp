@@ -152,18 +152,34 @@ static void migrateLfoSync(NodeModel& node) {
 /// and an output per waveform plus a sub octave. A document saved like that gets the Waveform / Secondary /
 /// Morph setting that sounds the same. When a node used just one of the old Sine, Triangle, Saw or Square
 /// outputs (and not Out), that waveform becomes its Waveform and the cables leave Out instead. Anything else
-/// (Sub, two waveforms at once) has no counterpart and is dropped by sanitise. Runs before sanitise and parse.
+/// (Sub, two waveforms at once) has no counterpart and is dropped by sanitise. FM Depth was the knob "fm", the id
+/// of the FM input too: it is "fmdepth" now; the Dual Osc's Sync knob shared "sync" with its Sync input and is
+/// "syncamt" now. Runs before sanitise and parse.
 juce::var migrateOscillators(const juce::var& in) {
     auto* nodes = in["nodes"].getArray();
     if (nodes == nullptr) return in;
     const auto old = [](const juce::var& n) {
         return n["type"].toString() == "oscillator" && n["params"].hasProperty("shape") && !n["params"].hasProperty("wave");
     };
-    if (std::none_of(nodes->begin(), nodes->end(), old)) return in;
+    const auto oldFm = [](const juce::var& n) {
+        return n["type"].toString() == "oscillator" && n["params"].hasProperty("fm") && !n["params"].hasProperty("fmdepth");
+    };
+    const auto oldSync = [](const juce::var& n) {
+        return n["type"].toString() == "dual-osc" && n["params"].hasProperty("sync") && !n["params"].hasProperty("syncamt");
+    };
+    if (std::none_of(nodes->begin(), nodes->end(), [&](const juce::var& n) { return old(n) || oldFm(n) || oldSync(n); })) return in;
     juce::var doc = fromJson(toJson(in));   // a deep copy: the caller's document stays as it was
     static const char* const names[] = {"sine", "triangle", "saw", "square"};
     auto* cables = doc["cables"].getArray();
     for (auto& n : *doc["nodes"].getArray()) {
+        const auto rename = [&](const char* from, const char* to) {
+            if (auto* params = n["params"].getDynamicObject()) {
+                params->setProperty(to, params->getProperty(from));
+                params->removeProperty(from);
+            }
+        };
+        if (oldFm(n)) rename("fm", "fmdepth");
+        if (oldSync(n)) rename("sync", "syncamt");
         if (!old(n)) continue;
         auto* params = n["params"].getDynamicObject();
         const float m = juce::jlimit(0.0f, 1.0f, (float)n["params"]["shape"]) * 3.0f;

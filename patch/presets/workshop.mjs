@@ -72,10 +72,10 @@ function fourVoiceFm() {
       "carrier B off the octave by up to a semitone, for slow beating.\n\n" +
       "Tip: open the cell and change the cable amounts from the send VCAs into the oscillators' FM jacks: they are the routing matrix.",
   }).settings({ voices: 6, mode: "Poly", spread: 0.3 }).input("index", "Index").input("detune", "Detune");
-  const A = p.add("oscillator", [0, 0], { wave: "Sine", octave: "0", fm: 0.4 }, { name: "Op A" });
-  const B = p.add("oscillator", [0, 1], { wave: "Sine", octave: "+1", fm: 0.4, fine: 3 }, { name: "Op B" });
-  const C = p.add("oscillator", [0, 2], { wave: "Sine", octave: "+1", fm: 0.35 }, { name: "Op C" });
-  const D = p.add("oscillator", [0, 3], { wave: "Sine", octave: "+1", coarse: 7.02, fm: 0.2 }, { name: "Op D" });
+  const A = p.add("oscillator", [0, 0], { wave: "Sine", octave: "0", fmdepth: 0.4 }, { name: "Op A" });
+  const B = p.add("oscillator", [0, 1], { wave: "Sine", octave: "+1", fmdepth: 0.4, fine: 3 }, { name: "Op B" });
+  const C = p.add("oscillator", [0, 2], { wave: "Sine", octave: "+1", fmdepth: 0.35 }, { name: "Op C" });
+  const D = p.add("oscillator", [0, 3], { wave: "Sine", octave: "+1", coarse: 7.02, fmdepth: 0.2 }, { name: "Op D" });
   const eA = envelope(p, [1, 0], { attack: 0.003, decay: 1.1, sustain: 0.45, release: 0.5, velamount: 0.4 }, "Env A");
   const eB = envelope(p, [1, 1], { attack: 0.004, decay: 0.6, sustain: 0.25, release: 0.3, velamount: 0.4 }, "Env B");
   const eC = envelope(p, [1, 2], { attack: 0.002, decay: 0.45, sustain: 0.2, release: 0.25, velamount: 0.7 }, "Env C");

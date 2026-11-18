@@ -93,10 +93,10 @@ function syncRake() {
       "Notes in, Out L/R. The shared input Sync adds to the sync amount for the whole cell: raise it for a more aggressive sound.\n\n" +
       "Tip: short staccato chords reveal the sweep best; hold notes to hear it settle.",
   }).settings({ voices: 6, spread: 0.2 }).input("sync", "Sync");
-  const osc = p.add("dual-osc", [0, 0], { shapeA: 0.67, shapeB: 0.67, octaveB: 0, sync: 0.35, balance: 0.35, drift: 0.15, width: 0.3 });
+  const osc = p.add("dual-osc", [0, 0], { shapeA: 0.67, shapeB: 0.67, octaveB: 0, syncamt: 0.35, balance: 0.35, drift: 0.15, width: 0.3 });
   const envs = envelope(p, [0, 1], { attack: 0.003, decay: 0.6, sustain: 0.25, release: 0.35, velamount: 0.5 }, "Sync Env");
   const flt = p.add("filter", [1, 0], { cutoff: 3600, resonance: 0.15, keytrack: 0.5, type: "Ladder Tanh" });
-  p.cable(p.vin, "pitch", osc, "pitch").cable(envs, "env", osc, "sync", 0.4).cable(p.cin, "sync", osc, "sync", 0.4)
+  p.cable(p.vin, "pitch", osc, "pitch").cable(envs, "env", osc, "syncamt", 0.4).cable(p.cin, "sync", osc, "syncamt", 0.4)
     .stereo(osc, flt, { from: ["outL", "outR"] }).cable(p.vin, "pitch", flt, "pitch");
   ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.003, decay: 0.6, sustain: 0.75, release: 0.3 });
   return p;

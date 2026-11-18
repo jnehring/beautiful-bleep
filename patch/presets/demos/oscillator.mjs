@@ -84,11 +84,11 @@ function fmBells() {
   });
   const seq = seqOf(p, [0, 0], [0, 7, 12, 9, 4, 7, 2, 9], { root: "C", scale: "Major Pentatonic", octave: 1, rate: "1/4", gate: 0.3 });
   const mod = p.add("oscillator", [1, 1], { wave: "Sine", coarse: 7, octave: "+1" }, { name: "Modulator" });
-  const car = p.add("oscillator", [1, 0], { wave: "Sine", fm: 0.2 }, { name: "Carrier" });
+  const car = p.add("oscillator", [1, 0], { wave: "Sine", fmdepth: 0.2 }, { name: "Carrier" });
   const fenv = p.add("adsr", [2, 2], { attack: 0.002, decay: 0.8, sustain: 0, release: 0.5 }, { name: "FM Env" });
   const v = play(p, [2, 0], car, seq, ["out"], { env: { attack: 0.002, decay: 1.1, sustain: 0, release: 0.8 } });
   p.cable(seq, "pitch", mod, "pitch").cable(mod, "out", car, "fm").cable(seq, "gate", fenv, "gate").cable(seq, "trigger", fenv, "retrig")
-    .cable(fenv, "env", car, "fm", 0.6);
+    .cable(fenv, "env", car, "fmdepth", 0.6);
   finish(p, [3, 0], v.amp, v.out, -2, { size: 0.65, decay: 4.5, mix: 0.35 });
   return p;
 }
