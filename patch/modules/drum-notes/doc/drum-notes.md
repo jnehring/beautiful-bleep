@@ -36,15 +36,15 @@ example *Closed Hat* and *Open Hat* into one hat.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Drum Notes does. In the standalone app open **File → Presets…** (⌘P) and pick *Drum Notes* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Drum Notes does. In the standalone app open **File → Presets…** (⌘P) and pick *Drum Notes* under *Demos by module*; on the website they are in the [Drum Notes entry of the Bleep Library](/library/detail/?kind=module&slug=drum-notes#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Drum Notes: Backbeat Kit** | One sequencer plays kick and snare as General MIDI note numbers, another plays closed and open hats; Drum Notes turns each note into a trigger for the right drum. Edit a step's pitch in the sequencer to move a hit to another drum. |
-| **Drum Notes: Ring Kit Shuffle** | The same note-to-drum routing drives a softer, rounder kit of resonant drums on a swung sixteenth grid, with claps on the backbeat. Change the Swing on the sequencers, or swap a kit voice's Tune, and the pattern keeps its feel. |
-| **Drum Notes: Percussion Circle** | Toms, a woody rim click, a cowbell and a clap are all played from note numbers: Drum Notes has an output for each. Mute one of the sequencers' steps, or tune the toms down, to open up the groove. |
-| **Drum Notes: Ride and Crash** | A lazy jazz feel: the ride pattern, a pedal hi-hat, a feathered kick and one crash at the top of the bar, all as note numbers. Try the Cymbal's Voice or Decay, or lengthen the ride's pattern. |
-| **Drum Notes: Ghost Notes** | Drum Notes also passes each hit's velocity, so the quiet ghost snares between the backbeats really are quiet while the accents bite. Raise or lower a step's velocity in the sequencer and hear the dynamics change. |
+| **[Drum Notes: Backbeat Kit](/library/detail/?kind=module&slug=drum-notes#demo-1)** | One sequencer plays kick and snare as General MIDI note numbers, another plays closed and open hats; Drum Notes turns each note into a trigger for the right drum. Edit a step's pitch in the sequencer to move a hit to another drum. |
+| **[Drum Notes: Ring Kit Shuffle](/library/detail/?kind=module&slug=drum-notes#demo-2)** | The same note-to-drum routing drives a softer, rounder kit of resonant drums on a swung sixteenth grid, with claps on the backbeat. Change the Swing on the sequencers, or swap a kit voice's Tune, and the pattern keeps its feel. |
+| **[Drum Notes: Percussion Circle](/library/detail/?kind=module&slug=drum-notes#demo-3)** | Toms, a woody rim click, a cowbell and a clap are all played from note numbers: Drum Notes has an output for each. Mute one of the sequencers' steps, or tune the toms down, to open up the groove. |
+| **[Drum Notes: Ride and Crash](/library/detail/?kind=module&slug=drum-notes#demo-4)** | A lazy jazz feel: the ride pattern, a pedal hi-hat, a feathered kick and one crash at the top of the bar, all as note numbers. Try the Cymbal's Voice or Decay, or lengthen the ride's pattern. |
+| **[Drum Notes: Ghost Notes](/library/detail/?kind=module&slug=drum-notes#demo-5)** | Drum Notes also passes each hit's velocity, so the quiet ghost snares between the backbeats really are quiet while the accents bite. Raise or lower a step's velocity in the sequencer and hear the dynamics change. |
 <!-- /generated -->
 
 ## Reference

@@ -82,15 +82,15 @@ before it, so a render from the same position always sounds the same.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Recall does. In the standalone app open **File → Presets…** (⌘P) and pick *Recall* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Recall does. In the standalone app open **File → Presets…** (⌘P) and pick *Recall* under *Demos by module*; on the website they are in the [Recall entry of the Bleep Library](/library/detail/?kind=module&slug=recall#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Recall: Coin-Flip Drums** | Every clock step Recall flips a coin for two gates: T1 plays the kick, T2 the snare, and the Clock output drives steady hats. T Bias leans the coin towards or away from firing, T Jitter adds extra randomness; try raising T Recall to repeat the recent past. |
-| **Recall: Ratchet Bass Line** | T Mode Ratchet turns the random gates into bursts of quick repeats, and each burst plays a bass note chosen by X from F Phrygian dominant. Lower X Spread for a narrower line, or move X Bias to put the bass higher or lower. |
-| **Recall: Settling Loop** | A slow sawtooth LFO raises both Recall knobs from 0 to 100 % over 16 bars: the melody starts out new on every step, gradually repeats itself more and more, and ends up as a locked loop before the cycle begins again. Move T Recall or X Recall yourself to freeze or free it at any time. |
-| **Recall: Sorted Triad Rising** | X Mode Sorted puts the three random voltages in ascending order, so X1, X2 and X3 always form a stack from low to high, and three voices play them as a changing chord. Switch X Mode to Independent and the voices cross over; change Scale for a different colour. |
-| **Recall: Free-Running Bells** | Sync is set to Free at 1.6 Hz, so Recall ticks on its own clock rather than the song's, and each random T1 gate rings a bell whose pitch is read from X on its own X clock. Change Rate to speed the shimmer up or slow it down. |
+| **[Recall: Coin-Flip Drums](/library/detail/?kind=module&slug=recall#demo-1)** | Every clock step Recall flips a coin for two gates: T1 plays the kick, T2 the snare, and the Clock output drives steady hats. T Bias leans the coin towards or away from firing, T Jitter adds extra randomness; try raising T Recall to repeat the recent past. |
+| **[Recall: Ratchet Bass Line](/library/detail/?kind=module&slug=recall#demo-2)** | T Mode Ratchet turns the random gates into bursts of quick repeats, and each burst plays a bass note chosen by X from F Phrygian dominant. Lower X Spread for a narrower line, or move X Bias to put the bass higher or lower. |
+| **[Recall: Settling Loop](/library/detail/?kind=module&slug=recall#demo-3)** | A slow sawtooth LFO raises both Recall knobs from 0 to 100 % over 16 bars: the melody starts out new on every step, gradually repeats itself more and more, and ends up as a locked loop before the cycle begins again. Move T Recall or X Recall yourself to freeze or free it at any time. |
+| **[Recall: Sorted Triad Rising](/library/detail/?kind=module&slug=recall#demo-4)** | X Mode Sorted puts the three random voltages in ascending order, so X1, X2 and X3 always form a stack from low to high, and three voices play them as a changing chord. Switch X Mode to Independent and the voices cross over; change Scale for a different colour. |
+| **[Recall: Free-Running Bells](/library/detail/?kind=module&slug=recall#demo-5)** | Sync is set to Free at 1.6 Hz, so Recall ticks on its own clock rather than the song's, and each random T1 gate rings a bell whose pitch is read from X on its own X clock. Change Rate to speed the shimmer up or slow it down. |
 <!-- /generated -->
 
 ## Reference

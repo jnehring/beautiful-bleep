@@ -61,15 +61,15 @@ sequencers, a velocity map or a waveshaped LFO.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Shape Table does. In the standalone app open **File → Presets…** (⌘P) and pick *Shape Table* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Shape Table does. In the standalone app open **File → Presets…** (⌘P) and pick *Shape Table* under *Demos by module*; on the website they are in the [Shape Table entry of the Bleep Library](/library/detail/?kind=module&slug=shape-table#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Shape Table: Soft Bass** | A pure sine bass is driven into the soft curve: the peaks round off and odd harmonics grow with Drive, so it gets warm and then gritty. Draw on the curve to change the harmonics, or raise Drive for more edge. |
-| **Shape Table: Fold Lead** | A saw lead goes through a folding curve while an envelope pushes Drive up on every note: the first moment of each note is rich and bright and settles to a simpler tone. Change Drive or draw a new curve. |
-| **Shape Table: Wrap Table** | Edge is Wrap: a slow triangle sweeps its way through the repeating sine curve, so the shaper becomes an oscillator-like table whose spectrum moves with Drive. Move Bias to shift where the curve is read. |
-| **Shape Table: Crushed Drums** | A drum loop through the Stairs curve mixed back under the dry kit: eight steps give a crunchy, digital grain on every hit without losing the punch. Turn Mix up for more grit, down for a subtle bite. |
-| **Shape Table: Function Curve** | A slow triangle LFO goes through the drawn curve (Func In to Func Out) and the result opens the cutoff of a filter on a saw riff: a custom-shaped sweep. Redraw the curve to reshape the sweep. |
+| **[Shape Table: Soft Bass](/library/detail/?kind=module&slug=shape-table#demo-1)** | A pure sine bass is driven into the soft curve: the peaks round off and odd harmonics grow with Drive, so it gets warm and then gritty. Draw on the curve to change the harmonics, or raise Drive for more edge. |
+| **[Shape Table: Fold Lead](/library/detail/?kind=module&slug=shape-table#demo-2)** | A saw lead goes through a folding curve while an envelope pushes Drive up on every note: the first moment of each note is rich and bright and settles to a simpler tone. Change Drive or draw a new curve. |
+| **[Shape Table: Wrap Table](/library/detail/?kind=module&slug=shape-table#demo-3)** | Edge is Wrap: a slow triangle sweeps its way through the repeating sine curve, so the shaper becomes an oscillator-like table whose spectrum moves with Drive. Move Bias to shift where the curve is read. |
+| **[Shape Table: Crushed Drums](/library/detail/?kind=module&slug=shape-table#demo-4)** | A drum loop through the Stairs curve mixed back under the dry kit: eight steps give a crunchy, digital grain on every hit without losing the punch. Turn Mix up for more grit, down for a subtle bite. |
+| **[Shape Table: Function Curve](/library/detail/?kind=module&slug=shape-table#demo-5)** | A slow triangle LFO goes through the drawn curve (Func In to Func Out) and the result opens the cutoff of a filter on a saw riff: a custom-shaped sweep. Redraw the curve to reshape the sweep. |
 <!-- /generated -->
 
 <!-- generated:presets -->

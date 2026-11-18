@@ -92,15 +92,15 @@ while any channel moves (AR, ASR) and always in Loop and Sound.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Six Slopes does. In the standalone app open **File → Presets…** (⌘P) and pick *Six Slopes* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Six Slopes does. In the standalone app open **File → Presets…** (⌘P) and pick *Six Slopes* under *Demos by module*; on the website they are in the [Six Slopes entry of the Bleep Library](/library/detail/?kind=module&slug=six-slopes#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Six Slopes: Looping Chord** | In Loop mode six slopes breathe at related rates, and each one swells a different note of a chord, so the harmony slowly rearranges itself. Move Harmonics to change how far apart the rates are and Skew to shift each swell between rise and fall. |
-| **Six Slopes: Harmonic Bell** | One trigger starts all six slopes in AR mode; with Harmonics up, the higher slopes die away faster, so each note sparkles then settles into its lower partials. Move Harmonics down for a darker, longer ring or change Rate to stretch the whole decay. |
-| **Six Slopes: Sound Mode Voice** | In Sound mode the slopes run at audio rate and follow the sequencer's pitch, so the Six Slopes is the oscillator itself; the Sum output is a rich, buzzy tone. Try Snap on Integer or Just for harmonic spacing, or Curve and Skew for different timbres. |
-| **Six Slopes: Locked Motion** | Sync ties the Loop mode to the tempo and Snap on Integer keeps every rate an exact multiple, so six slopes move filter, tone, pulse and volume in polyrhythm that never drifts. Change Sync or Harmonics and listen to the grooves reshuffle. |
-| **Six Slopes: Chord Unfolds** | In ASR mode each of six slopes rises while a gate is held and falls when it ends; with Harmonics below zero the lower notes of the chord arrive first and the top ones drift in last. Change Harmonics, Rate or the sequencer's gate length to alter the unfolding. |
+| **[Six Slopes: Looping Chord](/library/detail/?kind=module&slug=six-slopes#demo-1)** | In Loop mode six slopes breathe at related rates, and each one swells a different note of a chord, so the harmony slowly rearranges itself. Move Harmonics to change how far apart the rates are and Skew to shift each swell between rise and fall. |
+| **[Six Slopes: Harmonic Bell](/library/detail/?kind=module&slug=six-slopes#demo-2)** | One trigger starts all six slopes in AR mode; with Harmonics up, the higher slopes die away faster, so each note sparkles then settles into its lower partials. Move Harmonics down for a darker, longer ring or change Rate to stretch the whole decay. |
+| **[Six Slopes: Sound Mode Voice](/library/detail/?kind=module&slug=six-slopes#demo-3)** | In Sound mode the slopes run at audio rate and follow the sequencer's pitch, so the Six Slopes is the oscillator itself; the Sum output is a rich, buzzy tone. Try Snap on Integer or Just for harmonic spacing, or Curve and Skew for different timbres. |
+| **[Six Slopes: Locked Motion](/library/detail/?kind=module&slug=six-slopes#demo-4)** | Sync ties the Loop mode to the tempo and Snap on Integer keeps every rate an exact multiple, so six slopes move filter, tone, pulse and volume in polyrhythm that never drifts. Change Sync or Harmonics and listen to the grooves reshuffle. |
+| **[Six Slopes: Chord Unfolds](/library/detail/?kind=module&slug=six-slopes#demo-5)** | In ASR mode each of six slopes rises while a gate is held and falls when it ends; with Harmonics below zero the lower notes of the chord arrive first and the top ones drift in last. Change Harmonics, Rate or the sequencer's gate length to alter the unfolding. |
 <!-- /generated -->
 
 <!-- generated:presets -->

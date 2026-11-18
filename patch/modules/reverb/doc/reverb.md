@@ -142,15 +142,15 @@ meter of the wet level.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Verb does. In the standalone app open **File → Presets…** (⌘P) and pick *Verb* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Verb does. In the standalone app open **File → Presets…** (⌘P) and pick *Verb* under *Demos by module*; on the website they are in the [Verb entry of the Bleep Library](/library/detail/?kind=module&slug=reverb#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Verb: Endless Hall** | Sparse, soft notes sink into a huge hall: Size is almost full, Decay is over twenty seconds and Pre-delay leaves each note clean before the bloom. Try Decay and Size together, or push Mix to 100 %. |
-| **Verb: Drum Booth** | A drum beat in a tiny, dry room: low Size, a short Decay and high Damping glue the kit together. Raise Size and Decay to move the same beat into a hall, or widen it with Width. |
-| **Verb: Frozen Chord** | A square LFO closes the Freeze gate for a couple of bars at a time, holding whatever is in the tank as an endless chord, then lets go so the next phrase can be caught. Edit the LFO's Sync, or latch Freeze yourself. |
-| **Verb: Tide Pool** | Slow LFOs ride Size and Tone while Mod Depth swirls the tail, so the room seems to inhale and exhale around a gentle arpeggio. Every Verb knob modulates click-free: patch your own LFO into Decay. |
-| **Verb: Dark Cellar** | A low plucked bass line in a cellar: Bass is boosted, Tone and Damping pull the tail dark, and Eco quality keeps it light. Lower Bass or lift Tone to hear the same room turn into a bright stairwell. |
+| **[Verb: Endless Hall](/library/detail/?kind=module&slug=reverb#demo-1)** | Sparse, soft notes sink into a huge hall: Size is almost full, Decay is over twenty seconds and Pre-delay leaves each note clean before the bloom. Try Decay and Size together, or push Mix to 100 %. |
+| **[Verb: Drum Booth](/library/detail/?kind=module&slug=reverb#demo-2)** | A drum beat in a tiny, dry room: low Size, a short Decay and high Damping glue the kit together. Raise Size and Decay to move the same beat into a hall, or widen it with Width. |
+| **[Verb: Frozen Chord](/library/detail/?kind=module&slug=reverb#demo-3)** | A square LFO closes the Freeze gate for a couple of bars at a time, holding whatever is in the tank as an endless chord, then lets go so the next phrase can be caught. Edit the LFO's Sync, or latch Freeze yourself. |
+| **[Verb: Tide Pool](/library/detail/?kind=module&slug=reverb#demo-4)** | Slow LFOs ride Size and Tone while Mod Depth swirls the tail, so the room seems to inhale and exhale around a gentle arpeggio. Every Verb knob modulates click-free: patch your own LFO into Decay. |
+| **[Verb: Dark Cellar](/library/detail/?kind=module&slug=reverb#demo-5)** | A low plucked bass line in a cellar: Bass is boosted, Tone and Damping pull the tail dark, and Eco quality keeps it light. Lower Bass or lift Tone to hear the same room turn into a bright stairwell. |
 <!-- /generated -->
 
 <!-- generated:presets -->

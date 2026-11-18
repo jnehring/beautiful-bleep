@@ -68,15 +68,15 @@ the input level, so both outputs pass a soft limiter.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Resonator does. In the standalone app open **File → Presets…** (⌘P) and pick *Resonator* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Resonator does. In the standalone app open **File → Presets…** (⌘P) and pick *Resonator* under *Demos by module*; on the website they are in the [Resonator entry of the Bleep Library](/library/detail/?kind=module&slug=resonator#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Resonator: Bell Strikes** | A sequencer strums the Modal model with its own internal exciter and pitches it, so each note rings like a struck bell or bar. Move Structure to change the metal, and Damping to shorten the ring. |
-| **Resonator: Sympathetic Drone** | A plucked melody is fed into sympathetic strings tuned to a fixed root, so the drone strings glow along with whatever notes match them. Change Frequency to retune the drone, or Damping for a shorter shimmer. |
-| **Resonator: Plucked Strings** | The String model plays a bouncy bass-and-treble pattern, four voices deep so older notes keep ringing under new ones. Try Position for a hollower or brighter pluck, and Brightness for nylon versus steel. |
-| **Resonator: Drum Body** | A drum beat excites a Modal resonator that is tuned low, so every kick and hat rings the same plate-like body. Turn Dry up to bring the raw drums back, or sweep Frequency to retune the whole kit. |
-| **Resonator: Morphing Plate** | A slow LFO sweeps Structure through string, bar and plate territory while the same strummed notes play, so the instrument seems to change material as it rings. Patch the LFO into Brightness too, or change its speed. |
+| **[Resonator: Bell Strikes](/library/detail/?kind=module&slug=resonator#demo-1)** | A sequencer strums the Modal model with its own internal exciter and pitches it, so each note rings like a struck bell or bar. Move Structure to change the metal, and Damping to shorten the ring. |
+| **[Resonator: Sympathetic Drone](/library/detail/?kind=module&slug=resonator#demo-2)** | A plucked melody is fed into sympathetic strings tuned to a fixed root, so the drone strings glow along with whatever notes match them. Change Frequency to retune the drone, or Damping for a shorter shimmer. |
+| **[Resonator: Plucked Strings](/library/detail/?kind=module&slug=resonator#demo-3)** | The String model plays a bouncy bass-and-treble pattern, four voices deep so older notes keep ringing under new ones. Try Position for a hollower or brighter pluck, and Brightness for nylon versus steel. |
+| **[Resonator: Drum Body](/library/detail/?kind=module&slug=resonator#demo-4)** | A drum beat excites a Modal resonator that is tuned low, so every kick and hat rings the same plate-like body. Turn Dry up to bring the raw drums back, or sweep Frequency to retune the whole kit. |
+| **[Resonator: Morphing Plate](/library/detail/?kind=module&slug=resonator#demo-5)** | A slow LFO sweeps Structure through string, bar and plate territory while the same strummed notes play, so the instrument seems to change material as it rings. Patch the LFO into Brightness too, or change its speed. |
 <!-- /generated -->
 
 <!-- generated:presets -->

@@ -64,15 +64,15 @@ setting count as a note.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Pitch Follower does. In the standalone app open **File → Presets…** (⌘P) and pick *Pitch Follower* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Pitch Follower does. In the standalone app open **File → Presets…** (⌘P) and pick *Pitch Follower* under *Demos by module*; on the website they are in the [Pitch Follower entry of the Bleep Library](/library/detail/?kind=module&slug=pitch-follower#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Pitch Follower: Voice to Synth Bridge** | A bright plucked melody is followed note by note, and two soft synth voices play it for you an octave and a fifth lower, each note opened by the follower's Gate. Try Smooth Glide-like values on Glide to slide between the notes, or raise Confidence to hear the bridge hesitate. |
-| **Pitch Follower: Brightness Follows Note** | A melody that leaps across two octaves is followed, and its Pitch opens the filter on a held two-note drone: low notes make the drone dark, high notes make it shine. Change the filter's Keytrack to make the effect stronger or gentler. |
-| **Pitch Follower: Only Clear Tones Pass** | A source alternates every bar between a clear melody and bursts of noise. The follower's Confidence drops for the noise, so the chime voice it drives plays the tune and falls silent in between. Lower the Confidence knob to let the noise start false notes. |
-| **Pitch Follower: Guard and Vote** | A jumpy melody on a sound with a loud second harmonic is the hard case for any pitch tracker. Octave Guard Firm and a Vote of 5 keep the follower on the right note, and a Quantizer tidies it onto the scale for a plucked voice. Set Guard to Off and Vote to Off and listen for octave slips. |
-| **Pitch Follower: Portamento and Env** | A slow, legato melody is followed with a long Glide, so the synth slides from note to note like a portamento voice. The Env output opens a filter and the delay mix with each note's loudness. Shorten Glide for steps, or lengthen Env Release for a longer tail. |
+| **[Pitch Follower: Voice to Synth Bridge](/library/detail/?kind=module&slug=pitch-follower#demo-1)** | A bright plucked melody is followed note by note, and two soft synth voices play it for you an octave and a fifth lower, each note opened by the follower's Gate. Try Smooth Glide-like values on Glide to slide between the notes, or raise Confidence to hear the bridge hesitate. |
+| **[Pitch Follower: Brightness Follows Note](/library/detail/?kind=module&slug=pitch-follower#demo-2)** | A melody that leaps across two octaves is followed, and its Pitch opens the filter on a held two-note drone: low notes make the drone dark, high notes make it shine. Change the filter's Keytrack to make the effect stronger or gentler. |
+| **[Pitch Follower: Only Clear Tones Pass](/library/detail/?kind=module&slug=pitch-follower#demo-3)** | A source alternates every bar between a clear melody and bursts of noise. The follower's Confidence drops for the noise, so the chime voice it drives plays the tune and falls silent in between. Lower the Confidence knob to let the noise start false notes. |
+| **[Pitch Follower: Guard and Vote](/library/detail/?kind=module&slug=pitch-follower#demo-4)** | A jumpy melody on a sound with a loud second harmonic is the hard case for any pitch tracker. Octave Guard Firm and a Vote of 5 keep the follower on the right note, and a Quantizer tidies it onto the scale for a plucked voice. Set Guard to Off and Vote to Off and listen for octave slips. |
+| **[Pitch Follower: Portamento and Env](/library/detail/?kind=module&slug=pitch-follower#demo-5)** | A slow, legato melody is followed with a long Glide, so the synth slides from note to note like a portamento voice. The Env output opens a filter and the delay mix with each note's loudness. Shorten Glide for steps, or lengthen Env Release for a longer tail. |
 <!-- /generated -->
 
 <!-- generated:presets -->

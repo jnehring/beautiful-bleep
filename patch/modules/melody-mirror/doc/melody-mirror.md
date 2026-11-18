@@ -62,15 +62,15 @@ pitch never gets cut by the other: they share the note.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Melody Mirror does. In the standalone app open **File → Presets…** (⌘P) and pick *Melody Mirror* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Melody Mirror does. In the standalone app open **File → Presets…** (⌘P) and pick *Melody Mirror* under *Demos by module*; on the website they are in the [Melody Mirror entry of the Bleep Library](/library/detail/?kind=module&slug=melody-mirror#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Melody Mirror: Backwards Tune** | A pentatonic phrase plays once every four bars; a beat after its last note the Mirror answers with the same notes played backwards, rhythm included. Change Length to turn more or fewer notes around, or Speed to play the reply slower. |
-| **Melody Mirror: Upside Down** | The phrase is mirrored in pitch around its first note and pulled into A minor pentatonic, so the reply climbs where the original fell. Turn Axis to Mean or Fixed to move the mirror, and Transpose to lift the reply. |
-| **Melody Mirror: Call And Response** | Answer mode: the module listens to the phrase, waits for the pause, plays the mirror image as a reply and listens again, ignoring itself while it answers. Try Reply Invert or Rotate, or a longer Gap. |
-| **Melody Mirror: Turned Motif** | A four-note motif comes back with its pitches rotated two places along the same rhythm, so it sounds related but different. Change Rotate, or Mode to Mirror, to turn it another way. |
-| **Melody Mirror: Wandering Turns** | A slow LFO sweeps the Mode knob, so each reply is a different turn of the phrase: reversed, inverted, rotated or mirrored. Patch your own modulation into Mode, or set Start to Trigger to play replies by hand. |
+| **[Melody Mirror: Backwards Tune](/library/detail/?kind=module&slug=melody-mirror#demo-1)** | A pentatonic phrase plays once every four bars; a beat after its last note the Mirror answers with the same notes played backwards, rhythm included. Change Length to turn more or fewer notes around, or Speed to play the reply slower. |
+| **[Melody Mirror: Upside Down](/library/detail/?kind=module&slug=melody-mirror#demo-2)** | The phrase is mirrored in pitch around its first note and pulled into A minor pentatonic, so the reply climbs where the original fell. Turn Axis to Mean or Fixed to move the mirror, and Transpose to lift the reply. |
+| **[Melody Mirror: Call And Response](/library/detail/?kind=module&slug=melody-mirror#demo-3)** | Answer mode: the module listens to the phrase, waits for the pause, plays the mirror image as a reply and listens again, ignoring itself while it answers. Try Reply Invert or Rotate, or a longer Gap. |
+| **[Melody Mirror: Turned Motif](/library/detail/?kind=module&slug=melody-mirror#demo-4)** | A four-note motif comes back with its pitches rotated two places along the same rhythm, so it sounds related but different. Change Rotate, or Mode to Mirror, to turn it another way. |
+| **[Melody Mirror: Wandering Turns](/library/detail/?kind=module&slug=melody-mirror#demo-5)** | A slow LFO sweeps the Mode knob, so each reply is a different turn of the phrase: reversed, inverted, rotated or mirrored. Patch your own modulation into Mode, or set Start to Trigger to play replies by hand. |
 <!-- /generated -->
 
 <!-- generated:presets -->

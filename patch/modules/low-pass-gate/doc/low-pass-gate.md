@@ -53,15 +53,15 @@ swell like a real struck object.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Low Pass Gate does. In the standalone app open **File → Presets…** (⌘P) and pick *Low Pass Gate* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Low Pass Gate does. In the standalone app open **File → Presets…** (⌘P) and pick *Low Pass Gate* under *Demos by module*; on the website they are in the [Low Pass Gate entry of the Bleep Library](/library/detail/?kind=module&slug=low-pass-gate#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Low Pass Gate: Wooden Pluck** | A bright saw is silent until each sequencer trigger pings the gate: it snaps open and then darkens as it closes, like a plucked string. Raise Response for longer notes, Ping for harder hits, or switch Cell to Fast. |
-| **Low Pass Gate: Skin Drums** | Low, sine-like tones pinged by the drum grid through the Fast cell sound like tuned skin drums, with a short, sharp attack and a quick roll-off. Try Resonance for a ringing pitch, or change Response to tighten or loosen the hits. |
-| **Low Pass Gate: Slow Breath** | With the Slow memory cell and a slow LFO on the CV input, the gate opens and closes like breathing over a held two-voice chord, getting brighter as it swells. Change the LFO rate or the Response to alter the pace. |
-| **Low Pass Gate: Filter Mode Bass** | Mode is set to LP, so the gate only acts as a filter on a steady buzzing bass: every ping opens the cutoff and it dulls again, while a Level of about a quarter keeps the note audible between hits. Switch Mode to VCA to hear only the volume change. |
-| **Low Pass Gate: Leaky Marimba** | A softly pinged triangle wave with some Bleed lets a little signal through even when the gate is shut, so each note sits on a quiet bed of sound. Raise Bleed to blur the gaps, or lower Brightness for a more muffled wooden tone. |
+| **[Low Pass Gate: Wooden Pluck](/library/detail/?kind=module&slug=low-pass-gate#demo-1)** | A bright saw is silent until each sequencer trigger pings the gate: it snaps open and then darkens as it closes, like a plucked string. Raise Response for longer notes, Ping for harder hits, or switch Cell to Fast. |
+| **[Low Pass Gate: Skin Drums](/library/detail/?kind=module&slug=low-pass-gate#demo-2)** | Low, sine-like tones pinged by the drum grid through the Fast cell sound like tuned skin drums, with a short, sharp attack and a quick roll-off. Try Resonance for a ringing pitch, or change Response to tighten or loosen the hits. |
+| **[Low Pass Gate: Slow Breath](/library/detail/?kind=module&slug=low-pass-gate#demo-3)** | With the Slow memory cell and a slow LFO on the CV input, the gate opens and closes like breathing over a held two-voice chord, getting brighter as it swells. Change the LFO rate or the Response to alter the pace. |
+| **[Low Pass Gate: Filter Mode Bass](/library/detail/?kind=module&slug=low-pass-gate#demo-4)** | Mode is set to LP, so the gate only acts as a filter on a steady buzzing bass: every ping opens the cutoff and it dulls again, while a Level of about a quarter keeps the note audible between hits. Switch Mode to VCA to hear only the volume change. |
+| **[Low Pass Gate: Leaky Marimba](/library/detail/?kind=module&slug=low-pass-gate#demo-5)** | A softly pinged triangle wave with some Bleed lets a little signal through even when the gate is shut, so each note sits on a quiet bed of sound. Raise Bleed to blur the gaps, or lower Brightness for a more muffled wooden tone. |
 <!-- /generated -->
 
 <!-- generated:presets -->

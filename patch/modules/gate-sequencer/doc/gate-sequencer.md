@@ -83,15 +83,15 @@ length, rate or note, and editing the step that's sounding all end it.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Gate Sequencer does. In the standalone app open **File → Presets…** (⌘P) and pick *Gate Sequencer* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Gate Sequencer does. In the standalone app open **File → Presets…** (⌘P) and pick *Gate Sequencer* under *Demos by module*; on the website they are in the [Gate Sequencer entry of the Bleep Library](/library/detail/?kind=module&slug=gate-sequencer#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Gate Sequencer: Loose Probability Beat** | Coin-flip steps (?) and quiet ghost notes (o) make a drum pattern that breathes differently on every pass; Swing adds a lazy lean. Turn a track's Chance knob down for fewer hits, or set Dice to Fixed to lock one version in. |
-| **Gate Sequencer: Ratchet Rolls** | Steps marked 2 and 3 fire quick repeats inside one step: two on the snare, a rising run of three on the hats. Ratchet Decay fades each repeat out, so try raising it for a bouncing-ball feel. |
-| **Gate Sequencer: Phasing Plucks** | Four tracks of different lengths (3, 4, 5 and 7 steps) each pluck one note of a chord, so the pattern only realigns after 420 steps and keeps shifting shape. Change a Length setting by one to get a different cycle. |
-| **Gate Sequencer: Fill Switch** | Steps marked ! only play while the Fill input is high and steps marked - only while it is low, so a square LFO that holds Fill for the last bar of every four swaps the main beat for a busy fill. Some steps are nudged early or late for a human feel; Nudge Depth scales them all. |
-| **Gate Sequencer: Mute Arrangement** | Slow square LFOs patched into the Mute inputs bring the four tracks in and out on their own cycles of 2, 4 and 8 bars, so a simple pattern arranges itself. Patch a different LFO Sync into a mute jack to rewrite the structure. |
+| **[Gate Sequencer: Loose Probability Beat](/library/detail/?kind=module&slug=gate-sequencer#demo-1)** | Coin-flip steps (?) and quiet ghost notes (o) make a drum pattern that breathes differently on every pass; Swing adds a lazy lean. Turn a track's Chance knob down for fewer hits, or set Dice to Fixed to lock one version in. |
+| **[Gate Sequencer: Ratchet Rolls](/library/detail/?kind=module&slug=gate-sequencer#demo-2)** | Steps marked 2 and 3 fire quick repeats inside one step: two on the snare, a rising run of three on the hats. Ratchet Decay fades each repeat out, so try raising it for a bouncing-ball feel. |
+| **[Gate Sequencer: Phasing Plucks](/library/detail/?kind=module&slug=gate-sequencer#demo-3)** | Four tracks of different lengths (3, 4, 5 and 7 steps) each pluck one note of a chord, so the pattern only realigns after 420 steps and keeps shifting shape. Change a Length setting by one to get a different cycle. |
+| **[Gate Sequencer: Fill Switch](/library/detail/?kind=module&slug=gate-sequencer#demo-4)** | Steps marked ! only play while the Fill input is high and steps marked - only while it is low, so a square LFO that holds Fill for the last bar of every four swaps the main beat for a busy fill. Some steps are nudged early or late for a human feel; Nudge Depth scales them all. |
+| **[Gate Sequencer: Mute Arrangement](/library/detail/?kind=module&slug=gate-sequencer#demo-5)** | Slow square LFOs patched into the Mute inputs bring the four tracks in and out on their own cycles of 2, 4 and 8 bars, so a simple pattern arranges itself. Patch a different LFO Sync into a mute jack to rewrite the structure. |
 <!-- /generated -->
 
 ## Reference

@@ -81,15 +81,15 @@ drag a marker up or down for that filter's resonance.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Dual Filter does. In the standalone app open **File → Presets…** (⌘P) and pick *Dual Filter* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Dual Filter does. In the standalone app open **File → Presets…** (⌘P) and pick *Dual Filter* under *Demos by module*; on the website they are in the [Dual Filter entry of the Bleep Library](/library/detail/?kind=module&slug=dual-filter#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Dual Filter: Vowel Talker** | A buzzy saw drone goes through two band-pass filters pulled apart by Spread, which an LFO moves back and forth: the pair of peaks sounds like a vowel changing from 'oo' to 'ah' and back. Change Spread for a different mouth shape, or the Cutoff for a different voice. |
-| **Dual Filter: Serial Squelch** | In Serial routing the two filters stack into a steep, resonant low-pass that an envelope snaps open on every note. Raise Spread to make the second stage cut lower or higher than the first, or set Character to Saturating for more grit. |
-| **Dual Filter: Stereo Split Arp** | Stereo routing sends the left channel through one filter and the right through the other, with Spread putting their cutoffs apart: a busy arpeggio ends up with a dark side and a bright side, which an LFO swaps over time. Try Link set to Mirror or a negative Spread. |
-| **Dual Filter: Hollow Pad** | Parallel (F2 inverted) combines a low-pass and an inverted copy, carving a moving hole out of a wide chord. Move Cutoff slowly to sweep the gap, or change Balance to favour one side. |
-| **Dual Filter: Drum Crush** | A drum loop runs through a driven Dual Filter in Serial mode with Mode 1 and Mode 2 at opposite ends, so lows and highs are both trimmed into a narrow band that opens with a slow LFO. Turn up Drive or Mix to push it harder. |
+| **[Dual Filter: Vowel Talker](/library/detail/?kind=module&slug=dual-filter#demo-1)** | A buzzy saw drone goes through two band-pass filters pulled apart by Spread, which an LFO moves back and forth: the pair of peaks sounds like a vowel changing from 'oo' to 'ah' and back. Change Spread for a different mouth shape, or the Cutoff for a different voice. |
+| **[Dual Filter: Serial Squelch](/library/detail/?kind=module&slug=dual-filter#demo-2)** | In Serial routing the two filters stack into a steep, resonant low-pass that an envelope snaps open on every note. Raise Spread to make the second stage cut lower or higher than the first, or set Character to Saturating for more grit. |
+| **[Dual Filter: Stereo Split Arp](/library/detail/?kind=module&slug=dual-filter#demo-3)** | Stereo routing sends the left channel through one filter and the right through the other, with Spread putting their cutoffs apart: a busy arpeggio ends up with a dark side and a bright side, which an LFO swaps over time. Try Link set to Mirror or a negative Spread. |
+| **[Dual Filter: Hollow Pad](/library/detail/?kind=module&slug=dual-filter#demo-4)** | Parallel (F2 inverted) combines a low-pass and an inverted copy, carving a moving hole out of a wide chord. Move Cutoff slowly to sweep the gap, or change Balance to favour one side. |
+| **[Dual Filter: Drum Crush](/library/detail/?kind=module&slug=dual-filter#demo-5)** | A drum loop runs through a driven Dual Filter in Serial mode with Mode 1 and Mode 2 at opposite ends, so lows and highs are both trimmed into a narrow band that opens with a slow LFO. Turn up Drive or Mix to push it harder. |
 <!-- /generated -->
 
 <!-- generated:presets -->

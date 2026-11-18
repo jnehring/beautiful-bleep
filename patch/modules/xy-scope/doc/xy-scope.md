@@ -80,15 +80,15 @@ same outputs.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what XY Scope does. In the standalone app open **File → Presets…** (⌘P) and pick *XY Scope* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what XY Scope does. In the standalone app open **File → Presets…** (⌘P) and pick *XY Scope* under *Demos by module*; on the website they are in the [XY Scope entry of the Bleep Library](/library/detail/?kind=module&slug=xy-scope#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **XY Scope: Locked Fifth Knot** | Two sines a fifth apart draw a slow-turning knot on the scope; each time the pattern stands still enough, the Still gate fires a bell. Change Still Tolerance to Loose and the bells come more often, or tune the Y oscillator by ear to lock them. |
-| **XY Scope: Stereo Width Pad** | A pad's left and right channels go into X and Y, so the scope shows the stereo image: a diagonal line means near-mono, a round cloud means wide. The Correlation output opens the reverb when the image narrows. Turn the Chorus's Spread down and watch the cloud pinch. |
-| **XY Scope: Bass Waveform** | In Y-T mode the scope is an ordinary oscilloscope: a bass line's waveform stands still on screen, triggered on every rising edge. Shorten Timebase to see single cycles, or turn the Oscillator's Shape and watch the wave change under the sound. |
-| **XY Scope: FM Knots** | A bell-like FM pair plays a pentatonic line; the carrier goes to X and the modulated tone to Y, so each note draws a tangled knot that unwinds as it decays. Raise the Oscillator's FM Depth for a busier knot, or X Gain to stretch the figure. |
-| **XY Scope: Ratio Plays a Voice** | A fixed sine on X and a sweeping sine on Y: the scope measures their ratio and its Ratio output, as a pitch, plays a third voice that follows the interval between them. Change the sweep rate and the follower glides along; try Timebase for a clearer picture. |
+| **[XY Scope: Locked Fifth Knot](/library/detail/?kind=module&slug=xy-scope#demo-1)** | Two sines a fifth apart draw a slow-turning knot on the scope; each time the pattern stands still enough, the Still gate fires a bell. Change Still Tolerance to Loose and the bells come more often, or tune the Y oscillator by ear to lock them. |
+| **[XY Scope: Stereo Width Pad](/library/detail/?kind=module&slug=xy-scope#demo-2)** | A pad's left and right channels go into X and Y, so the scope shows the stereo image: a diagonal line means near-mono, a round cloud means wide. The Correlation output opens the reverb when the image narrows. Turn the Chorus's Spread down and watch the cloud pinch. |
+| **[XY Scope: Bass Waveform](/library/detail/?kind=module&slug=xy-scope#demo-3)** | In Y-T mode the scope is an ordinary oscilloscope: a bass line's waveform stands still on screen, triggered on every rising edge. Shorten Timebase to see single cycles, or turn the Oscillator's Shape and watch the wave change under the sound. |
+| **[XY Scope: FM Knots](/library/detail/?kind=module&slug=xy-scope#demo-4)** | A bell-like FM pair plays a pentatonic line; the carrier goes to X and the modulated tone to Y, so each note draws a tangled knot that unwinds as it decays. Raise the Oscillator's FM Depth for a busier knot, or X Gain to stretch the figure. |
+| **[XY Scope: Ratio Plays a Voice](/library/detail/?kind=module&slug=xy-scope#demo-5)** | A fixed sine on X and a sweeping sine on Y: the scope measures their ratio and its Ratio output, as a pitch, plays a third voice that follows the interval between them. Change the sweep rate and the follower glides along; try Timebase for a clearer picture. |
 <!-- /generated -->
 
 ## Reference

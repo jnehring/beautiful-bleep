@@ -84,15 +84,15 @@ late for it.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Pulse Generator does. In the standalone app open **File → Presets…** (⌘P) and pick *Pulse Generator* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Pulse Generator does. In the standalone app open **File → Presets…** (⌘P) and pick *Pulse Generator* under *Demos by module*; on the website they are in the [Pulse Generator entry of the Bleep Library](/library/detail/?kind=module&slug=pulse-generator#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Pulse Generator: Wobbly Clock** | A Pulse Generator synced to 1/8 is the clock of the melody, and its Jitter nudges every pulse a little early or late, so the tune sways like a human player. Turn Jitter to 0 for a rigid machine, or up to 40 % for a drunk one; the same Seed always gives the same wobble. |
-| **Pulse Generator: Tin Drums** | A whole kit from triggered pulses: the Ring output of each Pulse Generator is a pitched thump, tick or rattle. The tom fires a Burst of four pulses, a quick roll. Change Ring Freq for the tuning, Damping for how long they ring, Width for the colour. |
-| **Pulse Generator: Glass Chimes** | One very short pulse per note makes the Ring resonance ping, and the sequencer's pitch tunes Ring Freq (1 V per octave), so each step is a glassy chime. A second, wider pulse a fifth above adds a darker partner. Try Damping for the length of the ring and Width for the brightness. |
-| **Pulse Generator: Gate Echo** | In External Width mode the Pulse Generator is a gate delay: each note's gate comes out 190 ms later, as long as it went in, and plays a second voice a fifth higher. The result is a hand-made echo of the melody. Change Delay for the spacing, or Rise and Fall to soften the echoed notes. |
-| **Pulse Generator: Pulse Choir** | At audio rate the Pulse Generator is an oscillator: three of them at 110, 165 and 220 Hz, with slow LFOs on Width for a swaying pulse-width sound and soft Rise and Fall on the edges. Switch Double on for a hollow, comb-like voice, or change the Period to retune a note. |
+| **[Pulse Generator: Wobbly Clock](/library/detail/?kind=module&slug=pulse-generator#demo-1)** | A Pulse Generator synced to 1/8 is the clock of the melody, and its Jitter nudges every pulse a little early or late, so the tune sways like a human player. Turn Jitter to 0 for a rigid machine, or up to 40 % for a drunk one; the same Seed always gives the same wobble. |
+| **[Pulse Generator: Tin Drums](/library/detail/?kind=module&slug=pulse-generator#demo-2)** | A whole kit from triggered pulses: the Ring output of each Pulse Generator is a pitched thump, tick or rattle. The tom fires a Burst of four pulses, a quick roll. Change Ring Freq for the tuning, Damping for how long they ring, Width for the colour. |
+| **[Pulse Generator: Glass Chimes](/library/detail/?kind=module&slug=pulse-generator#demo-3)** | One very short pulse per note makes the Ring resonance ping, and the sequencer's pitch tunes Ring Freq (1 V per octave), so each step is a glassy chime. A second, wider pulse a fifth above adds a darker partner. Try Damping for the length of the ring and Width for the brightness. |
+| **[Pulse Generator: Gate Echo](/library/detail/?kind=module&slug=pulse-generator#demo-4)** | In External Width mode the Pulse Generator is a gate delay: each note's gate comes out 190 ms later, as long as it went in, and plays a second voice a fifth higher. The result is a hand-made echo of the melody. Change Delay for the spacing, or Rise and Fall to soften the echoed notes. |
+| **[Pulse Generator: Pulse Choir](/library/detail/?kind=module&slug=pulse-generator#demo-5)** | At audio rate the Pulse Generator is an oscillator: three of them at 110, 165 and 220 Hz, with slow LFOs on Width for a swaying pulse-width sound and soft Rise and Fall on the edges. Switch Double on for a hollow, comb-like voice, or change the Period to retune a note. |
 <!-- /generated -->
 
 <!-- generated:presets -->

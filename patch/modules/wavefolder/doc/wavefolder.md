@@ -70,15 +70,15 @@ makes a mono source wide. A mono source with *Spread* at 0 is computed once.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Folder does. In the standalone app open **File → Presets…** (⌘P) and pick *Folder* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Folder does. In the standalone app open **File → Presets…** (⌘P) and pick *Folder* under *Demos by module*; on the website they are in the [Folder entry of the Bleep Library](/library/detail/?kind=module&slug=wavefolder#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Folder: Folded Saw Riff** | An external saw riff enters the Folder's input and an LFO moves Fold up and down, so each note folds back on itself into a growl that opens and closes. Change Symmetry for a hollower tone or lower Tap for a gentler fold. |
-| **Folder: Evolving Sine Drone** | With Source on Internal the Folder is its own voice: a slow sequencer sets the pitch, Wave and Fold drift under two LFOs, and a plain sine turns into a shifting, metallic drone. Try Coarse and Fine for beating pairs of partials. |
-| **Folder: Lopsided Bass** | A low note from the internal sine is pushed off-centre with Symmetry and folded at Tap 3, giving a bass with strong even harmonics and a nasal, vocal edge. Change Symmetry to the other side or raise Fold for a buzzier note. |
-| **Folder: Spread Pad** | A slow pad goes through the Folder with Spread turned up, so the left and right channels fold by different amounts and the pad opens into a wide, shimmering stereo image. Pull Spread down to bring it back to the centre. |
-| **Folder: Folded Drum Kit** | A drum beat passes through the Folder at half Mix: the kick gains a hard, clicky harmonic edge and the hats shimmer, while the dry hits keep their weight. Raise Fold or Mix for a more broken, industrial kit. |
+| **[Folder: Folded Saw Riff](/library/detail/?kind=module&slug=wavefolder#demo-1)** | An external saw riff enters the Folder's input and an LFO moves Fold up and down, so each note folds back on itself into a growl that opens and closes. Change Symmetry for a hollower tone or lower Tap for a gentler fold. |
+| **[Folder: Evolving Sine Drone](/library/detail/?kind=module&slug=wavefolder#demo-2)** | With Source on Internal the Folder is its own voice: a slow sequencer sets the pitch, Wave and Fold drift under two LFOs, and a plain sine turns into a shifting, metallic drone. Try Coarse and Fine for beating pairs of partials. |
+| **[Folder: Lopsided Bass](/library/detail/?kind=module&slug=wavefolder#demo-3)** | A low note from the internal sine is pushed off-centre with Symmetry and folded at Tap 3, giving a bass with strong even harmonics and a nasal, vocal edge. Change Symmetry to the other side or raise Fold for a buzzier note. |
+| **[Folder: Spread Pad](/library/detail/?kind=module&slug=wavefolder#demo-4)** | A slow pad goes through the Folder with Spread turned up, so the left and right channels fold by different amounts and the pad opens into a wide, shimmering stereo image. Pull Spread down to bring it back to the centre. |
+| **[Folder: Folded Drum Kit](/library/detail/?kind=module&slug=wavefolder#demo-5)** | A drum beat passes through the Folder at half Mix: the kick gains a hard, clicky harmonic edge and the hats shimmer, while the dry hits keep their weight. Raise Fold or Mix for a more broken, industrial kit. |
 <!-- /generated -->
 
 <!-- generated:presets -->

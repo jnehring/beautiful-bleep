@@ -59,15 +59,15 @@ round (what you play is still recorded).
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Note Looper does. In the standalone app open **File → Presets…** (⌘P) and pick *Note Looper* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Note Looper does. In the standalone app open **File → Presets…** (⌘P) and pick *Note Looper* under *Demos by module*; on the website they are in the [Note Looper entry of the Bleep Library](/library/detail/?kind=module&slug=note-looper#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Note Looper: Recorded Groove** | A two-bar bass line, recorded earlier, loops over a beat. Set Mode to Overdub and play along to add notes on top, press Undo to take the last layer off again, or Clear to start over. |
-| **Note Looper: Ghost Notes** | A one-bar sixteenth-note figure is played with 55 % Probability, so every pass keeps a different set of its notes. Change Seed for another sequence of passes, or raise Probability to 100 % for the full figure. |
-| **Note Looper: Half Speed Drift** | A two-bar tune loops at half speed, so it takes four bars to come round and every note is twice as long. Set Speed to Double or Normal to hear the same notes at other speeds. |
-| **Note Looper: Tidied Take** | A loosely played one-bar riff, quantized to sixteenths by a Strength that a slow LFO sweeps from none to full: you hear the take tighten and loosen again. Turn Strength up for a fixed amount, or try Quantize 1/8T. |
-| **Note Looper: Loop Into Echo** | A sparse two-bar loop feeds a Note Echo that climbs the scale and fans into chord tones, so a handful of recorded notes becomes a shimmering figure. Mute the Echo's Original or change its Rate to reshape it. |
+| **[Note Looper: Recorded Groove](/library/detail/?kind=module&slug=note-looper#demo-1)** | A two-bar bass line, recorded earlier, loops over a beat. Set Mode to Overdub and play along to add notes on top, press Undo to take the last layer off again, or Clear to start over. |
+| **[Note Looper: Ghost Notes](/library/detail/?kind=module&slug=note-looper#demo-2)** | A one-bar sixteenth-note figure is played with 55 % Probability, so every pass keeps a different set of its notes. Change Seed for another sequence of passes, or raise Probability to 100 % for the full figure. |
+| **[Note Looper: Half Speed Drift](/library/detail/?kind=module&slug=note-looper#demo-3)** | A two-bar tune loops at half speed, so it takes four bars to come round and every note is twice as long. Set Speed to Double or Normal to hear the same notes at other speeds. |
+| **[Note Looper: Tidied Take](/library/detail/?kind=module&slug=note-looper#demo-4)** | A loosely played one-bar riff, quantized to sixteenths by a Strength that a slow LFO sweeps from none to full: you hear the take tighten and loosen again. Turn Strength up for a fixed amount, or try Quantize 1/8T. |
+| **[Note Looper: Loop Into Echo](/library/detail/?kind=module&slug=note-looper#demo-5)** | A sparse two-bar loop feeds a Note Echo that climbs the scale and fans into chord tones, so a handful of recorded notes becomes a shimmering figure. Mute the Echo's Original or change its Rate to reshape it. |
 <!-- /generated -->
 
 <!-- generated:presets -->

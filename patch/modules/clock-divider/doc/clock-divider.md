@@ -49,15 +49,15 @@ play, nothing fires until the next due step.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Clock Div does. In the standalone app open **File → Presets…** (⌘P) and pick *Clock Div* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Clock Div does. In the standalone app open **File → Presets…** (⌘P) and pick *Clock Div* under *Demos by module*; on the website they are in the [Clock Div entry of the Bleep Library](/library/detail/?kind=module&slug=clock-divider#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Clock Div: Layered Percussion** | One 16th-note clock is cut into /2, /3, /5, /8 and /16: hats on the fast outputs, a kick every eight steps, a rim every three and a cowbell every five, so the layers drift in and out of line. Edit any Div knob to retune a layer; they all realign on the downbeat of the 16-step cycle. |
-| **Clock Div: Polyrhythm Chimes** | Four outputs divide an eighth-note clock by 3, 4, 5 and 7 and each rings a different bell tone, so a calm major pentatonic cluster slowly rearranges itself. Change one Div by a single step and the whole pattern shifts. |
-| **Clock Div: Binary Counter Bass** | Powers of two (/1, /2, /4, /8) in Trigger mode play a kick, snare, hat and bass in a fixed, regular pattern, a bit like the bits of a counter. Change Base to 1/8T for a rolling feel, or set Realign to 4 bars to snap the layers back together on a longer cycle. |
-| **Clock Div: Slow Gate Pad** | With Output set to Gate and Gate Length on Division, the slow outputs (/16, /24, /32 and /48) hold long gates that swell three chord tones in and out at different times. Narrow Width shortens the swells; try Gate Length = Base Step for short blips instead. |
-| **Clock Div: Clocks for Two Melodies** | Two Step Sequencers have no clock of their own: one takes /2 and one takes /3 of the divider, so an 8-note arpeggio and a 5-note bass line run at different speeds and phase against each other. Move a Div knob to speed one of them up or down. |
+| **[Clock Div: Layered Percussion](/library/detail/?kind=module&slug=clock-divider#demo-1)** | One 16th-note clock is cut into /2, /3, /5, /8 and /16: hats on the fast outputs, a kick every eight steps, a rim every three and a cowbell every five, so the layers drift in and out of line. Edit any Div knob to retune a layer; they all realign on the downbeat of the 16-step cycle. |
+| **[Clock Div: Polyrhythm Chimes](/library/detail/?kind=module&slug=clock-divider#demo-2)** | Four outputs divide an eighth-note clock by 3, 4, 5 and 7 and each rings a different bell tone, so a calm major pentatonic cluster slowly rearranges itself. Change one Div by a single step and the whole pattern shifts. |
+| **[Clock Div: Binary Counter Bass](/library/detail/?kind=module&slug=clock-divider#demo-3)** | Powers of two (/1, /2, /4, /8) in Trigger mode play a kick, snare, hat and bass in a fixed, regular pattern, a bit like the bits of a counter. Change Base to 1/8T for a rolling feel, or set Realign to 4 bars to snap the layers back together on a longer cycle. |
+| **[Clock Div: Slow Gate Pad](/library/detail/?kind=module&slug=clock-divider#demo-4)** | With Output set to Gate and Gate Length on Division, the slow outputs (/16, /24, /32 and /48) hold long gates that swell three chord tones in and out at different times. Narrow Width shortens the swells; try Gate Length = Base Step for short blips instead. |
+| **[Clock Div: Clocks for Two Melodies](/library/detail/?kind=module&slug=clock-divider#demo-5)** | Two Step Sequencers have no clock of their own: one takes /2 and one takes /3 of the divider, so an 8-note arpeggio and a 5-note bass line run at different speeds and phase against each other. Move a Div knob to speed one of them up or down. |
 <!-- /generated -->
 
 <!-- generated:presets -->

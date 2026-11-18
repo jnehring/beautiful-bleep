@@ -104,15 +104,15 @@ Far out it spins and blurs into a ring.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Beat Oscillator does. In the standalone app open **File → Presets…** (⌘P) and pick *Beat Oscillator* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Beat Oscillator does. In the standalone app open **File → Presets…** (⌘P) and pick *Beat Oscillator* under *Demos by module*; on the website they are in the [Beat Oscillator entry of the Bleep Library](/library/detail/?kind=module&slug=beat-oscillator#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Beat Oscillator: Heterodyne Drone** | Two high carriers beat against each other and a slow LFO sweeps Beat, so a pure tone glides down into a throbbing pulse and back. Turn Drift up for a wandering, unstable tone or move Beat by hand for a held pitch. |
-| **Beat Oscillator: Played Melody** | The sequencer's pitch is fed to the Pitch input so the heterodyne tone plays a tune, with a gentle envelope for each note. Change Carrier to shift the character, or raise Fine to detune the whole line. |
-| **Beat Oscillator: Pull and Stutter** | A slow LFO raises Pull so the two carriers try to lock: the tone stutters, drops into pulses and jumps into pitch as they catch each other. Move Pull and Detector by hand to hear the stutter appear and disappear. |
-| **Beat Oscillator: Slow Pulse Bass** | A low heterodyne bass under a drum loop: each sequencer note retunes the pair through Pitch and an envelope shapes it, with the Diode mixer adding grit. Try the Range setting at ±20 Hz or ±2 kHz and move Beat to change how deep it sits. |
-| **Beat Oscillator: Overdriven Mixer** | The Mixer setting on Overdriven adds harmonics and sidebands to the beat tone, and Drift keeps it alive and slightly unstable. Compare Ideal, Diode and Overdriven to hear the same beat with three characters. |
+| **[Beat Oscillator: Heterodyne Drone](/library/detail/?kind=module&slug=beat-oscillator#demo-1)** | Two high carriers beat against each other and a slow LFO sweeps Beat, so a pure tone glides down into a throbbing pulse and back. Turn Drift up for a wandering, unstable tone or move Beat by hand for a held pitch. |
+| **[Beat Oscillator: Played Melody](/library/detail/?kind=module&slug=beat-oscillator#demo-2)** | The sequencer's pitch is fed to the Pitch input so the heterodyne tone plays a tune, with a gentle envelope for each note. Change Carrier to shift the character, or raise Fine to detune the whole line. |
+| **[Beat Oscillator: Pull and Stutter](/library/detail/?kind=module&slug=beat-oscillator#demo-3)** | A slow LFO raises Pull so the two carriers try to lock: the tone stutters, drops into pulses and jumps into pitch as they catch each other. Move Pull and Detector by hand to hear the stutter appear and disappear. |
+| **[Beat Oscillator: Slow Pulse Bass](/library/detail/?kind=module&slug=beat-oscillator#demo-4)** | A low heterodyne bass under a drum loop: each sequencer note retunes the pair through Pitch and an envelope shapes it, with the Diode mixer adding grit. Try the Range setting at ±20 Hz or ±2 kHz and move Beat to change how deep it sits. |
+| **[Beat Oscillator: Overdriven Mixer](/library/detail/?kind=module&slug=beat-oscillator#demo-5)** | The Mixer setting on Overdriven adds harmonics and sidebands to the beat tone, and Drift keeps it alive and slightly unstable. Compare Ideal, Diode and Overdriven to hear the same beat with three characters. |
 <!-- /generated -->
 
 <!-- generated:presets -->

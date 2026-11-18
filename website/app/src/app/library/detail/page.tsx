@@ -56,6 +56,11 @@ function EntryView() {
     if (kind !== "module") return;
     fetch(`/module-demos/${encodeURIComponent(slug)}`).then((r) => (r.ok ? r.json() : null)).then(setDemos, () => setDemos(null));
   }, [kind, slug]);
+  // The module manuals link to a demo card (#demo-<n>) or to #examples; the cards arrive after the page, so scroll once they are there.
+  useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (demos && data && /^(examples|demo-\d+)$/.test(id)) document.getElementById(id)?.scrollIntoView();
+  }, [demos, data]);
   const [doc, setDoc] = useState("");
   useEffect(() => {
     if (kind !== "module") return;
@@ -118,7 +123,7 @@ function EntryView() {
         <>
           <h2 id="examples">Example patches</h2>
           <ul className="examples">{demos.demos.map((d) => (
-            <li key={d.name}>
+            <li key={d.name} id={`demo-${d.order}`}>
               <a className="play-button" href={`/play/index.html?demo=${encodeURIComponent(d.name)}`} target="_blank" rel="noopener">Load in Play</a>
               <div><strong>{d.name}</strong>{d.description && <span className="muted"> {d.description}</span>}</div>
             </li>

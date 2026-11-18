@@ -68,15 +68,15 @@ irregular clock.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Strange Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Strange Osc* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Strange Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Strange Osc* under *Demos by module*; on the website they are in the [Strange Osc entry of the Bleep Library](/library/detail/?kind=module&slug=strange-osc#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Strange Osc: Tamed Lead** | A lead played by a chaotic orbit that has been tamed almost all the way: a clear pitch whose timbre never quite repeats. Lower Tame to roughen the note, or switch Attractor for a different grain. |
-| **Strange Osc: Chaos Percussion** | Fully chaotic Lorenz noise, cut into short hits by an envelope, fills in between a kick and snare. Change the Seed for a different texture, or Tame to make the hits more tonal. |
-| **Strange Osc: Tame Sweep** | One long note while a slow LFO sweeps Tame over its whole range: the voice drifts from an almost clean tone, through rough, multiplying orbits, to open chaos and back. Try another Attractor to hear where each one breaks up. |
-| **Strange Osc: Chaotic Modulator** | A saw riff through a filter whose cutoff and resonance are moved by the X and Y outputs of a slow Strange Osc: a modulation that wanders and never repeats. Use Tame to make it more regular or switch Attractor for a different gait. |
-| **Strange Osc: Forced Orbit** | A saw riff pushes a half-tamed orbit through Force In, so the orbit follows the riff's rhythm but keeps its own colour. Raise Force for tighter lock, or lower Tame to let it run away. |
+| **[Strange Osc: Tamed Lead](/library/detail/?kind=module&slug=strange-osc#demo-1)** | A lead played by a chaotic orbit that has been tamed almost all the way: a clear pitch whose timbre never quite repeats. Lower Tame to roughen the note, or switch Attractor for a different grain. |
+| **[Strange Osc: Chaos Percussion](/library/detail/?kind=module&slug=strange-osc#demo-2)** | Fully chaotic Lorenz noise, cut into short hits by an envelope, fills in between a kick and snare. Change the Seed for a different texture, or Tame to make the hits more tonal. |
+| **[Strange Osc: Tame Sweep](/library/detail/?kind=module&slug=strange-osc#demo-3)** | One long note while a slow LFO sweeps Tame over its whole range: the voice drifts from an almost clean tone, through rough, multiplying orbits, to open chaos and back. Try another Attractor to hear where each one breaks up. |
+| **[Strange Osc: Chaotic Modulator](/library/detail/?kind=module&slug=strange-osc#demo-4)** | A saw riff through a filter whose cutoff and resonance are moved by the X and Y outputs of a slow Strange Osc: a modulation that wanders and never repeats. Use Tame to make it more regular or switch Attractor for a different gait. |
+| **[Strange Osc: Forced Orbit](/library/detail/?kind=module&slug=strange-osc#demo-5)** | A saw riff pushes a half-tamed orbit through Force In, so the orbit follows the riff's rhythm but keeps its own colour. Raise Force for tighter lock, or lower Tame to let it run away. |
 <!-- /generated -->
 
 <!-- generated:presets -->

@@ -66,13 +66,13 @@ The preset bar of the EQ view has 16 factory presets. Pick one to set the knobs,
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what EQ does. In the standalone app open **File → Presets…** (⌘P) and pick *EQ* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what EQ does. In the standalone app open **File → Presets…** (⌘P) and pick *EQ* under *Demos by module*; on the website they are in the [EQ entry of the Bleep Library](/library/detail/?kind=module&slug=eq#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **EQ: Small Radio** | A full-range saw riff and a beat are squeezed through a steep Low Cut, a steep High Cut and a Bell boost in the midrange: the sound shrinks to a tiny speaker. Switch bands 1 and 6 off to open the sound again, or move the Bell around. |
-| **EQ: Sweeping Bell Wah** | A narrow Bell boosted by 14 dB glides up and down the spectrum under an LFO on its Freq, so the riff sings like a wah pedal. Widen Q for a gentler vowel, or give the LFO a faster rate. |
-| **EQ: Warm Bus Tilt** | A mix of bass, riff and drums gets a Low Shelf lift, a small Bell cut in the muddy low mids and a High Shelf cut: a darker, rounder balance. Flip the Shelf gains to the other side for a bright, thin version. |
-| **EQ: Twin Notch Phaser** | Two Notch bands moved in opposite directions by one slow LFO carve gaps in a sustained saw line, giving a hollow, phaser-like sweep without any feedback. Raise Q for thinner, sharper gaps. |
-| **EQ: 48 dB Cutoff Rise** | A High Cut with the steepest 48 dB/oct slope is pushed open by a slow LFO over a riff and beat, like a filter riser. Choose a gentler Slope for a softer glide, or turn the sweep depth down. |
+| **[EQ: Small Radio](/library/detail/?kind=module&slug=eq#demo-1)** | A full-range saw riff and a beat are squeezed through a steep Low Cut, a steep High Cut and a Bell boost in the midrange: the sound shrinks to a tiny speaker. Switch bands 1 and 6 off to open the sound again, or move the Bell around. |
+| **[EQ: Sweeping Bell Wah](/library/detail/?kind=module&slug=eq#demo-2)** | A narrow Bell boosted by 14 dB glides up and down the spectrum under an LFO on its Freq, so the riff sings like a wah pedal. Widen Q for a gentler vowel, or give the LFO a faster rate. |
+| **[EQ: Warm Bus Tilt](/library/detail/?kind=module&slug=eq#demo-3)** | A mix of bass, riff and drums gets a Low Shelf lift, a small Bell cut in the muddy low mids and a High Shelf cut: a darker, rounder balance. Flip the Shelf gains to the other side for a bright, thin version. |
+| **[EQ: Twin Notch Phaser](/library/detail/?kind=module&slug=eq#demo-4)** | Two Notch bands moved in opposite directions by one slow LFO carve gaps in a sustained saw line, giving a hollow, phaser-like sweep without any feedback. Raise Q for thinner, sharper gaps. |
+| **[EQ: 48 dB Cutoff Rise](/library/detail/?kind=module&slug=eq#demo-5)** | A High Cut with the steepest 48 dB/oct slope is pushed open by a slow LFO over a riff and beat, like a filter riser. Choose a gentler Slope for a softer glide, or turn the sweep depth down. |
 <!-- /generated -->

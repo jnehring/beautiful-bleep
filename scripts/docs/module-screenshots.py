@@ -21,6 +21,8 @@ MODULES = ROOT / "patch" / "modules"
 KITS = {"ring-": "ring-drums", "punch-": "punch-drums"}
 # Views that draw history need to run a while before the shot (milliseconds).
 SETTLE = {"envelope-follower": 8500}
+# Knob settings (normalised 0..1) for views that show more away from the defaults.
+PARAMS = {"dial": {"value": 0.6, "curve": 0.75, "steps": 6 / 24}}
 # Types that are board plumbing (ports, cells), not modules with a folder.
 PLUMBING = {"Ports", "Cells"}
 
@@ -51,7 +53,7 @@ def main() -> int:
                 continue
             board = {"format": 1, "id": "demo", "cables": [],
                      "nodes": [{"id": "n", "type": t["type"], "name": t["name"], "x": 40, "y": 40,
-                                "parent": "", "muted": False, "params": {}}]}
+                                "parent": "", "muted": False, "params": PARAMS.get(t["type"], {})}]}
             page = browser.new_page(viewport={"width": 1500, "height": 1100}, device_scale_factor=2)
             errors = []
             page.on("pageerror", lambda e: errors.append(str(e)))

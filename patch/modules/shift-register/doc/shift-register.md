@@ -86,15 +86,15 @@ same, wherever you start.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Shift Register does. In the standalone app open **File → Presets…** (⌘P) and pick *Shift Register* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Shift Register does. In the standalone app open **File → Presets…** (⌘P) and pick *Shift Register* under *Demos by module*; on the website they are in the [Shift Register entry of the Bleep Library](/library/detail/?kind=module&slug=shift-register#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Shift Register: Frozen Eight-Note Loop** | Lock at its top position freezes the register, so its eight bits recycle forever as a fixed little melody in D minor pentatonic over two octaves. Change the seed or Length to get a different tune; Length 5 or 7 against the drums makes the melody drift against the beat. |
-| **Shift Register: Slowly Mutating Tune** | Lock sits just below frozen, so now and then a bit flips and the melody changes by a note or two instead of repeating exactly. A slow LFO nudges Lock between nearly frozen and quite loose; turn it down to hear the tune stay put, up to hear it wander. |
-| **Shift Register: Canon of Drums** | As the bits travel along the register, each bit output plays the same rhythm one step later than the one before, so a kick, snare, hat and clap echo one rhythm in canon. Change Length to reshape the pattern for all four at once, or Lock below the top to let it mutate. |
-| **Shift Register: Bits from a Data Input** | Source is set to Data, so the register is fed from a gate patched into its Data input, here a pair of square LFOs with different speeds mixed together. The register turns that slow on-off pattern into a lively stepped melody. Switch Source to Data ⊕ Loop to blend the old loop with the new input. |
-| **Shift Register: Weighted Mix Filter** | The Mix output adds the bits up with the Weight knobs, here as a stepped voltage that sweeps the cutoff of a filter on a held saw bass, while Voltage plays the pitches. Change Weight 1 to 3 to reshape the sweep, or set a weight negative to flip it. |
+| **[Shift Register: Frozen Eight-Note Loop](/library/detail/?kind=module&slug=shift-register#demo-1)** | Lock at its top position freezes the register, so its eight bits recycle forever as a fixed little melody in D minor pentatonic over two octaves. Change the seed or Length to get a different tune; Length 5 or 7 against the drums makes the melody drift against the beat. |
+| **[Shift Register: Slowly Mutating Tune](/library/detail/?kind=module&slug=shift-register#demo-2)** | Lock sits just below frozen, so now and then a bit flips and the melody changes by a note or two instead of repeating exactly. A slow LFO nudges Lock between nearly frozen and quite loose; turn it down to hear the tune stay put, up to hear it wander. |
+| **[Shift Register: Canon of Drums](/library/detail/?kind=module&slug=shift-register#demo-3)** | As the bits travel along the register, each bit output plays the same rhythm one step later than the one before, so a kick, snare, hat and clap echo one rhythm in canon. Change Length to reshape the pattern for all four at once, or Lock below the top to let it mutate. |
+| **[Shift Register: Bits from a Data Input](/library/detail/?kind=module&slug=shift-register#demo-4)** | Source is set to Data, so the register is fed from a gate patched into its Data input, here a pair of square LFOs with different speeds mixed together. The register turns that slow on-off pattern into a lively stepped melody. Switch Source to Data ⊕ Loop to blend the old loop with the new input. |
+| **[Shift Register: Weighted Mix Filter](/library/detail/?kind=module&slug=shift-register#demo-5)** | The Mix output adds the bits up with the Weight knobs, here as a stepped voltage that sweeps the cutoff of a filter on a held saw bass, while Voltage plays the pitches. Change Weight 1 to 3 to reshape the sweep, or set a weight negative to flip it. |
 <!-- /generated -->
 
 <!-- generated:presets -->

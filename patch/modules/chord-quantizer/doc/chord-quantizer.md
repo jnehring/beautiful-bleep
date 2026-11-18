@@ -68,15 +68,15 @@ other (*Strum Order* Up: bass first), spread over the *Strum* time.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Chord Quantizer does. In the standalone app open **File → Presets…** (⌘P) and pick *Chord Quantizer* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Chord Quantizer does. In the standalone app open **File → Presets…** (⌘P) and pick *Chord Quantizer* under *Demos by module*; on the website they are in the [Chord Quantizer entry of the Bleep Library](/library/detail/?kind=module&slug=chord-quantizer#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Chord Quantizer: Minor Seventh Pad** | A slow root line goes into the Chord Quantizer, which stacks each root as a minor seventh over four voices; the four oscillators swell into a lush, moving pad. Try Chord on Dominant 9 or Sus4, or Voicing on Spread for a wider sound. |
-| **Chord Quantizer: Smooth Voice Leading** | Rhythmic triad stabs follow a four-chord loop, and Voice Leading chooses the inversion that moves least, so the top voice glides instead of jumping. Turn Voice Leading Off to hear every chord land in root position. |
-| **Chord Quantizer: Quartal Glass** | Instead of thirds, each chord is stacked in fourths and spread wide: an open, floating sound that suits slow, bell-like notes. Try Inversion or Range to move the stack, or Chord to Fifth for a hollow drone. |
-| **Chord Quantizer: Diatonic Harmoniser** | In Diatonic mode a melody in C major is harmonised note by note: each pitch becomes the root of the right triad for the scale, major on some steps, minor on others. Change the Stack to Seventh, or the setting Scale to Dorian. |
-| **Chord Quantizer: Chords into an Arpeggio** | The Notes output of the Chord Quantizer holds each chord while an Arpeggiator breaks it into a running pattern for a single pluck voice. Change the chord, then the Arpeggiator's Pattern or Octaves, to reshape the same harmony. |
+| **[Chord Quantizer: Minor Seventh Pad](/library/detail/?kind=module&slug=chord-quantizer#demo-1)** | A slow root line goes into the Chord Quantizer, which stacks each root as a minor seventh over four voices; the four oscillators swell into a lush, moving pad. Try Chord on Dominant 9 or Sus4, or Voicing on Spread for a wider sound. |
+| **[Chord Quantizer: Smooth Voice Leading](/library/detail/?kind=module&slug=chord-quantizer#demo-2)** | Rhythmic triad stabs follow a four-chord loop, and Voice Leading chooses the inversion that moves least, so the top voice glides instead of jumping. Turn Voice Leading Off to hear every chord land in root position. |
+| **[Chord Quantizer: Quartal Glass](/library/detail/?kind=module&slug=chord-quantizer#demo-3)** | Instead of thirds, each chord is stacked in fourths and spread wide: an open, floating sound that suits slow, bell-like notes. Try Inversion or Range to move the stack, or Chord to Fifth for a hollow drone. |
+| **[Chord Quantizer: Diatonic Harmoniser](/library/detail/?kind=module&slug=chord-quantizer#demo-4)** | In Diatonic mode a melody in C major is harmonised note by note: each pitch becomes the root of the right triad for the scale, major on some steps, minor on others. Change the Stack to Seventh, or the setting Scale to Dorian. |
+| **[Chord Quantizer: Chords into an Arpeggio](/library/detail/?kind=module&slug=chord-quantizer#demo-5)** | The Notes output of the Chord Quantizer holds each chord while an Arpeggiator breaks it into a running pattern for a single pluck voice. Change the chord, then the Arpeggiator's Pattern or Octaves, to reshape the same harmony. |
 <!-- /generated -->
 
 <!-- generated:presets -->

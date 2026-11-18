@@ -205,6 +205,13 @@
         (c.wire || []).forEach((w, index) => {
           const id = `~${panel.id}:${c.id}:${index}`;
           let nodeId, jack;
+          if (w.notes) {   // a keyboard on a Voice Cell's panel: a hidden Keyboard into the cell's notes
+            const cell = byId.get(cellId);
+            if (!cell || cell.type !== "voice-cell" || inVoiceCell(cell)) return;
+            nodes.push({ id, type: "keyboard", name: "keyboard", x: 0, y: 0, parent: "", muted: false, params: {} });
+            cables.push({ id: "~k" + id, from: { node: id, jack: "notes" }, to: { node: cellId, jack: "notes" }, amount: 1 });
+            return;
+          }
           if (w.cell) { nodeId = cellId; jack = w.cell; }
           else if (w.jack) { const i = w.jack.indexOf("."); if (i < 0) return; nodeId = w.jack.slice(0, i); jack = w.jack.slice(i + 1); }
           else if (w.param && w.mode === "mod") { const i = w.param.indexOf("."); if (i < 0) return; nodeId = w.param.slice(0, i); jack = w.param.slice(i + 1); }

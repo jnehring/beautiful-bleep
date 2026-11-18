@@ -58,15 +58,15 @@ delay); with *Normalize* such loops stay stable.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Matrix Mixer does. In the standalone app open **File → Presets…** (⌘P) and pick *Matrix Mixer* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Matrix Mixer does. In the standalone app open **File → Presets…** (⌘P) and pick *Matrix Mixer* under *Demos by module*; on the website they are in the [Matrix Mixer entry of the Bleep Library](/library/detail/?kind=module&slug=matrix-mixer#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Matrix Mixer: Four Into Stereo** | Four sources (bass, chords, lead, drums) go into a 4 by 2 matrix, each with its own left and right gain: the bass sits in the middle, the chords lean left, the lead right and the drums are spread. Click a crosspoint to change how much of a source goes to which side. |
-| **Matrix Mixer: Scene Morph** | Two stored snapshots: A is a sparse scene with bass and a pad, B adds drums and the lead on the right. A slow LFO on Morph blends smoothly between them, so the arrangement builds and thins by itself. Drag Morph by hand, or edit a snapshot's crosspoints. |
-| **Matrix Mixer: Voice Swap** | A saw arpeggio and a square arpeggio enter a 2 by 2 matrix. Each output carries a mix of both, and two LFOs in opposite phase move the crossing gains, so the voices drift from one side to the other and back. Change a gain to a negative value to hear phase effects. |
-| **Matrix Mixer: One to Many** | One plucked line fans out to four outputs through four crosspoints with different gains; outputs 1 and 2 go to the speakers and outputs 3 and 4 pass through delays on the other side, so a single melody turns into a stereo echo field. Raise or lower the 1 to 3 and 1 to 4 gains to place the echoes. |
-| **Matrix Mixer: Soft Clip Stage** | Four loud parts are summed into one output with every crosspoint at full gain, and the Output Stage setting is Soft clip, so peaks are rounded off instead of cutting hard. Try Clean and Normalize for the other behaviours, or turn Level 1 down to rebalance. |
+| **[Matrix Mixer: Four Into Stereo](/library/detail/?kind=module&slug=matrix-mixer#demo-1)** | Four sources (bass, chords, lead, drums) go into a 4 by 2 matrix, each with its own left and right gain: the bass sits in the middle, the chords lean left, the lead right and the drums are spread. Click a crosspoint to change how much of a source goes to which side. |
+| **[Matrix Mixer: Scene Morph](/library/detail/?kind=module&slug=matrix-mixer#demo-2)** | Two stored snapshots: A is a sparse scene with bass and a pad, B adds drums and the lead on the right. A slow LFO on Morph blends smoothly between them, so the arrangement builds and thins by itself. Drag Morph by hand, or edit a snapshot's crosspoints. |
+| **[Matrix Mixer: Voice Swap](/library/detail/?kind=module&slug=matrix-mixer#demo-3)** | A saw arpeggio and a square arpeggio enter a 2 by 2 matrix. Each output carries a mix of both, and two LFOs in opposite phase move the crossing gains, so the voices drift from one side to the other and back. Change a gain to a negative value to hear phase effects. |
+| **[Matrix Mixer: One to Many](/library/detail/?kind=module&slug=matrix-mixer#demo-4)** | One plucked line fans out to four outputs through four crosspoints with different gains; outputs 1 and 2 go to the speakers and outputs 3 and 4 pass through delays on the other side, so a single melody turns into a stereo echo field. Raise or lower the 1 to 3 and 1 to 4 gains to place the echoes. |
+| **[Matrix Mixer: Soft Clip Stage](/library/detail/?kind=module&slug=matrix-mixer#demo-5)** | Four loud parts are summed into one output with every crosspoint at full gain, and the Output Stage setting is Soft clip, so peaks are rounded off instead of cutting hard. Try Clean and Normalize for the other behaviours, or turn Level 1 down to rebalance. |
 <!-- /generated -->
 
 ## Reference

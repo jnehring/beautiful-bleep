@@ -56,15 +56,15 @@ or more parts hit together (before Complement), *Cycle* fires at step 1.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Rhythm Bank does. In the standalone app open **File → Presets…** (⌘P) and pick *Rhythm Bank* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Rhythm Bank does. In the standalone app open **File → Presets…** (⌘P) and pick *Rhythm Bank* under *Demos by module*; on the website they are in the [Rhythm Bank entry of the Bleep Library](/library/detail/?kind=module&slug=rhythm-bank#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Rhythm Bank: Even Groove Kit** | The Even family spreads hits as evenly as it can: four related rhythms of different density drive a kick, snare, hats and a rim. Turn Pattern to change all four grooves at once, or turn Width for longer or shorter gates. |
-| **Rhythm Bank: Prime Cycles** | Length 15 and the Prime family give four rhythms with uneven, prime-based spacing, each playing a different pluck of an A minor chord. Because the lengths never line up the same way twice, the figure keeps turning; try Family = Poly for a different split. |
-| **Rhythm Bank: Pattern Browser** | A stepped random LFO picks a new Pattern number every bar, and Change is set to Cycle so each new rhythm waits for the end of the current one: the part develops by itself without a break. Set Change to Step to switch mid-pattern, or turn the LFO cable down to stay near one groove. |
-| **Rhythm Bank: Interlocking Pair** | With Complement set to Pairs, output 2 fills the gaps left by output 1 (and 4 those of 3), so a low and a high voice share one steady line like two hands. Switch Complement to Off to hear the raw rhythms collide, or to Avoid to keep them from landing together. |
-| **Rhythm Bank: Seeded Open Loop** | Length is Open, so the rhythms never loop, and the Seeded family makes up a fresh but related set from the Pattern number. Rotate nudges each rhythm against the others and Grid Free lets hits sit between steps; set Length back to 16 to hear a plain loop. |
+| **[Rhythm Bank: Even Groove Kit](/library/detail/?kind=module&slug=rhythm-bank#demo-1)** | The Even family spreads hits as evenly as it can: four related rhythms of different density drive a kick, snare, hats and a rim. Turn Pattern to change all four grooves at once, or turn Width for longer or shorter gates. |
+| **[Rhythm Bank: Prime Cycles](/library/detail/?kind=module&slug=rhythm-bank#demo-2)** | Length 15 and the Prime family give four rhythms with uneven, prime-based spacing, each playing a different pluck of an A minor chord. Because the lengths never line up the same way twice, the figure keeps turning; try Family = Poly for a different split. |
+| **[Rhythm Bank: Pattern Browser](/library/detail/?kind=module&slug=rhythm-bank#demo-3)** | A stepped random LFO picks a new Pattern number every bar, and Change is set to Cycle so each new rhythm waits for the end of the current one: the part develops by itself without a break. Set Change to Step to switch mid-pattern, or turn the LFO cable down to stay near one groove. |
+| **[Rhythm Bank: Interlocking Pair](/library/detail/?kind=module&slug=rhythm-bank#demo-4)** | With Complement set to Pairs, output 2 fills the gaps left by output 1 (and 4 those of 3), so a low and a high voice share one steady line like two hands. Switch Complement to Off to hear the raw rhythms collide, or to Avoid to keep them from landing together. |
+| **[Rhythm Bank: Seeded Open Loop](/library/detail/?kind=module&slug=rhythm-bank#demo-5)** | Length is Open, so the rhythms never loop, and the Seeded family makes up a fresh but related set from the Pattern number. Rotate nudges each rhythm against the others and Grid Free lets hits sit between steps; set Length back to 16 to hear a plain loop. |
 <!-- /generated -->
 
 ## Reference

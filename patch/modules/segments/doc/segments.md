@@ -115,15 +115,15 @@ A dot follows the output, and the running segment's label lights up.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Segments does. In the standalone app open **File → Presets…** (⌘P) and pick *Segments* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Segments does. In the standalone app open **File → Presets…** (⌘P) and pick *Segments* under *Demos by module*; on the website they are in the [Segments entry of the Bleep Library](/library/detail/?kind=module&slug=segments#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Segments: Two-Humped Envelope** | Five segments draw an envelope no ADSR can: a quick rise, a dip, a second slower swell and a long fade, and every note of the tune follows that shape. Change a segment's Level or Time and hear the hump move. |
-| **Segments: Looping Filter Shape** | Set to run freely, the chain of four segments repeats like an LFO with a shape you choose: a fast ramp up, a step, a hold and a slide back. It sweeps the filter on a plucked arpeggio; stretch Time Scale or change the Shape knobs to reshape the sweep. |
-| **Segments: Bouncing Ball** | Eight segments alternate between a tiny rise and a fall to zero, each bounce shorter and quieter than the last, so one gate rings out as a dropped ball. Move the Level of a segment to change how high it bounces. |
-| **Segments: Segment Gates as Drummer** | A free-running chain of four equal segments hands out a gate at each step, and those gates play a kick, hat, snare and hat: the segments are the sequencer. Change a segment's Time to shift the groove, or raise Count to add steps. |
-| **Segments: Swell and Breath** | One three-segment shape (rise, hold while the key is down, fall) opens the filter on a pad while its inverted output fades a noise wash down, so the sound turns from airy to tonal and back with every chord. Try Release set to Jump to cut the swell short when the chord ends. |
+| **[Segments: Two-Humped Envelope](/library/detail/?kind=module&slug=segments#demo-1)** | Five segments draw an envelope no ADSR can: a quick rise, a dip, a second slower swell and a long fade, and every note of the tune follows that shape. Change a segment's Level or Time and hear the hump move. |
+| **[Segments: Looping Filter Shape](/library/detail/?kind=module&slug=segments#demo-2)** | Set to run freely, the chain of four segments repeats like an LFO with a shape you choose: a fast ramp up, a step, a hold and a slide back. It sweeps the filter on a plucked arpeggio; stretch Time Scale or change the Shape knobs to reshape the sweep. |
+| **[Segments: Bouncing Ball](/library/detail/?kind=module&slug=segments#demo-3)** | Eight segments alternate between a tiny rise and a fall to zero, each bounce shorter and quieter than the last, so one gate rings out as a dropped ball. Move the Level of a segment to change how high it bounces. |
+| **[Segments: Segment Gates as Drummer](/library/detail/?kind=module&slug=segments#demo-4)** | A free-running chain of four equal segments hands out a gate at each step, and those gates play a kick, hat, snare and hat: the segments are the sequencer. Change a segment's Time to shift the groove, or raise Count to add steps. |
+| **[Segments: Swell and Breath](/library/detail/?kind=module&slug=segments#demo-5)** | One three-segment shape (rise, hold while the key is down, fall) opens the filter on a pad while its inverted output fades a noise wash down, so the sound turns from airy to tonal and back with every chord. Try Release set to Jump to cut the swell short when the chord ends. |
 <!-- /generated -->
 
 <!-- generated:presets -->

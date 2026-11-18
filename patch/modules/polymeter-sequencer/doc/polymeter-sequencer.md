@@ -89,15 +89,15 @@ Hold all end the sounding note.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Polymeter Seq does. In the standalone app open **File → Presets…** (⌘P) and pick *Polymeter Seq* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Polymeter Seq does. In the standalone app open **File → Presets…** (⌘P) and pick *Polymeter Seq* under *Demos by module*; on the website they are in the [Polymeter Seq entry of the Bleep Library](/library/detail/?kind=module&slug=polymeter-sequencer#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Polymeter Seq: Five Against Seven** | The trigger track is five steps long and the note track seven, so each rhythm cycle meets a different pitch and the tune only repeats after thirty-five steps. Change the length of either track in the view to find another cycle. |
-| **Polymeter Seq: Seven-Step Groove** | A bass line built on a seven-step trigger track plays against a half-time beat, so the groove keeps leaning forward and landing again. The Track Ends output rings a hat whenever a track wraps around; try dragging Swing or Gate Scale. |
-| **Polymeter Seq: Probability Garden** | The probability track gives each step a chance of sounding, so a Dorian marimba tune keeps thinning out and filling in. Push Prob. Bias up for a dense, almost fixed tune or down towards silence; change Seed to grow a different garden. |
-| **Polymeter Seq: Ratchet Rolls** | Some steps of the ratchet track split into two, three or four quick repeats, so a simple lead line stutters and rolls at odd places. Ratchet Amt scales how far the repeats go: bring it to 0 for a plain line, or leave it up for rolls. |
-| **Polymeter Seq: Pattern Slots** | Two stored patterns, a calm one and a busy one, share a voice, and a slow ramp on the Pattern input moves from one to the other at the next bar. Click a slot in the view to play it alone, or change Pattern Change to switch immediately. |
+| **[Polymeter Seq: Five Against Seven](/library/detail/?kind=module&slug=polymeter-sequencer#demo-1)** | The trigger track is five steps long and the note track seven, so each rhythm cycle meets a different pitch and the tune only repeats after thirty-five steps. Change the length of either track in the view to find another cycle. |
+| **[Polymeter Seq: Seven-Step Groove](/library/detail/?kind=module&slug=polymeter-sequencer#demo-2)** | A bass line built on a seven-step trigger track plays against a half-time beat, so the groove keeps leaning forward and landing again. The Track Ends output rings a hat whenever a track wraps around; try dragging Swing or Gate Scale. |
+| **[Polymeter Seq: Probability Garden](/library/detail/?kind=module&slug=polymeter-sequencer#demo-3)** | The probability track gives each step a chance of sounding, so a Dorian marimba tune keeps thinning out and filling in. Push Prob. Bias up for a dense, almost fixed tune or down towards silence; change Seed to grow a different garden. |
+| **[Polymeter Seq: Ratchet Rolls](/library/detail/?kind=module&slug=polymeter-sequencer#demo-4)** | Some steps of the ratchet track split into two, three or four quick repeats, so a simple lead line stutters and rolls at odd places. Ratchet Amt scales how far the repeats go: bring it to 0 for a plain line, or leave it up for rolls. |
+| **[Polymeter Seq: Pattern Slots](/library/detail/?kind=module&slug=polymeter-sequencer#demo-5)** | Two stored patterns, a calm one and a busy one, share a voice, and a slow ramp on the Pattern input moves from one to the other at the next bar. Click a slot in the view to play it alone, or change Pattern Change to switch immediately. |
 <!-- /generated -->
 
 <!-- generated:presets -->

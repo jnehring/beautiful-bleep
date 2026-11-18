@@ -92,15 +92,15 @@ replaces the reel. **Clear reel** empties it.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Splice does. In the standalone app open **File → Presets…** (⌘P) and pick *Splice* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Splice does. In the standalone app open **File → Presets…** (⌘P) and pick *Splice* under *Demos by module*; on the website they are in the [Splice entry of the Bleep Library](/library/detail/?kind=module&slug=splice#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Splice: Two-Bar Loop** | A plucked phrase is recorded onto the reel for two bars, then the splice loops it back with Sync on 2 bars, so the loop stays on the beat. The live phrase is heard while it is recorded (Monitor). Try Sync, Speed or Window Size to bend the loop, or set Record Target to Current splice and Overdub to layer more on top. |
-| **Splice: Tape Stop** | A drum bar is recorded, then plays from the reel while a ramp pulls Speed down towards zero every two bars: the whole loop slows, drops in pitch and winds to a halt before the tape snaps back to full speed. Edit the ramp's Rate or amount, or try a negative Speed to run the tape backwards. |
-| **Splice: Reel Keyboard** | One recorded note is replayed as an instrument: a sequencer's Pitch drives the Speed input (1 V per octave) and its trigger restarts the splice, with Loop on One-shot. Change the sequence for a new tune, or Window Size for another timbre; pitch and speed move together, like tape. |
-| **Splice: Break Chopper** | A drum bar is recorded and then replayed one eighth at a time: Window Size is 1/8 of the splice and a stepped random source picks Position every eighth note, so the break is re-cut into a stuttering new beat. The random loops after eight steps, so the pattern repeats; raise Loop towards 0 for endless variation. |
-| **Splice: Micro Cloud** | A short chord arpeggio is recorded, then replayed in 3 % windows with Overlap at 90 %, which turns it into a granular cloud; a slow LFO scrubs Position across the splice. Raise Window Size to hear the phrase re-emerge, or lower Overlap below 30 % for a rhythmic stutter. |
+| **[Splice: Two-Bar Loop](/library/detail/?kind=module&slug=splice#demo-1)** | A plucked phrase is recorded onto the reel for two bars, then the splice loops it back with Sync on 2 bars, so the loop stays on the beat. The live phrase is heard while it is recorded (Monitor). Try Sync, Speed or Window Size to bend the loop, or set Record Target to Current splice and Overdub to layer more on top. |
+| **[Splice: Tape Stop](/library/detail/?kind=module&slug=splice#demo-2)** | A drum bar is recorded, then plays from the reel while a ramp pulls Speed down towards zero every two bars: the whole loop slows, drops in pitch and winds to a halt before the tape snaps back to full speed. Edit the ramp's Rate or amount, or try a negative Speed to run the tape backwards. |
+| **[Splice: Reel Keyboard](/library/detail/?kind=module&slug=splice#demo-3)** | One recorded note is replayed as an instrument: a sequencer's Pitch drives the Speed input (1 V per octave) and its trigger restarts the splice, with Loop on One-shot. Change the sequence for a new tune, or Window Size for another timbre; pitch and speed move together, like tape. |
+| **[Splice: Break Chopper](/library/detail/?kind=module&slug=splice#demo-4)** | A drum bar is recorded and then replayed one eighth at a time: Window Size is 1/8 of the splice and a stepped random source picks Position every eighth note, so the break is re-cut into a stuttering new beat. The random loops after eight steps, so the pattern repeats; raise Loop towards 0 for endless variation. |
+| **[Splice: Micro Cloud](/library/detail/?kind=module&slug=splice#demo-5)** | A short chord arpeggio is recorded, then replayed in 3 % windows with Overlap at 90 %, which turns it into a granular cloud; a slow LFO scrubs Position across the splice. Raise Window Size to hear the phrase re-emerge, or lower Overlap below 30 % for a rhythmic stutter. |
 <!-- /generated -->
 
 ## Reference

@@ -58,15 +58,15 @@ next due step.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Rotating Div does. In the standalone app open **File → Presets…** (⌘P) and pick *Rotating Div* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Rotating Div does. In the standalone app open **File → Presets…** (⌘P) and pick *Rotating Div* under *Demos by module*; on the website they are in the [Rotating Div entry of the Bleep Library](/library/detail/?kind=module&slug=rotating-divider#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Rotating Div: Shifting Drum Roles** | A slow stepped LFO turns Rotate, so the same set of divisions moves from output to output: the part that was the kick becomes the hats, then the clap, and the groove reshapes every few bars. Turn Rotate by hand to hear one fixed arrangement, or set Rotate Sync to Next Bar to move on the downbeat. |
-| **Rotating Div: Prime Bells** | The Primes set (2, 3, 5, 7, 11, 13 and on) rings eight soft bell tones, each on its own division, so they only coincide rarely and the texture keeps shifting. Change Rotate to give each bell a different, slower or faster clock without touching the tuning. |
-| **Rotating Div: Powers of Two Groove** | With the Powers of 2 set (1, 2, 4, 8, 16, 32...) every output lands on a regular beat, giving a tidy four-to-the-floor skeleton of kick, claps and hats. Raise Rotate by one and each part jumps to the next division for an instant half-time or double-time feel. |
-| **Rotating Div: Fibonacci Staircase** | The Stair output reads all eight gates as one binary number, a jumpy staircase that repeats with the pattern, and a Quantizer snaps it to a scale so the Fibonacci set (1, 2, 3, 5, 8...) writes a melody. Change the Quantizer's Scale, or Rotate, for a different tune from the same clocks. |
-| **Rotating Div: Extending Evens** | In Extend mode, Rotate does not wrap around the set but continues it, so with the Evens set each turn of the knob brings in longer divisions (2, 4, 6... then 18, 20 and beyond). A slow sawtooth LFO turns Rotate up through the bars, thinning the hats and claps out as it climbs. |
+| **[Rotating Div: Shifting Drum Roles](/library/detail/?kind=module&slug=rotating-divider#demo-1)** | A slow stepped LFO turns Rotate, so the same set of divisions moves from output to output: the part that was the kick becomes the hats, then the clap, and the groove reshapes every few bars. Turn Rotate by hand to hear one fixed arrangement, or set Rotate Sync to Next Bar to move on the downbeat. |
+| **[Rotating Div: Prime Bells](/library/detail/?kind=module&slug=rotating-divider#demo-2)** | The Primes set (2, 3, 5, 7, 11, 13 and on) rings eight soft bell tones, each on its own division, so they only coincide rarely and the texture keeps shifting. Change Rotate to give each bell a different, slower or faster clock without touching the tuning. |
+| **[Rotating Div: Powers of Two Groove](/library/detail/?kind=module&slug=rotating-divider#demo-3)** | With the Powers of 2 set (1, 2, 4, 8, 16, 32...) every output lands on a regular beat, giving a tidy four-to-the-floor skeleton of kick, claps and hats. Raise Rotate by one and each part jumps to the next division for an instant half-time or double-time feel. |
+| **[Rotating Div: Fibonacci Staircase](/library/detail/?kind=module&slug=rotating-divider#demo-4)** | The Stair output reads all eight gates as one binary number, a jumpy staircase that repeats with the pattern, and a Quantizer snaps it to a scale so the Fibonacci set (1, 2, 3, 5, 8...) writes a melody. Change the Quantizer's Scale, or Rotate, for a different tune from the same clocks. |
+| **[Rotating Div: Extending Evens](/library/detail/?kind=module&slug=rotating-divider#demo-5)** | In Extend mode, Rotate does not wrap around the set but continues it, so with the Evens set each turn of the knob brings in longer divisions (2, 4, 6... then 18, 20 and beyond). A slow sawtooth LFO turns Rotate up through the bars, thinning the hats and claps out as it climbs. |
 <!-- /generated -->
 
 <!-- generated:presets -->

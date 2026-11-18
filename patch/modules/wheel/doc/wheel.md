@@ -31,15 +31,15 @@ control drives this module.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Wheel does. In the standalone app open **File → Presets…** (⌘P) and pick *Wheel* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Wheel does. In the standalone app open **File → Presets…** (⌘P) and pick *Wheel* under *Demos by module*; on the website they are in the [Wheel entry of the Bleep Library](/library/detail/?kind=module&slug=wheel#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Wheel: Pitch Bend** | A lead line plays while the Wheel sits at rest in the middle (zero) and feeds the sequencer's Transpose input at a small amount: push it up or down and the whole line bends by a couple of notes, then springs back when you let go. Turn Spring off to leave it where you put it. |
-| **Wheel: Fold Wheel** | Min is 0 and Spring is off, so this Wheel behaves like a mod wheel that stays where you leave it: it raises the wavefolder inside a dual oscillator, turning a plain tone into a bright, buzzing one. Drag it slowly across the tune and listen to the overtones appear. |
-| **Wheel: Crunch Ride** | The Wheel rides the Drive and bit depth of a Crunch effect on a whole beat and bass: at rest the groove is clean and warm, pushed up it breaks into grit. Min is 0 here, so the wheel only adds grit; set it to -1 and the lower half takes the drive below the starting point. |
-| **Wheel: Phaser Sweep** | A chord-like arpeggio passes through a slow phaser whose Centre frequency is steered by the Wheel instead of its LFO: roll it up and the notches climb, down and they sink. Raise the phaser's Feedback to make the sweep more vocal. |
-| **Wheel: Tape Bend** | The Wheel pushes the delay time of a tape-style echo while a pluck melody plays: nudge it and the echoes slide in pitch as the tape speeds up or slows down, then settle when the wheel springs home. Turn Smooth up for lazier moves. |
+| **[Wheel: Pitch Bend](/library/detail/?kind=module&slug=wheel#demo-1)** | A lead line plays while the Wheel sits at rest in the middle (zero) and feeds the sequencer's Transpose input at a small amount: push it up or down and the whole line bends by a couple of notes, then springs back when you let go. Turn Spring off to leave it where you put it. |
+| **[Wheel: Fold Wheel](/library/detail/?kind=module&slug=wheel#demo-2)** | Min is 0 and Spring is off, so this Wheel behaves like a mod wheel that stays where you leave it: it raises the wavefolder inside a dual oscillator, turning a plain tone into a bright, buzzing one. Drag it slowly across the tune and listen to the overtones appear. |
+| **[Wheel: Crunch Ride](/library/detail/?kind=module&slug=wheel#demo-3)** | The Wheel rides the Drive and bit depth of a Crunch effect on a whole beat and bass: at rest the groove is clean and warm, pushed up it breaks into grit. Min is 0 here, so the wheel only adds grit; set it to -1 and the lower half takes the drive below the starting point. |
+| **[Wheel: Phaser Sweep](/library/detail/?kind=module&slug=wheel#demo-4)** | A chord-like arpeggio passes through a slow phaser whose Centre frequency is steered by the Wheel instead of its LFO: roll it up and the notches climb, down and they sink. Raise the phaser's Feedback to make the sweep more vocal. |
+| **[Wheel: Tape Bend](/library/detail/?kind=module&slug=wheel#demo-5)** | The Wheel pushes the delay time of a tape-style echo while a pluck melody plays: nudge it and the echoes slide in pitch as the tape speeds up or slows down, then settle when the wheel springs home. Turn Smooth up for lazier moves. |
 <!-- /generated -->
 
 ## Reference

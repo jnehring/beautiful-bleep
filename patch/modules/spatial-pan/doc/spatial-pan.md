@@ -59,15 +59,15 @@ low-passed. *Room* sets their level.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Spatial Pan does. In the standalone app open **File → Presets…** (⌘P) and pick *Spatial Pan* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Spatial Pan does. In the standalone app open **File → Presets…** (⌘P) and pick *Spatial Pan* under *Demos by module*; on the website they are in the [Spatial Pan entry of the Bleep Library](/library/detail/?kind=module&slug=spatial-pan#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Spatial Pan: Orbiting Lead** | A plucked melody circles the listener once every five seconds. Wear headphones: the time and level differences, the duller back and the early reflections make the circle. Change Orbit for a faster or reversed spin or Distance to pull it in. |
-| **Spatial Pan: Drifting Kit** | A drum loop swings from side to side over four bars with a little room around it. Reduce the Room knob for a drier, closer kit or make Distance bigger for a kit heard from the back of the hall. |
-| **Spatial Pan: Fly-By** | A bright riff passes by: it comes from the far left, sweeps close to the middle and leaves to the far right, and its pitch bends the way a passing source does. Lower Doppler to hear the path without the pitch bend. |
-| **Spatial Pan: Overhead Rain** | Bell-like plucks high in the scale move up and down in elevation and wander in azimuth under two slow random LFOs, so notes seem to fall around and above the head. Reduce Elevation depth for a flatter field. |
-| **Spatial Pan: Two Places** | The drums sit behind and to the right, the melody in front and to the left, each with its own distance and room. Move Azimuth on either to rearrange the stage. |
+| **[Spatial Pan: Orbiting Lead](/library/detail/?kind=module&slug=spatial-pan#demo-1)** | A plucked melody circles the listener once every five seconds. Wear headphones: the time and level differences, the duller back and the early reflections make the circle. Change Orbit for a faster or reversed spin or Distance to pull it in. |
+| **[Spatial Pan: Drifting Kit](/library/detail/?kind=module&slug=spatial-pan#demo-2)** | A drum loop swings from side to side over four bars with a little room around it. Reduce the Room knob for a drier, closer kit or make Distance bigger for a kit heard from the back of the hall. |
+| **[Spatial Pan: Fly-By](/library/detail/?kind=module&slug=spatial-pan#demo-3)** | A bright riff passes by: it comes from the far left, sweeps close to the middle and leaves to the far right, and its pitch bends the way a passing source does. Lower Doppler to hear the path without the pitch bend. |
+| **[Spatial Pan: Overhead Rain](/library/detail/?kind=module&slug=spatial-pan#demo-4)** | Bell-like plucks high in the scale move up and down in elevation and wander in azimuth under two slow random LFOs, so notes seem to fall around and above the head. Reduce Elevation depth for a flatter field. |
+| **[Spatial Pan: Two Places](/library/detail/?kind=module&slug=spatial-pan#demo-5)** | The drums sit behind and to the right, the melody in front and to the left, each with its own distance and room. Move Azimuth on either to rearrange the stage. |
 <!-- /generated -->
 
 <!-- generated:presets -->

@@ -127,6 +127,24 @@ void dial() {
     r.set("value", 0.6f);
     r.run();
     EXPECT_NEAR(r.out("out"), 0.5, 1e-5);
+    // Curve: 50 % is linear, above bends exponentially (below the line), below logarithmically; the ends stay put.
+    r.set("steps", 0.0f);
+    r.set("value", 0.5f);
+    r.set("curve", 1.0f);
+    r.run();
+    EXPECT_NEAR(r.out("out"), std::expm1(3.0) / std::expm1(6.0), 1e-4);
+    r.set("curve", 0.0f);
+    r.run();
+    EXPECT_NEAR(r.out("out"), std::expm1(-3.0) / std::expm1(-6.0), 1e-4);
+    r.set("value", 1.0f);
+    r.run();
+    EXPECT_NEAR(r.out("out"), 1.0, 1e-5);
+    // Steps come first: the detents sit evenly on the knob, their outputs on the curve.
+    r.set("curve", 1.0f);
+    r.set("steps", 3.0f);
+    r.set("value", 0.6f);
+    r.run();
+    EXPECT_NEAR(r.out("out"), std::expm1(3.0) / std::expm1(6.0), 1e-4);
     // Smooth: no jump from the start value, a glide after a change.
     Rig s("dial");
     s.set("value", 1.0f);

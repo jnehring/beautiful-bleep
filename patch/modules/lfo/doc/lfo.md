@@ -102,15 +102,15 @@ The preset bar of the LFO view has 20 factory presets. Pick one to set the knobs
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what LFO does. In the standalone app open **File → Presets…** (⌘P) and pick *LFO* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what LFO does. In the standalone app open **File → Presets…** (⌘P) and pick *LFO* under *Demos by module*; on the website they are in the [LFO entry of the Bleep Library](/library/detail/?kind=module&slug=lfo#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **LFO: Vibrato and Tremolo** | One slow LFO gently bends the pitch of a held lead and a second one swells its volume; Fade lets the vibrato arrive only after the note has settled. Raise the vibrato Rate or the cable amounts, or move Fade to zero. |
-| **LFO: Synced Wobble** | A triangle LFO locked to eighth notes sweeps the low-pass filter of a bass line, a classic wobble that stays in time with the drums. Change Rate for a slower or faster wobble, switch Wave from Triangle to Square, or raise Resonance. |
-| **LFO: Random Steps** | The LFO's Random Step wave picks a new level every sixteenth and sends it to the filter, so a repeating line is coloured differently on each step, always the same way. Switch Wave to Random Smooth for a gliding version. |
-| **LFO: Auto Pan** | Two LFOs, half a cycle apart through Phase, raise and lower the left and right volume of a pad in opposite directions, so it travels across the stereo field. Change Rate, or set both Phase values the same to hear it collapse to a plain tremolo. |
-| **LFO: Gate Chopper** | A square LFO locked to sixteenths chops a held pad into a rhythmic gate, and its rising edge also triggers the hi-hat on every pulse. Move Width to make the chops shorter or longer, or change Rate for another pattern. |
+| **[LFO: Vibrato and Tremolo](/library/detail/?kind=module&slug=lfo#demo-1)** | One slow LFO gently bends the pitch of a held lead and a second one swells its volume; Fade lets the vibrato arrive only after the note has settled. Raise the vibrato Rate or the cable amounts, or move Fade to zero. |
+| **[LFO: Synced Wobble](/library/detail/?kind=module&slug=lfo#demo-2)** | A triangle LFO locked to eighth notes sweeps the low-pass filter of a bass line, a classic wobble that stays in time with the drums. Change Rate for a slower or faster wobble, switch Wave from Triangle to Square, or raise Resonance. |
+| **[LFO: Random Steps](/library/detail/?kind=module&slug=lfo#demo-3)** | The LFO's Random Step wave picks a new level every sixteenth and sends it to the filter, so a repeating line is coloured differently on each step, always the same way. Switch Wave to Random Smooth for a gliding version. |
+| **[LFO: Auto Pan](/library/detail/?kind=module&slug=lfo#demo-4)** | Two LFOs, half a cycle apart through Phase, raise and lower the left and right volume of a pad in opposite directions, so it travels across the stereo field. Change Rate, or set both Phase values the same to hear it collapse to a plain tremolo. |
+| **[LFO: Gate Chopper](/library/detail/?kind=module&slug=lfo#demo-5)** | A square LFO locked to sixteenths chops a held pad into a rhythmic gate, and its rising edge also triggers the hi-hat on every pulse. Move Width to make the chops shorter or longer, or change Rate for another pattern. |
 <!-- /generated -->
 
 ## Reference

@@ -94,15 +94,15 @@ few seconds while writing).
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Chart Recorder does. In the standalone app open **File → Presets…** (⌘P) and pick *Chart Recorder* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Chart Recorder does. In the standalone app open **File → Presets…** (⌘P) and pick *Chart Recorder* under *Demos by module*; on the website they are in the [Chart Recorder entry of the Bleep Library](/library/detail/?kind=module&slug=chart-recorder#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Chart Recorder: Backwards Filter** | A random wander is drawn onto four bars of paper, and the strip is read backwards to sweep a filter over a bass line, so the sweeps are a reversed memory of the pen's line. Set Replay Speed to 1 for the forward path, or draw on the paper yourself. |
-| **Chart Recorder: Half-Speed Memory** | Pen and replay run on free paper: the line a random source draws is read back at half speed, so a second voice bends its pitch along a slower, stretched copy of what the first one is doing. Try Replay Speed 2 or Paper Speed to change how the two relate. |
-| **Chart Recorder: Heavy Pen** | A square wave goes in, but the sprung pen overshoots and wobbles round every edge, and that ringing line opens and closes a filter on a bass line. Raise Damping to calm the pen, or Friction to make it stick in steps. |
-| **Chart Recorder: Level Recorder** | The pen records the loudness of a drum loop, as a level recorder would, and the strip replays at double speed to open a filter on a pad twice as often as the drums hit. Change Detector to Peak or Log dB, or put the Replay Speed back to 1. |
-| **Chart Recorder: Marked Hits** | Every half bar the LFO puts a mark on the paper, and the replay head, shifted by Offset, fires a snare each time it passes a mark: a rhythm that runs slightly out of step with the beat. Change Offset to slide the hits, or Replay Speed for another pattern. |
+| **[Chart Recorder: Backwards Filter](/library/detail/?kind=module&slug=chart-recorder#demo-1)** | A random wander is drawn onto four bars of paper, and the strip is read backwards to sweep a filter over a bass line, so the sweeps are a reversed memory of the pen's line. Set Replay Speed to 1 for the forward path, or draw on the paper yourself. |
+| **[Chart Recorder: Half-Speed Memory](/library/detail/?kind=module&slug=chart-recorder#demo-2)** | Pen and replay run on free paper: the line a random source draws is read back at half speed, so a second voice bends its pitch along a slower, stretched copy of what the first one is doing. Try Replay Speed 2 or Paper Speed to change how the two relate. |
+| **[Chart Recorder: Heavy Pen](/library/detail/?kind=module&slug=chart-recorder#demo-3)** | A square wave goes in, but the sprung pen overshoots and wobbles round every edge, and that ringing line opens and closes a filter on a bass line. Raise Damping to calm the pen, or Friction to make it stick in steps. |
+| **[Chart Recorder: Level Recorder](/library/detail/?kind=module&slug=chart-recorder#demo-4)** | The pen records the loudness of a drum loop, as a level recorder would, and the strip replays at double speed to open a filter on a pad twice as often as the drums hit. Change Detector to Peak or Log dB, or put the Replay Speed back to 1. |
+| **[Chart Recorder: Marked Hits](/library/detail/?kind=module&slug=chart-recorder#demo-5)** | Every half bar the LFO puts a mark on the paper, and the replay head, shifted by Offset, fires a snare each time it passes a mark: a rhythm that runs slightly out of step with the beat. Change Offset to slide the hits, or Replay Speed for another pattern. |
 <!-- /generated -->
 
 ## Reference

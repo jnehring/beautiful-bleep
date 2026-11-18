@@ -208,7 +208,11 @@
       // Controllers: what the view played (perform), not the animation.
       if (n.type === "dial") {
         const at = (id) => { const p = ty.params.find((x) => x.id === id); return p.min + (n.params[id] ?? p.default) * (p.max - p.min); };
-        outputs.out = at("min") + (at("max") - at("min")) * (n.params.value ?? 0.5);
+        const steps = Math.round(at("steps")), k = (at("curve") - 0.5) * 12;  // DialDsp.h: steps, then the curve
+        let v = Math.min(1, Math.max(0, n.params.value ?? 0.5));
+        if (steps >= 2) v = Math.round(v * (steps - 1)) / (steps - 1);
+        if (Math.abs(k) >= 1e-3) v = Math.expm1(k * v) / Math.expm1(k);
+        outputs.out = at("min") + (at("max") - at("min")) * v;
       }
       if (n.type === "button") {
         const b = played[n.id] || {}, on = !!(n.data && n.data.on);

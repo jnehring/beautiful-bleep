@@ -114,15 +114,15 @@ even when Smooth delays the curve.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Tidal does. In the standalone app open **File → Presets…** (⌘P) and pick *Tidal* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Tidal does. In the standalone app open **File → Presets…** (⌘P) and pick *Tidal* under *Demos by module*; on the website they are in the [Tidal entry of the Bleep Library](/library/detail/?kind=module&slug=tidal#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Tidal: Slow Tide** | On the Slow range the Tidal loops over many seconds and its four outputs trail one another through Phase: the filter opens, the resonance swells and the tone shape drifts, in turn. Move Skew to make the tide rise slowly and fall fast, or switch Relation to Ratio. |
-| **Tidal: Audio-Rate Voice** | With Range on Audio and the sequencer's pitch patched in, the Tidal becomes an oscillator: A is the main tone while B, C and D add related shapes. Skew, Curve and Smooth change the waveform, Spread changes how the other outputs differ. |
-| **Tidal: Synced Groove** | Sync locks the looping Tidal to the beat, so its slopes pulse a bass line in time: A makes the volume duck and bounce, B opens the filter on the off-beats. Change Sync or Skew to move the bounce, or Polarity to flip it. |
-| **Tidal: Triggered Decays** | In AD mode each sequencer gate fires one quick rise-and-fall: A shapes the volume of a bright pluck, while B, with Spread, opens the filter for a vowel-like wah on every note. Increase Frequency to shorten the whole shape or Skew to move its peak. |
-| **Tidal: Swell and Splash** | In AR mode a held gate makes the Tidal rise, and when it finishes falling its End output fires a snare: a pad swells in, fades, and the drum answers. Change Frequency to stretch the swell, or Skew to move where it peaks. |
+| **[Tidal: Slow Tide](/library/detail/?kind=module&slug=tidal#demo-1)** | On the Slow range the Tidal loops over many seconds and its four outputs trail one another through Phase: the filter opens, the resonance swells and the tone shape drifts, in turn. Move Skew to make the tide rise slowly and fall fast, or switch Relation to Ratio. |
+| **[Tidal: Audio-Rate Voice](/library/detail/?kind=module&slug=tidal#demo-2)** | With Range on Audio and the sequencer's pitch patched in, the Tidal becomes an oscillator: A is the main tone while B, C and D add related shapes. Skew, Curve and Smooth change the waveform, Spread changes how the other outputs differ. |
+| **[Tidal: Synced Groove](/library/detail/?kind=module&slug=tidal#demo-3)** | Sync locks the looping Tidal to the beat, so its slopes pulse a bass line in time: A makes the volume duck and bounce, B opens the filter on the off-beats. Change Sync or Skew to move the bounce, or Polarity to flip it. |
+| **[Tidal: Triggered Decays](/library/detail/?kind=module&slug=tidal#demo-4)** | In AD mode each sequencer gate fires one quick rise-and-fall: A shapes the volume of a bright pluck, while B, with Spread, opens the filter for a vowel-like wah on every note. Increase Frequency to shorten the whole shape or Skew to move its peak. |
+| **[Tidal: Swell and Splash](/library/detail/?kind=module&slug=tidal#demo-5)** | In AR mode a held gate makes the Tidal rise, and when it finishes falling its End output fires a snare: a pad swells in, fades, and the drum answers. Change Frequency to stretch the swell, or Skew to move where it peaks. |
 <!-- /generated -->
 
 <!-- generated:presets -->

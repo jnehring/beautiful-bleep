@@ -83,15 +83,15 @@ restarts. A pattern's row count (16–64) sets how long it lasts.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Lines does. In the standalone app open **File → Presets…** (⌘P) and pick *Lines* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Lines does. In the standalone app open **File → Presets…** (⌘P) and pick *Lines* under *Demos by module*; on the website they are in the [Lines entry of the Bleep Library](/library/detail/?kind=module&slug=lines#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Lines: Drifting Four** | Four lines of 16, 5, 7 and 9 rows start together and slide against each other, so the bass, a lead, an arp and a stab only meet again after 5040 rows. The drift panel in the view shows each track's place. Change a track's Length or Speed to move the meeting point. |
-| **Lines: Ratchet and Slide** | A bass line that uses the effect column: slide cells tie notes together with a glide and retrigger cells split a row into quick repeats. A second track answers with probability cells, so it never plays quite the same bar. Edit the Fx column in the view. |
-| **Lines: Odd Speeds** | The same twelve-row length on four tracks, but at speeds of one, two thirds, three halves and three quarters: the tracks stay in a simple ratio and phase slowly against each other, like gears. Change one Speed and the whole weave shifts. |
-| **Lines: Order of Three** | Three patterns of 16, 16 and 32 rows run in an order list: a verse, a verse with a new bass note, and a long answer. Tracks restart with each pattern here (Tracks: Per pattern), so every section begins together; switch it to Free-run and the drift carries on. |
-| **Lines: Chords from Three Tracks** | Tracks 1 to 3 each hold one voice of a chord at different lengths and speeds, and all three Notes outputs play one polyphonic Voice Cell: the harmony shifts as the three tracks drift. Track 4 adds a quiet high bell. Try the Quantize setting with another Scale. |
+| **[Lines: Drifting Four](/library/detail/?kind=module&slug=lines#demo-1)** | Four lines of 16, 5, 7 and 9 rows start together and slide against each other, so the bass, a lead, an arp and a stab only meet again after 5040 rows. The drift panel in the view shows each track's place. Change a track's Length or Speed to move the meeting point. |
+| **[Lines: Ratchet and Slide](/library/detail/?kind=module&slug=lines#demo-2)** | A bass line that uses the effect column: slide cells tie notes together with a glide and retrigger cells split a row into quick repeats. A second track answers with probability cells, so it never plays quite the same bar. Edit the Fx column in the view. |
+| **[Lines: Odd Speeds](/library/detail/?kind=module&slug=lines#demo-3)** | The same twelve-row length on four tracks, but at speeds of one, two thirds, three halves and three quarters: the tracks stay in a simple ratio and phase slowly against each other, like gears. Change one Speed and the whole weave shifts. |
+| **[Lines: Order of Three](/library/detail/?kind=module&slug=lines#demo-4)** | Three patterns of 16, 16 and 32 rows run in an order list: a verse, a verse with a new bass note, and a long answer. Tracks restart with each pattern here (Tracks: Per pattern), so every section begins together; switch it to Free-run and the drift carries on. |
+| **[Lines: Chords from Three Tracks](/library/detail/?kind=module&slug=lines#demo-5)** | Tracks 1 to 3 each hold one voice of a chord at different lengths and speeds, and all three Notes outputs play one polyphonic Voice Cell: the harmony shifts as the three tracks drift. Track 4 adds a quiet high bell. Try the Quantize setting with another Scale. |
 <!-- /generated -->
 
 <!-- generated:presets -->

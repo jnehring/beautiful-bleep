@@ -131,8 +131,9 @@ class PortNode {
       const r = this.connectedIn[1] ? v.inputs.subarray(CHUNK, 2 * CHUNK) : l;
       // Audio Out's Volume knob (dB, skewed like a mixer fader; the bottom is silence), smoothed against clicks.
       const vol = this.spec.params.findIndex((q) => q.id === "volume");
+      const mute = this.spec.params.findIndex((q) => q.id === "mute");
       for (let s = 0; s < n; ++s) {
-        const g = vol >= 0 ? this.#smooth(this.#gain(vol, v.params[vol * CHUNK + s])) : 1;
+        const g = vol >= 0 ? this.#smooth(this.#muted(mute, s) ? 0 : this.#gain(vol, v.params[vol * CHUNK + s])) : 1;
         this.engine.outL[this.engine.outPos + s] += l[s] * g;
         this.engine.outR[this.engine.outPos + s] += r[s] * g;
       }
@@ -148,9 +149,10 @@ class PortNode {
     const o = this.views.outputs, e = this.engine;
     const k = (id) => this.spec.outputs.findIndex((q) => q.id === id);
     const gain = this.spec.params.findIndex((q) => q.id === "gain");
+    const mute = this.spec.params.findIndex((q) => q.id === "mute");
     const l = k("l"), r = k("r");
     for (let s = 0; s < n; ++s) {
-      const g = gain >= 0 ? this.#smooth(this.#gain(gain, this.views.params[gain * CHUNK + s])) : 1;
+      const g = gain >= 0 ? this.#smooth(this.#muted(mute, s) ? 0 : this.#gain(gain, this.views.params[gain * CHUNK + s])) : 1;
       if (l >= 0) o[l * CHUNK + s] = e.inL[s] * g;
       if (r >= 0) o[r * CHUNK + s] = e.inR[s] * g;
     }
@@ -164,6 +166,9 @@ class PortNode {
     if (Math.abs(db) < 0.005) db = 0;  // the default passes the signal unchanged
     return db <= -60 + 1e-3 ? 0 : Math.pow(10, db / 20);
   }
+
+  /// The Mute toggle (Audio In, Audio Out) at sample s: on fades the level to silence.
+  #muted(i, s) { return i >= 0 && this.views.params[i * CHUNK + s] >= 0.5; }
 
   #smooth(target) {
     this.level = this.level === undefined ? target : this.level + (target - this.level) * 0.002;

@@ -66,15 +66,15 @@ warning and publishes nothing.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Harmony Master does. In the standalone app open **File → Presets…** (⌘P) and pick *Harmony Master* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Harmony Master does. In the standalone app open **File → Presets…** (⌘P) and pick *Harmony Master* under *Demos by module*; on the website they are in the [Harmony Master entry of the Bleep Library](/library/detail/?kind=module&slug=harmony-master#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Harmony Master: Minor Journey** | A minor progression (i, VI, III, VII) runs with the transport; its Tone outputs hold a warm pad, Bass walks underneath and a sequenced lead on the bus rewrites itself to stay inside each chord's scale. Change Key or Scale and the whole board follows. |
-| **Harmony Master: Stepping by Trigger** | With Advance set to Trigger, the progression moves one chord every time a trigger arrives; here an off-beat sequencer rhythm does the stepping and each change plucks the chord. Edit the trigger rhythm and the chords change when you decide. |
-| **Harmony Master: Key Change Up** | A slow two-step sequence feeds the Transpose input, so after four bars the whole progression, bass and follower lead move up two semitones together. Change the transposing sequence to climb through more keys. |
-| **Harmony Master: Modern Colours** | Four chosen chords written as fixed roots and rich qualities: minor 11, dominant 13, major 7 sharp 11 and dominant 7 sharp 9. The Tone outputs get the whole stack. Click a slot in the view to try another quality. |
-| **Harmony Master: Phrygian Dominant Drone** | Manual source: one held fifth in E Phrygian Dominant, with a follower line that wanders by Variation but never leaves the scale. Change Degree or the scale to colour the drone, or Quality to a richer chord. |
+| **[Harmony Master: Minor Journey](/library/detail/?kind=module&slug=harmony-master#demo-1)** | A minor progression (i, VI, III, VII) runs with the transport; its Tone outputs hold a warm pad, Bass walks underneath and a sequenced lead on the bus rewrites itself to stay inside each chord's scale. Change Key or Scale and the whole board follows. |
+| **[Harmony Master: Stepping by Trigger](/library/detail/?kind=module&slug=harmony-master#demo-2)** | With Advance set to Trigger, the progression moves one chord every time a trigger arrives; here an off-beat sequencer rhythm does the stepping and each change plucks the chord. Edit the trigger rhythm and the chords change when you decide. |
+| **[Harmony Master: Key Change Up](/library/detail/?kind=module&slug=harmony-master#demo-3)** | A slow two-step sequence feeds the Transpose input, so after four bars the whole progression, bass and follower lead move up two semitones together. Change the transposing sequence to climb through more keys. |
+| **[Harmony Master: Modern Colours](/library/detail/?kind=module&slug=harmony-master#demo-4)** | Four chosen chords written as fixed roots and rich qualities: minor 11, dominant 13, major 7 sharp 11 and dominant 7 sharp 9. The Tone outputs get the whole stack. Click a slot in the view to try another quality. |
+| **[Harmony Master: Phrygian Dominant Drone](/library/detail/?kind=module&slug=harmony-master#demo-5)** | Manual source: one held fifth in E Phrygian Dominant, with a follower line that wanders by Variation but never leaves the scale. Change Degree or the scale to colour the drone, or Quality to a richer chord. |
 <!-- /generated -->
 
 <!-- generated:presets -->

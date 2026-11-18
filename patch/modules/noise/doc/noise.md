@@ -70,15 +70,15 @@ The preset bar of the Noise view has 12 factory presets. Pick one to set the kno
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Noise does. In the standalone app open **File → Presets…** (⌘P) and pick *Noise* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Noise does. In the standalone app open **File → Presets…** (⌘P) and pick *Noise* under *Demos by module*; on the website they are in the [Noise entry of the Bleep Library](/library/detail/?kind=module&slug=noise#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Noise: Blue Hat Patterns** | Blue noise, cut short by an envelope and high-passed, is played as hi-hats from a drum grid pattern over a soft kick. Slide Colour toward white for a duller tick, or toward blue for a thinner, brighter sizzle. |
-| **Noise: Ocean Surf** | Brown noise swells and recedes as two slow LFOs open a low-pass filter and the level together, like waves washing in. Raise Colour for foam and hiss, or speed up the LFO for a stormier sea. |
-| **Noise: Wind Whistle Melody** | White noise through a very resonant band-pass filter that follows the sequencer's pitch: a breathy, whistling tune with no oscillator at all. Lower Resonance for a wind that only hints at pitch. |
-| **Noise: Colour Riser** | Every four bars a ramp sweeps Colour from dark brown to bright violet while a filter opens, building tension over a steady beat before it drops back. Change the LFO's Sync to lengthen or shorten the build. |
-| **Noise: Four Colours** | The white, pink, brown and blue outputs go to four mixer channels whose pans drift on slow LFOs, then through a gently resonant filter into a hall. Mute channels on the mixer to hear each colour alone. |
+| **[Noise: Blue Hat Patterns](/library/detail/?kind=module&slug=noise#demo-1)** | Blue noise, cut short by an envelope and high-passed, is played as hi-hats from a drum grid pattern over a soft kick. Slide Colour toward white for a duller tick, or toward blue for a thinner, brighter sizzle. |
+| **[Noise: Ocean Surf](/library/detail/?kind=module&slug=noise#demo-2)** | Brown noise swells and recedes as two slow LFOs open a low-pass filter and the level together, like waves washing in. Raise Colour for foam and hiss, or speed up the LFO for a stormier sea. |
+| **[Noise: Wind Whistle Melody](/library/detail/?kind=module&slug=noise#demo-3)** | White noise through a very resonant band-pass filter that follows the sequencer's pitch: a breathy, whistling tune with no oscillator at all. Lower Resonance for a wind that only hints at pitch. |
+| **[Noise: Colour Riser](/library/detail/?kind=module&slug=noise#demo-4)** | Every four bars a ramp sweeps Colour from dark brown to bright violet while a filter opens, building tension over a steady beat before it drops back. Change the LFO's Sync to lengthen or shorten the build. |
+| **[Noise: Four Colours](/library/detail/?kind=module&slug=noise#demo-5)** | The white, pink, brown and blue outputs go to four mixer channels whose pans drift on slow LFOs, then through a gently resonant filter into a hall. Mute channels on the mixer to hear each colour alone. |
 <!-- /generated -->
 
 ## Reference

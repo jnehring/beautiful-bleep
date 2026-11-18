@@ -98,15 +98,15 @@ light up with the scale, following the Harmony Master.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Roll does. In the standalone app open **File → Presets…** (⌘P) and pick *Roll* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Roll does. In the standalone app open **File → Presets…** (⌘P) and pick *Roll* under *Demos by module*; on the website they are in the [Roll entry of the Bleep Library](/library/detail/?kind=module&slug=roll#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Roll: Chord Stack** | Four overlapping chords drawn on a four-bar roll play a Voice Cell as a pad, while the Low Pitch and Low Gate outputs pick out the lowest note of each chord for a bass. Open the roll and drag a note to change a chord. |
-| **Roll: Morph Drift** | Slot 1 is a steady eighth-note arp, slot 2 an offbeat line with a few extra notes. A slow LFO turns Morph so the arp bends note by note into the other pattern and back; the spare notes fade in and out. Set Morph by hand to freeze a blend. |
-| **Roll: Ratchet and Chance** | Every note of this two-bar line has its own ratchet count and chance, so some notes split into quick repeats and others play only now and then. Seed changes which ones sound; Humanise adds a loose feel. |
-| **Roll: Low and High** | One pattern with a bass line, a lead above it and a long held note between: the Low outputs play a bass voice and the High outputs a lead, while Notes plays a soft pad with all of it. Move a note across and it changes hands. |
-| **Roll: Slow Eight Bars** | Long overlapping notes make an eight-bar drone chord progression, and a few quiet notes with ratchets and a chance of sounding sparkle on top. Everything starts a little apart thanks to Humanise. Draw a note to add your own. |
+| **[Roll: Chord Stack](/library/detail/?kind=module&slug=roll#demo-1)** | Four overlapping chords drawn on a four-bar roll play a Voice Cell as a pad, while the Low Pitch and Low Gate outputs pick out the lowest note of each chord for a bass. Open the roll and drag a note to change a chord. |
+| **[Roll: Morph Drift](/library/detail/?kind=module&slug=roll#demo-2)** | Slot 1 is a steady eighth-note arp, slot 2 an offbeat line with a few extra notes. A slow LFO turns Morph so the arp bends note by note into the other pattern and back; the spare notes fade in and out. Set Morph by hand to freeze a blend. |
+| **[Roll: Ratchet and Chance](/library/detail/?kind=module&slug=roll#demo-3)** | Every note of this two-bar line has its own ratchet count and chance, so some notes split into quick repeats and others play only now and then. Seed changes which ones sound; Humanise adds a loose feel. |
+| **[Roll: Low and High](/library/detail/?kind=module&slug=roll#demo-4)** | One pattern with a bass line, a lead above it and a long held note between: the Low outputs play a bass voice and the High outputs a lead, while Notes plays a soft pad with all of it. Move a note across and it changes hands. |
+| **[Roll: Slow Eight Bars](/library/detail/?kind=module&slug=roll#demo-5)** | Long overlapping notes make an eight-bar drone chord progression, and a few quiet notes with ratchets and a chance of sounding sparkle on top. Everything starts a little apart thanks to Humanise. Draw a note to add your own. |
 <!-- /generated -->
 
 <!-- generated:presets -->

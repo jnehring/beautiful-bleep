@@ -55,15 +55,15 @@ An unpatched input counts as silence (0).
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Select does. In the standalone app open **File → Presets…** (⌘P) and pick *Select* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Select does. In the standalone app open **File → Presets…** (⌘P) and pick *Select* under *Demos by module*; on the website they are in the [Select entry of the Bleep Library](/library/detail/?kind=module&slug=select#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Select: Three Scales in Turn** | One wandering random value goes into three Quantizers set to different scales; the Select hands the melody to the next scale every bar with a short crossfade. Set Order to Random, or turn the Select knob by hand. |
-| **Select: A Slow LFO Sweeps the Sources** | Four oscillators play the same riff and a slow triangle LFO on the Select knob sweeps through them, so the sound changes shape by itself. The Fade of 80 ms blends neighbours; set it to 0 for hard cuts or 600 ms for a smooth morph. |
-| **Select: A/B Melodies on a Gate** | Two different sequences feed a two-input Select, and a square LFO used as a gate on the Select knob flips between them every two bars: low plays the first melody, high the second. With only two inputs, any gate is an A/B switch. |
-| **Select: Slot Triggers Pick the Drum** | Slot Triggers is set to 3: a trigger on Trig 1, 2 or 3 jumps straight to that input. Two lanes of the Drum Grid pick between kick, snare and clap, so the one voice the Select lets through changes with the groove. Remove a cable to hear just one drum. |
-| **Select: Rotating with the Song** | With nothing patched into Next, the Select follows the song at its Rate: one new drone every two bars, in Ping-Pong order, with a one-second crossfade. Lengthen Fade for a slow morph, or choose Random and another Seed. |
+| **[Select: Three Scales in Turn](/library/detail/?kind=module&slug=select#demo-1)** | One wandering random value goes into three Quantizers set to different scales; the Select hands the melody to the next scale every bar with a short crossfade. Set Order to Random, or turn the Select knob by hand. |
+| **[Select: A Slow LFO Sweeps the Sources](/library/detail/?kind=module&slug=select#demo-2)** | Four oscillators play the same riff and a slow triangle LFO on the Select knob sweeps through them, so the sound changes shape by itself. The Fade of 80 ms blends neighbours; set it to 0 for hard cuts or 600 ms for a smooth morph. |
+| **[Select: A/B Melodies on a Gate](/library/detail/?kind=module&slug=select#demo-3)** | Two different sequences feed a two-input Select, and a square LFO used as a gate on the Select knob flips between them every two bars: low plays the first melody, high the second. With only two inputs, any gate is an A/B switch. |
+| **[Select: Slot Triggers Pick the Drum](/library/detail/?kind=module&slug=select#demo-4)** | Slot Triggers is set to 3: a trigger on Trig 1, 2 or 3 jumps straight to that input. Two lanes of the Drum Grid pick between kick, snare and clap, so the one voice the Select lets through changes with the groove. Remove a cable to hear just one drum. |
+| **[Select: Rotating with the Song](/library/detail/?kind=module&slug=select#demo-5)** | With nothing patched into Next, the Select follows the song at its Rate: one new drone every two bars, in Ping-Pong order, with a one-second crossfade. Lengthen Fade for a slow morph, or choose Random and another Seed. |
 <!-- /generated -->
 
 ## Reference

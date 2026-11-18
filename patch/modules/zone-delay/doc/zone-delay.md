@@ -92,15 +92,15 @@ start from silence and repeat exactly; Wobble restarts from *Seed* either way.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Zone Delay does. In the standalone app open **File → Presets…** (⌘P) and pick *Zone Delay* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Zone Delay does. In the standalone app open **File → Presets…** (⌘P) and pick *Zone Delay* under *Demos by module*; on the website they are in the [Zone Delay entry of the Bleep Library](/library/detail/?kind=module&slug=zone-delay#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Zone Delay: Tuned Combs** | Zone 1 turns the delay into a tuned comb: a drum loop is pushed through it while a sequencer plays its Pitch input, so the beat rings out a melody. Change Feedback for a longer ring, or Zone to leave the comb behind. |
-| **Zone Delay: Tape Echo** | Zone 3 in Tape mode with a little Wobble: a plucked line is followed by warm, drifting echoes that darken as they repeat. Raise Wobble and Character for a worn tape, or move Time while it plays to hear the pitch slide. |
-| **Zone Delay: Loop Catcher** | In the longest zone a square LFO raises Hold every other bar group, so the delay stops listening and loops what it just heard while the live melody plays over it. Change the LFO's Sync, or fire Hold from a Button. |
-| **Zone Delay: Reverse Bounce** | Two square LFOs gate Reverse and Ping-Pong on their own cycles, so the echoes of an arpeggio flip backwards and hop between the speakers in changing combinations. Edit either LFO, or turn Diffuse up to blur the reversals. |
-| **Zone Delay: Smeared Pad** | Zone 2 with Diffuse and Character turned up blurs a slow chord progression into a soft, slowly shifting wash. Lower Diffuse to bring back distinct echoes, or change Offset to push the left and right times apart. |
+| **[Zone Delay: Tuned Combs](/library/detail/?kind=module&slug=zone-delay#demo-1)** | Zone 1 turns the delay into a tuned comb: a drum loop is pushed through it while a sequencer plays its Pitch input, so the beat rings out a melody. Change Feedback for a longer ring, or Zone to leave the comb behind. |
+| **[Zone Delay: Tape Echo](/library/detail/?kind=module&slug=zone-delay#demo-2)** | Zone 3 in Tape mode with a little Wobble: a plucked line is followed by warm, drifting echoes that darken as they repeat. Raise Wobble and Character for a worn tape, or move Time while it plays to hear the pitch slide. |
+| **[Zone Delay: Loop Catcher](/library/detail/?kind=module&slug=zone-delay#demo-3)** | In the longest zone a square LFO raises Hold every other bar group, so the delay stops listening and loops what it just heard while the live melody plays over it. Change the LFO's Sync, or fire Hold from a Button. |
+| **[Zone Delay: Reverse Bounce](/library/detail/?kind=module&slug=zone-delay#demo-4)** | Two square LFOs gate Reverse and Ping-Pong on their own cycles, so the echoes of an arpeggio flip backwards and hop between the speakers in changing combinations. Edit either LFO, or turn Diffuse up to blur the reversals. |
+| **[Zone Delay: Smeared Pad](/library/detail/?kind=module&slug=zone-delay#demo-5)** | Zone 2 with Diffuse and Character turned up blurs a slow chord progression into a soft, slowly shifting wash. Lower Diffuse to bring back distinct echoes, or change Offset to push the left and right times apart. |
 <!-- /generated -->
 
 <!-- generated:presets -->

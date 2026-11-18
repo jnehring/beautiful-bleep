@@ -46,15 +46,15 @@ sounds at a time.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what CV to Notes does. In the standalone app open **File → Presets…** (⌘P) and pick *CV to Notes* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what CV to Notes does. In the standalone app open **File → Presets…** (⌘P) and pick *CV to Notes* under *Demos by module*; on the website they are in the [CV to Notes entry of the Bleep Library](/library/detail/?kind=module&slug=cv-to-notes#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **CV to Notes: Octave Runs** | A slow sequencer line becomes notes through CV to Notes, and the Arpeggiator turns each one into a three-octave run. Change the Arpeggiator's pattern, or raise Velocity on CV to Notes to hit the voice harder. |
-| **CV to Notes: Gates Become Drums** | Plain gates from a Drum Grid carry no pitch, so CV to Notes sends its fixed Note: 36 is the kick and 38 the snare to a Drum Notes module that turns General MIDI notes back into hits. Change a Note setting to 42 and the snare becomes a hat. |
-| **CV to Notes: Self-Playing Triangle** | A slow LFO sweeps a Quantizer, whose pitch and gate pass through CV to Notes and out as notes to a Notes to CV voice: nothing sequenced, yet a melody. Change the LFO rate for faster runs, or the Quantizer's scale for another colour. |
-| **CV to Notes: Harmony Listens** | A bass line from a sequencer is sent as notes by CV to Notes into a Harmony Master, which follows the line and holds a chord around it; four oscillators play its chord tones above. Change the Harmony Master's Quality to dress the same line differently. |
-| **CV to Notes: Soft and Hard Touch** | The notes leave CV to Notes with a fixed Velocity, and Notes to CV passes it on to open the filter: a low Velocity gives a mellow pluck, a high one a bright bite. Move the Velocity knob while the line plays. |
+| **[CV to Notes: Octave Runs](/library/detail/?kind=module&slug=cv-to-notes#demo-1)** | A slow sequencer line becomes notes through CV to Notes, and the Arpeggiator turns each one into a three-octave run. Change the Arpeggiator's pattern, or raise Velocity on CV to Notes to hit the voice harder. |
+| **[CV to Notes: Gates Become Drums](/library/detail/?kind=module&slug=cv-to-notes#demo-2)** | Plain gates from a Drum Grid carry no pitch, so CV to Notes sends its fixed Note: 36 is the kick and 38 the snare to a Drum Notes module that turns General MIDI notes back into hits. Change a Note setting to 42 and the snare becomes a hat. |
+| **[CV to Notes: Self-Playing Triangle](/library/detail/?kind=module&slug=cv-to-notes#demo-3)** | A slow LFO sweeps a Quantizer, whose pitch and gate pass through CV to Notes and out as notes to a Notes to CV voice: nothing sequenced, yet a melody. Change the LFO rate for faster runs, or the Quantizer's scale for another colour. |
+| **[CV to Notes: Harmony Listens](/library/detail/?kind=module&slug=cv-to-notes#demo-4)** | A bass line from a sequencer is sent as notes by CV to Notes into a Harmony Master, which follows the line and holds a chord around it; four oscillators play its chord tones above. Change the Harmony Master's Quality to dress the same line differently. |
+| **[CV to Notes: Soft and Hard Touch](/library/detail/?kind=module&slug=cv-to-notes#demo-5)** | The notes leave CV to Notes with a fixed Velocity, and Notes to CV passes it on to open the filter: a low Velocity gives a mellow pluck, a high one a bright bite. Move the Velocity knob while the line plays. |
 <!-- /generated -->
 
 ## Reference

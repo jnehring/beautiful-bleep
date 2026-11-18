@@ -64,15 +64,15 @@ the song's tempo.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Clock Mult does. In the standalone app open **File → Presets…** (⌘P) and pick *Clock Mult* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Clock Mult does. In the standalone app open **File → Presets…** (⌘P) and pick *Clock Mult* under *Demos by module*; on the website they are in the [Clock Mult entry of the Bleep Library](/library/detail/?kind=module&slug=clock-multiplier#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Clock Mult: Drifting Percussion** | One quarter-note clock becomes a kick on the beat, hats at four per beat, a rim at 3/2 and a cowbell at 5/4: the last two drift against the kick and meet it again every few beats. Change a Ratio knob and the layer re-tunes. |
-| **Clock Mult: Swung Hats** | Swing on a Clock Mult output moves only the in-between ticks: the kick and the snare sit on the beat while the sixteenth hats lean late. Turn Swing up for a harder shuffle, Humanize for a looser hand, or raise Skip 3 for fewer ghost hats. |
-| **Clock Mult: Clock for a Line** | A Step Sequencer has no clock of its own: it takes Out 1 of Clock Mult at four ticks per beat with a late swing, and the bass takes Out 2 at one per beat. Change Ratio 1 to 3 or 3/2 for a different gait; the line follows the multiplier. |
-| **Clock Mult: Fractional Bells** | Four bell tones ring at 2/3, 3/4, 5/4 and 7/4 of the clock with Skip on the busy ones, so a calm pentatonic cloud never quite repeats. Move one Ratio by a step and the whole constellation shifts. |
-| **Clock Mult: Chained from a Divider** | Clock Div turns the 16th grid into a slow beat-rate pulse, and Clock Mult's Clock jack counts those pulses and multiplies them back up: tight at full Phase Lock, and a flywheel that keeps going at zero. Try 3 and 5/4 against the divider's own outputs. |
+| **[Clock Mult: Drifting Percussion](/library/detail/?kind=module&slug=clock-multiplier#demo-1)** | One quarter-note clock becomes a kick on the beat, hats at four per beat, a rim at 3/2 and a cowbell at 5/4: the last two drift against the kick and meet it again every few beats. Change a Ratio knob and the layer re-tunes. |
+| **[Clock Mult: Swung Hats](/library/detail/?kind=module&slug=clock-multiplier#demo-2)** | Swing on a Clock Mult output moves only the in-between ticks: the kick and the snare sit on the beat while the sixteenth hats lean late. Turn Swing up for a harder shuffle, Humanize for a looser hand, or raise Skip 3 for fewer ghost hats. |
+| **[Clock Mult: Clock for a Line](/library/detail/?kind=module&slug=clock-multiplier#demo-3)** | A Step Sequencer has no clock of its own: it takes Out 1 of Clock Mult at four ticks per beat with a late swing, and the bass takes Out 2 at one per beat. Change Ratio 1 to 3 or 3/2 for a different gait; the line follows the multiplier. |
+| **[Clock Mult: Fractional Bells](/library/detail/?kind=module&slug=clock-multiplier#demo-4)** | Four bell tones ring at 2/3, 3/4, 5/4 and 7/4 of the clock with Skip on the busy ones, so a calm pentatonic cloud never quite repeats. Move one Ratio by a step and the whole constellation shifts. |
+| **[Clock Mult: Chained from a Divider](/library/detail/?kind=module&slug=clock-multiplier#demo-5)** | Clock Div turns the 16th grid into a slow beat-rate pulse, and Clock Mult's Clock jack counts those pulses and multiplies them back up: tight at full Phase Lock, and a flywheel that keeps going at zero. Try 3 and 5/4 against the divider's own outputs. |
 <!-- /generated -->
 
 <!-- generated:presets -->

@@ -196,7 +196,7 @@
             const section = el("section", "mod-doc");
             const doc = el("div", "v-doc");
             doc.innerHTML = docHtml;
-            doc.addEventListener("click", (e) => { if (e.target.closest("a")) e.preventDefault(); });  // the page must not navigate
+            doc.addEventListener("click", (e) => { const a = e.target.closest("a"); if (a) { e.preventDefault(); followDocLink(a, doc); } });  // the page must not navigate
             section.appendChild(doc);
             section.hidden = true;
             v.docRoot = section;
@@ -284,6 +284,21 @@
           window.addEventListener("pointerup", up);
         });
         watch();
+      }
+      /// A link in a module's manual (the page itself must not navigate): `#heading` scrolls the manual, a site path ("/library/…", the
+      /// demo patches) and a web address open in the browser, another manual (`adsr.md`) opens that module's entry in the Bleep Library.
+      function followDocLink(a, doc) {
+        const href = a.getAttribute("href") || "";
+        if (href.startsWith("#")) {
+          const id = decodeURIComponent(href.slice(1));
+          const target = [...doc.querySelectorAll("[id]")].find((x) => x.id === id);
+          if (target) target.scrollIntoView({ block: "start" });
+          return;
+        }
+        const manual = href.match(/^([\w-]+)\.md(#.*)?$/);
+        const path = manual ? "/library/detail/?kind=module&slug=" + encodeURIComponent(manual[1]) : href.startsWith("/") ? href : null;
+        if (path && P.BleepAppMenu && P.BleepAppMenu.openSite) P.BleepAppMenu.openSite(path);
+        else if (/^https?:/i.test(href)) (P.BleepAccount ? P.BleepAccount.open(href) : window.open(href, "_blank", "noopener"));
       }
       /// A module's documentation (modules/<name>/doc/<type>.md), or null if it has none.
       const docs = new Map();

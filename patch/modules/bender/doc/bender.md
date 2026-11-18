@@ -86,15 +86,15 @@ bar below shows the read head inside the source.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Bender does. In the standalone app open **File → Presets…** (⌘P) and pick *Bender* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Bender does. In the standalone app open **File → Presets…** (⌘P) and pick *Bender* under *Demos by module*; on the website they are in the [Bender entry of the Bleep Library](/library/detail/?kind=module&slug=bender#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Bender: Beat Crusher** | Crush mode grabs sixteenth-note pieces of a drum loop and repeats them, with pitch steps by octave and a little corruption. Raise Chance for a busier mess, or lower Repeats for a gentler stutter. |
-| **Bender: Dropout Tune** | Dropout mode punches holes into an arpeggio, as if the signal kept losing contact. Move Chance for more or fewer gaps, Time for the length of each hole, and try another Seed. |
-| **Bender: Fifths and Octaves** | Fold mode with Bend steps set to Fifths + octaves repeats short pieces of a slow melody a fifth or an octave away, so the glitches stay musical. Switch Bend Steps to Free for wild slides, or raise Bend Var. |
-| **Bender: Shuffle Slicer** | Shuffle mode with Slice cuts a swung beat into small pieces and reorders them, so the groove is always almost the same and never quite. Turn Slice down for longer chunks, or Chance up for more reshuffling. |
-| **Bender: Smear and Freeze** | Smear mode melts a chord arpeggio together while a square LFO holds Freeze for a bar at a time, looping one grain until the gate lets go. Try the LFO's rate, or latch Freeze on and off by hand. |
+| **[Bender: Beat Crusher](/library/detail/?kind=module&slug=bender#demo-1)** | Crush mode grabs sixteenth-note pieces of a drum loop and repeats them, with pitch steps by octave and a little corruption. Raise Chance for a busier mess, or lower Repeats for a gentler stutter. |
+| **[Bender: Dropout Tune](/library/detail/?kind=module&slug=bender#demo-2)** | Dropout mode punches holes into an arpeggio, as if the signal kept losing contact. Move Chance for more or fewer gaps, Time for the length of each hole, and try another Seed. |
+| **[Bender: Fifths and Octaves](/library/detail/?kind=module&slug=bender#demo-3)** | Fold mode with Bend steps set to Fifths + octaves repeats short pieces of a slow melody a fifth or an octave away, so the glitches stay musical. Switch Bend Steps to Free for wild slides, or raise Bend Var. |
+| **[Bender: Shuffle Slicer](/library/detail/?kind=module&slug=bender#demo-4)** | Shuffle mode with Slice cuts a swung beat into small pieces and reorders them, so the groove is always almost the same and never quite. Turn Slice down for longer chunks, or Chance up for more reshuffling. |
+| **[Bender: Smear and Freeze](/library/detail/?kind=module&slug=bender#demo-5)** | Smear mode melts a chord arpeggio together while a square LFO holds Freeze for a bar at a time, looping one grain until the gate lets go. Try the LFO's rate, or latch Freeze on and off by hand. |
 <!-- /generated -->
 
 <!-- generated:presets -->

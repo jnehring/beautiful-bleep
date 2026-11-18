@@ -51,15 +51,15 @@ If nothing is patched into *In B* it is copied from *In A*.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Spectral Blend does. In the standalone app open **File → Presets…** (⌘P) and pick *Spectral Blend* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Spectral Blend does. In the standalone app open **File → Presets…** (⌘P) and pick *Spectral Blend* under *Demos by module*; on the website they are in the [Spectral Blend entry of the Bleep Library](/library/detail/?kind=module&slug=spectral-blend#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Spectral Blend: Drums Wear a Pad** | A drum loop in A and a sustained minor chord in B: it keeps the pad's colour while every hit chops it into the beat's spectral shape. Swap Magnitude and Phase (0/1 against 1/0) to hear which sound lends the rhythm and which the tone. |
-| **Spectral Blend: Bass Below, Arp Above** | A bass line in A and a bright arpeggio in B are joined at a pivot frequency: with Tilt up, the lows come from the bass and the highs from the arp, so one sound seems to play both. A slow LFO moves the Pivot up and down; try a Tilt of -1 to turn the roles around. |
-| **Spectral Blend: Frozen Moments** | A pluck melody runs through Spectral Blend while a gate from a clock divider freezes the spectrum on every other bar, turning a single note into a long drone under the live line. Change the divider for shorter or longer holds, or add Blur to soften the frozen chord. |
-| **Spectral Blend: Partials Come and Go** | A drum loop goes into In A alone, and the spectral gate removes every frequency bin below a threshold while Smear leaves a spectral afterglow; a slow LFO on the mid gate lets partials appear and vanish. Raise Smear for a bigger wash or turn on Invert Gate to keep only what is quiet. |
-| **Spectral Blend: Geometric Morph** | Two different melodies, a soft sine line in A and a buzzy saw line in B, are morphed in the geometric law, where a partial only one of them has stays quiet halfway, so the change is smooth. Slow random values move Magnitude and Phase; try Linear for a cruder cross-fade. |
+| **[Spectral Blend: Drums Wear a Pad](/library/detail/?kind=module&slug=spectral-blend#demo-1)** | A drum loop in A and a sustained minor chord in B: it keeps the pad's colour while every hit chops it into the beat's spectral shape. Swap Magnitude and Phase (0/1 against 1/0) to hear which sound lends the rhythm and which the tone. |
+| **[Spectral Blend: Bass Below, Arp Above](/library/detail/?kind=module&slug=spectral-blend#demo-2)** | A bass line in A and a bright arpeggio in B are joined at a pivot frequency: with Tilt up, the lows come from the bass and the highs from the arp, so one sound seems to play both. A slow LFO moves the Pivot up and down; try a Tilt of -1 to turn the roles around. |
+| **[Spectral Blend: Frozen Moments](/library/detail/?kind=module&slug=spectral-blend#demo-3)** | A pluck melody runs through Spectral Blend while a gate from a clock divider freezes the spectrum on every other bar, turning a single note into a long drone under the live line. Change the divider for shorter or longer holds, or add Blur to soften the frozen chord. |
+| **[Spectral Blend: Partials Come and Go](/library/detail/?kind=module&slug=spectral-blend#demo-4)** | A drum loop goes into In A alone, and the spectral gate removes every frequency bin below a threshold while Smear leaves a spectral afterglow; a slow LFO on the mid gate lets partials appear and vanish. Raise Smear for a bigger wash or turn on Invert Gate to keep only what is quiet. |
+| **[Spectral Blend: Geometric Morph](/library/detail/?kind=module&slug=spectral-blend#demo-5)** | Two different melodies, a soft sine line in A and a buzzy saw line in B, are morphed in the geometric law, where a partial only one of them has stays quiet halfway, so the change is smooth. Slow random values move Magnitude and Phase; try Linear for a cruder cross-fade. |
 <!-- /generated -->
 
 <!-- generated:presets -->

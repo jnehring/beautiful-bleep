@@ -68,15 +68,15 @@ lower sustain. *Velocity* scales every exciter.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Modal Voice does. In the standalone app open **File → Presets…** (⌘P) and pick *Modal Voice* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Modal Voice does. In the standalone app open **File → Presets…** (⌘P) and pick *Modal Voice* under *Demos by module*; on the website they are in the [Modal Voice entry of the Bleep Library](/library/detail/?kind=module&slug=modal-voice#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Modal Voice: Wooden Bars** | A mallet strikes a bar-shaped body on every step of a looping pentatonic pattern. Geometry sits at 50 % (a bar), Damping and Strike Timbre keep it woody. Try Geometry towards 0 for a string, towards 100 % for a bell, or Position at 50 % to cancel the even partials. |
-| **Modal Voice: Bowed Bells** | No mallet at all: a Bow sings a bell-shaped body for as long as each gate is held. Contour at a low value gives a slow swell and long release, so the chords of the sequence bloom into each other. Lower Bow Timbre for a light, airy bow, or raise Damping to hear the bell become wood. |
-| **Modal Voice: Breath Flute** | A string-like body (Geometry 0 %) is excited only by Blow with a high Blow Timbre: above 60 % the breath couples with the body like an air jet and it sings on its own, with a little breath noise on top. Move Blow Timbre across 60 % to hear the voice appear, or add Strike for a tongued start. |
-| **Modal Voice: Plate Resonator** | Audio from a drum beat goes into Ext In with every built-in exciter at 0, so the module is a resonator in a room: the drums ring a tuned plate. Change Coarse to retune the plate, Geometry to move from string to plate to bell, Damping for how long it keeps ringing. |
-| **Modal Voice: Plucked Strings** | A hard, bright strike on a stiff string (Geometry 25 %) is a plucked-string sound, played as a broken chord in an open room. Position sets where the string is plucked and Strike Timbre how hard the pick is. Lengthen Damping for a harp, or shorten it for a muted pluck. |
+| **[Modal Voice: Wooden Bars](/library/detail/?kind=module&slug=modal-voice#demo-1)** | A mallet strikes a bar-shaped body on every step of a looping pentatonic pattern. Geometry sits at 50 % (a bar), Damping and Strike Timbre keep it woody. Try Geometry towards 0 for a string, towards 100 % for a bell, or Position at 50 % to cancel the even partials. |
+| **[Modal Voice: Bowed Bells](/library/detail/?kind=module&slug=modal-voice#demo-2)** | No mallet at all: a Bow sings a bell-shaped body for as long as each gate is held. Contour at a low value gives a slow swell and long release, so the chords of the sequence bloom into each other. Lower Bow Timbre for a light, airy bow, or raise Damping to hear the bell become wood. |
+| **[Modal Voice: Breath Flute](/library/detail/?kind=module&slug=modal-voice#demo-3)** | A string-like body (Geometry 0 %) is excited only by Blow with a high Blow Timbre: above 60 % the breath couples with the body like an air jet and it sings on its own, with a little breath noise on top. Move Blow Timbre across 60 % to hear the voice appear, or add Strike for a tongued start. |
+| **[Modal Voice: Plate Resonator](/library/detail/?kind=module&slug=modal-voice#demo-4)** | Audio from a drum beat goes into Ext In with every built-in exciter at 0, so the module is a resonator in a room: the drums ring a tuned plate. Change Coarse to retune the plate, Geometry to move from string to plate to bell, Damping for how long it keeps ringing. |
+| **[Modal Voice: Plucked Strings](/library/detail/?kind=module&slug=modal-voice#demo-5)** | A hard, bright strike on a stiff string (Geometry 25 %) is a plucked-string sound, played as a broken chord in an open room. Position sets where the string is plucked and Strike Timbre how hard the pick is. Lengthen Damping for a harp, or shorten it for a muted pluck. |
 <!-- /generated -->
 
 <!-- generated:presets -->

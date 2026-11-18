@@ -91,15 +91,15 @@ undo step. Drawn shapes are saved with the board.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Contour does. In the standalone app open **File → Presets…** (⌘P) and pick *Contour* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Contour does. In the standalone app open **File → Presets…** (⌘P) and pick *Contour* under *Demos by module*; on the website they are in the [Contour entry of the Bleep Library](/library/detail/?kind=module&slug=shape-env#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Contour: Pluck Library** | Every note triggers a one-shot shape from the library, a soft 1:8 pluck, that opens both volume and filter. Try the other plucks, Bounce and Echoes shapes, or move Morph to change its curve. |
-| **Contour: Looping Wobble Bass** | In Loop mode the Wobble shape repeats once per beat and swings the cutoff of a held bass, locked to the tempo. Switch Sync to another note length for faster or slower wobble, or try Double wobble and Swing wobble. |
-| **Contour: Breathing Pad** | A pad is held steady while one looped Contour breathes its volume over two bars and a second one slowly sways its filter over four. Choose Heartbeat or Sway shapes, or change Sync, and the whole pad takes on a new pulse. |
-| **Contour: Drawn Rhythm Gate** | The rhythm shapes are patterns drawn as amplitude: one looping shape chops a held chord into syncopated stabs, another carves a bass note into a different pattern. Pick any of the x.xx shapes, or change Sync, to make a new groove. |
-| **Contour: Reversed Swells** | With Reverse on, a plucked shape plays backwards: each note swells up and is cut off at its peak, like a tape played in reverse. Switch Reverse off for normal plucks, or lengthen Time for slower swells. |
+| **[Contour: Pluck Library](/library/detail/?kind=module&slug=shape-env#demo-1)** | Every note triggers a one-shot shape from the library, a soft 1:8 pluck, that opens both volume and filter. Try the other plucks, Bounce and Echoes shapes, or move Morph to change its curve. |
+| **[Contour: Looping Wobble Bass](/library/detail/?kind=module&slug=shape-env#demo-2)** | In Loop mode the Wobble shape repeats once per beat and swings the cutoff of a held bass, locked to the tempo. Switch Sync to another note length for faster or slower wobble, or try Double wobble and Swing wobble. |
+| **[Contour: Breathing Pad](/library/detail/?kind=module&slug=shape-env#demo-3)** | A pad is held steady while one looped Contour breathes its volume over two bars and a second one slowly sways its filter over four. Choose Heartbeat or Sway shapes, or change Sync, and the whole pad takes on a new pulse. |
+| **[Contour: Drawn Rhythm Gate](/library/detail/?kind=module&slug=shape-env#demo-4)** | The rhythm shapes are patterns drawn as amplitude: one looping shape chops a held chord into syncopated stabs, another carves a bass note into a different pattern. Pick any of the x.xx shapes, or change Sync, to make a new groove. |
+| **[Contour: Reversed Swells](/library/detail/?kind=module&slug=shape-env#demo-5)** | With Reverse on, a plucked shape plays backwards: each note swells up and is cut off at its peak, like a tape played in reverse. Switch Reverse off for normal plucks, or lengthen Time for slower swells. |
 <!-- /generated -->
 
 <!-- generated:presets -->

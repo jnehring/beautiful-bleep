@@ -65,15 +65,15 @@ count wrap after 2 … 32 tosses: a fixed random rhythm that repeats. Change
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Coin Toss does. In the standalone app open **File → Presets…** (⌘P) and pick *Coin Toss* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Coin Toss does. In the standalone app open **File → Presets…** (⌘P) and pick *Coin Toss* under *Demos by module*; on the website they are in the [Coin Toss entry of the Bleep Library](/library/detail/?kind=module&slug=coin-toss#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Coin Toss: Kick or Snare** | Every eighth-note gate is sent either to a kick or to a snare by a fair coin, so the backbeat is never the same twice, over a fixed hat and bass line. Push Probability 1 up for more kicks, or change Seed for a different run of luck. |
-| **Coin Toss: Weighted Hats** | A steady sixteenth-note stream is split by a loaded coin: four tosses in five give a closed hat and the rest an open one, over a plain kick and clap. Move Probability 1 toward 0.5 for a busier, more open hat line. |
-| **Coin Toss: Looped Fate** | Eight eighth-note tosses decide whether a low note or a high note sounds, and Loop makes the same eight outcomes repeat, so a tune made by chance settles into a pattern you can hum. Set Loop to Off and it never repeats; change Seed for another tune. |
-| **Coin Toss: Chord Roulette** | Once a bar the coin picks one of two pads, an A minor chord or an F major chord; in Latch mode the chosen side stays on until the next toss, so one chord always sounds. Raise Memory 1 and the coin tends to repeat the last result. |
-| **Coin Toss: Opposed Channels** | With Link set to Opposed, channel 2 always chooses the other side from channel 1: when the first coin sends a gate to the kick, the second sends its gate to the hat, and the other way round. Try Shared to make both coins land together. |
+| **[Coin Toss: Kick or Snare](/library/detail/?kind=module&slug=coin-toss#demo-1)** | Every eighth-note gate is sent either to a kick or to a snare by a fair coin, so the backbeat is never the same twice, over a fixed hat and bass line. Push Probability 1 up for more kicks, or change Seed for a different run of luck. |
+| **[Coin Toss: Weighted Hats](/library/detail/?kind=module&slug=coin-toss#demo-2)** | A steady sixteenth-note stream is split by a loaded coin: four tosses in five give a closed hat and the rest an open one, over a plain kick and clap. Move Probability 1 toward 0.5 for a busier, more open hat line. |
+| **[Coin Toss: Looped Fate](/library/detail/?kind=module&slug=coin-toss#demo-3)** | Eight eighth-note tosses decide whether a low note or a high note sounds, and Loop makes the same eight outcomes repeat, so a tune made by chance settles into a pattern you can hum. Set Loop to Off and it never repeats; change Seed for another tune. |
+| **[Coin Toss: Chord Roulette](/library/detail/?kind=module&slug=coin-toss#demo-4)** | Once a bar the coin picks one of two pads, an A minor chord or an F major chord; in Latch mode the chosen side stays on until the next toss, so one chord always sounds. Raise Memory 1 and the coin tends to repeat the last result. |
+| **[Coin Toss: Opposed Channels](/library/detail/?kind=module&slug=coin-toss#demo-5)** | With Link set to Opposed, channel 2 always chooses the other side from channel 1: when the first coin sends a gate to the kick, the second sends its gate to the hat, and the other way round. Try Shared to make both coins land together. |
 <!-- /generated -->
 
 <!-- generated:presets -->

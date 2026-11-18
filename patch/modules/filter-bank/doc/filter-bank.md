@@ -101,15 +101,15 @@ The *Presets* menu sets all ten levels at once: *Flat*, *Smile*,
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Filter Bank does. In the standalone app open **File → Presets…** (⌘P) and pick *Filter Bank* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Filter Bank does. In the standalone app open **File → Presets…** (⌘P) and pick *Filter Bank* under *Demos by module*; on the website they are in the [Filter Bank entry of the Bleep Library](/library/detail/?kind=module&slug=filter-bank#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Filter Bank: Drum Vocoder** | A held saw chord goes into the bank while a drum loop drives the Sidechain: with Vocode up, each band opens only when the drums have energy in that range, so the chord chatters in the rhythm of the beat. Change Vocode, Release or Q to tighten or smear it. |
-| **Filter Bank: Scanning Window** | A bright, buzzy drone passes through only a few neighbouring bands; an LFO on Scan slides that window up and down the spectrum like a slow wah. Widen Width for a fuller sound, or raise Q for whistling. |
-| **Filter Bank: Noise Chimes** | Plain noise goes into ten very narrow bands tuned to a minor pentatonic scale (Tuning set to Scale), so it rings as a soft, wind-like chord. Change Root or Scale, move Shift to transpose the whole set, or lower Q to lose the pitch. |
-| **Filter Bank: Odd-Even Stereo** | Odd bands go left and even bands go right, so one saw arpeggio is pulled apart into two interlocking halves. Swing Odd/Even with the LFO and the sound moves between the speakers; set Stereo to Normal to hear it fold back to the middle. |
-| **Filter Bank: Band Split Mixer** | Jacks is set to Bands: four of the ten band outputs go to their own mixer channels, panned from left to right, so the low end of a drum-and-bass loop sits in the middle and brighter bands spread out. Change the mixer levels to rebalance the spectrum, or tilt the bank with Tilt. |
+| **[Filter Bank: Drum Vocoder](/library/detail/?kind=module&slug=filter-bank#demo-1)** | A held saw chord goes into the bank while a drum loop drives the Sidechain: with Vocode up, each band opens only when the drums have energy in that range, so the chord chatters in the rhythm of the beat. Change Vocode, Release or Q to tighten or smear it. |
+| **[Filter Bank: Scanning Window](/library/detail/?kind=module&slug=filter-bank#demo-2)** | A bright, buzzy drone passes through only a few neighbouring bands; an LFO on Scan slides that window up and down the spectrum like a slow wah. Widen Width for a fuller sound, or raise Q for whistling. |
+| **[Filter Bank: Noise Chimes](/library/detail/?kind=module&slug=filter-bank#demo-3)** | Plain noise goes into ten very narrow bands tuned to a minor pentatonic scale (Tuning set to Scale), so it rings as a soft, wind-like chord. Change Root or Scale, move Shift to transpose the whole set, or lower Q to lose the pitch. |
+| **[Filter Bank: Odd-Even Stereo](/library/detail/?kind=module&slug=filter-bank#demo-4)** | Odd bands go left and even bands go right, so one saw arpeggio is pulled apart into two interlocking halves. Swing Odd/Even with the LFO and the sound moves between the speakers; set Stereo to Normal to hear it fold back to the middle. |
+| **[Filter Bank: Band Split Mixer](/library/detail/?kind=module&slug=filter-bank#demo-5)** | Jacks is set to Bands: four of the ten band outputs go to their own mixer channels, panned from left to right, so the low end of a drum-and-bass loop sits in the middle and brighter bands spread out. Change the mixer levels to rebalance the spectrum, or tilt the bank with Tilt. |
 <!-- /generated -->
 
 <!-- generated:presets -->

@@ -69,15 +69,15 @@ ones and Integrated render the same from the same start.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Uncertainty does. In the standalone app open **File → Presets…** (⌘P) and pick *Uncertainty* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Uncertainty does. In the standalone app open **File → Presets…** (⌘P) and pick *Uncertainty* under *Demos by module*; on the website they are in the [Uncertainty entry of the Bleep Library](/library/detail/?kind=module&slug=uncertainty#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Uncertainty: Fluctuating Filter** | The two fluctuating curves wander at unrelated speeds: one opens and closes the filter on a plucked line, the other changes the tone shape. Raise F1 Rate and F2 Rate to speed them up, or lower F1 Spread to shrink the sweep. |
-| **Uncertainty: Stepped Levels** | Quantized outputs jump between a few evenly spaced levels (Q1 Bits sets how many): Q1 pushes the pitch up by octaves and Q2 moves the filter, both in time with the eighth notes. Try Q1 Interval at 7 st for stacked fifths or raise the bits for more levels. |
-| **Uncertainty: Stored Per Note** | Each note of the line tells the Store input to take a fresh stored value, which then holds until the next note; it sets the filter, and the Store Trigger output also fires a hi-hat. Raise Correlation so each value leans on the last, or move Distribution to favour low or high settings. |
-| **Uncertainty: Integrated Drift** | The Integrated output is the running total of the stored steps, so it wanders like a slow random walk; here it steers the brightness of a held pad and the stored value tilts the oscillators. Change Integrate to make the walk shorter-lived or longer, and Store Rate for how often it is nudged. |
-| **Uncertainty: Extreme Moods** | Setting Shape to Edges makes the random values favour the extremes, so the filter on this bass line jumps between very closed and wide open instead of sitting in the middle. Switch Shape to Bell or Uniform to hear it settle. |
+| **[Uncertainty: Fluctuating Filter](/library/detail/?kind=module&slug=uncertainty#demo-1)** | The two fluctuating curves wander at unrelated speeds: one opens and closes the filter on a plucked line, the other changes the tone shape. Raise F1 Rate and F2 Rate to speed them up, or lower F1 Spread to shrink the sweep. |
+| **[Uncertainty: Stepped Levels](/library/detail/?kind=module&slug=uncertainty#demo-2)** | Quantized outputs jump between a few evenly spaced levels (Q1 Bits sets how many): Q1 pushes the pitch up by octaves and Q2 moves the filter, both in time with the eighth notes. Try Q1 Interval at 7 st for stacked fifths or raise the bits for more levels. |
+| **[Uncertainty: Stored Per Note](/library/detail/?kind=module&slug=uncertainty#demo-3)** | Each note of the line tells the Store input to take a fresh stored value, which then holds until the next note; it sets the filter, and the Store Trigger output also fires a hi-hat. Raise Correlation so each value leans on the last, or move Distribution to favour low or high settings. |
+| **[Uncertainty: Integrated Drift](/library/detail/?kind=module&slug=uncertainty#demo-4)** | The Integrated output is the running total of the stored steps, so it wanders like a slow random walk; here it steers the brightness of a held pad and the stored value tilts the oscillators. Change Integrate to make the walk shorter-lived or longer, and Store Rate for how often it is nudged. |
+| **[Uncertainty: Extreme Moods](/library/detail/?kind=module&slug=uncertainty#demo-5)** | Setting Shape to Edges makes the random values favour the extremes, so the filter on this bass line jumps between very closed and wide open instead of sitting in the middle. Switch Shape to Bell or Uniform to hear it settle. |
 <!-- /generated -->
 
 <!-- generated:presets -->

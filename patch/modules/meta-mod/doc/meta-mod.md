@@ -91,15 +91,15 @@ ring imbalance produce. Outputs stay within ±4.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Meta Mod does. In the standalone app open **File → Presets…** (⌘P) and pick *Meta Mod* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Meta Mod does. In the standalone app open **File → Presets…** (⌘P) and pick *Meta Mod* under *Demos by module*; on the website they are in the [Meta Mod entry of the Bleep Library](/library/detail/?kind=module&slug=meta-mod#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Meta Mod: Ring Bells** | With no modulator patched, the internal oscillator multiplies a simple melody in analog ring mode, giving clangorous bell tones. Change Osc Tune to move between consonant and metallic, or sweep Algorithm to the neighbours. |
-| **Meta Mod: Talking Drums** | In vocoder mode a buzzing saw carrier is shaped by the drum beat as modulator, so the pad seems to pump and speak in the rhythm of the kit. Change Timbre for a different band balance, or the saw's pitch for another vowel colour. |
-| **Meta Mod: Bitwise Grit** | Bitwise mode combines a bass line with the internal oscillator number by number, producing digital edge and odd harmonics that move with Osc Tune. Switch Bitwise Op between XOR, AND and OR, or sweep Timbre. |
-| **Meta Mod: Algorithm Sweep** | A slow triangle LFO walks the Algorithm knob from crossfade through fold and ring modulation and back, so the same two tones keep changing character. Narrow the LFO's amount to stay in one family, or move Timbre by hand. |
-| **Meta Mod: Chebyshev Glow** | The last algorithm adds harmonics to a plain sine bass line, with a slow LFO moving Timbre from a pure tone to a bright, organ-like glow. Try Quality for cleaner top end, or Mix to blend the pure sine back in. |
+| **[Meta Mod: Ring Bells](/library/detail/?kind=module&slug=meta-mod#demo-1)** | With no modulator patched, the internal oscillator multiplies a simple melody in analog ring mode, giving clangorous bell tones. Change Osc Tune to move between consonant and metallic, or sweep Algorithm to the neighbours. |
+| **[Meta Mod: Talking Drums](/library/detail/?kind=module&slug=meta-mod#demo-2)** | In vocoder mode a buzzing saw carrier is shaped by the drum beat as modulator, so the pad seems to pump and speak in the rhythm of the kit. Change Timbre for a different band balance, or the saw's pitch for another vowel colour. |
+| **[Meta Mod: Bitwise Grit](/library/detail/?kind=module&slug=meta-mod#demo-3)** | Bitwise mode combines a bass line with the internal oscillator number by number, producing digital edge and odd harmonics that move with Osc Tune. Switch Bitwise Op between XOR, AND and OR, or sweep Timbre. |
+| **[Meta Mod: Algorithm Sweep](/library/detail/?kind=module&slug=meta-mod#demo-4)** | A slow triangle LFO walks the Algorithm knob from crossfade through fold and ring modulation and back, so the same two tones keep changing character. Narrow the LFO's amount to stay in one family, or move Timbre by hand. |
+| **[Meta Mod: Chebyshev Glow](/library/detail/?kind=module&slug=meta-mod#demo-5)** | The last algorithm adds harmonics to a plain sine bass line, with a slow LFO moving Timbre from a pure tone to a bright, organ-like glow. Try Quality for cleaner top end, or Mix to blend the pure sine back in. |
 <!-- /generated -->
 
 <!-- generated:presets -->

@@ -79,15 +79,15 @@ the root stays nearest the middle.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Chord Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Chord Osc* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Chord Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Chord Osc* under *Demos by module*; on the website they are in the [Chord Osc entry of the Bleep Library](/library/detail/?kind=module&slug=chord-osc#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Chord Osc: Slow Seventh Pad** | A slow bass line plays the root and Chord Osc stacks a minor seventh on it in the Open voicing, with a little Detune, wide Stereo and Glide so each chord melts into the next. Try other Chord types, change Voicing, or push Inversion up and down to hear the same chord from a different bass note. |
-| **Chord Osc: Chords From a Melody** | In Scale mode every note of a simple melody becomes the diatonic chord on that scale degree: major, minor and diminished triads appear by themselves in C major. The melody's trigger is patched into Latch so chords change exactly on the step. Change Scale or Root to re-colour the tune, or set the stack to Seventh. |
-| **Chord Osc: Bass and Stabs** | One Chord Osc is two instruments: its Root output, filtered and sub-heavy, is the bassline, and the chord itself plays short offbeat stabs on top (Root Level lowered so they do not double the bass). Try Dominant 9 or Minor add9 in Chord, or open the stab filter. |
-| **Chord Osc: Chord Tone Arp** | The four Pitch outputs carry the chord tones from low to high; a Switch steps through them every sixteenth to play an arpeggio on a separate oscillator that always follows the chord. The pad underneath plays the whole chord. Change the Chord, or the Inversion, and the arpeggio changes with it. |
-| **Chord Osc: Quartal Glass** | Five voices stacked in fourths with the Wide voicing, near-sine waves and slow Detune make a cool, open sound with no clear major or minor. A slow LFO sweeps the Inversion, so the bass note of the chord keeps changing. Switch Chord to Sus2 or Add9 for a warmer cloud. |
+| **[Chord Osc: Slow Seventh Pad](/library/detail/?kind=module&slug=chord-osc#demo-1)** | A slow bass line plays the root and Chord Osc stacks a minor seventh on it in the Open voicing, with a little Detune, wide Stereo and Glide so each chord melts into the next. Try other Chord types, change Voicing, or push Inversion up and down to hear the same chord from a different bass note. |
+| **[Chord Osc: Chords From a Melody](/library/detail/?kind=module&slug=chord-osc#demo-2)** | In Scale mode every note of a simple melody becomes the diatonic chord on that scale degree: major, minor and diminished triads appear by themselves in C major. The melody's trigger is patched into Latch so chords change exactly on the step. Change Scale or Root to re-colour the tune, or set the stack to Seventh. |
+| **[Chord Osc: Bass and Stabs](/library/detail/?kind=module&slug=chord-osc#demo-3)** | One Chord Osc is two instruments: its Root output, filtered and sub-heavy, is the bassline, and the chord itself plays short offbeat stabs on top (Root Level lowered so they do not double the bass). Try Dominant 9 or Minor add9 in Chord, or open the stab filter. |
+| **[Chord Osc: Chord Tone Arp](/library/detail/?kind=module&slug=chord-osc#demo-4)** | The four Pitch outputs carry the chord tones from low to high; a Switch steps through them every sixteenth to play an arpeggio on a separate oscillator that always follows the chord. The pad underneath plays the whole chord. Change the Chord, or the Inversion, and the arpeggio changes with it. |
+| **[Chord Osc: Quartal Glass](/library/detail/?kind=module&slug=chord-osc#demo-5)** | Five voices stacked in fourths with the Wide voicing, near-sine waves and slow Detune make a cool, open sound with no clear major or minor. A slow LFO sweeps the Inversion, so the bass note of the chord keeps changing. Switch Chord to Sus2 or Add9 for a warmer cloud. |
 <!-- /generated -->
 
 <!-- generated:presets -->

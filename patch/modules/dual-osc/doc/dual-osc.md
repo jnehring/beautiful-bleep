@@ -75,15 +75,15 @@ the transport starts.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Dual Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Dual Osc* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Dual Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Dual Osc* under *Demos by module*; on the website they are in the [Dual Osc entry of the Bleep Library](/library/detail/?kind=module&slug=dual-osc#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Dual Osc: Complex Lead** | Oscillator B frequency-modulates A while an envelope opens FM Depth and Fold on every note: each note starts bright and metallic and settles to a clearer tone. Change Tune B to pick different FM ratios, or raise Fold for more edge. |
-| **Dual Osc: Sync Sweep** | A is hard-synced to B and the Sync amount is swept by a slow ramp, so the tone tears from a clean saw into a growling, harmonic-rich buzz. Turn Sync by hand to stop the sweep where you like it. |
-| **Dual Osc: Drifting Pad** | Two softly detuned cores with Drift and Width turned up make a slowly moving stereo pad, with a hint of Fold from a slow LFO. Raise Drift for more instability or pull Tune B further from A for a thicker chord. |
-| **Dual Osc: Ring Bells** | The Ring output multiplies A and B, giving clangorous, bell-like sidebands that die away with each note. Tune B moves the bell from soft and hollow to harsh and tuneless; choose a fifth or a tritone to hear the difference. |
-| **Dual Osc: Folded Bass** | A low note from both cores is driven into the wavefolder; Fold rides a slow LFO and Symmetry shifts the odd and even folds, so the bass flips between mellow and snarling. Try the Exponential FM Mode or a different Symmetry for other growls. |
+| **[Dual Osc: Complex Lead](/library/detail/?kind=module&slug=dual-osc#demo-1)** | Oscillator B frequency-modulates A while an envelope opens FM Depth and Fold on every note: each note starts bright and metallic and settles to a clearer tone. Change Tune B to pick different FM ratios, or raise Fold for more edge. |
+| **[Dual Osc: Sync Sweep](/library/detail/?kind=module&slug=dual-osc#demo-2)** | A is hard-synced to B and the Sync amount is swept by a slow ramp, so the tone tears from a clean saw into a growling, harmonic-rich buzz. Turn Sync by hand to stop the sweep where you like it. |
+| **[Dual Osc: Drifting Pad](/library/detail/?kind=module&slug=dual-osc#demo-3)** | Two softly detuned cores with Drift and Width turned up make a slowly moving stereo pad, with a hint of Fold from a slow LFO. Raise Drift for more instability or pull Tune B further from A for a thicker chord. |
+| **[Dual Osc: Ring Bells](/library/detail/?kind=module&slug=dual-osc#demo-4)** | The Ring output multiplies A and B, giving clangorous, bell-like sidebands that die away with each note. Tune B moves the bell from soft and hollow to harsh and tuneless; choose a fifth or a tritone to hear the difference. |
+| **[Dual Osc: Folded Bass](/library/detail/?kind=module&slug=dual-osc#demo-5)** | A low note from both cores is driven into the wavefolder; Fold rides a slow LFO and Symmetry shifts the odd and even folds, so the bass flips between mellow and snarling. Try the Exponential FM Mode or a different Symmetry for other growls. |
 <!-- /generated -->
 
 <!-- generated:presets -->

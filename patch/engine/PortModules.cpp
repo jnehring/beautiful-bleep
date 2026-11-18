@@ -329,7 +329,10 @@ private:
 class AudioPortModule final : public Module {
 public:
     /// Audio In: outputs only. Audio Out: inputs only. Insert: both.
-    AudioPortModule(const ModuleSpec& s, bool fromTrack, bool toTrack) : Module(s), from_(fromTrack), to_(toTrack) {}
+    AudioPortModule(const ModuleSpec& s, bool fromTrack, bool toTrack) : Module(s), from_(fromTrack), to_(toTrack) {
+        for (size_t k = 0; k < s.params.size(); ++k)
+            if (s.params[k].id == "mute") mute_ = (int)k;
+    }
 
     void reset() override { gain_ = -1.0f; }
 
@@ -380,7 +383,8 @@ private:
         for (int i = 0; i < c.numSamples; ++i) {
             float db = value(c, 0, i);
             if (std::fabs(db) < 0.005f) db = 0.0f;  // the default must pass the signal bit for bit
-            const float target = db <= kFloorDb + 1e-3f ? 0.0f : std::pow(10.0f, db / 20.0f);
+            const bool muted = mute_ >= 0 && value(c, mute_, i) >= 0.5f;  // Mute: fades to silence like the knob's bottom
+            const float target = muted || db <= kFloorDb + 1e-3f ? 0.0f : std::pow(10.0f, db / 20.0f);
             gain_ = gain_ < 0.0f ? target : gain_ + (target - gain_) * kSmooth;
             if (std::fabs(target - gain_) < 1e-6f) gain_ = target;
             const float a = l[i] * gain_, b = r[i] * gain_;
@@ -390,6 +394,7 @@ private:
     }
 
     bool from_, to_;
+    int mute_ = -1;  ///< the Mute toggle's param index (Audio In, Audio Out); -1: none
     float gain_ = -1.0f;  ///< smoothed linear gain; negative until the first block
 };
 
@@ -641,7 +646,7 @@ void registerPortModules(Registry& r) {
     }
     {
         ModuleSpec s = portSpec("audio-in", "Audio In", PortKind::AudioIn, "The track's audio (Bleep Audio In).");
-        s.params = {ParamSpec::number("gain", "Gain", -24.0f, 24.0f, 0.0f, "dB", 1)};
+        s.params = {ParamSpec::number("gain", "Gain", -24.0f, 24.0f, 0.0f, "dB", 1), ParamSpec::toggle("mute", "Mute", false)};
         s.outputs = {{"l", "L", Signal::Audio, true}, {"r", "R", Signal::Audio, true}};
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, true, false); });
     }
@@ -652,6 +657,7 @@ void registerPortModules(Registry& r) {
         s.params[0].map = ParamSpec::Map::Skew;
         s.params[0].centre = -12.0f;
         s.params.push_back(ParamSpec::toggle("mono", "Mono", false));
+        s.params.push_back(ParamSpec::toggle("mute", "Mute", false));
         s.inputs = {{"l", "L", Signal::Audio}, {"r", "R", Signal::Audio}};
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, false, true); });
     }

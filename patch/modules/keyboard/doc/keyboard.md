@@ -42,15 +42,15 @@ from note to note.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Keyboard does. In the standalone app open **File → Presets…** (⌘P) and pick *Keyboard* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Keyboard does. In the standalone app open **File → Presets…** (⌘P) and pick *Keyboard* under *Demos by module*; on the website they are in the [Keyboard entry of the Bleep Library](/library/detail/?kind=module&slug=keyboard#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Keyboard: Transposing Keys** | A pentatonic riff loops by itself; the Keyboard's Pitch output goes to the sequencer's Transpose input, so playing a key moves the whole riff to that note. Change Octave to shift the range of the keys, or Priority to choose which key wins when you hold several. |
-| **Keyboard: Glide Lead** | A soft bell arpeggio plays underneath; the Keyboard's Pitch and Gate drive a separate saw lead, and Glide is set to 0.25 s so notes slide into each other as you play. Raise Glide for slower portamento or bring it to 0 for clean steps. |
-| **Keyboard: Mallet Layer** | A bass loop plays alone until you press keys: the Keyboard's Pitch, Trigger and Velocity strike a marimba-like Modal Voice, so harder Velocity makes brighter hits. Try the Velocity knob, or play a run down the keys. |
-| **Keyboard: Latched Arp** | The Keyboard's Notes output feeds an Arpeggiator set to Latch: a bass line and beat run alone until you press a few keys, and when you let go they keep arpeggiating until you press a new chord. Change the Arpeggiator's Pattern or Octaves to hear the same keys differently. |
-| **Keyboard: Hold Drone** | Hold is on and Priority is Lowest, so the keys you click stay down and the lowest one sets a slow drone under a gentle bell melody. Click the same key again to release it, or press All off to clear the keys. |
+| **[Keyboard: Transposing Keys](/library/detail/?kind=module&slug=keyboard#demo-1)** | A pentatonic riff loops by itself; the Keyboard's Pitch output goes to the sequencer's Transpose input, so playing a key moves the whole riff to that note. Change Octave to shift the range of the keys, or Priority to choose which key wins when you hold several. |
+| **[Keyboard: Glide Lead](/library/detail/?kind=module&slug=keyboard#demo-2)** | A soft bell arpeggio plays underneath; the Keyboard's Pitch and Gate drive a separate saw lead, and Glide is set to 0.25 s so notes slide into each other as you play. Raise Glide for slower portamento or bring it to 0 for clean steps. |
+| **[Keyboard: Mallet Layer](/library/detail/?kind=module&slug=keyboard#demo-3)** | A bass loop plays alone until you press keys: the Keyboard's Pitch, Trigger and Velocity strike a marimba-like Modal Voice, so harder Velocity makes brighter hits. Try the Velocity knob, or play a run down the keys. |
+| **[Keyboard: Latched Arp](/library/detail/?kind=module&slug=keyboard#demo-4)** | The Keyboard's Notes output feeds an Arpeggiator set to Latch: a bass line and beat run alone until you press a few keys, and when you let go they keep arpeggiating until you press a new chord. Change the Arpeggiator's Pattern or Octaves to hear the same keys differently. |
+| **[Keyboard: Hold Drone](/library/detail/?kind=module&slug=keyboard#demo-5)** | Hold is on and Priority is Lowest, so the keys you click stay down and the lowest one sets a slow drone under a gentle bell melody. Click the same key again to release it, or press All off to clear the keys. |
 <!-- /generated -->
 
 ## Reference

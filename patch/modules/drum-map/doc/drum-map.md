@@ -76,15 +76,15 @@ over. Every hit is also a note at the voice's note number, ending after
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Drum Map does. In the standalone app open **File → Presets…** (⌘P) and pick *Drum Map* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Drum Map does. In the standalone app open **File → Presets…** (⌘P) and pick *Drum Map* under *Demos by module*; on the website they are in the [Drum Map entry of the Bleep Library](/library/detail/?kind=module&slug=drum-map#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Drum Map: Wandering the Map** | Two slow LFOs move X and Y through the map, so the beat drifts from sparse to busy and back without ever repeating exactly. Grab the X and Y knobs yourself to park on a pattern you like; the three Density knobs thin out any spot. |
-| **Drum Map: Sparse with Fills** | Low Density settings leave a spacious beat with only the strongest hits, and a square LFO holds the Fill input for the last bar of every four. Raise Fill Amount for a bigger fill, or raise a Density knob to bring a drum back in. |
-| **Drum Map: Chaos Re-roll** | Chaos at 55 % swaps in a few random changes every bar, a lively breakbeat that is never quite the same twice. Set Chaos Rate to Frozen, or change the Seed, to lock in a version you like. |
-| **Drum Map: Triplet Shuffle** | Rate 1/16T and a 24-step Length turn the map into a rolling triplet shuffle, with Swing and Accent adding a lazy push on top. Switch Rate back to 1/16 to hear the same map played straight. |
-| **Drum Map: Notes to Other Drums** | The Notes output sends the map as note events (Kick Note, Snare Note, Hats Note), and Drum Notes turns them into triggers for a different kit: a ring kick, a clap on the snare note and a cowbell on the hats note. Change the three note settings to move a part to another drum. |
+| **[Drum Map: Wandering the Map](/library/detail/?kind=module&slug=drum-map#demo-1)** | Two slow LFOs move X and Y through the map, so the beat drifts from sparse to busy and back without ever repeating exactly. Grab the X and Y knobs yourself to park on a pattern you like; the three Density knobs thin out any spot. |
+| **[Drum Map: Sparse with Fills](/library/detail/?kind=module&slug=drum-map#demo-2)** | Low Density settings leave a spacious beat with only the strongest hits, and a square LFO holds the Fill input for the last bar of every four. Raise Fill Amount for a bigger fill, or raise a Density knob to bring a drum back in. |
+| **[Drum Map: Chaos Re-roll](/library/detail/?kind=module&slug=drum-map#demo-3)** | Chaos at 55 % swaps in a few random changes every bar, a lively breakbeat that is never quite the same twice. Set Chaos Rate to Frozen, or change the Seed, to lock in a version you like. |
+| **[Drum Map: Triplet Shuffle](/library/detail/?kind=module&slug=drum-map#demo-4)** | Rate 1/16T and a 24-step Length turn the map into a rolling triplet shuffle, with Swing and Accent adding a lazy push on top. Switch Rate back to 1/16 to hear the same map played straight. |
+| **[Drum Map: Notes to Other Drums](/library/detail/?kind=module&slug=drum-map#demo-5)** | The Notes output sends the map as note events (Kick Note, Snare Note, Hats Note), and Drum Notes turns them into triggers for a different kit: a ring kick, a clap on the snare note and a cowbell on the hats note. Change the three note settings to move a part to another drum. |
 <!-- /generated -->
 
 ## Reference

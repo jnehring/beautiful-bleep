@@ -95,15 +95,15 @@ The preset bar of the Oscillator view has 18 factory presets. Pick one to set th
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Oscillator does. In the standalone app open **File → Presets…** (⌘P) and pick *Oscillator* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Oscillator does. In the standalone app open **File → Presets…** (⌘P) and pick *Oscillator* under *Demos by module*; on the website they are in the [Oscillator entry of the Bleep Library](/library/detail/?kind=module&slug=oscillator#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Oscillator: Morph Sweep** | A bass line on one Oscillator while a slow LFO moves Morph from the triangle (Waveform) to the square (Secondary), so the same note keeps changing colour. Set Morph by hand to freeze the blend, pick other waveforms, or move Pulse Width for a thinner square. |
-| **Oscillator: Hard Sync Sweep** | A lead oscillator is reset by the sequencer's gate on every note, while a slow LFO pushes its Coarse tuning upward: the classic tearing sync sweep. Turn Morph toward the square for a hollower bite, or lower the LFO amount for a calmer tone. |
-| **Oscillator: Through-Zero Bells** | A second Oscillator frequency-modulates the first through its FM input, and a decaying envelope on FM Depth makes each bell strike bright and then mellow. Change the modulator's Coarse for different bell families, or raise FM Depth for glassier tones. |
-| **Oscillator: Sub Octave Weight** | A pulse bass and a second Oscillator on a square one octave down are mixed under a drum loop, with Pulse Width moving slowly for a hollow, breathing bass. Mute the Sub channel on the mixer to hear how much weight it adds. |
-| **Oscillator: Three-Voice Pad** | Three Oscillators a few cents apart play slow chord roots, one pushed a fifth up, and a reverb spreads them wide. Change Fine on any oscillator for faster beating, or Morph for a brighter or softer pad. |
+| **[Oscillator: Morph Sweep](/library/detail/?kind=module&slug=oscillator#demo-1)** | A bass line on one Oscillator while a slow LFO moves Morph from the triangle (Waveform) to the square (Secondary), so the same note keeps changing colour. Set Morph by hand to freeze the blend, pick other waveforms, or move Pulse Width for a thinner square. |
+| **[Oscillator: Hard Sync Sweep](/library/detail/?kind=module&slug=oscillator#demo-2)** | A lead oscillator is reset by the sequencer's gate on every note, while a slow LFO pushes its Coarse tuning upward: the classic tearing sync sweep. Turn Morph toward the square for a hollower bite, or lower the LFO amount for a calmer tone. |
+| **[Oscillator: Through-Zero Bells](/library/detail/?kind=module&slug=oscillator#demo-3)** | A second Oscillator frequency-modulates the first through its FM input, and a decaying envelope on FM Depth makes each bell strike bright and then mellow. Change the modulator's Coarse for different bell families, or raise FM Depth for glassier tones. |
+| **[Oscillator: Sub Octave Weight](/library/detail/?kind=module&slug=oscillator#demo-4)** | A pulse bass and a second Oscillator on a square one octave down are mixed under a drum loop, with Pulse Width moving slowly for a hollow, breathing bass. Mute the Sub channel on the mixer to hear how much weight it adds. |
+| **[Oscillator: Three-Voice Pad](/library/detail/?kind=module&slug=oscillator#demo-5)** | Three Oscillators a few cents apart play slow chord roots, one pushed a fifth up, and a reverb spreads them wide. Change Fine on any oscillator for faster beating, or Morph for a brighter or softer pad. |
 <!-- /generated -->
 
 ## Reference

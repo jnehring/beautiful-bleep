@@ -78,15 +78,15 @@ shift shows up as a translation. The dial shows both oscillators turning.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Freq Shifter does. In the standalone app open **File → Presets…** (⌘P) and pick *Freq Shifter* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Freq Shifter does. In the standalone app open **File → Presets…** (⌘P) and pick *Freq Shifter* under *Demos by module*; on the website they are in the [Freq Shifter entry of the Bleep Library](/library/detail/?kind=module&slug=freq-shifter#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Freq Shifter: Endless Rising Sweep** | A saw pad is shifted up by a tiny Fine amount, and strong Feedback sends it round again, so the phasing sweep seems to climb forever. Make Fine negative and it falls forever; raise Mix to hear more of the swirl. |
-| **Freq Shifter: Pad into Bells** | With Shift raised on the 200 Hz range and Mix at 100 %, the harmonics of a pad move by a fixed number of Hz instead of staying in tune, so it turns into clanging, inharmonic bells. Reduce Shift toward zero to bring the pad back to a normal pitch. |
-| **Freq Shifter: Opposite Shifts Widener** | Spread sends the left channel up and the right channel down by the same few Hz, so a mono riff becomes wide and slowly beating without any delay. Close Spread to hear the plain mono sound again. |
-| **Freq Shifter: Robot Drum Downshift** | A broken beat is shifted down a few hundred Hz with some Feedback, so the kick loses its pitch and the snare and hats turn into clanking robot hits. Move Shift through zero and up to hear the effect change character. |
-| **Freq Shifter: Quadrature Wobble** | The Shifter's own Sin output, a control signal that runs at the shift rate, opens and closes a filter on the same riff, so the phasing and the filter wobble stay locked together. Change Fine to speed up or slow down both. |
+| **[Freq Shifter: Endless Rising Sweep](/library/detail/?kind=module&slug=freq-shifter#demo-1)** | A saw pad is shifted up by a tiny Fine amount, and strong Feedback sends it round again, so the phasing sweep seems to climb forever. Make Fine negative and it falls forever; raise Mix to hear more of the swirl. |
+| **[Freq Shifter: Pad into Bells](/library/detail/?kind=module&slug=freq-shifter#demo-2)** | With Shift raised on the 200 Hz range and Mix at 100 %, the harmonics of a pad move by a fixed number of Hz instead of staying in tune, so it turns into clanging, inharmonic bells. Reduce Shift toward zero to bring the pad back to a normal pitch. |
+| **[Freq Shifter: Opposite Shifts Widener](/library/detail/?kind=module&slug=freq-shifter#demo-3)** | Spread sends the left channel up and the right channel down by the same few Hz, so a mono riff becomes wide and slowly beating without any delay. Close Spread to hear the plain mono sound again. |
+| **[Freq Shifter: Robot Drum Downshift](/library/detail/?kind=module&slug=freq-shifter#demo-4)** | A broken beat is shifted down a few hundred Hz with some Feedback, so the kick loses its pitch and the snare and hats turn into clanking robot hits. Move Shift through zero and up to hear the effect change character. |
+| **[Freq Shifter: Quadrature Wobble](/library/detail/?kind=module&slug=freq-shifter#demo-5)** | The Shifter's own Sin output, a control signal that runs at the shift rate, opens and closes a filter on the same riff, so the phasing and the filter wobble stay locked together. Change Fine to speed up or slow down both. |
 <!-- /generated -->
 
 <!-- generated:presets -->

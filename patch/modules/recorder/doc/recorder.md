@@ -36,15 +36,15 @@ should not contain one.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Recorder does. In the standalone app open **File → Presets…** (⌘P) and pick *Recorder* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Recorder does. In the standalone app open **File → Presets…** (⌘P) and pick *Recorder* under *Demos by module*; on the website they are in the [Recorder entry of the Bleep Library](/library/detail/?kind=module&slug=recorder#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Recorder: A Take per Phrase** | A gate pattern starts a take at the start of each phrase and ends it when the phrase ends (Gate Input is Starts and Ends); a rim click answers each finished take. Each new take replaces the last one in the Recorder's view. Change Pre-roll to catch the notes before the gate. |
-| **Recorder: Recording Lamp and Whistle** | While a take runs, the Recording gate sounds a steady tone and Progress raises the pitch of a whistle as the take fills toward its 10 s limit. The takes are started by a gate pattern every few bars. Change Length Limit to 30 s and the whistle rises more slowly. |
-| **Recorder: Armed, Waiting for Sound** | After a bar of nothing a melody begins and the band joins later. Press Arm and the take starts by itself on the first note, with a half second of pre-roll, and a soft bell marks Done when you press Stop. Raise Signal Level to wait for a louder moment. |
-| **Recorder: Bounce a Four Bar Loop** | A gate that stays high for four bars records exactly one loop of the band into a take, then a crash rings out when the Done trigger fires. The loop repeats every eight bars with the take replaced each time. Press Show File after the first take to see the WAV. |
-| **Recorder: Ten Second Sweep** | A pad's filter opens as Progress climbs to the 10 s limit of a gate-started take; at the limit Done fires a kick and the take ends even though the gate is still high. Choose a longer Length Limit and the sweep slows down. |
+| **[Recorder: A Take per Phrase](/library/detail/?kind=module&slug=recorder#demo-1)** | A gate pattern starts a take at the start of each phrase and ends it when the phrase ends (Gate Input is Starts and Ends); a rim click answers each finished take. Each new take replaces the last one in the Recorder's view. Change Pre-roll to catch the notes before the gate. |
+| **[Recorder: Recording Lamp and Whistle](/library/detail/?kind=module&slug=recorder#demo-2)** | While a take runs, the Recording gate sounds a steady tone and Progress raises the pitch of a whistle as the take fills toward its 10 s limit. The takes are started by a gate pattern every few bars. Change Length Limit to 30 s and the whistle rises more slowly. |
+| **[Recorder: Armed, Waiting for Sound](/library/detail/?kind=module&slug=recorder#demo-3)** | After a bar of nothing a melody begins and the band joins later. Press Arm and the take starts by itself on the first note, with a half second of pre-roll, and a soft bell marks Done when you press Stop. Raise Signal Level to wait for a louder moment. |
+| **[Recorder: Bounce a Four Bar Loop](/library/detail/?kind=module&slug=recorder#demo-4)** | A gate that stays high for four bars records exactly one loop of the band into a take, then a crash rings out when the Done trigger fires. The loop repeats every eight bars with the take replaced each time. Press Show File after the first take to see the WAV. |
+| **[Recorder: Ten Second Sweep](/library/detail/?kind=module&slug=recorder#demo-5)** | A pad's filter opens as Progress climbs to the 10 s limit of a gate-started take; at the limit Done fires a kick and the take ends even though the gate is still high. Choose a longer Length Limit and the sweep slows down. |
 <!-- /generated -->
 
 ## Reference

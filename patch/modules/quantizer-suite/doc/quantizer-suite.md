@@ -60,15 +60,15 @@ time however far it jumps.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Quantizer Suite does. In the standalone app open **File → Presets…** (⌘P) and pick *Quantizer Suite* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Quantizer Suite does. In the standalone app open **File → Presets…** (⌘P) and pick *Quantizer Suite* under *Demos by module*; on the website they are in the [Quantizer Suite entry of the Bleep Library](/library/detail/?kind=module&slug=quantizer-suite#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Quantizer Suite: Chord-Tone Mask** | A random line goes into channel A, where the note mask keeps only the notes of a C major seventh chord (C, E, G, B): any value lands on a chord tone, so the melody always outlines the harmony. Click other keys in the view's keyboard to change which notes are allowed. |
-| **Quantizer Suite: Fifths and Octaves** | One melody goes in on A; channels B, C and D transpose it in the scale by 4, 7 and minus 7 steps, which is a fifth up, an octave up and an octave down. Four voices play the thickened line. Change a Steps knob for other intervals. |
-| **Quantizer Suite: Rising Ninths** | Channel A turns each slow root into a ninth chord and plays it converging towards the middle over two octaves; B plays a sus2 chord downwards on the same clock. Change an Order or Chord and the run reshapes at once. |
-| **Quantizer Suite: Follow the Changes** | In Follow mode every channel listens to a Harmony Master on the bus: A snaps a random line to the current chord, B to chord and scale, C holds the chord root. When the progression moves, all three move with it. Change a Target, or the Harmony Master's key. |
-| **Quantizer Suite: Track and Hold Slides** | Channel A follows a slow LFO but only changes pitch when its clock ticks, and Slew slides the voice between the held notes; channel B tracks continuously, so it keeps wobbling into new notes. Try Sample Trigger for hard steps, or Slew A at zero. |
+| **[Quantizer Suite: Chord-Tone Mask](/library/detail/?kind=module&slug=quantizer-suite#demo-1)** | A random line goes into channel A, where the note mask keeps only the notes of a C major seventh chord (C, E, G, B): any value lands on a chord tone, so the melody always outlines the harmony. Click other keys in the view's keyboard to change which notes are allowed. |
+| **[Quantizer Suite: Fifths and Octaves](/library/detail/?kind=module&slug=quantizer-suite#demo-2)** | One melody goes in on A; channels B, C and D transpose it in the scale by 4, 7 and minus 7 steps, which is a fifth up, an octave up and an octave down. Four voices play the thickened line. Change a Steps knob for other intervals. |
+| **[Quantizer Suite: Rising Ninths](/library/detail/?kind=module&slug=quantizer-suite#demo-3)** | Channel A turns each slow root into a ninth chord and plays it converging towards the middle over two octaves; B plays a sus2 chord downwards on the same clock. Change an Order or Chord and the run reshapes at once. |
+| **[Quantizer Suite: Follow the Changes](/library/detail/?kind=module&slug=quantizer-suite#demo-4)** | In Follow mode every channel listens to a Harmony Master on the bus: A snaps a random line to the current chord, B to chord and scale, C holds the chord root. When the progression moves, all three move with it. Change a Target, or the Harmony Master's key. |
+| **[Quantizer Suite: Track and Hold Slides](/library/detail/?kind=module&slug=quantizer-suite#demo-5)** | Channel A follows a slow LFO but only changes pitch when its clock ticks, and Slew slides the voice between the held notes; channel B tracks continuously, so it keeps wobbling into new notes. Try Sample Trigger for hard steps, or Slew A at zero. |
 <!-- /generated -->
 
 ## Reference

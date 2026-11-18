@@ -94,15 +94,15 @@ for a filter, a wavefold amount, a pan — a second melody for anything.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Cartesian Seq does. In the standalone app open **File → Presets…** (⌘P) and pick *Cartesian Seq* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Cartesian Seq does. In the standalone app open **File → Presets…** (⌘P) and pick *Cartesian Seq* under *Demos by module*; on the website they are in the [Cartesian Seq entry of the Bleep Library](/library/detail/?kind=module&slug=cartesian-sequencer#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Cartesian Seq: Two-Row Riff** | A grid of eight columns and two rows: the X playhead runs along a row every sixteenth and Y drops to the second row when it reaches the end, so a sixteen-note riff in G Dorian comes out in order. Change Rows to 1 for a short loop, or edit a cell's pitch in the view. |
-| **Cartesian Seq: Ping-Pong Marimba** | Both playheads bounce back and forth over a 6 × 4 patch of the grid, X on the eighths and Y once a bar, so a marimba line keeps reversing and the long path takes ages to repeat. Set the directions to Forward for a plain scan, or Random to lose the pattern. |
-| **Cartesian Seq: Mod Bass** | Every cell also stores a Mod value, and here the Mod output opens the filter of an acid bass, so each step has its own brightness: notes with a high Mod bite, low ones stay dark. Edit the Mod of a cell or turn Mod Slew up to smear the changes. |
-| **Cartesian Seq: Slow Crosshair** | Cartesian mode: no clocks, two slow LFOs steer the X and Y inputs across a full 8 × 8 grid of Lydian notes, and a note sounds whenever the crosshair enters a new cell. Move X and Y yourself, or change the LFO rates to wander faster. |
-| **Cartesian Seq: Row End Fills** | X runs backward through a 5 × 3 grid, and the Row End and Grid End triggers play the drums: a hat each time a row finishes, a kick and clap when the whole grid has been walked. Change Columns or Rows and the drum accents move with the melody. |
+| **[Cartesian Seq: Two-Row Riff](/library/detail/?kind=module&slug=cartesian-sequencer#demo-1)** | A grid of eight columns and two rows: the X playhead runs along a row every sixteenth and Y drops to the second row when it reaches the end, so a sixteen-note riff in G Dorian comes out in order. Change Rows to 1 for a short loop, or edit a cell's pitch in the view. |
+| **[Cartesian Seq: Ping-Pong Marimba](/library/detail/?kind=module&slug=cartesian-sequencer#demo-2)** | Both playheads bounce back and forth over a 6 × 4 patch of the grid, X on the eighths and Y once a bar, so a marimba line keeps reversing and the long path takes ages to repeat. Set the directions to Forward for a plain scan, or Random to lose the pattern. |
+| **[Cartesian Seq: Mod Bass](/library/detail/?kind=module&slug=cartesian-sequencer#demo-3)** | Every cell also stores a Mod value, and here the Mod output opens the filter of an acid bass, so each step has its own brightness: notes with a high Mod bite, low ones stay dark. Edit the Mod of a cell or turn Mod Slew up to smear the changes. |
+| **[Cartesian Seq: Slow Crosshair](/library/detail/?kind=module&slug=cartesian-sequencer#demo-4)** | Cartesian mode: no clocks, two slow LFOs steer the X and Y inputs across a full 8 × 8 grid of Lydian notes, and a note sounds whenever the crosshair enters a new cell. Move X and Y yourself, or change the LFO rates to wander faster. |
+| **[Cartesian Seq: Row End Fills](/library/detail/?kind=module&slug=cartesian-sequencer#demo-5)** | X runs backward through a 5 × 3 grid, and the Row End and Grid End triggers play the drums: a hat each time a row finishes, a kick and clap when the whole grid has been walked. Change Columns or Rows and the drum accents move with the melody. |
 <!-- /generated -->
 
 <!-- generated:presets -->

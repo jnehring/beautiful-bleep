@@ -87,15 +87,15 @@ and changing the sounding stage's gate mode or pulses all end the note.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Stage Seq does. In the standalone app open **File → Presets…** (⌘P) and pick *Stage Seq* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Stage Seq does. In the standalone app open **File → Presets…** (⌘P) and pick *Stage Seq* under *Demos by module*; on the website they are in the [Stage Seq entry of the Bleep Library](/library/detail/?kind=module&slug=stage-sequencer#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Stage Seq: Held Pulses** | Each stage holds its note for a different number of pulses, from one to six, so a slow pad-like line in Eb Lydian lingers on some notes and moves quickly past others. Change a stage's Pulses in the view to stretch or squeeze the phrase. |
-| **Stage Seq: Gate Modes** | Eight stages that each use a different gate mode: a single First hit, notes that repeat on Every pulse, a long Hold, a Ratchet burst and a Rest, so one riff shows all the ways a stage can fire. Click a stage's gate mode in the view to change it. |
-| **Stage Seq: Slide Bass** | Stages marked Slide glide into the next pitch over the Slide Time, and the accented stages fire an extra gate that snaps the filter open, giving a squelchy bass over a four-on-the-floor beat. Raise Slide Time for slower glides or Accent for a harder bite. |
-| **Stage Seq: Pendulum Bells** | Twelve stages are played in Pendulum mode: forward to the last stage and back again, with the Phrase length marking the repeat. Switch Mode to Forward, Reverse, Random or Brownian to hear the same stages in other orders. |
-| **Stage Seq: Brownian Walk** | In Brownian mode the playhead takes a random step to a neighbouring stage each time, so a Dorian melody wanders without jumping, and the Stage Start output ticks a hat on every new stage. Change Seed to take another walk, or Stages to widen the range. |
+| **[Stage Seq: Held Pulses](/library/detail/?kind=module&slug=stage-sequencer#demo-1)** | Each stage holds its note for a different number of pulses, from one to six, so a slow pad-like line in Eb Lydian lingers on some notes and moves quickly past others. Change a stage's Pulses in the view to stretch or squeeze the phrase. |
+| **[Stage Seq: Gate Modes](/library/detail/?kind=module&slug=stage-sequencer#demo-2)** | Eight stages that each use a different gate mode: a single First hit, notes that repeat on Every pulse, a long Hold, a Ratchet burst and a Rest, so one riff shows all the ways a stage can fire. Click a stage's gate mode in the view to change it. |
+| **[Stage Seq: Slide Bass](/library/detail/?kind=module&slug=stage-sequencer#demo-3)** | Stages marked Slide glide into the next pitch over the Slide Time, and the accented stages fire an extra gate that snaps the filter open, giving a squelchy bass over a four-on-the-floor beat. Raise Slide Time for slower glides or Accent for a harder bite. |
+| **[Stage Seq: Pendulum Bells](/library/detail/?kind=module&slug=stage-sequencer#demo-4)** | Twelve stages are played in Pendulum mode: forward to the last stage and back again, with the Phrase length marking the repeat. Switch Mode to Forward, Reverse, Random or Brownian to hear the same stages in other orders. |
+| **[Stage Seq: Brownian Walk](/library/detail/?kind=module&slug=stage-sequencer#demo-5)** | In Brownian mode the playhead takes a random step to a neighbouring stage each time, so a Dorian melody wanders without jumping, and the Stage Start output ticks a hat on every new stage. Change Seed to take another walk, or Stages to widen the range. |
 <!-- /generated -->
 
 <!-- generated:presets -->

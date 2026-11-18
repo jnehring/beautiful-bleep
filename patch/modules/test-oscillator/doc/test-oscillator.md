@@ -81,15 +81,15 @@ and lets it run free.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Test Oscillator does. In the standalone app open **File → Presets…** (⌘P) and pick *Test Oscillator* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Test Oscillator does. In the standalone app open **File → Presets…** (⌘P) and pick *Test Oscillator* under *Demos by module*; on the website they are in the [Test Oscillator entry of the Bleep Library](/library/detail/?kind=module&slug=test-oscillator#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Test Oscillator: Warm Hum** | A lamp-stabilised sine on its own: it warms up, bounces slightly in level and carries a faint mains hum, a slowly breathing drone in a big room. Raise Drift for more wander, or change Mains to Off for a perfectly clean tone. |
-| **Test Oscillator: Kicked Bell** | With Loop Gain below 100 % the oscillator dies away on its own, and a trigger on Kick makes it ring like a struck tuning fork. Change Loop Gain for longer or shorter rings, and Kick for how hard it is hit. |
-| **Test Oscillator: Pure Sine Tune** | A plain sine melody from the Test Oscillator's Pitch input with a short envelope, about as clean a tone as exists. Add Fm from the LFO for vibrato or raise Drift to hear a warmer, wobblier note. |
-| **Test Oscillator: Square Bass** | The square output at the lowest range plays a rounded bass line through a low-pass filter, over a simple beat. Change Range to jump the whole line by decades or move Freq for a different key. |
-| **Test Oscillator: Lamp Drives Filter** | The Lamp output, a slow signal showing the oscillator's amplitude loop breathing, opens a filter on a held chord of Oscillators. Raise Settle for slower swings, or Loop Gain for harder bounces. |
+| **[Test Oscillator: Warm Hum](/library/detail/?kind=module&slug=test-oscillator#demo-1)** | A lamp-stabilised sine on its own: it warms up, bounces slightly in level and carries a faint mains hum, a slowly breathing drone in a big room. Raise Drift for more wander, or change Mains to Off for a perfectly clean tone. |
+| **[Test Oscillator: Kicked Bell](/library/detail/?kind=module&slug=test-oscillator#demo-2)** | With Loop Gain below 100 % the oscillator dies away on its own, and a trigger on Kick makes it ring like a struck tuning fork. Change Loop Gain for longer or shorter rings, and Kick for how hard it is hit. |
+| **[Test Oscillator: Pure Sine Tune](/library/detail/?kind=module&slug=test-oscillator#demo-3)** | A plain sine melody from the Test Oscillator's Pitch input with a short envelope, about as clean a tone as exists. Add Fm from the LFO for vibrato or raise Drift to hear a warmer, wobblier note. |
+| **[Test Oscillator: Square Bass](/library/detail/?kind=module&slug=test-oscillator#demo-4)** | The square output at the lowest range plays a rounded bass line through a low-pass filter, over a simple beat. Change Range to jump the whole line by decades or move Freq for a different key. |
+| **[Test Oscillator: Lamp Drives Filter](/library/detail/?kind=module&slug=test-oscillator#demo-5)** | The Lamp output, a slow signal showing the oscillator's amplitude loop breathing, opens a filter on a held chord of Oscillators. Raise Settle for slower swings, or Loop Gain for harder bounces. |
 <!-- /generated -->
 
 ## Reference

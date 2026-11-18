@@ -69,15 +69,15 @@ identical; small values give width, larger ones two peaks, one per ear.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Formant Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Formant Osc* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Formant Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Formant Osc* under *Demos by module*; on the website they are in the [Formant Osc entry of the Bleep Library](/library/detail/?kind=module&slug=formant-osc#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Formant Osc: Vowel Sweep** | A flowing melody on the Formant Osc while a slow LFO sweeps the Formant peak, so the tone opens and closes like a voice changing vowels, without a filter anywhere. Move Formant by hand, or raise Narrow for a more nasal peak. |
-| **Formant Osc: Squelch Bass** | A decaying envelope sweeps the formant peak up and down on every note, giving a squelchy bass that behaves like a resonant filter although there is none. Change Narrow for a sharper squelch, or lengthen the decay for a longer wow. |
-| **Formant Osc: Wide Choir** | Slow chord roots on the Formant Osc with Spread and Body opened up make a breathy, choir-like pad that sits wide in the stereo field. Turn Spread to zero for mono, or Roll up to soften the upper end. |
-| **Formant Osc: Random Vowels** | A fast arpeggio while a Random module picks a new smooth Formant position every few beats: each note wears a different vowel. Raise Random's Smooth for glides between vowels, or Spread for bolder jumps. |
-| **Formant Osc: Fixed Resonance** | With Tracking on Fixed, the formant peak stays put while the notes move, as in a real vowel across a sung tune, instead of rising with the pitch. Switch Tracking back to Ratio and the whole tone shifts with each note. |
+| **[Formant Osc: Vowel Sweep](/library/detail/?kind=module&slug=formant-osc#demo-1)** | A flowing melody on the Formant Osc while a slow LFO sweeps the Formant peak, so the tone opens and closes like a voice changing vowels, without a filter anywhere. Move Formant by hand, or raise Narrow for a more nasal peak. |
+| **[Formant Osc: Squelch Bass](/library/detail/?kind=module&slug=formant-osc#demo-2)** | A decaying envelope sweeps the formant peak up and down on every note, giving a squelchy bass that behaves like a resonant filter although there is none. Change Narrow for a sharper squelch, or lengthen the decay for a longer wow. |
+| **[Formant Osc: Wide Choir](/library/detail/?kind=module&slug=formant-osc#demo-3)** | Slow chord roots on the Formant Osc with Spread and Body opened up make a breathy, choir-like pad that sits wide in the stereo field. Turn Spread to zero for mono, or Roll up to soften the upper end. |
+| **[Formant Osc: Random Vowels](/library/detail/?kind=module&slug=formant-osc#demo-4)** | A fast arpeggio while a Random module picks a new smooth Formant position every few beats: each note wears a different vowel. Raise Random's Smooth for glides between vowels, or Spread for bolder jumps. |
+| **[Formant Osc: Fixed Resonance](/library/detail/?kind=module&slug=formant-osc#demo-5)** | With Tracking on Fixed, the formant peak stays put while the notes move, as in a real vowel across a sung tune, instead of rising with the pitch. Switch Tracking back to Ratio and the whole tone shifts with each note. |
 <!-- /generated -->
 
 <!-- generated:presets -->

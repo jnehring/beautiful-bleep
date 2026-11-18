@@ -41,16 +41,21 @@ const cell = (s) => String(s ?? "").replace(/\s+/g, " ").replace(/\|/g, "/").tri
 const table = (head, rows) => [`| ${head[0]} | ${head[1]} |`, "|---|---|", ...rows.map(([a, b]) => `| **${cell(a)}** | ${cell(b)} |`)].join("\n");
 const NUMBER = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
 
-export function demoBlock(name, demos) {
+/// The demo cards of a module in the Bleep Library (website/app/src/app/library/detail/page.tsx): `#examples`, one `#demo-<n>` per demo.
+export const libraryDemoUrl = (slug, n) => `/library/detail/?kind=module&slug=${encodeURIComponent(slug)}#${n ? `demo-${n}` : "examples"}`;
+
+/// `slug`: the module's folder, which is its Library entry; each demo name links to its card there.
+export function demoBlock(name, demos, slug) {
   const n = demos.length;
+  const link = (text, i) => (slug ? `[${text}](${libraryDemoUrl(slug, i)})` : text);
   return [
     OPEN.demos,
     "## Demo patches",
     "",
     `${NUMBER[n] ?? n} whole patch${n === 1 ? "" : "es"} show${n === 1 ? "s" : ""} what ${name} does. In the standalone app open **File → Presets…** (⌘P) and pick *${name}* under *Demos by module*; ` +
-      "on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.",
+      `on the website they are in the ${link(`${name} entry of the Bleep Library`, 0)}, where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.`,
     "",
-    table(["Patch", "What it shows"], demos.map((d) => [d.name, d.preset?.description ?? d.description ?? ""])),
+    table(["Patch", "What it shows"], demos.map((d, i) => [link(cell(d.name), i + 1), d.preset?.description ?? d.description ?? ""])),
     CLOSE,
   ].join("\n");
 }
@@ -99,8 +104,8 @@ export function applySection(text, kind, heading, block, after) {
 }
 
 /// The manual with both generated sections as they should be.
-export function sync(text, name, demos, presets) {
-  let out = applySection(text, "demos", "Demo patches", demos.length ? demoBlock(name, demos) : null);
+export function sync(text, name, demos, presets, slug) {
+  let out = applySection(text, "demos", "Demo patches", demos.length ? demoBlock(name, demos, slug) : null);
   out = applySection(out, "presets", "Presets", presets.length ? presetBlock(name, presets) : null, "demos");
   return out;
 }
@@ -157,7 +162,7 @@ function main() {
     const type = m.doc.replace(/^.*\//, "").replace(/\.md$/, "");
     let next;
     try {
-      next = sync(text, m.name, demoList[f] ?? [], presetList[f] ?? []);
+      next = sync(text, m.name, demoList[f] ?? [], presetList[f] ?? [], f);
     } catch (e) {
       problems.push(`${rel}: ${e.message}`);
       continue;

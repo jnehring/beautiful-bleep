@@ -48,15 +48,15 @@ fires whenever AND, OR or XOR changes.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Logic does. In the standalone app open **File → Presets…** (⌘P) and pick *Logic* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Logic does. In the standalone app open **File → Presets…** (⌘P) and pick *Logic* under *Demos by module*; on the website they are in the [Logic entry of the Bleep Library](/library/detail/?kind=module&slug=logic#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Logic: Two Lanes, Three Drums** | Two gate patterns, one irregular and one straight eighths, feed the Logic module: where both hit (And) the kick plays, where only one does (Xor) the snare, and Or adds a soft hat on every hit of either. Change either lane on the Drum Grid and the drums rearrange themselves. |
-| **Logic: Flip-Flop Beat Swap** | Each kick flips the flip-flop, so its output is high on one beat and low on the next; one arpeggio plays while it is high and a second one while it is low, taken from a chained Logic module that inverts it. Speed up the flips for a stutter, or reset them for a fixed phrase. |
-| **Logic: Edge Detectors** | A square wave is fed into Logic, and its Rise output fires a kick when the wave goes up, Fall a snare when it comes down, and Change a closed hat at either edge. Narrow the square's pulse width and the snare moves away from the kick. |
-| **Logic: Nor, Nand and Not** | Three square waves at different speeds are combined three ways: Nor fires the kick when all of them are low, Nand the snare when any one drops, and Not-A a rim on the second half of A's cycle. Change any wave's speed to find new patterns. |
-| **Logic: Three Lengths Collide** | Three sequencers of three, four and five steps run in parallel and drift in and out of phase; Logic turns their gates into a drum part, with And as a rare accent on the kick, Xor on the rim and Or on the hats. Change a sequencer's Length and the whole rhythm shifts. |
+| **[Logic: Two Lanes, Three Drums](/library/detail/?kind=module&slug=logic#demo-1)** | Two gate patterns, one irregular and one straight eighths, feed the Logic module: where both hit (And) the kick plays, where only one does (Xor) the snare, and Or adds a soft hat on every hit of either. Change either lane on the Drum Grid and the drums rearrange themselves. |
+| **[Logic: Flip-Flop Beat Swap](/library/detail/?kind=module&slug=logic#demo-2)** | Each kick flips the flip-flop, so its output is high on one beat and low on the next; one arpeggio plays while it is high and a second one while it is low, taken from a chained Logic module that inverts it. Speed up the flips for a stutter, or reset them for a fixed phrase. |
+| **[Logic: Edge Detectors](/library/detail/?kind=module&slug=logic#demo-3)** | A square wave is fed into Logic, and its Rise output fires a kick when the wave goes up, Fall a snare when it comes down, and Change a closed hat at either edge. Narrow the square's pulse width and the snare moves away from the kick. |
+| **[Logic: Nor, Nand and Not](/library/detail/?kind=module&slug=logic#demo-4)** | Three square waves at different speeds are combined three ways: Nor fires the kick when all of them are low, Nand the snare when any one drops, and Not-A a rim on the second half of A's cycle. Change any wave's speed to find new patterns. |
+| **[Logic: Three Lengths Collide](/library/detail/?kind=module&slug=logic#demo-5)** | Three sequencers of three, four and five steps run in parallel and drift in and out of phase; Logic turns their gates into a drum part, with And as a rare accent on the kick, Xor on the rim and Or on the hats. Change a sequencer's Length and the whole rhythm shifts. |
 <!-- /generated -->
 
 ## Reference

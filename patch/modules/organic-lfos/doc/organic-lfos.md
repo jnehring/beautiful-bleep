@@ -76,15 +76,15 @@ over 50 ms so it doesn't click.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Organic LFOs does. In the standalone app open **File → Presets…** (⌘P) and pick *Organic LFOs* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Organic LFOs does. In the standalone app open **File → Presets…** (⌘P) and pick *Organic LFOs* under *Demos by module*; on the website they are in the [Organic LFOs entry of the Bleep Library](/library/detail/?kind=module&slug=organic-lfos#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Organic LFOs: Living Pad** | Eight slow, related movements are spread over a pad: the filter, the oscillator shape and the reverb size each follow a different one, so the sound breathes without ever repeating exactly. Change Rate, Spread and Drift on the module to speed up or loosen the group. |
-| **Organic LFOs: Breathing Chord** | Six of the eight outputs swell six notes of a chord in and out, so the harmony rearranges itself in a slow, natural way. Lower Scatter to make the voices move more alike, or turn Spread negative to reverse the order. |
-| **Organic LFOs: Lively Pluck** | At a faster Rate with plenty of Drift, the same eight movements become a restless wobble: they open the filter, change the tone and add resonance to a plucked line, never twice the same way. Slow Rate and Drift down for a calmer feel. |
-| **Organic LFOs: Bar-Locked Breath** | With Lock set to Bars the group repeats in step with the song, so the filter movement over a bass line and beat comes back exactly each time. Switch Lock back to Free and the same movement slips out of time. |
-| **Organic LFOs: Wandering Voices** | Four held notes each wander across the stereo field, steered by different outputs, while Twist bends how the group is related. Change Twist and Spread to change how the voices follow each other. |
+| **[Organic LFOs: Living Pad](/library/detail/?kind=module&slug=organic-lfos#demo-1)** | Eight slow, related movements are spread over a pad: the filter, the oscillator shape and the reverb size each follow a different one, so the sound breathes without ever repeating exactly. Change Rate, Spread and Drift on the module to speed up or loosen the group. |
+| **[Organic LFOs: Breathing Chord](/library/detail/?kind=module&slug=organic-lfos#demo-2)** | Six of the eight outputs swell six notes of a chord in and out, so the harmony rearranges itself in a slow, natural way. Lower Scatter to make the voices move more alike, or turn Spread negative to reverse the order. |
+| **[Organic LFOs: Lively Pluck](/library/detail/?kind=module&slug=organic-lfos#demo-3)** | At a faster Rate with plenty of Drift, the same eight movements become a restless wobble: they open the filter, change the tone and add resonance to a plucked line, never twice the same way. Slow Rate and Drift down for a calmer feel. |
+| **[Organic LFOs: Bar-Locked Breath](/library/detail/?kind=module&slug=organic-lfos#demo-4)** | With Lock set to Bars the group repeats in step with the song, so the filter movement over a bass line and beat comes back exactly each time. Switch Lock back to Free and the same movement slips out of time. |
+| **[Organic LFOs: Wandering Voices](/library/detail/?kind=module&slug=organic-lfos#demo-5)** | Four held notes each wander across the stereo field, steered by different outputs, while Twist bends how the group is related. Change Twist and Spread to change how the voices follow each other. |
 <!-- /generated -->
 
 <!-- generated:presets -->

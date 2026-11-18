@@ -88,15 +88,15 @@ The preset bar of the Quantizer view has 15 factory presets. Pick one to set the
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Quantizer does. In the standalone app open **File → Presets…** (⌘P) and pick *Quantizer* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Quantizer does. In the standalone app open **File → Presets…** (⌘P) and pick *Quantizer* under *Demos by module*; on the website they are in the [Quantizer entry of the Bleep Library](/library/detail/?kind=module&slug=quantizer#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Quantizer: Triangle Climb** | A slow triangle LFO is a smooth, continuous voltage; the Quantizer turns it into stairs of pentatonic notes and fires a trigger on every new one, so the voice climbs and falls by itself. Widen Range for more octaves, or pick another Scale. |
-| **Quantizer: Dorian Wanderer** | A stepped Random sends any value it likes; the Quantizer is clocked by a sequencer and, on each tick, snaps it into D Dorian, so the wandering always sounds like a tune. Try a different Scale (Whole Tone, Blues) or a smaller Range. |
-| **Quantizer: Chromatic Run to Hirajoshi** | The sequencer plays an ordinary chromatic run, every semitone, and the Quantizer squeezes it into the five-note Hirajoshi scale, so repeated notes appear where the notes were pushed together. Switch Scale to Chromatic for the original run, or Rounding to Up. |
-| **Quantizer: Glide Between Notes** | A sine LFO sweeps a legato voice; the Quantizer picks scale notes but Glide turns each jump into a slide, like a fretless line stepping through a scale. Set Glide to zero for hard steps, or Rounding to Down to favour the lower note. |
-| **Quantizer: Shift Echo** | One sequencer line is quantized to the blues scale; a square LFO adds a step to the Transpose input every other bar, lifting the whole line to a new key area that is still in the scale. Change the LFO Sync or the amount of the Transpose cable. |
+| **[Quantizer: Triangle Climb](/library/detail/?kind=module&slug=quantizer#demo-1)** | A slow triangle LFO is a smooth, continuous voltage; the Quantizer turns it into stairs of pentatonic notes and fires a trigger on every new one, so the voice climbs and falls by itself. Widen Range for more octaves, or pick another Scale. |
+| **[Quantizer: Dorian Wanderer](/library/detail/?kind=module&slug=quantizer#demo-2)** | A stepped Random sends any value it likes; the Quantizer is clocked by a sequencer and, on each tick, snaps it into D Dorian, so the wandering always sounds like a tune. Try a different Scale (Whole Tone, Blues) or a smaller Range. |
+| **[Quantizer: Chromatic Run to Hirajoshi](/library/detail/?kind=module&slug=quantizer#demo-3)** | The sequencer plays an ordinary chromatic run, every semitone, and the Quantizer squeezes it into the five-note Hirajoshi scale, so repeated notes appear where the notes were pushed together. Switch Scale to Chromatic for the original run, or Rounding to Up. |
+| **[Quantizer: Glide Between Notes](/library/detail/?kind=module&slug=quantizer#demo-4)** | A sine LFO sweeps a legato voice; the Quantizer picks scale notes but Glide turns each jump into a slide, like a fretless line stepping through a scale. Set Glide to zero for hard steps, or Rounding to Down to favour the lower note. |
+| **[Quantizer: Shift Echo](/library/detail/?kind=module&slug=quantizer#demo-5)** | One sequencer line is quantized to the blues scale; a square LFO adds a step to the Transpose input every other bar, lifting the whole line to a new key area that is still in the scale. Change the LFO Sync or the amount of the Transpose cable. |
 <!-- /generated -->
 
 ## Reference

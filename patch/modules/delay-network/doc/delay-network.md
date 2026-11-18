@@ -93,15 +93,15 @@ repeat.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Delay Net does. In the standalone app open **File → Presets…** (⌘P) and pick *Delay Net* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Delay Net does. In the standalone app open **File → Presets…** (⌘P) and pick *Delay Net* under *Demos by module*; on the website they are in the [Delay Net entry of the Bleep Library](/library/detail/?kind=module&slug=delay-network#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Delay Net: Ring Cloud** | Six taps pass the signal round a ring, so a sparse melody dissolves into a drifting cloud of repeats. Try Taps, Scatter and Character, or switch Routing to Parallel to hear the ring unravel. |
-| **Delay Net: Parallel Rhythm Taps** | In Parallel routing each tap is a separate echo, locked to a dotted eighth so the taps spread into a rhythm around a bright pluck. Change Sync, Scatter or Taps to re-space the pattern. |
-| **Delay Net: Reverse Tide** | Chain routing with a large Reverse amount turns the repeats backwards, so every note swells in before it arrives. Lower Reverse for normal echoes, or raise Jitter to blur the swells. |
-| **Delay Net: Mesh Swarm** | Mesh routing lets every line feed every other, and a slow LFO sweeps Scatter so the swarm of repeats keeps rearranging itself. Try more Jitter and Character for a rougher texture, or less Feedback to calm it. |
-| **Delay Net: Frozen Moment** | A square LFO closes the Freeze gate every few bars, trapping the network's contents as a sustained wash while the melody carries on over it. Change the LFO's Sync, or latch the gate with your own control. |
+| **[Delay Net: Ring Cloud](/library/detail/?kind=module&slug=delay-network#demo-1)** | Six taps pass the signal round a ring, so a sparse melody dissolves into a drifting cloud of repeats. Try Taps, Scatter and Character, or switch Routing to Parallel to hear the ring unravel. |
+| **[Delay Net: Parallel Rhythm Taps](/library/detail/?kind=module&slug=delay-network#demo-2)** | In Parallel routing each tap is a separate echo, locked to a dotted eighth so the taps spread into a rhythm around a bright pluck. Change Sync, Scatter or Taps to re-space the pattern. |
+| **[Delay Net: Reverse Tide](/library/detail/?kind=module&slug=delay-network#demo-3)** | Chain routing with a large Reverse amount turns the repeats backwards, so every note swells in before it arrives. Lower Reverse for normal echoes, or raise Jitter to blur the swells. |
+| **[Delay Net: Mesh Swarm](/library/detail/?kind=module&slug=delay-network#demo-4)** | Mesh routing lets every line feed every other, and a slow LFO sweeps Scatter so the swarm of repeats keeps rearranging itself. Try more Jitter and Character for a rougher texture, or less Feedback to calm it. |
+| **[Delay Net: Frozen Moment](/library/detail/?kind=module&slug=delay-network#demo-5)** | A square LFO closes the Freeze gate every few bars, trapping the network's contents as a sustained wash while the melody carries on over it. Change the LFO's Sync, or latch the gate with your own control. |
 <!-- /generated -->
 
 <!-- generated:presets -->

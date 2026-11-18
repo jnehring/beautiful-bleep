@@ -83,15 +83,15 @@ CPU.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Swarm does. In the standalone app open **File → Presets…** (⌘P) and pick *Swarm* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Swarm does. In the standalone app open **File → Presets…** (⌘P) and pick *Swarm* under *Demos by module*; on the website they are in the [Swarm entry of the Bleep Library](/library/detail/?kind=module&slug=swarm#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Swarm: Blooming Pad** | A slow LFO moves Spread between 0 and 100 %: the eight oscillators sit on the root, then leave it one after another and slide up into a minor ninth stack, and fold back again. Glide sets how lazily they move. Try Chord, Count and Width, or press Reshuffle for a new set of glide times. |
-| **Swarm: Supersaw Lead** | With Spread at 0 every oscillator plays the same note, so the swarm becomes a fat unison lead: seven bright saws, Detune in a Fan pattern, a little Width. A filter envelope closes after each note. Raise Spread a touch to hear the lead turn into a chord, or change Pattern to Alternate or Outer. |
-| **Swarm: Hirajoshi Shimmer** | Set to a whole scale instead of a chord: sixteen oscillators across four octaves of Hirajoshi, fully spread, with high Drift and Width so the notes shimmer and wander. Soft sine-like Warp keeps it glassy. Change Chord to another scale, lower Range for a narrower cloud, or sweep Drift by hand. |
-| **Swarm: Metal Cloud** | Cross FM pushes each oscillator's phase with its neighbour's, turning a Cluster chord into dense, bell-like metal. A trigger at the start of every bar reshuffles the detune pattern and glide times, so each bar is a new cloud, and an envelope on every beat strikes it. Lower Cross FM for gritty chords, or raise it for noise. |
-| **Swarm: Root and Upper** | Swarm's Root output is a clean anchor and Upper carries only the oscillators above the root octave. Here the Root goes through a low-pass for the bassline, while Upper is filtered brighter and swept by an LFO for the chord. Use two different filters, or one effect on only one of them. |
+| **[Swarm: Blooming Pad](/library/detail/?kind=module&slug=swarm#demo-1)** | A slow LFO moves Spread between 0 and 100 %: the eight oscillators sit on the root, then leave it one after another and slide up into a minor ninth stack, and fold back again. Glide sets how lazily they move. Try Chord, Count and Width, or press Reshuffle for a new set of glide times. |
+| **[Swarm: Supersaw Lead](/library/detail/?kind=module&slug=swarm#demo-2)** | With Spread at 0 every oscillator plays the same note, so the swarm becomes a fat unison lead: seven bright saws, Detune in a Fan pattern, a little Width. A filter envelope closes after each note. Raise Spread a touch to hear the lead turn into a chord, or change Pattern to Alternate or Outer. |
+| **[Swarm: Hirajoshi Shimmer](/library/detail/?kind=module&slug=swarm#demo-3)** | Set to a whole scale instead of a chord: sixteen oscillators across four octaves of Hirajoshi, fully spread, with high Drift and Width so the notes shimmer and wander. Soft sine-like Warp keeps it glassy. Change Chord to another scale, lower Range for a narrower cloud, or sweep Drift by hand. |
+| **[Swarm: Metal Cloud](/library/detail/?kind=module&slug=swarm#demo-4)** | Cross FM pushes each oscillator's phase with its neighbour's, turning a Cluster chord into dense, bell-like metal. A trigger at the start of every bar reshuffles the detune pattern and glide times, so each bar is a new cloud, and an envelope on every beat strikes it. Lower Cross FM for gritty chords, or raise it for noise. |
+| **[Swarm: Root and Upper](/library/detail/?kind=module&slug=swarm#demo-5)** | Swarm's Root output is a clean anchor and Upper carries only the oscillators above the root octave. Here the Root goes through a low-pass for the bassline, while Upper is filtered brighter and swept by an LFO for the chord. Use two different filters, or one effect on only one of them. |
 <!-- /generated -->
 
 <!-- generated:presets -->

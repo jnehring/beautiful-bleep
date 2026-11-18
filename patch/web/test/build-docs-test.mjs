@@ -76,6 +76,12 @@ assert.throws(() => sync("## Introduction\n<!-- generated:demos -->\n## Demo pat
 assert.match(demoBlock("X", [demos[0]]), /One whole patch shows what X does/);
 assert.match(presetBlock("X", [presets[0]]), /has 1 factory preset\./);
 
+// with the module's slug every demo links to its card in the Bleep Library, and the intro to the examples
+const linked = demoBlock("Grains", demos, "grains");
+assert.match(linked, /\[Grains entry of the Bleep Library\]\(\/library\/detail\/\?kind=module&slug=grains#examples\)/);
+demos.forEach((d, i) => assert.ok(linked.includes(`| **[${d.name}](/library/detail/?kind=module&slug=grains#demo-${i + 1})** |`)));
+assert.doesNotMatch(demoBlock("Grains", demos), /\]\(/);
+
 // the outline
 const ctx = { type: "grains", docDir: "/nonexistent", manuals: new Set(["grains", "adsr"]) };
 const errs = (t) => checkOutline(t, ctx);

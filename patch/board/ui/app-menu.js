@@ -12,6 +12,7 @@
 //   P.BleepAppMenu.init({ nativeMenu, version })
 //   P.BleepAppMenu.register(commands, enabled)   commands {id: fn(anchor)}; enabled {id: fn(): bool}
 //   P.BleepAppMenu.refresh()                     the board's state changed (Undo/Redo availability): redraw / resend
+//   P.BleepAppMenu.openSite(path)                opens a page of the website ("/library/…"): a new tab in Play, the browser in the apps
 (function () {
   "use strict";
   // The page's lock (common/ui/bleep-bridge.js): the native bridge and the board's private namespace are not on `window`.
@@ -41,8 +42,12 @@
   const GETTING_STARTED = { Play: "start/getting-started-play/", Standalone: "start/getting-started-app/", Plugin: "start/getting-started/" };
 
   /// A page of the musicians' documentation (`page`: its path under /docs/musicians/; none: the overview).
-  async function showDocs(page) {
-    const path = page ? "/docs/musicians/" + page : DOCS;
+  function showDocs(page) {
+    return openSite(page ? "/docs/musicians/" + page : DOCS);
+  }
+
+  /// A page of the website (`path`: "/library/…"), in a new tab of the browser or, from the apps, in the browser at the Library's address.
+  async function openSite(path) {
     if (window.BleepWeb) { window.open(path, "_blank", "noopener"); return; }   // the browser board lives on the site itself
     let site = SITE;
     try {
@@ -308,6 +313,7 @@
       Object.assign(enabledBy, enabledFns || {});
     },
     refresh: sendNative,
+    openSite,
     snapshot,
   };
 })();

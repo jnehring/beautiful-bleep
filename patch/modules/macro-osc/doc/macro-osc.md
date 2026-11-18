@@ -200,15 +200,15 @@ higher for toms.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Macro Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Macro Osc* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Macro Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Macro Osc* under *Demos by module*; on the website they are in the [Macro Osc entry of the Bleep Library](/library/detail/?kind=module&slug=macro-osc#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Macro Osc: Plucked Strings** | The Pluck model struck by the sequencer's trigger: its built-in decay and low-pass gate shape every note, so no envelope or VCA is needed. Turn Decay for longer strings, Tone for brightness and Shape for how hard the string is hit. |
-| **Macro Osc: Vowel Choir** | The Vowel model holds slow notes while a slow LFO walks Tone through the vowels, so the choir seems to sing a different syllable on every phrase. Turn Blend to change the voice or Shape for brightness. |
-| **Macro Osc: FM Electric Keys** | The FM model as a tine-and-bell keyboard sound: Tone sets the modulator ratio and an envelope on Shape gives each key a sparkle that fades. Change Tone to hop between ratios, or raise Blend for more of the second voice. |
-| **Macro Osc: Synth Drum Kit** | Three Macro Oscs on the Kick, Snare and Metal models are struck by a drum grid: a whole beat from one module type. Change each model's Decay and Tone to tune the kit, or switch a model for other percussion. |
-| **Macro Osc: Modal Marimba** | The Modal model struck by a trigger rings like a wooden bar. Tone moves from soft wood to bright metal, Decay lengthens the ring, and Accent from the velocity gives the loud and soft notes. |
+| **[Macro Osc: Plucked Strings](/library/detail/?kind=module&slug=macro-osc#demo-1)** | The Pluck model struck by the sequencer's trigger: its built-in decay and low-pass gate shape every note, so no envelope or VCA is needed. Turn Decay for longer strings, Tone for brightness and Shape for how hard the string is hit. |
+| **[Macro Osc: Vowel Choir](/library/detail/?kind=module&slug=macro-osc#demo-2)** | The Vowel model holds slow notes while a slow LFO walks Tone through the vowels, so the choir seems to sing a different syllable on every phrase. Turn Blend to change the voice or Shape for brightness. |
+| **[Macro Osc: FM Electric Keys](/library/detail/?kind=module&slug=macro-osc#demo-3)** | The FM model as a tine-and-bell keyboard sound: Tone sets the modulator ratio and an envelope on Shape gives each key a sparkle that fades. Change Tone to hop between ratios, or raise Blend for more of the second voice. |
+| **[Macro Osc: Synth Drum Kit](/library/detail/?kind=module&slug=macro-osc#demo-4)** | Three Macro Oscs on the Kick, Snare and Metal models are struck by a drum grid: a whole beat from one module type. Change each model's Decay and Tone to tune the kit, or switch a model for other percussion. |
+| **[Macro Osc: Modal Marimba](/library/detail/?kind=module&slug=macro-osc#demo-5)** | The Modal model struck by a trigger rings like a wooden bar. Tone moves from soft wood to bright metal, Decay lengthens the ring, and Accent from the velocity gives the loud and soft notes. |
 <!-- /generated -->
 
 <!-- generated:presets -->

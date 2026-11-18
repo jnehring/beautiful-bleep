@@ -54,15 +54,15 @@ together.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Endless Tone does. In the standalone app open **File → Presets…** (⌘P) and pick *Endless Tone* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Endless Tone does. In the standalone app open **File → Presets…** (⌘P) and pick *Endless Tone* under *Demos by module*; on the website they are in the [Endless Tone entry of the Bleep Library](/library/detail/?kind=module&slug=endless-tone#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Endless Tone: Rising Pad** | A pad that rises for ever and never gets higher: octave-spaced partials slide up under a fixed window. Change Rate for a faster climb, Width for fewer or more clear partials, or flip Direction to fall. |
-| **Endless Tone: Falling Drone** | A low, saw-edged tone that keeps sinking, with a slow LFO on Width so the cloud thickens and thins as it falls. Try a faster Rate for a descent that feels like an alarm. |
-| **Endless Tone: Loop Clock** | Wrap gives a trigger every time the tone has climbed an octave: here it plays a kick, and the Loop ramp opens a filter on a saw so the whole patch spins with the tone. Change Rate to change the tempo of the spin. |
-| **Endless Tone: Wide Swirl** | Twelve bright partials spread across the stereo field while a slow LFO swings Direction between rising and falling, so the swirl climbs, hangs and sinks. Narrow Width for a clearer, thinner voice. |
-| **Endless Tone: Chord Riser** | Three tones a fifth and an octave apart rise together at slightly different rates, a chord that climbs without end and slowly rotates through its own beating. Change the Pitch of each tone for another chord. |
+| **[Endless Tone: Rising Pad](/library/detail/?kind=module&slug=endless-tone#demo-1)** | A pad that rises for ever and never gets higher: octave-spaced partials slide up under a fixed window. Change Rate for a faster climb, Width for fewer or more clear partials, or flip Direction to fall. |
+| **[Endless Tone: Falling Drone](/library/detail/?kind=module&slug=endless-tone#demo-2)** | A low, saw-edged tone that keeps sinking, with a slow LFO on Width so the cloud thickens and thins as it falls. Try a faster Rate for a descent that feels like an alarm. |
+| **[Endless Tone: Loop Clock](/library/detail/?kind=module&slug=endless-tone#demo-3)** | Wrap gives a trigger every time the tone has climbed an octave: here it plays a kick, and the Loop ramp opens a filter on a saw so the whole patch spins with the tone. Change Rate to change the tempo of the spin. |
+| **[Endless Tone: Wide Swirl](/library/detail/?kind=module&slug=endless-tone#demo-4)** | Twelve bright partials spread across the stereo field while a slow LFO swings Direction between rising and falling, so the swirl climbs, hangs and sinks. Narrow Width for a clearer, thinner voice. |
+| **[Endless Tone: Chord Riser](/library/detail/?kind=module&slug=endless-tone#demo-5)** | Three tones a fifth and an octave apart rise together at slightly different rates, a chord that climbs without end and slowly rotates through its own beating. Change the Pitch of each tone for another chord. |
 <!-- /generated -->
 
 <!-- generated:presets -->

@@ -87,15 +87,15 @@ chases it. The drift follows *Seed* and the song position, so renders repeat.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Wave Analyzer does. In the standalone app open **File → Presets…** (⌘P) and pick *Wave Analyzer* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Wave Analyzer does. In the standalone app open **File → Presets…** (⌘P) and pick *Wave Analyzer* under *Demos by module*; on the website they are in the [Wave Analyzer entry of the Bleep Library](/library/detail/?kind=module&slug=wave-analyzer#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Wave Analyzer: Partial Picker** | A low saw drone has many partials; the analyzer is a very narrow band-pass that an LFO moves slowly over them, so you hear single sine-like overtones appear and fade, over the dry drone. Change Bandwidth for a wider or glassier peak, or move Frequency by hand. |
-| **Wave Analyzer: Spectrum Sweep** | Mode is Sweep: the narrow band glides from low to high and back across a bed of noise and drums, drawing out a rising and falling whistle. Change Sweep Dir, Span or Sweep Time, or widen Bandwidth for a softer tone. |
-| **Wave Analyzer: Pitch Shadow** | In Lock mode the analyzer finds the strongest partial of a melody and its Track output drives a pure sine that shadows every note an octave up. Change Listen to move the range it hears, or Threshold to make it more or less eager to lock. |
-| **Wave Analyzer: Kick Pump** | The analyzer is tuned to the kick's low note and its Level output follows how strong that partial is; the level swells a chord pad in time with the beat. Move Frequency to follow a different drum, or Gain to make the pad react more. |
-| **Wave Analyzer: Shifted Harmony** | A wide band-pass picks the fundamental of a plucked line and the Shifted output moves it up by the Capture amount, a seventh semitones for a fifth, so a thin sine harmony chases each note. Change Capture for other intervals, or Bandwidth to let more of the original through. |
+| **[Wave Analyzer: Partial Picker](/library/detail/?kind=module&slug=wave-analyzer#demo-1)** | A low saw drone has many partials; the analyzer is a very narrow band-pass that an LFO moves slowly over them, so you hear single sine-like overtones appear and fade, over the dry drone. Change Bandwidth for a wider or glassier peak, or move Frequency by hand. |
+| **[Wave Analyzer: Spectrum Sweep](/library/detail/?kind=module&slug=wave-analyzer#demo-2)** | Mode is Sweep: the narrow band glides from low to high and back across a bed of noise and drums, drawing out a rising and falling whistle. Change Sweep Dir, Span or Sweep Time, or widen Bandwidth for a softer tone. |
+| **[Wave Analyzer: Pitch Shadow](/library/detail/?kind=module&slug=wave-analyzer#demo-3)** | In Lock mode the analyzer finds the strongest partial of a melody and its Track output drives a pure sine that shadows every note an octave up. Change Listen to move the range it hears, or Threshold to make it more or less eager to lock. |
+| **[Wave Analyzer: Kick Pump](/library/detail/?kind=module&slug=wave-analyzer#demo-4)** | The analyzer is tuned to the kick's low note and its Level output follows how strong that partial is; the level swells a chord pad in time with the beat. Move Frequency to follow a different drum, or Gain to make the pad react more. |
+| **[Wave Analyzer: Shifted Harmony](/library/detail/?kind=module&slug=wave-analyzer#demo-5)** | A wide band-pass picks the fundamental of a plucked line and the Shifted output moves it up by the Capture amount, a seventh semitones for a fifth, so a thin sine harmony chases each note. Change Capture for other intervals, or Bandwidth to let more of the original through. |
 <!-- /generated -->
 
 ## Reference

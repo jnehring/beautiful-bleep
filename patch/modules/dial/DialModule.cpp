@@ -9,7 +9,7 @@ namespace {
 
 class DialModule final : public Module {
 public:
-    enum { Value, Min, Max, Smooth, Steps };
+    enum { Value, Min, Max, Smooth, Steps, Curve };
     enum { Out };
 
     using Module::Module;
@@ -28,6 +28,7 @@ public:
             p.min = value(c, Min, i);
             p.max = value(c, Max, i);
             p.smooth = value(c, Smooth, i);
+            p.curve = value(c, Curve, i);
             c.outputs[Out][i] = dsp_.tick(p);
         }
     }
@@ -44,12 +45,13 @@ void registerDialModule(Registry& r) {
     s.name = "Dial";
     s.category = "Controllers/Panel";
     s.colour = "#fda4af";
-    s.description = "One knob as a control signal, scaled to a range, smooth or in steps.";
+    s.description = "One knob as a control signal, scaled to a range and bent by a curve, smooth or in steps.";
     s.params = {ParamSpec::percent("value", "Value", 0.0f, 1.0f, 0.5f),
                 ParamSpec::number("min", "Min", -1.0f, 1.0f, 0.0f),
                 ParamSpec::number("max", "Max", -1.0f, 1.0f, 1.0f),
                 ParamSpec::seconds("smooth", "Smooth", 0.0f, 2.0f, 0.2f, 0.02f),
-                ParamSpec::integer("steps", "Steps", 0, 24, 0)};
+                ParamSpec::integer("steps", "Steps", 0, 24, 0),
+                ParamSpec::percent("curve", "Curve", 0.0f, 1.0f, 0.5f)};
     s.outputs = {{"out", "Out", Signal::Control, true}};
     r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<DialModule>(spec); });
 }

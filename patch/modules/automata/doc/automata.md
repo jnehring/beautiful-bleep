@@ -59,15 +59,15 @@ Every step, the system advances one **generation**; the module then reads it:
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Automata does. In the standalone app open **File → Presets…** (⌘P) and pick *Automata* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Automata does. In the standalone app open **File → Presets…** (⌘P) and pick *Automata* under *Demos by module*; on the website they are in the [Automata entry of the Bleep Library](/library/detail/?kind=module&slug=automata#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Automata: Ring Melody** | A ring of sixteen cells grows under rule 30 from a single seed cell; the read head sweeps round the ring, so the lit cells become notes and the dark ones rests. Change Rule (90 mirrors itself, 110 drifts) or raise Interference to nudge the pattern off its course; Reset returns to the seed. |
-| **Automata: Grid Garden** | An 8 by 8 wrapping world: colonies grow, collide and die. Gate and Pitch play a bell-like lead, every birth of a cell triggers a soft hat, and Density, how alive the grid is, opens a filter. Try the other Grid Rule choices, or raise Density for a crowded start. |
-| **Automata: Chain Learns a Tune** | A frozen eight-note loop plays on the left and is patched into the chain's Learn input; the chain on the right listens, adds the moves it hears to its transition table and improvises in the same style. Turn Learn down to hear the plain, stepwise table, or open the module to edit the table by hand. |
-| **Automata: Walker Drums** | A walker with four turn rules roams an 8 by 8 wrapping grid; it plays a note whenever it steps onto a marked cell and fires Birth when it lays a fresh mark. Gate drives a bass, Birth drives hats and a snare, and the walker's route repeats until Interference nudges it somewhere new. |
-| **Automata: Rewrite and Rewind** | A phrase rewrites itself each time it ends, growing longer and then starting over. A slow square LFO patched into Rewind pulls the system four generations back every few seconds, so the phrase keeps returning to something it has played, but never exactly the same way. Change Rewind By or the Rules choice. |
+| **[Automata: Ring Melody](/library/detail/?kind=module&slug=automata#demo-1)** | A ring of sixteen cells grows under rule 30 from a single seed cell; the read head sweeps round the ring, so the lit cells become notes and the dark ones rests. Change Rule (90 mirrors itself, 110 drifts) or raise Interference to nudge the pattern off its course; Reset returns to the seed. |
+| **[Automata: Grid Garden](/library/detail/?kind=module&slug=automata#demo-2)** | An 8 by 8 wrapping world: colonies grow, collide and die. Gate and Pitch play a bell-like lead, every birth of a cell triggers a soft hat, and Density, how alive the grid is, opens a filter. Try the other Grid Rule choices, or raise Density for a crowded start. |
+| **[Automata: Chain Learns a Tune](/library/detail/?kind=module&slug=automata#demo-3)** | A frozen eight-note loop plays on the left and is patched into the chain's Learn input; the chain on the right listens, adds the moves it hears to its transition table and improvises in the same style. Turn Learn down to hear the plain, stepwise table, or open the module to edit the table by hand. |
+| **[Automata: Walker Drums](/library/detail/?kind=module&slug=automata#demo-4)** | A walker with four turn rules roams an 8 by 8 wrapping grid; it plays a note whenever it steps onto a marked cell and fires Birth when it lays a fresh mark. Gate drives a bass, Birth drives hats and a snare, and the walker's route repeats until Interference nudges it somewhere new. |
+| **[Automata: Rewrite and Rewind](/library/detail/?kind=module&slug=automata#demo-5)** | A phrase rewrites itself each time it ends, growing longer and then starting over. A slow square LFO patched into Rewind pulls the system four generations back every few seconds, so the phrase keeps returning to something it has played, but never exactly the same way. Change Rewind By or the Rules choice. |
 <!-- /generated -->
 
 <!-- generated:presets -->

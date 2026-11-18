@@ -73,15 +73,15 @@ is how far through the text it is, 0 – 1.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Speak does. In the standalone app open **File → Presets…** (⌘P) and pick *Speak* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Speak does. In the standalone app open **File → Presets…** (⌘P) and pick *Speak* under *Demos by module*; on the website they are in the [Speak entry of the Bleep Library](/library/detail/?kind=module&slug=speak#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Speak: Robot Choir** | Sustained vowels on a slowly moving bass line, with no intonation, so the voice sings like a mechanical choir. Change the text to other vowels, raise Glide for smoother changes, or move Formant for a bigger or smaller singer. |
-| **Speak: Spoken Beat** | Hisses and stops spoken fast over a drum loop, a percussive layer made only of consonants. Change the text for another rhythm or lower Speed to hear the individual sounds. |
-| **Speak: Step Words** | Mode is Step: every note from the sequencer says the next sound of the text, on the note's pitch, so the tune spells out a phrase. Lengthen the gates to hold the vowels or change the text. |
-| **Speak: Giant and Child** | Two voices say the same words at different speeds, one with its formants pulled down and one pushed up, so a giant and a child talk over each other. Change Formant on either voice. |
-| **Speak: Vowel Sweep** | One long note while a slow LFO moves Formant up and down and the text walks through all the vowels: a singing, shifting drone. Move Glide for blur or Breath for a husky edge. |
+| **[Speak: Robot Choir](/library/detail/?kind=module&slug=speak#demo-1)** | Sustained vowels on a slowly moving bass line, with no intonation, so the voice sings like a mechanical choir. Change the text to other vowels, raise Glide for smoother changes, or move Formant for a bigger or smaller singer. |
+| **[Speak: Spoken Beat](/library/detail/?kind=module&slug=speak#demo-2)** | Hisses and stops spoken fast over a drum loop, a percussive layer made only of consonants. Change the text for another rhythm or lower Speed to hear the individual sounds. |
+| **[Speak: Step Words](/library/detail/?kind=module&slug=speak#demo-3)** | Mode is Step: every note from the sequencer says the next sound of the text, on the note's pitch, so the tune spells out a phrase. Lengthen the gates to hold the vowels or change the text. |
+| **[Speak: Giant and Child](/library/detail/?kind=module&slug=speak#demo-4)** | Two voices say the same words at different speeds, one with its formants pulled down and one pushed up, so a giant and a child talk over each other. Change Formant on either voice. |
+| **[Speak: Vowel Sweep](/library/detail/?kind=module&slug=speak#demo-5)** | One long note while a slow LFO moves Formant up and down and the text walks through all the vowels: a singing, shifting drone. Move Glide for blur or Breath for a husky edge. |
 <!-- /generated -->
 
 <!-- generated:presets -->

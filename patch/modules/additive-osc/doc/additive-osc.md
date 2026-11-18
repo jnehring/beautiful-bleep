@@ -78,15 +78,15 @@ The drawing is saved with the board.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Additive Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Additive Osc* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Additive Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Additive Osc* under *Demos by module*; on the website they are in the [Additive Osc entry of the Bleep Library](/library/detail/?kind=module&slug=additive-osc#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Additive Osc: Tilt Sweep** | A saw-shaped stack of partials whose Tilt is swept by a slow LFO, from dark and woolly to bright and ringing, with no filter involved. Reduce Partials for a rounder tone or push Tilt up for an organ-like glare. |
-| **Additive Osc: Odd Partials Reed** | Odd/Even is pulled to the odd side so only the 1st, 3rd, 5th partials sound: a hollow, reedy tone. Move Odd/Even through zero to bring back the even partials and watch the reed turn into a full saw. |
-| **Additive Osc: Stretched Bells** | A flat spectrum with Stretch pushing the partials apart gives inharmonic, bell-like tones, and each trigger restarts a decay that makes the high partials die first. Change Stretch for a metallic or glassy family, or Decay for longer ringing. |
-| **Additive Osc: Comb Choir** | A slow chord line played by a comb-notched spectrum with a wide chorus, giving a shimmering, voice-like pad. Change Comb Spacing to move the notches or raise Chorus for a bigger, more unstable cloud. |
-| **Additive Osc: Odd and Even Split** | The odd-partial and even-partial outputs go to separate mixer channels whose pans drift in opposite directions, so the two halves of one tone circle each other. Mute one channel to hear its half alone. |
+| **[Additive Osc: Tilt Sweep](/library/detail/?kind=module&slug=additive-osc#demo-1)** | A saw-shaped stack of partials whose Tilt is swept by a slow LFO, from dark and woolly to bright and ringing, with no filter involved. Reduce Partials for a rounder tone or push Tilt up for an organ-like glare. |
+| **[Additive Osc: Odd Partials Reed](/library/detail/?kind=module&slug=additive-osc#demo-2)** | Odd/Even is pulled to the odd side so only the 1st, 3rd, 5th partials sound: a hollow, reedy tone. Move Odd/Even through zero to bring back the even partials and watch the reed turn into a full saw. |
+| **[Additive Osc: Stretched Bells](/library/detail/?kind=module&slug=additive-osc#demo-3)** | A flat spectrum with Stretch pushing the partials apart gives inharmonic, bell-like tones, and each trigger restarts a decay that makes the high partials die first. Change Stretch for a metallic or glassy family, or Decay for longer ringing. |
+| **[Additive Osc: Comb Choir](/library/detail/?kind=module&slug=additive-osc#demo-4)** | A slow chord line played by a comb-notched spectrum with a wide chorus, giving a shimmering, voice-like pad. Change Comb Spacing to move the notches or raise Chorus for a bigger, more unstable cloud. |
+| **[Additive Osc: Odd and Even Split](/library/detail/?kind=module&slug=additive-osc#demo-5)** | The odd-partial and even-partial outputs go to separate mixer channels whose pans drift in opposite directions, so the two halves of one tone circle each other. Mute one channel to hear its half alone. |
 <!-- /generated -->
 
 <!-- generated:presets -->

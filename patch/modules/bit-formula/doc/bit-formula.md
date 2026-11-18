@@ -56,15 +56,15 @@ shown in the view. *Formula* is a stepped knob: a cable can step through them.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Bit Formula does. In the standalone app open **File → Presets…** (⌘P) and pick *Bit Formula* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Bit Formula does. In the standalone app open **File → Presets…** (⌘P) and pick *Bit Formula* under *Demos by module*; on the website they are in the [Bit Formula entry of the Bleep Library](/library/detail/?kind=module&slug=bit-formula#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Bit Formula: Sieve Tune** | A tune made from the overlap of two shifted counters, played by a sequencer on the clock rate. Move A and B to change which notes appear, or switch Formula to Crawl for a slower creeping line. |
-| **Bit Formula: Crush the Beat** | A drum loop goes into In and the formula mixes it, bit by bit, with the counter: the beat comes back crunchy and gritted. Turn A down for a cleaner crush or switch to Input Mod for a more tonal mangle. |
-| **Bit Formula: Sliding Knobs** | Three slow LFOs move A, B and C through a creeping formula, so the shifts and masks keep re-forming: a texture that is never the same twice. Change the LFO rates, or Smooth for a softer surface. |
-| **Bit Formula: Drum Voice** | The counter is reset by every step and the formula is cut by a short envelope, so a falling squeal becomes a percussive hit. Change the Formula or Rate for a different drum sound. |
-| **Bit Formula: Hollow Bass** | A low note on the clock rate of a shifted-mask formula: a hollow, buzzing bass with a built-in sub pattern. A sweeps the harmonic mask; try Bits at 5 for a rawer edge. |
+| **[Bit Formula: Sieve Tune](/library/detail/?kind=module&slug=bit-formula#demo-1)** | A tune made from the overlap of two shifted counters, played by a sequencer on the clock rate. Move A and B to change which notes appear, or switch Formula to Crawl for a slower creeping line. |
+| **[Bit Formula: Crush the Beat](/library/detail/?kind=module&slug=bit-formula#demo-2)** | A drum loop goes into In and the formula mixes it, bit by bit, with the counter: the beat comes back crunchy and gritted. Turn A down for a cleaner crush or switch to Input Mod for a more tonal mangle. |
+| **[Bit Formula: Sliding Knobs](/library/detail/?kind=module&slug=bit-formula#demo-3)** | Three slow LFOs move A, B and C through a creeping formula, so the shifts and masks keep re-forming: a texture that is never the same twice. Change the LFO rates, or Smooth for a softer surface. |
+| **[Bit Formula: Drum Voice](/library/detail/?kind=module&slug=bit-formula#demo-4)** | The counter is reset by every step and the formula is cut by a short envelope, so a falling squeal becomes a percussive hit. Change the Formula or Rate for a different drum sound. |
+| **[Bit Formula: Hollow Bass](/library/detail/?kind=module&slug=bit-formula#demo-5)** | A low note on the clock rate of a shifted-mask formula: a hollow, buzzing bass with a built-in sub pattern. A sweeps the harmonic mask; try Bits at 5 for a rawer edge. |
 <!-- /generated -->
 
 <!-- generated:presets -->

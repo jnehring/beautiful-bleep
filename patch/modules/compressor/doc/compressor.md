@@ -65,13 +65,13 @@ The preset bar of the Compressor view has 13 factory presets. Pick one to set th
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Compressor does. In the standalone app open **File → Presets…** (⌘P) and pick *Compressor* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Compressor does. In the standalone app open **File → Presets…** (⌘P) and pick *Compressor* under *Demos by module*; on the website they are in the [Compressor entry of the Bleep Library](/library/detail/?kind=module&slug=compressor#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Compressor: Kick-Ducked Pad** | A sustained saw pad runs through the Compressor while the kick drum feeds its Key input: every kick pushes the pad down and it swells back between beats. Lower Threshold or lengthen Release for a deeper, slower pump. |
-| **Compressor: Parallel Drum Squash** | A broken beat is flattened with a high Ratio, fast Attack and a lot of Makeup, then blended back with Mix at about half: the room and tails come up while the hits keep their punch. Sweep Mix from 0 to 100 % to hear what the squash adds. |
-| **Compressor: Bass Leveller** | A bass line with wildly different velocities is evened out by an RMS Compressor with a soft Knee, so soft notes sit as firmly as loud ones. Raise Threshold until the quiet notes drop back out again. |
-| **Compressor: Reduction Opens the Filter** | The Compressor's Reduction output is a control signal that rises with every kick, and here it also closes a Multi Filter on the pad: the sound ducks and darkens on each hit. Raise the cable amount or lower Threshold for a heavier effect. |
-| **Compressor: Pluck Sustainer** | Short plucks pass through a very fast, high-ratio Compressor with high Makeup: the tails are pulled up so every note rings on like a held string. Lengthen Release to hear the sustain breathe, or cut Makeup to hear the plain pluck. |
+| **[Compressor: Kick-Ducked Pad](/library/detail/?kind=module&slug=compressor#demo-1)** | A sustained saw pad runs through the Compressor while the kick drum feeds its Key input: every kick pushes the pad down and it swells back between beats. Lower Threshold or lengthen Release for a deeper, slower pump. |
+| **[Compressor: Parallel Drum Squash](/library/detail/?kind=module&slug=compressor#demo-2)** | A broken beat is flattened with a high Ratio, fast Attack and a lot of Makeup, then blended back with Mix at about half: the room and tails come up while the hits keep their punch. Sweep Mix from 0 to 100 % to hear what the squash adds. |
+| **[Compressor: Bass Leveller](/library/detail/?kind=module&slug=compressor#demo-3)** | A bass line with wildly different velocities is evened out by an RMS Compressor with a soft Knee, so soft notes sit as firmly as loud ones. Raise Threshold until the quiet notes drop back out again. |
+| **[Compressor: Reduction Opens the Filter](/library/detail/?kind=module&slug=compressor#demo-4)** | The Compressor's Reduction output is a control signal that rises with every kick, and here it also closes a Multi Filter on the pad: the sound ducks and darkens on each hit. Raise the cable amount or lower Threshold for a heavier effect. |
+| **[Compressor: Pluck Sustainer](/library/detail/?kind=module&slug=compressor#demo-5)** | Short plucks pass through a very fast, high-ratio Compressor with high Makeup: the tails are pulled up so every note rings on like a held string. Lengthen Release to hear the sustain breathe, or cut Makeup to hear the plain pluck. |
 <!-- /generated -->

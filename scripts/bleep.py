@@ -353,7 +353,8 @@ def run_play(args, s):
     if not (d / "CMakeCache.txt").exists():
         run(["cmake", "-S", ROOT / "patch", "-B", d, "-DCMAKE_BUILD_TYPE=Release", *[f"-D{k}={v}" for k, v in defines.items()]])
     run(["cmake", "--build", d, "--config", "Release", "--target", "bleep_dump_types", "--parallel"])
-    dump = next((p for p in d.rglob("bleep_dump_types") if p.is_file() and os.access(p, os.X_OK)), None)
+    # The newest one: an old build layout can leave a stale copy next to the one just built.
+    dump = max((p for p in d.rglob("bleep_dump_types") if p.is_file() and os.access(p, os.X_OK)), key=lambda p: p.stat().st_mtime, default=None)
     if dump is None:
         sys.exit("bleep_dump_types was not built")
     run([dump, "--write", "patch/board/ui/demo-types.json"], cwd=ROOT)

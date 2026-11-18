@@ -68,15 +68,15 @@ identical.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Wobble does. In the standalone app open **File → Presets…** (⌘P) and pick *Wobble* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Wobble does. In the standalone app open **File → Presets…** (⌘P) and pick *Wobble* under *Demos by module*; on the website they are in the [Wobble entry of the Bleep Library](/library/detail/?kind=module&slug=wobble#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Wobble: Three Shapes** | One random stream, three ways: Stepped jumps the filter, Smooth glides the tone and Wobble overshoots and rings on the reverb. All three follow the same underlying values, so they feel related. Change Smooth and Wobble on the module to reshape the glides and overshoots. |
-| **Wobble: Ringing Filter** | With Wobble high, every jump of the random value overshoots and rings before it settles, so the filter on this held chord seems to bounce. Reduce Wobble for a plain glide, or increase Chaos for a more unstable movement. |
-| **Wobble: Burst Percussion** | The Burst output fires a quick run of triggers every so often: here they flutter a hi-hat and clap while the clock output keeps the kick steady. Raise Burst for more frequent runs, and change Burst Size for longer flutters. |
-| **Wobble: Quantised Tune** | The Stepped output goes through a Quantizer to become a melody in a scale, and the Compare output decides when a note plays, so both pitch and rhythm are random but musical. Raise Wobble's Rate for a busier tune or change the Quantizer's Scale. |
-| **Wobble: Sample and Hold** | A triangle LFO patched into Sample is read at each tick of the Wobble clock, and the Stepped output holds the value in between: a classic sample-and-hold filter pattern that stays related to the LFO. Change the LFO rate or the Wobble Sync to change the pattern. |
+| **[Wobble: Three Shapes](/library/detail/?kind=module&slug=wobble#demo-1)** | One random stream, three ways: Stepped jumps the filter, Smooth glides the tone and Wobble overshoots and rings on the reverb. All three follow the same underlying values, so they feel related. Change Smooth and Wobble on the module to reshape the glides and overshoots. |
+| **[Wobble: Ringing Filter](/library/detail/?kind=module&slug=wobble#demo-2)** | With Wobble high, every jump of the random value overshoots and rings before it settles, so the filter on this held chord seems to bounce. Reduce Wobble for a plain glide, or increase Chaos for a more unstable movement. |
+| **[Wobble: Burst Percussion](/library/detail/?kind=module&slug=wobble#demo-3)** | The Burst output fires a quick run of triggers every so often: here they flutter a hi-hat and clap while the clock output keeps the kick steady. Raise Burst for more frequent runs, and change Burst Size for longer flutters. |
+| **[Wobble: Quantised Tune](/library/detail/?kind=module&slug=wobble#demo-4)** | The Stepped output goes through a Quantizer to become a melody in a scale, and the Compare output decides when a note plays, so both pitch and rhythm are random but musical. Raise Wobble's Rate for a busier tune or change the Quantizer's Scale. |
+| **[Wobble: Sample and Hold](/library/detail/?kind=module&slug=wobble#demo-5)** | A triangle LFO patched into Sample is read at each tick of the Wobble clock, and the Stepped output holds the value in between: a classic sample-and-hold filter pattern that stays related to the LFO. Change the LFO rate or the Wobble Sync to change the pattern. |
 <!-- /generated -->
 
 <!-- generated:presets -->

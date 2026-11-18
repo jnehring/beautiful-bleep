@@ -71,15 +71,15 @@ range starts. Lanes are low while the song is stopped.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Scene Arranger does. In the standalone app open **File → Presets…** (⌘P) and pick *Scene Arranger* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Scene Arranger does. In the standalone app open **File → Presets…** (⌘P) and pick *Scene Arranger* under *Demos by module*; on the website they are in the [Scene Arranger entry of the Bleep Library](/library/detail/?kind=module&slug=scene-arranger#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Scene Arranger: Song Form** | The Scene output drives the Drum Grid's Pattern input: intro, groove, fill and break are four patterns, played in the order intro, groove x2, fill, groove x2, break by the arranger's play order. Change Repeat or Slot knobs to rewrite the song; the Cycle trigger marks each time round. |
-| **Scene Arranger: Chance Fills** | Scene 2 is the groove and holds on a Chance follow action: each time round there is a one in three chance of jumping to the fill scene, otherwise it plays on. The fill always returns to the groove. Raise Chance 2 for busier fills, or change the Seed for another sequence. |
-| **Scene Arranger: Lane Arrangement** | Four scenes of four bars bring layers in and out through the lane gates: the pad from the start, the bass from scene 2, the lead from scene 3 and the bells only in scene 4. Edit a lane's From and To to rearrange who plays when. |
-| **Scene Arranger: Random Bells** | Six scenes that all follow Random: the arranger wanders between them and each scene's lane fires a trigger into its own bell tone, so the tune is a random walk that repeats exactly while the Seed stays put. Change the Seed for a new walk or the Scene Length for a faster one. |
-| **Scene Arranger: Filter Staircase** | Eight scenes of one bar each, and the linear Scene output climbs a staircase that opens a low-pass filter on the arp; the Cycle trigger plays a clap when the staircase starts again. Change Scenes to shorten the climb or Follow on a scene to Previous to make it zigzag. |
+| **[Scene Arranger: Song Form](/library/detail/?kind=module&slug=scene-arranger#demo-1)** | The Scene output drives the Drum Grid's Pattern input: intro, groove, fill and break are four patterns, played in the order intro, groove x2, fill, groove x2, break by the arranger's play order. Change Repeat or Slot knobs to rewrite the song; the Cycle trigger marks each time round. |
+| **[Scene Arranger: Chance Fills](/library/detail/?kind=module&slug=scene-arranger#demo-2)** | Scene 2 is the groove and holds on a Chance follow action: each time round there is a one in three chance of jumping to the fill scene, otherwise it plays on. The fill always returns to the groove. Raise Chance 2 for busier fills, or change the Seed for another sequence. |
+| **[Scene Arranger: Lane Arrangement](/library/detail/?kind=module&slug=scene-arranger#demo-3)** | Four scenes of four bars bring layers in and out through the lane gates: the pad from the start, the bass from scene 2, the lead from scene 3 and the bells only in scene 4. Edit a lane's From and To to rearrange who plays when. |
+| **[Scene Arranger: Random Bells](/library/detail/?kind=module&slug=scene-arranger#demo-4)** | Six scenes that all follow Random: the arranger wanders between them and each scene's lane fires a trigger into its own bell tone, so the tune is a random walk that repeats exactly while the Seed stays put. Change the Seed for a new walk or the Scene Length for a faster one. |
+| **[Scene Arranger: Filter Staircase](/library/detail/?kind=module&slug=scene-arranger#demo-5)** | Eight scenes of one bar each, and the linear Scene output climbs a staircase that opens a low-pass filter on the arp; the Cycle trigger plays a clap when the staircase starts again. Change Scenes to shorten the climb or Follow on a scene to Previous to make it zigzag. |
 <!-- /generated -->
 
 <!-- generated:presets -->

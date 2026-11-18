@@ -59,15 +59,15 @@ the reverb's side signal (0 – 200 %).
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Room Print does. In the standalone app open **File → Presets…** (⌘P) and pick *Room Print* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Room Print does. In the standalone app open **File → Presets…** (⌘P) and pick *Room Print* under *Demos by module*; on the website they are in the [Room Print entry of the Bleep Library](/library/detail/?kind=module&slug=room-print#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Room Print: Hall Pluck** | A plucked melody in the built-in Hall response. The late part is cut a little with Early/Late and the highs of the tail damp early, so the hall sounds warm. Raise Mix for a bigger space or switch Impulse to Cathedral. |
-| **Room Print: Drum Tank** | A drum loop through the ringing Tank response: every hit excites metal modes and the kit gets a resonant, clanging halo. Early/Late at the low end keeps only the first reflections for a tighter kit. |
-| **Room Print: Spring Bounce** | A bass-heavy riff through the Spring response: chirping, repeating echoes that bounce behind every note. Stretch changes the pitch and length of the boing, and Damp High softens it. |
-| **Room Print: Swell Bloom** | Short chords go through the Swell response: its tail is played backwards, so each note blooms into a rising wash after the sound has gone. Predelay moves the bloom; Trim Start makes it arrive sooner. |
-| **Room Print: Gated Kit** | A drum loop in the Gate response: a dense burst that stops abruptly, giving every hit a big, short, cut-off space. Stretch lengthens or shortens the burst, Mix sets how much is added. |
+| **[Room Print: Hall Pluck](/library/detail/?kind=module&slug=room-print#demo-1)** | A plucked melody in the built-in Hall response. The late part is cut a little with Early/Late and the highs of the tail damp early, so the hall sounds warm. Raise Mix for a bigger space or switch Impulse to Cathedral. |
+| **[Room Print: Drum Tank](/library/detail/?kind=module&slug=room-print#demo-2)** | A drum loop through the ringing Tank response: every hit excites metal modes and the kit gets a resonant, clanging halo. Early/Late at the low end keeps only the first reflections for a tighter kit. |
+| **[Room Print: Spring Bounce](/library/detail/?kind=module&slug=room-print#demo-3)** | A bass-heavy riff through the Spring response: chirping, repeating echoes that bounce behind every note. Stretch changes the pitch and length of the boing, and Damp High softens it. |
+| **[Room Print: Swell Bloom](/library/detail/?kind=module&slug=room-print#demo-4)** | Short chords go through the Swell response: its tail is played backwards, so each note blooms into a rising wash after the sound has gone. Predelay moves the bloom; Trim Start makes it arrive sooner. |
+| **[Room Print: Gated Kit](/library/detail/?kind=module&slug=room-print#demo-5)** | A drum loop in the Gate response: a dense burst that stops abruptly, giving every hit a big, short, cut-off space. Stretch lengthens or shortens the burst, Mix sets how much is added. |
 <!-- /generated -->
 
 <!-- generated:presets -->

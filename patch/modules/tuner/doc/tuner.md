@@ -50,15 +50,15 @@ When the sound stops the last note stays on the screen, dimmed.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Tuner does. In the standalone app open **File → Presets…** (⌘P) and pick *Tuner* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Tuner does. In the standalone app open **File → Presets…** (⌘P) and pick *Tuner* under *Demos by module*; on the website they are in the [Tuner entry of the Bleep Library](/library/detail/?kind=module&slug=tuner#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Tuner: Tuning Game** | A pure tone drifts slowly sharp and flat of a note; each time it slides through the In Tune window the Tuner's gate strikes a soft bell, so you can hear the moment it is right. Widen In Tune for more bells per sweep, or narrow it to catch only the exact centre. |
-| **Tuner: Detune Pan** | Two saw voices a fifth apart share a pad; the upper one wanders in pitch and the Tuner's Cents output pans it and opens a filter, so how sharp or flat it is becomes the movement. Try a wider Damping for lazier motion, or invert the cable amounts. |
-| **Tuner: Drift Chime** | A drone pair floats in pitch, and whenever one voice passes through tune the Tuner strikes a mallet voice that plays the note it is hearing, a fifth up, into a long reverb. Change Reference A to shift where the chime lands, or raise In Tune for a busier shimmer. |
-| **Tuner: Gated Octave** | A pluck line slowly slips out of tune and back; the Tuner follows its pitch and re-pitches a second voice an octave up, which only sounds while the line is in tune. Make In Tune smaller for shorter, rarer answers, or shorten Damping for a quicker tracker. |
-| **Tuner: Baroque Pitch** | A melody is played a semitone low, and the Tuner's Reference A is set to 415 so it reads each note as exactly in tune, ticking a hi-hat on every sure note. Move Reference A away from 415 and the ticks stop; at 440 the whole line reads flat. |
+| **[Tuner: Tuning Game](/library/detail/?kind=module&slug=tuner#demo-1)** | A pure tone drifts slowly sharp and flat of a note; each time it slides through the In Tune window the Tuner's gate strikes a soft bell, so you can hear the moment it is right. Widen In Tune for more bells per sweep, or narrow it to catch only the exact centre. |
+| **[Tuner: Detune Pan](/library/detail/?kind=module&slug=tuner#demo-2)** | Two saw voices a fifth apart share a pad; the upper one wanders in pitch and the Tuner's Cents output pans it and opens a filter, so how sharp or flat it is becomes the movement. Try a wider Damping for lazier motion, or invert the cable amounts. |
+| **[Tuner: Drift Chime](/library/detail/?kind=module&slug=tuner#demo-3)** | A drone pair floats in pitch, and whenever one voice passes through tune the Tuner strikes a mallet voice that plays the note it is hearing, a fifth up, into a long reverb. Change Reference A to shift where the chime lands, or raise In Tune for a busier shimmer. |
+| **[Tuner: Gated Octave](/library/detail/?kind=module&slug=tuner#demo-4)** | A pluck line slowly slips out of tune and back; the Tuner follows its pitch and re-pitches a second voice an octave up, which only sounds while the line is in tune. Make In Tune smaller for shorter, rarer answers, or shorten Damping for a quicker tracker. |
+| **[Tuner: Baroque Pitch](/library/detail/?kind=module&slug=tuner#demo-5)** | A melody is played a semitone low, and the Tuner's Reference A is set to 415 so it reads each note as exactly in tune, ticking a hi-hat on every sure note. Move Reference A away from 415 and the ticks stop; at 440 the whole line reads flat. |
 <!-- /generated -->
 
 <!-- generated:presets -->

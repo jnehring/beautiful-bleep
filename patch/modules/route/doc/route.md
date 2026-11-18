@@ -58,15 +58,15 @@ between two different destinations; *Linear* is right for modulation.
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Route does. In the standalone app open **File → Presets…** (⌘P) and pick *Route* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Route does. In the standalone app open **File → Presets…** (⌘P) and pick *Route* under *Demos by module*; on the website they are in the [Route entry of the Bleep Library](/library/detail/?kind=module&slug=route#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Route: One Melody, Three Voices** | One wandering melody is quantized once and sent to three different voices in turn by the Route: a bright saw, a hollow pulse and a soft sine, each for one bar. Set Idle Outputs to Hold and a voice keeps its last note while it waits. |
-| **Route: A Slow LFO Sends the Riff Around** | A slow triangle LFO on the Select knob moves one riff between four treatments: dry, a long echo, a low-pass filter and a big reverb. The 120 ms Fade blends from one to the next; at 0 it cuts, at 1 s it morphs. |
-| **Route: Slot Triggers Aim the Hit** | Slot Triggers is set to 3: a trigger on Trig 1, 2 or 3 aims the Route at that output. One snare hit is sent to a dry output, a short room or a long hall depending on which Drum Grid lane fired just before it. |
-| **Route: Hold Keeps Every Voice Singing** | Idle Outputs is Hold: a new note goes to the next of four drones every bar, and each drone keeps the pitch it last got until its turn comes again. The result is a four-note chord that rolls forward one note at a time. |
-| **Route: Random Hits Around Four Voices** | One hi-hat pattern is dealt out at random to four differently tuned percussion filters, one step at a time, by a Route that follows the song at 1/8 (nothing is patched into Next). Change Seed for another order, or Order to Forward for a fixed rotation. |
+| **[Route: One Melody, Three Voices](/library/detail/?kind=module&slug=route#demo-1)** | One wandering melody is quantized once and sent to three different voices in turn by the Route: a bright saw, a hollow pulse and a soft sine, each for one bar. Set Idle Outputs to Hold and a voice keeps its last note while it waits. |
+| **[Route: A Slow LFO Sends the Riff Around](/library/detail/?kind=module&slug=route#demo-2)** | A slow triangle LFO on the Select knob moves one riff between four treatments: dry, a long echo, a low-pass filter and a big reverb. The 120 ms Fade blends from one to the next; at 0 it cuts, at 1 s it morphs. |
+| **[Route: Slot Triggers Aim the Hit](/library/detail/?kind=module&slug=route#demo-3)** | Slot Triggers is set to 3: a trigger on Trig 1, 2 or 3 aims the Route at that output. One snare hit is sent to a dry output, a short room or a long hall depending on which Drum Grid lane fired just before it. |
+| **[Route: Hold Keeps Every Voice Singing](/library/detail/?kind=module&slug=route#demo-4)** | Idle Outputs is Hold: a new note goes to the next of four drones every bar, and each drone keeps the pitch it last got until its turn comes again. The result is a four-note chord that rolls forward one note at a time. |
+| **[Route: Random Hits Around Four Voices](/library/detail/?kind=module&slug=route#demo-5)** | One hi-hat pattern is dealt out at random to four differently tuned percussion filters, one step at a time, by a Route that follows the song at 1/8 (nothing is patched into Next). Change Seed for another order, or Order to Forward for a fixed rotation. |
 <!-- /generated -->
 
 ## Reference

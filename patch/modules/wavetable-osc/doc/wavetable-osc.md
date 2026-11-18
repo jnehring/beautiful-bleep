@@ -112,15 +112,15 @@ Five whole boards show what Wavetable Osc does. In the standalone app open **Fil
 <!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Wavetable Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Wavetable Osc* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+Five whole patches show what Wavetable Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Wavetable Osc* under *Demos by module*; on the website they are in the [Wavetable Osc entry of the Bleep Library](/library/detail/?kind=module&slug=wavetable-osc#examples), where **Load in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Wavetable Osc: Analog Scan** | A slow LFO scans through the Analog bank, so the tone evolves from soft to sharp and back across a pentatonic line. Change Bank for a different family of tables, or set Scan by hand to pick one spot in the grid. |
-| **Wavetable Osc: Vowel Table** | The Vowel bank with X and Y wandering under two slow LFOs: the pad seems to murmur through different mouth shapes. Try Frame Blend on Step for abrupt vowel changes instead of smooth morphs. |
-| **Wavetable Osc: Spiral Path** | With Path set to Spiral, one Scan knob walks the whole 8 by 8 grid in a spiral, and an envelope on Scan sweeps it for every note: each pluck travels through many tables. Try Rows, Snake or Diagonal for other journeys through the grid. |
-| **Wavetable Osc: Bell Bank** | The Bell bank played softly and slowly, with Y raised a little by each note's envelope, gives glassy, inharmonic chimes. Change X to pick other bells from the grid, or Read to Linear for a rougher, more digital edge. |
-| **Wavetable Osc: Warp Bass** | A low sequence on the Fold bank with Warp Mode on Sync and a slow LFO on Warp, plus a little Sub Level, for a bass that snarls and calms over a beat. Switch Warp Mode to Mirror, Squash or Steps for other kinds of damage. |
+| **[Wavetable Osc: Analog Scan](/library/detail/?kind=module&slug=wavetable-osc#demo-1)** | A slow LFO scans through the Analog bank, so the tone evolves from soft to sharp and back across a pentatonic line. Change Bank for a different family of tables, or set Scan by hand to pick one spot in the grid. |
+| **[Wavetable Osc: Vowel Table](/library/detail/?kind=module&slug=wavetable-osc#demo-2)** | The Vowel bank with X and Y wandering under two slow LFOs: the pad seems to murmur through different mouth shapes. Try Frame Blend on Step for abrupt vowel changes instead of smooth morphs. |
+| **[Wavetable Osc: Spiral Path](/library/detail/?kind=module&slug=wavetable-osc#demo-3)** | With Path set to Spiral, one Scan knob walks the whole 8 by 8 grid in a spiral, and an envelope on Scan sweeps it for every note: each pluck travels through many tables. Try Rows, Snake or Diagonal for other journeys through the grid. |
+| **[Wavetable Osc: Bell Bank](/library/detail/?kind=module&slug=wavetable-osc#demo-4)** | The Bell bank played softly and slowly, with Y raised a little by each note's envelope, gives glassy, inharmonic chimes. Change X to pick other bells from the grid, or Read to Linear for a rougher, more digital edge. |
+| **[Wavetable Osc: Warp Bass](/library/detail/?kind=module&slug=wavetable-osc#demo-5)** | A low sequence on the Fold bank with Warp Mode on Sync and a slow LFO on Warp, plus a little Sub Level, for a bass that snarls and calms over a beat. Switch Warp Mode to Mirror, Squash or Steps for other kinds of damage. |
 <!-- /generated -->
 
 <!-- generated:presets -->
