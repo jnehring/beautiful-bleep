@@ -68,7 +68,7 @@
     if (!signedIn) return [];
     const r = await P.BleepAccount.call("GET", "/api/projects");
     if (!r || r.status !== 200) return [];
-    return r.body.items.map((i) => ({ name: i.name, id: i.id, preset: { description: i.description, tags: i.tags } }));
+    return r.body.items.map((i) => ({ name: i.name, id: i.id, created: i.created_at, modified: i.updated_at, preset: { description: i.description, tags: i.tags } }));
   }
   async function mineSave(name, preset) {
     if (!webMine()) return (await native("savePreset", name, preset, "projects")) || [];
@@ -299,6 +299,12 @@
     return "Nothing here.";
   }
 
+  /// A date of a project (milliseconds or an ISO string) in the user's own format: "17 Nov 2026, 14:05".
+  function when(t) {
+    const d = new Date(t);
+    return isNaN(d) ? "" : d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  }
+
   function renderList() {
     listEl.innerHTML = "";
     const items = host.cells ? pluginCells().map((p) => ({ name: p.name, group: p.moduleName, current: p.current, origin: "", plays: null, description: p.preset.description, tags: p.preset.tags || [], ref: p }))
@@ -325,6 +331,12 @@
       if (as) head.appendChild(el("span", "pb-chip", as === "both" ? "Instrument · Effect" : as === "instrument" ? "Instrument" : "Effect"));
       card.appendChild(head);
       if (e.description) card.appendChild(el("div", "pb-desc", e.description));
+      if (p.own && (p.created || p.modified)) {   // the user's own projects: when they were made and last saved
+        const parts = [];
+        if (p.created) parts.push("Created " + when(p.created));
+        if (p.modified) parts.push("Modified " + when(p.modified));
+        card.appendChild(el("div", "pb-dates", parts.join(" · ")));
+      }
       const foot = el("div", "pb-foot");
       foot.appendChild(el("span", "pb-tags", e.tags.join(" · ")));
       if (p.own) {
@@ -528,6 +540,7 @@
     try { mine = await mineSave(name, preset); } catch (e) { say(e.message); return false; }
     say("");
     setCurrent({ name, source: "user", preset });
+    if (P.BleepAccount) P.BleepAccount.toast("Project saved");
     return true;
   }
 
@@ -696,6 +709,16 @@
     },
     open,
     close,
+    /// After sharing a project: the browser on Community only, searched for its title, so the shared project is in sight.
+    async showShared(title) {
+      if (!host || host.cells || !account()) return;
+      origins.clear();
+      origins.add("community");
+      view = "all";
+      query = title || "";
+      if (searchEl) searchEl.value = query;
+      await open();
+    },
     /// File → Save to Library: replaces the project the board came from; one that was never saved asks for a name, as Save As does.
     async save() {
       if (savedBefore() && canSave()) {

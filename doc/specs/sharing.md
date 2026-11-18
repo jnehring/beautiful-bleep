@@ -7,7 +7,7 @@ private by default; the author decides to publish them.
 
 - Two visibilities only: `private` (default) and `public`. There is no link-only level.
 - Every library patch has an immutable public ID (`pid`). URLs use the ID, not `author/slug`, so a rename never breaks a link.
-- Every upload asks for a name, a description and a version number (x.y), all required, and says in plain words who will be able to use it. The number is the author's own and unique per patch; links and pages show it (`/library/p/<pid>/1.2`). A plain number in a link is the older sequence number and still works.
+- Every upload asks for a name, a description and a version number (x.y), all required (the number is filled in: 1.0 for a first upload, the next one, such as 1.3 after 1.2, for an update), and says in plain words who will be able to use it. The number is the author's own and unique per patch; links and pages show it (`/library/p/<pid>/1.2`). A plain number in a link is the older sequence number and still works.
 - Links are pinned to a version. A link always carries the version it was created for; it never follows "latest".
 - A deleted, unpublished or private patch gives the same message to everyone but its author: "This patch is no longer available."
 

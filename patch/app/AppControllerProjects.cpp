@@ -74,6 +74,7 @@ bool AppController::saveProject(const juce::File& file) {
     project_ = file;
     savedGeneration_ = engine_->boardGeneration();
     updateTitle();
+    engine::openBoardMenu("project.saved");  // the page shows "Project saved" (app-menu.js)
     return true;
 }
 

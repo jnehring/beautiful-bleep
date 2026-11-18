@@ -254,6 +254,10 @@ juce::var presetList(const PresetKind& k) {
             auto* o = new juce::DynamicObject();
             o->setProperty("name", v["name"].isString() ? v["name"] : juce::var(f.getFileNameWithoutExtension()));
             o->setProperty("preset", projectToFlat(v));
+            // When it was made (kept in the file: saving replaces the file, which resets its creation time) and last saved, in ms.
+            const auto created = v["created"].isVoid() ? f.getCreationTime().toMilliseconds() : (juce::int64)v["created"];
+            o->setProperty("created", created);
+            o->setProperty("modified", f.getLastModificationTime().toMilliseconds());
             list.add(juce::var(o));
             continue;
         }

@@ -24,7 +24,14 @@
     return e;
   };
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-  const open = (url) => native("openUrl", url);
+  /// Opens a web page in the browser: the app and the plugins ask the native side; Bleep Play (no "openUrl" there) opens a tab.
+  const open = async (url) => {
+    let ok = false;
+    try { ok = !!(await native("openUrl", url)); } catch (e) { /* no native side */ }
+    if (!ok && /^https?:/i.test(url)) ok = !!window.open(url, "_blank", "noopener");
+    if (!ok) toast("The browser could not be opened for " + url);
+    return ok;
+  };
 
   let cancelled = false;
   const listeners = new Set();
@@ -89,7 +96,7 @@
         const title = field("Name (required)", el("input")); title.value = opts.title || name; title.maxLength = 120;
         const summary = field("Description (required)", el("textarea")); summary.maxLength = 280; summary.rows = 3;
         summary.value = (opts.summary !== undefined ? opts.summary : preset.description || "").slice(0, 280);
-        const label = field("Version number (required, like 1.0)", el("input")); label.maxLength = 9; label.placeholder = "1.0"; label.value = opts.label || "";
+        const label = field("Version number (required, like 1.0)", el("input")); label.maxLength = 9; label.placeholder = "1.0"; label.value = opts.label || "1.0";   // suggested: 1.0 for a first upload, the next number for an update
         const tags = field("Tags (comma separated)", el("input")); tags.value = (opts.tags || preset.tags || []).join(", ");
         // A cell is in up to three places of the cell category tree (the Add menu's); no new categories.
         const picked = new Set((opts.picked || []).filter((c) => (opts.categories || []).includes(c)));
@@ -198,11 +205,19 @@
             box.appendChild(el("div", "ac-note", "“" + r.body.title + "” is in the Bleep Library as version " + done.label + ", "
               + (done.visibility === "public" ? "public: everyone can use it." : "private: only you can open it until you make it public on the website (your account, Your presets).")));
             const row2 = el("div", "ac-row");
-            const see = el("button", "", "Open in the library");
-            see.addEventListener("click", () => open(urls(done).library));
+            // Open in the library: the app's own project browser, searched for it (Community lists public projects only).
+            const PB = P.BleepProjectBrowser;
+            if (kind === "boards" && done.visibility === "public" && PB && PB.showShared) {
+              const inApp = el("button", "", "Open in the library");
+              inApp.addEventListener("click", () => { close(done); PB.showShared(done.title); });
+              row2.appendChild(inApp);
+            }
+            const web = el("button", "", "See in web");
+            web.title = "Opens its page on the website in your browser";
+            web.addEventListener("click", () => open(urls(done).library));
             const ok = el("button", "ac-primary", "Done");
             ok.addEventListener("click", () => close(done));
-            row2.append(see, ok);
+            row2.append(web, ok);
             box.appendChild(row2);
             return;
           }
@@ -269,13 +284,16 @@
     };
   }
 
-  let toastTimer = 0;
+  /// A short message at the bottom of the board that fades away after a few seconds (board.css .ac-toast).
+  let toastTimer = 0, toastGone = 0;
   function toast(text) {
     let t = document.querySelector(".ac-toast");
     if (!t) { t = el("div", "ac-toast"); t.setAttribute("role", "status"); document.body.appendChild(t); }
     t.textContent = text;
+    t.classList.remove("out");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.remove(), 3000);
+    clearTimeout(toastGone);
+    toastTimer = setTimeout(() => { t.classList.add("out"); toastGone = setTimeout(() => t.remove(), 600); }, 2600);
   }
 
   async function copy(text, what) {

@@ -243,6 +243,12 @@ public:
                     if (isProjectKind(a[2])) {
                         migrateBoardPresets();
                         doc = flatToProject(a[0].toString(), a[1]);
+                        // The time it was first saved stays across saves (replacing the file resets the file's own creation time).
+                        const auto old = file.existsAsFile() ? juce::JSON::parse(file.loadFileAsString()) : juce::var();
+                        const auto created = !old["created"].isVoid() ? (juce::int64)old["created"]
+                                             : file.existsAsFile() ? file.getCreationTime().toMilliseconds()
+                                                                   : juce::Time::currentTimeMillis();
+                        if (auto* d = doc.getDynamicObject()) d->setProperty("created", created);
                     } else {
                         auto* o = new juce::DynamicObject();
                         o->setProperty("name", a[0].toString());

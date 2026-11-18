@@ -178,6 +178,7 @@
     "project.browse": () => P.BleepProjectBrowser && P.BleepProjectBrowser.open(),
     "project.saveBrowser": () => P.BleepProjectBrowser && P.BleepProjectBrowser.save(),
     "project.saveBrowserAs": () => P.BleepProjectBrowser && P.BleepProjectBrowser.saveAs(),
+    "project.saved": () => P.BleepAccount && P.BleepAccount.toast("Project saved"),   // the app saved its project file (Save Project)
     "project.import": () => P.BleepProjectBrowser && P.BleepProjectBrowser.openFile(),
     "project.download": () => P.BleepProjectBrowser && P.BleepProjectBrowser.download(),
     "edit.copyPatch": () => P.BleepProjectBrowser && P.BleepProjectBrowser.copyPatch(),

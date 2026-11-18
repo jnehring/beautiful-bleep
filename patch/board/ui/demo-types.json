@@ -4794,7 +4794,7 @@
     "name": "Dial",
     "category": "Controllers/Panel",
     "colour": "#fda4af",
-    "description": "One big knob as a control signal, scaled to a range, smooth or in steps.",
+    "description": "One knob as a control signal, scaled to a range, smooth or in steps.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,

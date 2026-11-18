@@ -525,8 +525,11 @@
         case "midiDevices": return window.BleepWeb ? BleepWeb.midiDevices() : ["Demo Keyboard", "Demo Pads"];
         case "presets": return store.get(presetKey(a[0]), []);
         case "savePreset": {
-          const list = store.get(presetKey(a[2]), []).filter((p) => p.name !== a[0]);
-          list.push({ name: a[0], preset: a[1] });
+          const all = store.get(presetKey(a[2]), []);
+          const old = all.find((p) => p.name === a[0]);
+          const list = all.filter((p) => p.name !== a[0]);
+          const now = Date.now();
+          list.push({ name: a[0], preset: a[1], created: (old && old.created) || now, modified: now });
           list.sort((x, y) => x.name.localeCompare(y.name));
           store.set(presetKey(a[2]), list);
           return list;

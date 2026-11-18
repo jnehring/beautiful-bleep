@@ -419,6 +419,7 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .pb-name { font-weight: 600; }
 .pb-chip { color: var(--muted); font-size: 11px; border: 1px solid var(--line); border-radius: 10px; padding: 0 7px; }
 .pb-desc { color: var(--muted); margin-top: 3px; line-height: 1.4; }
+.pb-dates { color: var(--muted); margin-top: 3px; font-size: 11px; opacity: .8; }
 .pb-foot { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
 .pb-tags { flex: 1; color: var(--muted); font-size: 11px; }
 .pb-load { background: var(--accent); color: #0d1f1d; border-color: var(--accent); font-weight: 600; }
@@ -593,7 +594,10 @@ select:focus-visible { border-color: var(--accent) !important; }
 .ac-primary { background: var(--accent); color: var(--bg, #15171c); border-color: var(--accent); font-weight: 600; }
 body.embed .am-bar { display: none; }
 .ac-toast { position: fixed; z-index: 1001; left: 50%; bottom: 24px; transform: translateX(-50%); max-width: 90vw; padding: 8px 14px; font-size: 13px;
-  color: var(--text); background: var(--panel, #1b1e25); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 18px rgba(0, 0, 0, .4); }
+  color: var(--text); background: var(--panel, #1b1e25); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 18px rgba(0, 0, 0, .4);
+  transition: opacity .5s ease; animation: ac-toast-in .2s ease; }
+.ac-toast.out { opacity: 0; }
+@keyframes ac-toast-in { from { opacity: 0; transform: translate(-50%, 6px); } }
 #library .st-account { max-width: 520px; }
 #library .st-account .ac-code { text-align: left; }
 

@@ -4,26 +4,26 @@
 
 ## Introduction
 
-The Dial is **one big knob** whose position comes out of a jack as a control
+The Dial is **one knob** whose position comes out of a jack as a control
 signal. Patch *Out* onto several knobs at once, at different cable amounts,
 and one turn moves them all together: a macro for the filter, the mix and the
 decay of a sound.
 
 ## How does it work?
 
-Turn the dial (drag up and down, Shift for fine, or use the wheel;
+Turn the *Value* knob (drag up and down, Shift for fine, or use the wheel;
 double-click resets it). *Out* goes from **Min** with the dial fully left to
 **Max** fully right. Set *Max* below *Min* to turn the dial around, or *Min* to
 −1 for a bipolar dial that moves its destinations both ways.
 
 **Steps** gives the dial detents: with 4, it only stops at four positions,
-evenly spaced, and each wheel notch moves one step. Handy for choosing
+evenly spaced. Handy for choosing
 between a few settings, or for octave jumps on a pitch.
 
 **Smooth** glides *Out* to a new position instead of jumping, so fast turns
 don't click. At 0 it follows the dial exactly.
 
-A cable into *Value* moves the dial like a hand would: the big dial shows the
+A cable into *Value* moves the dial like a hand would; the knob shows the
 modulation as a ring.
 
 ## How to use it?
@@ -42,7 +42,7 @@ Five whole patches show what Dial does. In the standalone app open **File → Pr
 
 | Patch | What it shows |
 |---|---|
-| **Dial: Filter Sweep** | One Dial, set to the middle of its range, opens the cutoff of a dark saw riff. Drag the big knob up and down while it plays to sweep the filter, or raise Smooth to make the knob glide between positions. |
+| **Dial: Filter Sweep** | One Dial, set to the middle of its range, opens the cutoff of a dark saw riff. Drag the Value knob up and down while it plays to sweep the filter, or raise Smooth to make the knob glide between positions. |
 | **Dial: Stepped Transpose** | With Steps set to 12 the Dial jumps between fixed positions instead of sliding, and it feeds the sequencer's Transpose input so the whole tune moves up and down in whole notes. Set Steps to 0 to get a smooth slide, or change Steps to 5 for coarser jumps. |
 | **Dial: Reverb Blend** | The Dial rides the Mix knob of a very long reverb behind a slow bell tune: at the bottom you hear the dry notes, at the top only their wash. Move it slowly and listen to the tune sink into the room. |
 | **Dial: Flipped Range** | Min is higher than Max, so turning the Dial up closes the filter and eases off the drive while the bass sits on a beat. Swap Min and Max to turn the action around, or narrow them to limit how far the knob can go. |

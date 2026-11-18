@@ -24,7 +24,7 @@ class ProjectIn(BaseModel):
 
 
 def _meta(p: Project) -> dict:
-    return {"id": p.id, "name": p.name, "description": p.description, "tags": p.tags, "bytes": p.bytes, "updated_at": p.updated_at}
+    return {"id": p.id, "name": p.name, "description": p.description, "tags": p.tags, "bytes": p.bytes, "created_at": p.created_at, "updated_at": p.updated_at}
 
 
 @router.get("")

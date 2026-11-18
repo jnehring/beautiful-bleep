@@ -4,7 +4,7 @@ Type id `dial` · category *Controllers* · colour `#fda4af`
 
 ## 1. Purpose
 
-One big knob whose position is a control signal. Patch it onto several
+One knob whose position is a control signal. Patch it onto several
 destinations at different cable amounts and it becomes a macro: one gesture
 moves a filter, a mix and a decay together. *Min* and *Max* set the range,
 *Steps* turns it into a selector, *Smooth* takes the zipper out of fast turns.
@@ -26,7 +26,7 @@ A cable into *Value* moves the dial like a hand would.
 
 | Knob | Range | Default | What it does |
 |---|---|---|---|
-| Value | 0…100 % | 50 % | The dial. Shown as the big dial in the view. |
+| Value | 0…100 % | 50 % | The dial. |
 | Min | −1…+1 | 0 | *Out* with the dial fully left. |
 | Max | −1…+1 | +1 | *Out* with the dial fully right. *Max* below *Min* reverses the dial. |
 | Smooth | 0…2 s | 20 ms | One-pole smoothing of *Out* (63 % rise time). |
@@ -47,11 +47,10 @@ A cable into *Value* moves the dial like a hand would.
 
 ## 5. Module view
 
-A large dial (150 px) for *Value* with an arc, a pointer, tick marks for the
-steps and the modulation ring when *Value* is modulated; the output value
-above it. Drag vertically (Shift for fine), wheel (one notch is one step when
-*Steps* ≥ 2), double-click resets. The small *Value* knob is hidden because the
-big dial replaces it. *Min*, *Max*, *Smooth* and *Steps* sit below.
+The standard knob view: *Value* in its own *Dial* section, then *Min* and
+*Max* (*Range*) and *Steps* and *Smooth* (*Feel*). *Value* is a normal knob
+(drag, wheel, double-click resets) with the usual modulation ring when a
+cable drives it; *Steps* rounds the output, not the knob.
 
 ## 6. Saved state
 

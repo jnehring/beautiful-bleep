@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Dial node (doc/specs/modules/dial.md): one big knob, scaled to a range, as a
+// Dial node (doc/specs/modules/dial.md): one knob, scaled to a range, as a
 // control signal.
 #include "DialDsp.h"
 #include "Registry.h"
@@ -44,7 +44,7 @@ void registerDialModule(Registry& r) {
     s.name = "Dial";
     s.category = "Controllers/Panel";
     s.colour = "#fda4af";
-    s.description = "One big knob as a control signal, scaled to a range, smooth or in steps.";
+    s.description = "One knob as a control signal, scaled to a range, smooth or in steps.";
     s.params = {ParamSpec::percent("value", "Value", 0.0f, 1.0f, 0.5f),
                 ParamSpec::number("min", "Min", -1.0f, 1.0f, 0.0f),
                 ParamSpec::number("max", "Max", -1.0f, 1.0f, 1.0f),
