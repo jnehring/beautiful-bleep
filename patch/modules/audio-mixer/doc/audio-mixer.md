@@ -30,8 +30,9 @@ over 50 ms. Switching it off leaves the signal untouched.
 
 Solo doesn't affect the sends, so a reverb keeps its tail while you solo.
 
-**Mono** sums every channel (and the return) to mono: Pan is ignored and
-*Out L* and *Out R* carry the same signal.
+**Mono** sums every channel (and the return) to mono: Pan is ignored, and the
+mixer has a single *Out* and a single *Send* (*Out R* and *Send R* go away;
+cables on them are kept and come back when Mono is off).
 
 ## The view
 
@@ -101,6 +102,6 @@ Five whole patches show what Audio Mixer does. In the standalone app open **File
 
 | Output | Signal | What it does |
 |---|---|---|
-| Out L, R | audio | The master mix |
-| Send L, R | audio | The send bus |
+| Out L, R | audio | The master mix; with *Mono* on just *Out* |
+| Send L, R | audio | The send bus; with *Mono* on just *Send* |
 | Level | control | The master's loudness, 0 … 1 (10 ms attack, 200 ms release) |

@@ -142,10 +142,11 @@ void registerAudioMixerModule(Registry& r) {
     s.inputs.push_back({"returnr", "Return R", Signal::Audio});
     for (int k = 1; k <= kMixerChannels; ++k)
         s.inputs.push_back(JackSpec{"mute" + std::to_string(k) + "in", "Mute " + std::to_string(k), Signal::Gate}.when("channels", k, kMixerChannels));
-    s.outputs = {{"outl", "Out L", Signal::Audio, true},
-                 {"outr", "Out R", Signal::Audio, true},
-                 {"sendl", "Send L", Signal::Audio, true},
-                 {"sendr", "Send R", Signal::Audio, true},
+    // Mono: Out L = Out R and Send L = Send R, so only one of each is shown (cables on R are kept).
+    s.outputs = {JackSpec{"outl", "Out L", Signal::Audio, true}.namedBy("mono", {"Out L", "Out"}),
+                 JackSpec{"outr", "Out R", Signal::Audio, true}.when("mono", 0, 0),
+                 JackSpec{"sendl", "Send L", Signal::Audio, true}.namedBy("mono", {"Send L", "Send"}),
+                 JackSpec{"sendr", "Send R", Signal::Audio, true}.when("mono", 0, 0),
                  {"level", "Level", Signal::Control, false}};
     r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioMixerModule>(spec); });
 }

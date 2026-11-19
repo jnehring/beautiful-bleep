@@ -4767,25 +4767,49 @@
         "id": "outl",
         "name": "Out L",
         "type": "audio",
-        "bipolar": true
+        "bipolar": true,
+        "show": {
+          "param": "mono",
+          "min": 0,
+          "max": 0
+        }
       },
       {
         "id": "outr",
         "name": "Out R",
         "type": "audio",
-        "bipolar": true
+        "bipolar": true,
+        "names": {
+          "by": "mono",
+          "list": [
+            "Out L",
+            "Out"
+          ]
+        }
       },
       {
         "id": "sendl",
         "name": "Send L",
         "type": "audio",
-        "bipolar": true
+        "bipolar": true,
+        "show": {
+          "param": "mono",
+          "min": 0,
+          "max": 0
+        }
       },
       {
         "id": "sendr",
         "name": "Send R",
         "type": "audio",
-        "bipolar": true
+        "bipolar": true,
+        "names": {
+          "by": "mono",
+          "list": [
+            "Send L",
+            "Send"
+          ]
+        }
       },
       {
         "id": "level",

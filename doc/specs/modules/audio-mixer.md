@@ -27,8 +27,8 @@ Every knob is also an input (`specs.md` section 7.3).
 
 | Jack | Type | What it carries |
 |---|---|---|
-| Out L / R | `audio` | The master mix. |
-| Send L / R | `audio` | The send bus: the sum of each channel at its *Send* level. |
+| Out L / R | `audio` | The master mix. With *Mono* on, *Out R* is hidden and *Out L* is named *Out* (cables are kept). |
+| Send L / R | `audio` | The send bus: the sum of each channel at its *Send* level. With *Mono* on, *Send R* is hidden and *Send L* is named *Send*. |
 | Level | `control` (unipolar) | An envelope follower on the master (peak, 10 ms attack, 200 ms release), 0…1, for ducking and visualisation. |
 
 ## 3. Controls
