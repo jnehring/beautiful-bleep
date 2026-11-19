@@ -447,6 +447,7 @@
     }
     const board = { format: 1, id: uuid(), nodes: clone(src.nodes), cables: clone(src.cables || []) };
     if (Array.isArray(src.panels) && src.panels.length) board.panels = clone(src.panels);
+    if (src.view && typeof src.view === "object") board.view = clone(src.view);   // the module views pinned open
     if (host.mapPorts) mapPorts(board);
     close();
     host.apply(await native("loadPatch", board, src.tempo || 0, p.name));
@@ -526,6 +527,7 @@
     const lost = noMedia ? [] : await window.BleepMedia.attach(preset, preset.nodes, (id) => native("readMedia", id));
     if (lost.length) say(`${lost.length === 1 ? "An audio file" : lost.length + " audio files"} could not be read and ${lost.length === 1 ? "is" : "are"} not in the project.`);
     if ((board.panels || []).length) preset.panels = clone(board.panels);   // Show on load stays: a project opens with its panel
+    if (board.view && typeof board.view === "object") preset.view = clone(board.view);   // the module views pinned open come back with it
     const needs = libraryView() ? await P.BleepLibraryView.needsFor(preset.nodes) : {};
     if (Object.keys(needs).length) preset.needs = needs;
     const bpm = P.BleepSideMenu && P.BleepSideMenu.tempo();

@@ -118,6 +118,7 @@
         if (board) setTimeout(openStartPanel, 0);
         if (board) checkMissingModules();
         if (board) fitWhenLaidOut(path.join("/"));
+        if (board && !pluginMode) { holdPins(); restorePinsWhenLaidOut(id); }   // the module views it has pinned open again
       }
     }
     if (m.ports) ports = m.ports;
@@ -143,7 +144,16 @@
       else if (n.type === "code" && P.BleepCode && v.bv.codeKey !== P.BleepCode.keyOf(n)) rebuildView(id);   // a compile changed its jacks and knobs
       else v.bv.refresh(n);
     }
+    if (board && !pluginMode) savePins();   // an undo may have brought back the pins of an earlier step: the board keeps what is open
     render();
+  }
+  /// The pinned views of board `id` open once the canvas has a size (they keep inside it); not if another board came first.
+  function restorePinsWhenLaidOut(id, tries = 20) {
+    requestAnimationFrame(() => {
+      if (!board || String(board.id) !== id) return;
+      if ((canvas.clientWidth < 200 || canvas.clientHeight < 150) && tries > 0) return restorePinsWhenLaidOut(id, tries - 1);
+      restorePins();
+    });
   }
 
   // ------------------------------------------------------ in a plugin window
@@ -493,7 +503,7 @@
     setPowerButton, showMenu, toggleBypass, typeOf, views, hidePopovers,
     knobMenuItems: (...a) => knobMenuItems(...a), panelMenuFor: (...a) => panelMenuFor(...a),
   });
-  const { placeWin, toggleView, makeApi, openView, front, closeView, pinTitle, closeUnpinnedViews, closeTopView, watch, rebuildView } = viewsApi;
+  const { placeWin, toggleView, makeApi, openView, front, closeView, pinTitle, closeUnpinnedViews, closeTopView, watch, rebuildView, savePins, restorePins, holdPins } = viewsApi;
 
   // ----------------------------------------------------------- front panels (board-panels.js)
   const panelsApi = P.BoardPanels.create({

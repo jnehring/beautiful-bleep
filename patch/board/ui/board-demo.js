@@ -482,6 +482,9 @@
           if (n) { n.data = clone(a[1]); save(); if (window.BleepWeb) BleepWeb.setData(a[0], a[1]); }
           return null;
         }
+        case "setView":   // the pinned module views (board-views.js): saved with the board, no undo
+          if (board) { if (a[0] && Object.keys(a[0]).length) board.view = clone(a[0]); else delete board.view; save(); }
+          return null;
         case "setAmount": {
           const c = board.cables.find((x) => x.id === a[0]);
           if (c) { c.amount = a[1]; save(); if (window.BleepWeb) BleepWeb.setAmount(a[0], a[1]); }

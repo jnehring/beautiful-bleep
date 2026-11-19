@@ -177,6 +177,10 @@ public:
                     engine_.setAmount(a[0].toString(), (float)a[1]);
                     done({});
                 }))
+                .withNativeFunction("setView", gated([this](const juce::Array<juce::var>& a, Completion done) {
+                    engine_.setView(a.isEmpty() ? juce::var() : a[0]);   // the pinned module views (board-views.js): saved with the board, no undo
+                    done({});
+                }))
                 .withNativeFunction("setData", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     engine_.setData(a[0].toString(), a[1]);
                     done({});

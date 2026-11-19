@@ -92,6 +92,8 @@ public:
     void beginGesture();
     /// A setting of the board itself ("zeroHostLatencyInputs"): saved with the board, no recompile.
     void setBoardSetting(const juce::String& key, const juce::var& value);
+    /// The board window's own state saved with the board (`view`: the module views that are pinned open): no recompile, no undo entry.
+    void setView(const juce::var& view);
     /// What the Latency settings page shows: {zeroHostLatencyInputs, crossIn, forced, boardSamples, blockSamples, running}.
     juce::var latencyInfo() const;
     void setParam(const juce::String& nodeId, const juce::String& paramId, float normalised);

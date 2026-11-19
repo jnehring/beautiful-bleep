@@ -56,7 +56,8 @@ juce::var Engine::uiDispatch(int handle, const juce::String& m, const juce::var&
         setBoardSetting(a[0].toString(), a[1]);
         return uiMessage();
     }
-    if (m == "setParam") setParam(a[0].toString(), a[1].toString(), (float)a[2]);
+    if (m == "setView") setView(a[0]);
+    else if (m == "setParam") setParam(a[0].toString(), a[1].toString(), (float)a[2]);
     else if (m == "setAmount") setAmount(a[0].toString(), (float)a[1]);
     else if (m == "setData") setData(a[0].toString(), a[1]);
     else if (m == "command") command(a[0].toString(), a[1].toString(), (float)a[2]);
@@ -205,6 +206,14 @@ void Engine::setBoardSetting(const juce::String& key, const juce::var& value) {
     settings.getDynamicObject()->setProperty(key, (bool)value);
     doc->setProperty("settings", settings);
     updateLatencyModel();   // the plugins ask for their latency on their timers
+    generation_.fetch_add(1);
+}
+
+void Engine::setView(const juce::var& view) {
+    auto* doc = hasBoard() ? board_.getDynamicObject() : nullptr;
+    if (doc == nullptr) return;
+    if (view.getDynamicObject() != nullptr && !view.getDynamicObject()->getProperties().isEmpty()) doc->setProperty("view", view);
+    else doc->removeProperty("view");
     generation_.fetch_add(1);
 }
 

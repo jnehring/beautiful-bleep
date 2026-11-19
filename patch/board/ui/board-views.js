@@ -2,7 +2,11 @@
 // board-views.js — the floating module views: a window with the module's controls, opened from its node, and the doc hint behind it.
 //
 // P.BoardViews.create(s)   s: the board and page helpers it needs (see the destructuring below); `board` is a getter.
-//   returns { placeWin, toggleView, makeApi, openView, front, closeView, pinTitle, closeUnpinnedViews, closeTopView, watch, rebuildView }
+//   returns { placeWin, toggleView, makeApi, openView, front, closeView, pinTitle, closeUnpinnedViews, closeTopView, watch, rebuildView,
+//             savePins, restorePins, holdPins }
+//
+// Pinned module views are saved with the board (`board.view.pinned`: [{ node, x, y, w?, h? }], native "setView", no undo entry), so a
+// project that is saved and opened again, or Bleep Play after a reload, opens them where they were.
 (function () {
   "use strict";
   const { native, priv: P } = window.BleepSeal;
@@ -135,7 +139,7 @@
         if (!n.params) n.params = {};
         body.append(bv.root);
         $("views").appendChild(win);
-        const v = { win, bv, pinned: false, power, docRoot: null, help, type: t.type };
+        const v = { win, bv, pinned: false, pinButton: pin, power, docRoot: null, help, type: t.type };
         let docHtml = null;
         // A Code node and a module saved from one have the help page their author wrote (Help tab), or one made from the module's description
         const ownHelp = () => (P.BleepCode && P.BleepCode.helpOf ? P.BleepCode.helpOf(nodeById(id)) : null);
@@ -182,7 +186,7 @@
 
         // The canvas ignores presses inside a view, so a menu opened from the view (right-click) closes here.
         win.addEventListener("pointerdown", () => { hidePopovers(); front(win); });
-        pin.addEventListener("click", () => { v.pinned = !v.pinned; pin.classList.toggle("on", v.pinned); pin.title = pinTitle(v.pinned); });
+        pin.addEventListener("click", () => { setPinned(v, !v.pinned); savePins(); });
         // The module's manual opens in a dialog over the board (modal.js), built on first use.
         help.addEventListener("click", () => {
           const own = ownHelp();
@@ -270,7 +274,7 @@
               win.style.height = Math.max(240, Math.min(maxH, h0 + m.clientY - sy)) + "px";
               win.dispatchEvent(new Event("bv-resized"));
             };
-            const up = () => { grip.removeEventListener("pointermove", move); grip.removeEventListener("pointerup", up); };
+            const up = () => { grip.removeEventListener("pointermove", move); grip.removeEventListener("pointerup", up); if (v.pinned) savePins(); };
             grip.addEventListener("pointermove", move);
             grip.addEventListener("pointerup", up);
           });
@@ -279,11 +283,66 @@
           if (e.target.closest("button") || win.classList.contains("fs")) return;
           const sx = e.clientX - win.offsetLeft, sy = e.clientY - win.offsetTop;
           const move = (m) => placeWin(win, m.clientX - sx, m.clientY - sy);
-          const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+          const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); if (v.pinned) savePins(); };
           window.addEventListener("pointermove", move);
           window.addEventListener("pointerup", up);
         });
         watch();
+      }
+
+      function setPinned(v, on) {
+        v.pinned = on;
+        v.pinButton.classList.toggle("on", on);
+        v.pinButton.title = pinTitle(on);
+      }
+      // ---- pinned views saved with the board
+      let pinsHeld = false;   // a board was loaded and its pins are not restored yet: closing the old views must not overwrite them
+      /// What the board says is pinned: the module views (not panels), where they are and, if resized, how big.
+      function pinList() {
+        const out = [];
+        for (const [id, v] of views) {
+          if (!v.pinned || v.panelId) continue;
+          const e = { node: id, x: Math.round(v.win.offsetLeft), y: Math.round(v.win.offsetTop) };
+          if (v.win.classList.contains("sized") && !v.win.classList.contains("fs")) { e.w = Math.round(v.win.offsetWidth); e.h = Math.round(v.win.offsetHeight); }
+          out.push(e);
+        }
+        return out;
+      }
+      /// The pins in the board as they are now (after a pin, a move, a close, an undo that brought back older ones): sent when they changed.
+      function savePins() {
+        const b = s.board;
+        if (pinsHeld || !b) return;
+        const pinned = pinList(), had = (b.view && Array.isArray(b.view.pinned)) ? b.view.pinned : [];
+        if (JSON.stringify(pinned) === JSON.stringify(had)) return;
+        const view = Object.assign({}, b.view && typeof b.view === "object" ? b.view : {});
+        if (pinned.length) view.pinned = pinned;
+        else delete view.pinned;
+        if (Object.keys(view).length) b.view = view;
+        else delete b.view;
+        native("setView", b.view || {});
+      }
+      /// A board was loaded: its pins wait until restorePins.
+      function holdPins() { pinsHeld = true; }
+      /// Opens the views the loaded board has pinned, where they were.
+      function restorePins() {
+        pinsHeld = false;
+        const b = s.board, list = b && b.view && Array.isArray(b.view.pinned) ? b.view.pinned : [];
+        for (const e of list) {
+          const id = e && typeof e.node === "string" ? e.node : null;
+          if (!id || !nodeById(id)) continue;
+          if (!views.has(id)) openView(id);
+          const v = views.get(id);
+          if (!v || v.panelId) continue;
+          setPinned(v, true);
+          if (e.w > 0 && e.h > 0 && v.win.querySelector(".v-grip")) {
+            v.win.classList.add("sized");
+            v.win.style.width = Math.max(360, Math.min(e.w, canvas.clientWidth - 16)) + "px";
+            v.win.style.height = Math.max(240, Math.min(e.h, canvas.clientHeight - 16)) + "px";
+            v.win.dispatchEvent(new Event("bv-resized"));
+          }
+          if (Number.isFinite(e.x) && Number.isFinite(e.y)) placeWin(v.win, e.x, e.y);
+        }
+        savePins();   // nodes that are gone drop out
       }
       /// A link in a module's manual (the page itself must not navigate): `#heading` scrolls the manual, a site path ("/library/…", the
       /// demo patches) and a web address open in the browser, another manual (`adsr.md`) opens that module's entry in the Bleep Library.
@@ -311,6 +370,7 @@
       const docs = new Map();
       function moduleDoc(type) {
         if (!docs.has(type))
+          // no-cache: asked again each session (an unchanged manual costs a 304), so a rebuilt one is never served from an old copy
           docs.set(type, fetch(encodeURIComponent(type) + ".md")
             .then((r) => (r.ok ? r.text() : null))
             .then((md) => (md && md.trim() ? md : null))
@@ -350,6 +410,7 @@
         if (v.docRoot) P.BleepModal.unmount(v.docRoot);
         views.delete(id);
         watch();
+        if (v.pinned && !v.panelId) savePins();
       }
       function pinTitle(on) {
         return (on ? "Pinned: stays open" : "Not pinned: closes") + " when opening other views or entering and leaving cells (click to " + (on ? "unpin" : "pin") + ")";
@@ -367,7 +428,7 @@
 
       return {
         placeWin, toggleView, makeApi, openView, front, closeView, pinTitle, closeUnpinnedViews,
-        closeTopView, watch, rebuildView,
+        closeTopView, watch, rebuildView, savePins, restorePins, holdPins,
       };
     },
   };
