@@ -107,24 +107,24 @@ Five whole patches show what Delay Net does. In the standalone app open **File â
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Delay Net view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Delay Net view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Delay Net; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Soft Ring** | A modest four-line ring that blooms into a cloud. |
-| **Parallel Taps** | Four separate scattered echoes. |
-| **Chain Cascade** | Each line feeds the next: cascading repeats. |
-| **Mesh Cloud** | Every line feeds every other: a dense, reverb-like cloud. |
-| **Tempo Scatter** | Eighth-note grid with uneven tap spacing. |
-| **Wobbly Tape** | Jittered times and a worn character. |
-| **Reverse Bloom** | Mostly reversed repeats. |
-| **Dark Tunnel** | Long, dark repeats receding into the distance. |
-| **Bright Glimmer** | Short bright taps shimmer around the signal. |
-| **Slow Drift** | Multi-second delay lines for ambient layering. |
-| **Dirty Loop** | Saturated feedback that builds a gritty loop. |
-| **Granular Smear** | Tiny jittered lines smear into textures. |
-| **Mono Pulse** | A single plain echo line in mono. |
-| **Swell Cathedral** | Near-unity feedback: swells for ages; turn the mix down first. |
+| **[Soft Ring](/library/detail/?kind=module&slug=delay-network#preset-1)** | A modest four-line ring that blooms into a cloud. |
+| **[Parallel Taps](/library/detail/?kind=module&slug=delay-network#preset-2)** | Four separate scattered echoes. |
+| **[Chain Cascade](/library/detail/?kind=module&slug=delay-network#preset-3)** | Each line feeds the next: cascading repeats. |
+| **[Mesh Cloud](/library/detail/?kind=module&slug=delay-network#preset-4)** | Every line feeds every other: a dense, reverb-like cloud. |
+| **[Tempo Scatter](/library/detail/?kind=module&slug=delay-network#preset-5)** | Eighth-note grid with uneven tap spacing. |
+| **[Wobbly Tape](/library/detail/?kind=module&slug=delay-network#preset-6)** | Jittered times and a worn character. |
+| **[Reverse Bloom](/library/detail/?kind=module&slug=delay-network#preset-7)** | Mostly reversed repeats. |
+| **[Dark Tunnel](/library/detail/?kind=module&slug=delay-network#preset-8)** | Long, dark repeats receding into the distance. |
+| **[Bright Glimmer](/library/detail/?kind=module&slug=delay-network#preset-9)** | Short bright taps shimmer around the signal. |
+| **[Slow Drift](/library/detail/?kind=module&slug=delay-network#preset-10)** | Multi-second delay lines for ambient layering. |
+| **[Dirty Loop](/library/detail/?kind=module&slug=delay-network#preset-11)** | Saturated feedback that builds a gritty loop. |
+| **[Granular Smear](/library/detail/?kind=module&slug=delay-network#preset-12)** | Tiny jittered lines smear into textures. |
+| **[Mono Pulse](/library/detail/?kind=module&slug=delay-network#preset-13)** | A single plain echo line in mono. |
+| **[Swell Cathedral](/library/detail/?kind=module&slug=delay-network#preset-14)** | Near-unity feedback: swells for ages; turn the mix down first. |
 <!-- /generated -->
 
 ## Reference

@@ -56,10 +56,10 @@ function EntryView() {
     if (kind !== "module") return;
     fetch(`/module-demos/${encodeURIComponent(slug)}`).then((r) => (r.ok ? r.json() : null)).then(setDemos, () => setDemos(null));
   }, [kind, slug]);
-  // The module manuals link to a demo card (#demo-<n>) or to #examples; the cards arrive after the page, so scroll once they are there.
+  // The module manuals link to a demo card (#demo-<n>), to #examples or to a preset (#preset-<n>); they arrive after the page, so scroll once they are there.
   useEffect(() => {
     const id = decodeURIComponent(window.location.hash.slice(1));
-    if (demos && data && /^(examples|demo-\d+)$/.test(id)) document.getElementById(id)?.scrollIntoView();
+    if (demos && data && /^(examples|demo-\d+|preset-\d+)$/.test(id)) document.getElementById(id)?.scrollIntoView();
   }, [demos, data]);
   const [doc, setDoc] = useState("");
   useEffect(() => {
@@ -133,7 +133,7 @@ function EntryView() {
       {demos && demos.presets.length > 0 && (
         <>
           <h2 id="presets">Presets</h2>
-          <ul>{demos.presets.map((p) => <li key={p.name}><strong>{p.name}</strong> <span className="muted">{p.description}</span></li>)}</ul>
+          <ul>{demos.presets.map((p, i) => <li key={p.name} id={`preset-${i + 1}`}><strong>{p.name}</strong> <span className="muted">{p.description}</span></li>)}</ul>
         </>
       )}
       {doc && <article className="module-doc" dangerouslySetInnerHTML={{ __html: doc }} />}

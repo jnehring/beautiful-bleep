@@ -94,24 +94,24 @@ Five whole patches show what Grains does. In the standalone app open **File → 
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Grains view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Grains view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Grains; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Soft Cloud** | A gentle grain cloud over the recent input. |
-| **Shimmer Up** | Octave-up grains with feedback for a shimmering halo. |
-| **Deep Down** | An octave below, smoothed into a pad. |
-| **Fifth Harmonies** | Random octaves and fifths stacked on the source. |
-| **Frozen Pad** | Holds what was playing and sustains it as a pad. |
-| **Glitch Stutter** | Short clicks of audio on the 16th grid; works well on drums. |
-| **Reverse Wash** | All grains play backwards. |
-| **Granular Dust** | Tiny grains: crackling, textural dust. |
-| **Slow Smear** | Long overlapping grains blur transients away. |
-| **Chromatic Scatter** | Random semitone-quantised pitches. |
-| **Endless Tail** | Feedback turns the input into an ever-growing texture. |
-| **Half-Time Drift** | Reads far back in a long buffer for slow, drifting echoes. |
-| **Rhythmic Gate** | Triggered grains on eighths for a chopped, gated feel. |
-| **Alien Choir** | Dense detuned grains with feedback: an eerie vocal-like cluster. |
+| **[Soft Cloud](/library/detail/?kind=module&slug=grains#preset-1)** | A gentle grain cloud over the recent input. |
+| **[Shimmer Up](/library/detail/?kind=module&slug=grains#preset-2)** | Octave-up grains with feedback for a shimmering halo. |
+| **[Deep Down](/library/detail/?kind=module&slug=grains#preset-3)** | An octave below, smoothed into a pad. |
+| **[Fifth Harmonies](/library/detail/?kind=module&slug=grains#preset-4)** | Random octaves and fifths stacked on the source. |
+| **[Frozen Pad](/library/detail/?kind=module&slug=grains#preset-5)** | Holds what was playing and sustains it as a pad. |
+| **[Glitch Stutter](/library/detail/?kind=module&slug=grains#preset-6)** | Short clicks of audio on the 16th grid; works well on drums. |
+| **[Reverse Wash](/library/detail/?kind=module&slug=grains#preset-7)** | All grains play backwards. |
+| **[Granular Dust](/library/detail/?kind=module&slug=grains#preset-8)** | Tiny grains: crackling, textural dust. |
+| **[Slow Smear](/library/detail/?kind=module&slug=grains#preset-9)** | Long overlapping grains blur transients away. |
+| **[Chromatic Scatter](/library/detail/?kind=module&slug=grains#preset-10)** | Random semitone-quantised pitches. |
+| **[Endless Tail](/library/detail/?kind=module&slug=grains#preset-11)** | Feedback turns the input into an ever-growing texture. |
+| **[Half-Time Drift](/library/detail/?kind=module&slug=grains#preset-12)** | Reads far back in a long buffer for slow, drifting echoes. |
+| **[Rhythmic Gate](/library/detail/?kind=module&slug=grains#preset-13)** | Triggered grains on eighths for a chopped, gated feel. |
+| **[Alien Choir](/library/detail/?kind=module&slug=grains#preset-14)** | Dense detuned grains with feedback: an eerie vocal-like cluster. |
 <!-- /generated -->
 
 ## Reference

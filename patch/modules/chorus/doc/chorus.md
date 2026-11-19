@@ -35,22 +35,22 @@ The modulated-delay voice (swinging delay with feedback, and the flanger's extra
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Chorus view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Chorus view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Chorus; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Classic Chorus** | Lush, general-purpose stereo chorus. |
-| **Subtle Thicken** | Barely there doubling for synths and guitars. |
-| **Wide Ensemble** | Big, spread string-machine style width. |
-| **Slow Wash** | Very slow, deep movement for pads. |
-| **Shimmer Fast** | Quick, shallow wobble. |
-| **Vibrato** | Fully wet: pure pitch vibrato. |
-| **Tape Warble** | Seasick, wobbly detune. |
-| **Soft Flanger** | Gentle sweeping comb filter. |
-| **Jet Flanger** | Intense jet-plane sweep. |
-| **Negative Flange** | Negative feedback: hollow, nasal flanging. |
-| **Metallic Ring** | Almost static comb that rings with a pitch. |
-| **Deep Doubler** | Long delay times give a slapback-like double. |
+| **[Classic Chorus](/library/detail/?kind=module&slug=chorus#preset-1)** | Lush, general-purpose stereo chorus. |
+| **[Subtle Thicken](/library/detail/?kind=module&slug=chorus#preset-2)** | Barely there doubling for synths and guitars. |
+| **[Wide Ensemble](/library/detail/?kind=module&slug=chorus#preset-3)** | Big, spread string-machine style width. |
+| **[Slow Wash](/library/detail/?kind=module&slug=chorus#preset-4)** | Very slow, deep movement for pads. |
+| **[Shimmer Fast](/library/detail/?kind=module&slug=chorus#preset-5)** | Quick, shallow wobble. |
+| **[Vibrato](/library/detail/?kind=module&slug=chorus#preset-6)** | Fully wet: pure pitch vibrato. |
+| **[Tape Warble](/library/detail/?kind=module&slug=chorus#preset-7)** | Seasick, wobbly detune. |
+| **[Soft Flanger](/library/detail/?kind=module&slug=chorus#preset-8)** | Gentle sweeping comb filter. |
+| **[Jet Flanger](/library/detail/?kind=module&slug=chorus#preset-9)** | Intense jet-plane sweep. |
+| **[Negative Flange](/library/detail/?kind=module&slug=chorus#preset-10)** | Negative feedback: hollow, nasal flanging. |
+| **[Metallic Ring](/library/detail/?kind=module&slug=chorus#preset-11)** | Almost static comb that rings with a pitch. |
+| **[Deep Doubler](/library/detail/?kind=module&slug=chorus#preset-12)** | Long delay times give a slapback-like double. |
 <!-- /generated -->
 
 <!-- generated:demos -->

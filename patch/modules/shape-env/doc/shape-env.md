@@ -105,26 +105,26 @@ Five whole patches show what Contour does. In the standalone app open **File →
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Contour view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Contour view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Contour; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Short Pluck** | Quick plucked decay for synth bass and leads. |
-| **Snappy Click** | Tiny transient: for percussive attacks or pitch snaps. |
-| **Long Exp Decay** | Slow exponential fade for sustained tails. |
-| **Organ Gate** | Held while the key is down: organ-like on and off. |
-| **ADSR Classic** | A conventional attack, decay, sustain, release contour. |
-| **Slow Pad** | Gentle swell and long release for pads. |
-| **Reverse Rise** | Rises slowly toward the end: for risers and swells. |
-| **Bounce Ball** | Bouncing, ever-quicker hits: a dropped ball. |
-| **Echo Taps** | Decaying repeats from one trigger, like a rhythmic echo. |
-| **Heartbeat** | Looping double-thump pulse at about 60 BPM. |
-| **Breathing** | Slow organic in and out for pads and filters. |
-| **Sine LFO** | Plain looping sine at 4 Hz: vibrato or tremolo. |
-| **Synced Stutter** | Rhythmic gate pattern locked to the tempo. |
-| **Swing Wobble** | Tempo-synced wobble with a shuffle feel. |
-| **Morphing Texture** | Irregular looping texture, shifted by Morph: organic movement. |
-| **Reversed Roll** | A drum roll played backwards: builds into the next beat. |
+| **[Short Pluck](/library/detail/?kind=module&slug=shape-env#preset-1)** | Quick plucked decay for synth bass and leads. |
+| **[Snappy Click](/library/detail/?kind=module&slug=shape-env#preset-2)** | Tiny transient: for percussive attacks or pitch snaps. |
+| **[Long Exp Decay](/library/detail/?kind=module&slug=shape-env#preset-3)** | Slow exponential fade for sustained tails. |
+| **[Organ Gate](/library/detail/?kind=module&slug=shape-env#preset-4)** | Held while the key is down: organ-like on and off. |
+| **[ADSR Classic](/library/detail/?kind=module&slug=shape-env#preset-5)** | A conventional attack, decay, sustain, release contour. |
+| **[Slow Pad](/library/detail/?kind=module&slug=shape-env#preset-6)** | Gentle swell and long release for pads. |
+| **[Reverse Rise](/library/detail/?kind=module&slug=shape-env#preset-7)** | Rises slowly toward the end: for risers and swells. |
+| **[Bounce Ball](/library/detail/?kind=module&slug=shape-env#preset-8)** | Bouncing, ever-quicker hits: a dropped ball. |
+| **[Echo Taps](/library/detail/?kind=module&slug=shape-env#preset-9)** | Decaying repeats from one trigger, like a rhythmic echo. |
+| **[Heartbeat](/library/detail/?kind=module&slug=shape-env#preset-10)** | Looping double-thump pulse at about 60 BPM. |
+| **[Breathing](/library/detail/?kind=module&slug=shape-env#preset-11)** | Slow organic in and out for pads and filters. |
+| **[Sine LFO](/library/detail/?kind=module&slug=shape-env#preset-12)** | Plain looping sine at 4 Hz: vibrato or tremolo. |
+| **[Synced Stutter](/library/detail/?kind=module&slug=shape-env#preset-13)** | Rhythmic gate pattern locked to the tempo. |
+| **[Swing Wobble](/library/detail/?kind=module&slug=shape-env#preset-14)** | Tempo-synced wobble with a shuffle feel. |
+| **[Morphing Texture](/library/detail/?kind=module&slug=shape-env#preset-15)** | Irregular looping texture, shifted by Morph: organic movement. |
+| **[Reversed Roll](/library/detail/?kind=module&slug=shape-env#preset-16)** | A drum roll played backwards: builds into the next beat. |
 <!-- /generated -->
 
 ## Reference

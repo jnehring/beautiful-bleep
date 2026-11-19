@@ -63,27 +63,27 @@ passed or was stopped.
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Note Gate view has 17 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Note Gate view has 17 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Note Gate; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Low Register** | Only notes below middle C get through. |
-| **Upper Register** | Only notes from middle C up. |
-| **Notch Out The Middle** | A hole in the middle of the keyboard: lows and highs pass. |
-| **Soft Notes Out** | Notes played softer than 30 % are dropped: ghost notes disappear. |
-| **Lift The Floor** | Soft notes are raised to 45 % instead of dropped. |
-| **Ceiling Squash** | Nothing plays harder than 60 %. |
-| **Compress Curve** | Soft notes come out louder: an even, compressed touch. |
-| **Expand Curve** | Soft notes get softer, hard notes stay: more dynamics. |
-| **Hard Hits Only** | A drawn curve that mutes everything below the middle and jumps to full above it. |
-| **Naturals Only** | Sharps and flats fall down to the natural below: a C-major-ish keyboard. |
-| **Major To Minor** | E, A and B drop a semitone: the same tune in a minor mood. |
-| **Mute Black Keys** | Every black key is blocked: only the white keys play. |
-| **Fifths Swap** | Every note moves up a fifth within its octave. |
-| **Downbeats Only** | Notes pass only on the four beats of the bar. |
-| **Offbeat Eighths** | Notes pass only on the 'and' of each beat. |
-| **Every Other Note** | Passes the 1st, 3rd, 5th note and so on: halves a busy line. |
-| **Thin Out Busy Runs** | At most three notes per beat get through, however fast you play. |
+| **[Low Register](/library/detail/?kind=module&slug=note-gate#preset-1)** | Only notes below middle C get through. |
+| **[Upper Register](/library/detail/?kind=module&slug=note-gate#preset-2)** | Only notes from middle C up. |
+| **[Notch Out The Middle](/library/detail/?kind=module&slug=note-gate#preset-3)** | A hole in the middle of the keyboard: lows and highs pass. |
+| **[Soft Notes Out](/library/detail/?kind=module&slug=note-gate#preset-4)** | Notes played softer than 30 % are dropped: ghost notes disappear. |
+| **[Lift The Floor](/library/detail/?kind=module&slug=note-gate#preset-5)** | Soft notes are raised to 45 % instead of dropped. |
+| **[Ceiling Squash](/library/detail/?kind=module&slug=note-gate#preset-6)** | Nothing plays harder than 60 %. |
+| **[Compress Curve](/library/detail/?kind=module&slug=note-gate#preset-7)** | Soft notes come out louder: an even, compressed touch. |
+| **[Expand Curve](/library/detail/?kind=module&slug=note-gate#preset-8)** | Soft notes get softer, hard notes stay: more dynamics. |
+| **[Hard Hits Only](/library/detail/?kind=module&slug=note-gate#preset-9)** | A drawn curve that mutes everything below the middle and jumps to full above it. |
+| **[Naturals Only](/library/detail/?kind=module&slug=note-gate#preset-10)** | Sharps and flats fall down to the natural below: a C-major-ish keyboard. |
+| **[Major To Minor](/library/detail/?kind=module&slug=note-gate#preset-11)** | E, A and B drop a semitone: the same tune in a minor mood. |
+| **[Mute Black Keys](/library/detail/?kind=module&slug=note-gate#preset-12)** | Every black key is blocked: only the white keys play. |
+| **[Fifths Swap](/library/detail/?kind=module&slug=note-gate#preset-13)** | Every note moves up a fifth within its octave. |
+| **[Downbeats Only](/library/detail/?kind=module&slug=note-gate#preset-14)** | Notes pass only on the four beats of the bar. |
+| **[Offbeat Eighths](/library/detail/?kind=module&slug=note-gate#preset-15)** | Notes pass only on the 'and' of each beat. |
+| **[Every Other Note](/library/detail/?kind=module&slug=note-gate#preset-16)** | Passes the 1st, 3rd, 5th note and so on: halves a busy line. |
+| **[Thin Out Busy Runs](/library/detail/?kind=module&slug=note-gate#preset-17)** | At most three notes per beat get through, however fast you play. |
 <!-- /generated -->
 
 ## Reference

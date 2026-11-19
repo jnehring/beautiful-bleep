@@ -49,24 +49,24 @@ current level. Use it for repeated accents within one long note.
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the ADSR view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the ADSR view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the ADSR; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Classic Synth** | All-round envelope for lead and bass. |
-| **Pluck** | Instant attack, decays to nothing. |
-| **Short Stab** | Tight stab with a little tail. |
-| **Slow Pad** | Gradual fade-in and long release. |
-| **Soft Swell** | Smooth swell that stays at full level. |
-| **Organ Gate** | On-off gating with tiny declick ramps. |
-| **Bass Punch** | Punchy bass with strong velocity response. |
-| **Strings** | Bowed-style onset and soft release. |
-| **Long Bell** | Ringing decay for bells and mallets. |
-| **Reverse Pad** | Very slow rise, quick fall-off. |
-| **Plucky Filter** | Good for cutoff: a snappy sweep per note. |
-| **Velocity Dynamic** | Full velocity sensitivity for expressive playing. |
-| **Drone Hold** | Slow in, very long ghostly release. |
-| **Staccato Click** | Ultra-short blip for percussive clicks. |
+| **[Classic Synth](/library/detail/?kind=module&slug=adsr#preset-1)** | All-round envelope for lead and bass. |
+| **[Pluck](/library/detail/?kind=module&slug=adsr#preset-2)** | Instant attack, decays to nothing. |
+| **[Short Stab](/library/detail/?kind=module&slug=adsr#preset-3)** | Tight stab with a little tail. |
+| **[Slow Pad](/library/detail/?kind=module&slug=adsr#preset-4)** | Gradual fade-in and long release. |
+| **[Soft Swell](/library/detail/?kind=module&slug=adsr#preset-5)** | Smooth swell that stays at full level. |
+| **[Organ Gate](/library/detail/?kind=module&slug=adsr#preset-6)** | On-off gating with tiny declick ramps. |
+| **[Bass Punch](/library/detail/?kind=module&slug=adsr#preset-7)** | Punchy bass with strong velocity response. |
+| **[Strings](/library/detail/?kind=module&slug=adsr#preset-8)** | Bowed-style onset and soft release. |
+| **[Long Bell](/library/detail/?kind=module&slug=adsr#preset-9)** | Ringing decay for bells and mallets. |
+| **[Reverse Pad](/library/detail/?kind=module&slug=adsr#preset-10)** | Very slow rise, quick fall-off. |
+| **[Plucky Filter](/library/detail/?kind=module&slug=adsr#preset-11)** | Good for cutoff: a snappy sweep per note. |
+| **[Velocity Dynamic](/library/detail/?kind=module&slug=adsr#preset-12)** | Full velocity sensitivity for expressive playing. |
+| **[Drone Hold](/library/detail/?kind=module&slug=adsr#preset-13)** | Slow in, very long ghostly release. |
+| **[Staccato Click](/library/detail/?kind=module&slug=adsr#preset-14)** | Ultra-short blip for percussive clicks. |
 <!-- /generated -->
 
 <!-- generated:demos -->

@@ -129,25 +129,25 @@ Five whole patches show what Segments does. In the standalone app open **File â†
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Segments view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Segments view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Segments; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Classic Pluck** | Instant attack, exponential fall: the all-round plucked envelope. |
-| **Soft Pad** | Slow swell, a gentle settle and a long fade. |
-| **Organ Gate** | Fast on, sustain high, short release: organ-style keying. |
-| **Piano Decay** | Strong hit, quick drop, then a long tail. |
-| **Reverse Swell** | Builds slowly and cuts off: for reversed-style hits. |
-| **Bowed Strings** | Bow attack with a slight bloom and a soft release. |
-| **Kick Pitch Drop** | Very fast pitch-drop curve: patch to oscillator pitch for kicks. |
-| **Double Hit** | Two quick strikes in a row: flams and clap-like bursts. |
-| **Triple Stutter** | Three decaying hits: a rhythmic stutter from one gate. |
-| **Triangle Loop LFO** | Free-running up-and-down triangle LFO at about 1 Hz. |
-| **Staircase Up** | Stepped rise of held plateaus: a rough step sequencer for pitch. |
-| **Wobble Loop** | Irregular free-running wobble for filter or pitch. |
-| **Long Evolve** | Multi-stage slow movement over half a minute for ambient textures. |
-| **Velocity Snap** | Pluck whose level follows the played velocity. |
-| **Finish Tail** | Plays through all stages even on a short note: one-shot percussion. |
+| **[Classic Pluck](/library/detail/?kind=module&slug=segments#preset-1)** | Instant attack, exponential fall: the all-round plucked envelope. |
+| **[Soft Pad](/library/detail/?kind=module&slug=segments#preset-2)** | Slow swell, a gentle settle and a long fade. |
+| **[Organ Gate](/library/detail/?kind=module&slug=segments#preset-3)** | Fast on, sustain high, short release: organ-style keying. |
+| **[Piano Decay](/library/detail/?kind=module&slug=segments#preset-4)** | Strong hit, quick drop, then a long tail. |
+| **[Reverse Swell](/library/detail/?kind=module&slug=segments#preset-5)** | Builds slowly and cuts off: for reversed-style hits. |
+| **[Bowed Strings](/library/detail/?kind=module&slug=segments#preset-6)** | Bow attack with a slight bloom and a soft release. |
+| **[Kick Pitch Drop](/library/detail/?kind=module&slug=segments#preset-7)** | Very fast pitch-drop curve: patch to oscillator pitch for kicks. |
+| **[Double Hit](/library/detail/?kind=module&slug=segments#preset-8)** | Two quick strikes in a row: flams and clap-like bursts. |
+| **[Triple Stutter](/library/detail/?kind=module&slug=segments#preset-9)** | Three decaying hits: a rhythmic stutter from one gate. |
+| **[Triangle Loop LFO](/library/detail/?kind=module&slug=segments#preset-10)** | Free-running up-and-down triangle LFO at about 1 Hz. |
+| **[Staircase Up](/library/detail/?kind=module&slug=segments#preset-11)** | Stepped rise of held plateaus: a rough step sequencer for pitch. |
+| **[Wobble Loop](/library/detail/?kind=module&slug=segments#preset-12)** | Irregular free-running wobble for filter or pitch. |
+| **[Long Evolve](/library/detail/?kind=module&slug=segments#preset-13)** | Multi-stage slow movement over half a minute for ambient textures. |
+| **[Velocity Snap](/library/detail/?kind=module&slug=segments#preset-14)** | Pluck whose level follows the played velocity. |
+| **[Finish Tail](/library/detail/?kind=module&slug=segments#preset-15)** | Plays through all stages even on a short note: one-shot percussion. |
 <!-- /generated -->
 
 ## Reference

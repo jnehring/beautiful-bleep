@@ -65,25 +65,25 @@ Five whole patches show what Spectral Blend does. In the standalone app open **F
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Spectral Blend view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Spectral Blend view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Spectral Blend; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Cross Synthesis** | The loudness shape of In A with the phases of In B: A speaks with B's texture. |
-| **Phase Swap** | The reverse: B's shape on A's phases. |
-| **Half and Half** | Both magnitudes and phases halfway between the two sounds. |
-| **Geometric Morph** | A morph that follows loudness in dB: partials present in only one sound stay quiet. |
-| **Low A, High B** | Below 1 kHz it is A, above it is B, with a smooth crossover. |
-| **High A, Low B** | The other way round: B's lows under A's highs. |
-| **Soft Blur** | A single input made hazy; the blur softens its partials. |
-| **Wash** | Blur and a long smear turn anything into a slowly fading wash. |
-| **Spectral Tail** | Half dry, half a lingering ghost of the spectrum. |
-| **Ghost Gate** | A spectral gate removes everything quiet: what is left is a skeleton of the loudest partials. |
-| **Inverse Gate** | Keeps only what is below the threshold: the sound without its loudest partials. |
-| **Bass Keeper** | Lows pass untouched, the mids and highs are gated hard. |
-| **Frozen Moment** | Holds the spectrum at the moment of switching on, as a steady drone. |
-| **Crisp Cross** | Short frames: tighter timing, rougher pitch resolution. |
-| **Dark Tilt** | Mostly B's shape and A's phases, with B's highs pushed back. |
+| **[Cross Synthesis](/library/detail/?kind=module&slug=spectral-blend#preset-1)** | The loudness shape of In A with the phases of In B: A speaks with B's texture. |
+| **[Phase Swap](/library/detail/?kind=module&slug=spectral-blend#preset-2)** | The reverse: B's shape on A's phases. |
+| **[Half and Half](/library/detail/?kind=module&slug=spectral-blend#preset-3)** | Both magnitudes and phases halfway between the two sounds. |
+| **[Geometric Morph](/library/detail/?kind=module&slug=spectral-blend#preset-4)** | A morph that follows loudness in dB: partials present in only one sound stay quiet. |
+| **[Low A, High B](/library/detail/?kind=module&slug=spectral-blend#preset-5)** | Below 1 kHz it is A, above it is B, with a smooth crossover. |
+| **[High A, Low B](/library/detail/?kind=module&slug=spectral-blend#preset-6)** | The other way round: B's lows under A's highs. |
+| **[Soft Blur](/library/detail/?kind=module&slug=spectral-blend#preset-7)** | A single input made hazy; the blur softens its partials. |
+| **[Wash](/library/detail/?kind=module&slug=spectral-blend#preset-8)** | Blur and a long smear turn anything into a slowly fading wash. |
+| **[Spectral Tail](/library/detail/?kind=module&slug=spectral-blend#preset-9)** | Half dry, half a lingering ghost of the spectrum. |
+| **[Ghost Gate](/library/detail/?kind=module&slug=spectral-blend#preset-10)** | A spectral gate removes everything quiet: what is left is a skeleton of the loudest partials. |
+| **[Inverse Gate](/library/detail/?kind=module&slug=spectral-blend#preset-11)** | Keeps only what is below the threshold: the sound without its loudest partials. |
+| **[Bass Keeper](/library/detail/?kind=module&slug=spectral-blend#preset-12)** | Lows pass untouched, the mids and highs are gated hard. |
+| **[Frozen Moment](/library/detail/?kind=module&slug=spectral-blend#preset-13)** | Holds the spectrum at the moment of switching on, as a steady drone. |
+| **[Crisp Cross](/library/detail/?kind=module&slug=spectral-blend#preset-14)** | Short frames: tighter timing, rougher pitch resolution. |
+| **[Dark Tilt](/library/detail/?kind=module&slug=spectral-blend#preset-15)** | Mostly B's shape and A's phases, with B's highs pushed back. |
 <!-- /generated -->
 
 ## Reference

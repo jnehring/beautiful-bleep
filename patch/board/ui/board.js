@@ -767,6 +767,9 @@
         cellPresets: () => presetList().map((q) => ({ key: q.key, name: q.name, factory: !!q.factory, category: q.category || (q.preset && q.preset.category) || "My Cells",
                                                  description: q.preset && q.preset.description, tags: q.preset && q.preset.tags, plays: q.preset && q.preset.plays })),
         placeCell: (key) => addAtCentre({ preset: key }),
+        // A module set to one of its factory presets (Open Project's module presets), and the name the board gives a module type.
+        placeModule: (type, preset) => addAtCentre({ type, params: preset.params || {}, data: preset.data }),
+        moduleName: (type) => (types[type] ? types[type].name : ""),
         // A cell preset on its own, wired as an instrument or an effect (what Bleep Play's ?play= does); replaces the board.
         playCell: (name, role) => playCell(name, role).catch((e) => notice(e.message)),
       });

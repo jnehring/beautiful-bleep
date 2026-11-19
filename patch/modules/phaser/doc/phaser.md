@@ -33,22 +33,22 @@ To make the sweep a more sudden swoosh, put a [Compressor](compressor.md) before
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Phaser view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Phaser view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Phaser; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Classic Phase** | Warm four-stage phaser. |
-| **Gentle Swirl** | Slow, subtle movement on pads and keys. |
-| **Deep Sweep** | Wide, dramatic sweep. |
-| **Two-Stage Wobble** | Light, airy phase with one notch. |
-| **Twelve Stage Glass** | Dense, glassy notches. |
-| **Stereo Spin** | Left and right sweep out of phase. |
-| **Mono Pulse** | Faster, centred throb. |
-| **Resonant Peaks** | Strong positive feedback: ringing, vocal peaks. |
-| **Hollow Negative** | Negative feedback: a hollow, nasal tone. |
-| **Low Rumble Phase** | Centred low: moves bass and drums. |
-| **High Shimmer** | Bright, airy sweep over the top end. |
-| **Fast Leslie-ish** | Quick, shimmering rotary-like movement. |
+| **[Classic Phase](/library/detail/?kind=module&slug=phaser#preset-1)** | Warm four-stage phaser. |
+| **[Gentle Swirl](/library/detail/?kind=module&slug=phaser#preset-2)** | Slow, subtle movement on pads and keys. |
+| **[Deep Sweep](/library/detail/?kind=module&slug=phaser#preset-3)** | Wide, dramatic sweep. |
+| **[Two-Stage Wobble](/library/detail/?kind=module&slug=phaser#preset-4)** | Light, airy phase with one notch. |
+| **[Twelve Stage Glass](/library/detail/?kind=module&slug=phaser#preset-5)** | Dense, glassy notches. |
+| **[Stereo Spin](/library/detail/?kind=module&slug=phaser#preset-6)** | Left and right sweep out of phase. |
+| **[Mono Pulse](/library/detail/?kind=module&slug=phaser#preset-7)** | Faster, centred throb. |
+| **[Resonant Peaks](/library/detail/?kind=module&slug=phaser#preset-8)** | Strong positive feedback: ringing, vocal peaks. |
+| **[Hollow Negative](/library/detail/?kind=module&slug=phaser#preset-9)** | Negative feedback: a hollow, nasal tone. |
+| **[Low Rumble Phase](/library/detail/?kind=module&slug=phaser#preset-10)** | Centred low: moves bass and drums. |
+| **[High Shimmer](/library/detail/?kind=module&slug=phaser#preset-11)** | Bright, airy sweep over the top end. |
+| **[Fast Leslie-ish](/library/detail/?kind=module&slug=phaser#preset-12)** | Quick, shimmering rotary-like movement. |
 <!-- /generated -->
 
 <!-- generated:demos -->

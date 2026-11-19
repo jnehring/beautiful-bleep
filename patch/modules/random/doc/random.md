@@ -58,24 +58,24 @@ glides from one value to the next instead of jumping.
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Random view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Random view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Random; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Quarter Steps** | Eight random levels per quarter-note step, mostly repeating. |
-| **Locked Loop** | A fixed eight-step pattern that repeats exactly. |
-| **Always New** | Never repeats: every step is fresh. |
-| **Melody Generator** | Locked steps snapped to semitones: patch to pitch. |
-| **Dark Walk** | Mostly low values with the occasional jump. |
-| **Bright Sparks** | High-leaning fast steps for sparkly accents. |
-| **Smooth Wander** | Free-running steps blended into a gliding random curve. |
-| **Slow Drift** | Very slow random wander for subtle movement. |
-| **Three Step Cycle** | A 3-step loop against 4/4 for polymetric feel. |
-| **Five Against Four** | Five-step quantized loop that drifts across the bar. |
-| **Narrow Wobble** | Small random variations: gentle humanizing. |
-| **Long Pattern** | A long locked sequence of 32 steps. |
-| **Slow Bar Changes** | One new value per bar for chord or key changes. |
-| **Fast Glitch** | Rapid random steps for glitchy mod. |
+| **[Quarter Steps](/library/detail/?kind=module&slug=random#preset-1)** | Eight random levels per quarter-note step, mostly repeating. |
+| **[Locked Loop](/library/detail/?kind=module&slug=random#preset-2)** | A fixed eight-step pattern that repeats exactly. |
+| **[Always New](/library/detail/?kind=module&slug=random#preset-3)** | Never repeats: every step is fresh. |
+| **[Melody Generator](/library/detail/?kind=module&slug=random#preset-4)** | Locked steps snapped to semitones: patch to pitch. |
+| **[Dark Walk](/library/detail/?kind=module&slug=random#preset-5)** | Mostly low values with the occasional jump. |
+| **[Bright Sparks](/library/detail/?kind=module&slug=random#preset-6)** | High-leaning fast steps for sparkly accents. |
+| **[Smooth Wander](/library/detail/?kind=module&slug=random#preset-7)** | Free-running steps blended into a gliding random curve. |
+| **[Slow Drift](/library/detail/?kind=module&slug=random#preset-8)** | Very slow random wander for subtle movement. |
+| **[Three Step Cycle](/library/detail/?kind=module&slug=random#preset-9)** | A 3-step loop against 4/4 for polymetric feel. |
+| **[Five Against Four](/library/detail/?kind=module&slug=random#preset-10)** | Five-step quantized loop that drifts across the bar. |
+| **[Narrow Wobble](/library/detail/?kind=module&slug=random#preset-11)** | Small random variations: gentle humanizing. |
+| **[Long Pattern](/library/detail/?kind=module&slug=random#preset-12)** | A long locked sequence of 32 steps. |
+| **[Slow Bar Changes](/library/detail/?kind=module&slug=random#preset-13)** | One new value per bar for chord or key changes. |
+| **[Fast Glitch](/library/detail/?kind=module&slug=random#preset-14)** | Rapid random steps for glitchy mod. |
 <!-- /generated -->
 
 <!-- generated:demos -->

@@ -2,8 +2,8 @@
 // bleep-view-presets.js — the preset bar of a module view (bleep-view.js): the module's factory presets and the user's own,
 // the previous/next buttons, the menu and Save.
 //
-//   BleepViewPresets.makePresetBar(view, type, applyPreset) → {el, update()}
-//   BleepViewPresets.loadFactoryPresets() → Promise      factoryOf(type) → the factory presets of a module type
+//   BleepViewPresets.makePresetBar(view, type, applyPreset) → {el, update(), loadFactory(n)}   loadFactory: the n-th factory preset (1-based)
+//   BleepViewPresets.loadFactoryPresets() → Promise      factoryOf(type) → the factory presets of a module type; factoryTypes() → the types that have some
 (function () {
   "use strict";
   const el = (tag, cls, text) => {
@@ -217,8 +217,15 @@
     if (!userCache.has(type.type)) refreshUser().then(update);
     pick.addEventListener("click", () => (openMenu && openMenu.owner === pick ? closeMenu() : showMenu()));
     update();
-    return { el: bar, update };
+    /// The `n`-th factory preset (1-based), as a click on its name in the module's manual asks; false when there is none.
+    function loadFactory(n) {
+      const p = factory()[n - 1];
+      if (!p) return false;
+      load(p);
+      return true;
+    }
+    return { el: bar, update, loadFactory };
   }
 
-  window.BleepViewPresets = { makePresetBar, loadFactoryPresets, factoryOf };
+  window.BleepViewPresets = { makePresetBar, loadFactoryPresets, factoryOf, factoryTypes: () => Object.keys(factoryDoc.modules) };
 })();

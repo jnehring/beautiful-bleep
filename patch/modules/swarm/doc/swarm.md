@@ -97,25 +97,25 @@ Five whole patches show what Swarm does. In the standalone app open **File → P
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Swarm view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Swarm view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Swarm; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Minor Cloud** | The default pad: eight oscillators over a minor 7, gently drifting. |
-| **Unison Supersaw** | A pile of detuned voices on one note: classic wide lead or pad. |
-| **Octave Choir** | Voices spread over octaves: big, huge, simple. |
-| **Fifths Shimmer** | Stacked fifths: open and bright. |
-| **Major Bloom** | Slow glide lets the chord bloom out from the root; major 9 colour. |
-| **Dark Quartal** | Stacked fourths with a little warp: ambiguous and cold. |
-| **Pentatonic Rain** | Notes of the scale scattered randomly: soft, safe, endless. |
-| **Blues Haze** | Blues-scale swarm: gritty and a little sad. |
-| **Whole Tone Dream** | Floating, directionless whole-tone cloud. |
-| **Hirajoshi Garden** | Pentatonic Japanese scale; Outer pattern fills from the edges in. |
-| **Warped Glass** | Warp bends the oscillator shapes: glassy, metallic colour. |
-| **Cross-FM Bells** | Voices modulate each other for bell-like, inharmonic shimmer. |
-| **Cluster Wall** | Tight semitone cluster: dense, tense texture. |
-| **Chromatic Swarm** | All sixteen voices running through the chromatic scale: a insect-like storm. |
-| **Sub Swarm** | Low detuned swarm for fat, moving sub bass. |
+| **[Minor Cloud](/library/detail/?kind=module&slug=swarm#preset-1)** | The default pad: eight oscillators over a minor 7, gently drifting. |
+| **[Unison Supersaw](/library/detail/?kind=module&slug=swarm#preset-2)** | A pile of detuned voices on one note: classic wide lead or pad. |
+| **[Octave Choir](/library/detail/?kind=module&slug=swarm#preset-3)** | Voices spread over octaves: big, huge, simple. |
+| **[Fifths Shimmer](/library/detail/?kind=module&slug=swarm#preset-4)** | Stacked fifths: open and bright. |
+| **[Major Bloom](/library/detail/?kind=module&slug=swarm#preset-5)** | Slow glide lets the chord bloom out from the root; major 9 colour. |
+| **[Dark Quartal](/library/detail/?kind=module&slug=swarm#preset-6)** | Stacked fourths with a little warp: ambiguous and cold. |
+| **[Pentatonic Rain](/library/detail/?kind=module&slug=swarm#preset-7)** | Notes of the scale scattered randomly: soft, safe, endless. |
+| **[Blues Haze](/library/detail/?kind=module&slug=swarm#preset-8)** | Blues-scale swarm: gritty and a little sad. |
+| **[Whole Tone Dream](/library/detail/?kind=module&slug=swarm#preset-9)** | Floating, directionless whole-tone cloud. |
+| **[Hirajoshi Garden](/library/detail/?kind=module&slug=swarm#preset-10)** | Pentatonic Japanese scale; Outer pattern fills from the edges in. |
+| **[Warped Glass](/library/detail/?kind=module&slug=swarm#preset-11)** | Warp bends the oscillator shapes: glassy, metallic colour. |
+| **[Cross-FM Bells](/library/detail/?kind=module&slug=swarm#preset-12)** | Voices modulate each other for bell-like, inharmonic shimmer. |
+| **[Cluster Wall](/library/detail/?kind=module&slug=swarm#preset-13)** | Tight semitone cluster: dense, tense texture. |
+| **[Chromatic Swarm](/library/detail/?kind=module&slug=swarm#preset-14)** | All sixteen voices running through the chromatic scale: a insect-like storm. |
+| **[Sub Swarm](/library/detail/?kind=module&slug=swarm#preset-15)** | Low detuned swarm for fat, moving sub bass. |
 <!-- /generated -->
 
 ## Reference

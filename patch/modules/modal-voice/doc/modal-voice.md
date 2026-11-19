@@ -82,25 +82,25 @@ Five whole patches show what Modal Voice does. In the standalone app open **File
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Modal Voice view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Modal Voice view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Modal Voice; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Soft Mallet** | A gentle mallet on a resonant bar: a mellow mallet instrument. |
-| **Plucked String** | Bright pluck on a string body; fast, natural decay. |
-| **Bowed String** | A sustained bow on a string: patch Gate to hold the note. |
-| **Flute Breath** | Breath through a tube-like string body: airy, sustained. |
-| **Glass Bell** | Inharmonic bell body with long ring. |
-| **Wood Block** | Short, dry knock: heavily damped bar. |
-| **Vibraphone** | Long metal bar with a rounded mallet and some room. |
-| **Plate Gong** | Large plate struck softly: a slow, crashing bloom. |
-| **Bowed Plate Drone** | Bowed metal plate: eerie, evolving drone. |
-| **Dark Marimba** | Woody, dark bar with short sustain. |
-| **Tiny Chimes** | High, small, bright chimes an octave up. |
-| **Bowed Bell** | Singing bowl-like sustained tone: hold the gate. |
-| **Blown Bottle** | Breathy, hollow bottle tone with a soft attack. |
-| **Ext Resonator** | Patch any audio into Ext: it rings through the modal body. |
-| **Big Hall Strike** | A struck body in a very large room. |
+| **[Soft Mallet](/library/detail/?kind=module&slug=modal-voice#preset-1)** | A gentle mallet on a resonant bar: a mellow mallet instrument. |
+| **[Plucked String](/library/detail/?kind=module&slug=modal-voice#preset-2)** | Bright pluck on a string body; fast, natural decay. |
+| **[Bowed String](/library/detail/?kind=module&slug=modal-voice#preset-3)** | A sustained bow on a string: patch Gate to hold the note. |
+| **[Flute Breath](/library/detail/?kind=module&slug=modal-voice#preset-4)** | Breath through a tube-like string body: airy, sustained. |
+| **[Glass Bell](/library/detail/?kind=module&slug=modal-voice#preset-5)** | Inharmonic bell body with long ring. |
+| **[Wood Block](/library/detail/?kind=module&slug=modal-voice#preset-6)** | Short, dry knock: heavily damped bar. |
+| **[Vibraphone](/library/detail/?kind=module&slug=modal-voice#preset-7)** | Long metal bar with a rounded mallet and some room. |
+| **[Plate Gong](/library/detail/?kind=module&slug=modal-voice#preset-8)** | Large plate struck softly: a slow, crashing bloom. |
+| **[Bowed Plate Drone](/library/detail/?kind=module&slug=modal-voice#preset-9)** | Bowed metal plate: eerie, evolving drone. |
+| **[Dark Marimba](/library/detail/?kind=module&slug=modal-voice#preset-10)** | Woody, dark bar with short sustain. |
+| **[Tiny Chimes](/library/detail/?kind=module&slug=modal-voice#preset-11)** | High, small, bright chimes an octave up. |
+| **[Bowed Bell](/library/detail/?kind=module&slug=modal-voice#preset-12)** | Singing bowl-like sustained tone: hold the gate. |
+| **[Blown Bottle](/library/detail/?kind=module&slug=modal-voice#preset-13)** | Breathy, hollow bottle tone with a soft attack. |
+| **[Ext Resonator](/library/detail/?kind=module&slug=modal-voice#preset-14)** | Patch any audio into Ext: it rings through the modal body. |
+| **[Big Hall Strike](/library/detail/?kind=module&slug=modal-voice#preset-15)** | A struck body in a very large room. |
 <!-- /generated -->
 
 ## Reference

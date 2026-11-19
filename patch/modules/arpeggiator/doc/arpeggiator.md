@@ -55,25 +55,25 @@ on; the pattern keeps its place.
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Arpeggiator view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Arpeggiator view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Arpeggiator; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Classic Up** | Held notes climb in sixteenths: the standard arpeggio. |
-| **Down Run** | Falls from the top note down across two octaves. |
-| **Up-Down Two Octaves** | Climbs and falls over two octaves without repeating the end notes. |
-| **Up and Down Repeat** | Climbs and falls, repeating the top and bottom notes. |
-| **Played Order** | Plays notes in the order you pressed them. |
-| **Staccato Pluck** | Very short gates for plucked, bouncy arpeggios. |
-| **Legato Flow** | Notes join up across three octaves: a smooth, flowing line. |
-| **Swung Sixteenths** | Shuffled sixteenths for a groovy house-style arp. |
-| **Triplet Gallop** | Eighth-note triplets that gallop upward. |
-| **Converge** | Alternates from the outside in, meeting in the middle. |
-| **Diverge** | Starts at the middle and spreads outward. |
-| **Random Sparkle** | Random notes over four octaves: glittery and unpredictable. |
-| **Latched Pad Arp** | Latch keeps the arp going after you let go. |
-| **Fast Trance** | Thirty-second notes over three octaves for a fast trance run. |
-| **Slow Quarter Walk** | A slow, spacious quarter-note walk down and up. |
+| **[Classic Up](/library/detail/?kind=module&slug=arpeggiator#preset-1)** | Held notes climb in sixteenths: the standard arpeggio. |
+| **[Down Run](/library/detail/?kind=module&slug=arpeggiator#preset-2)** | Falls from the top note down across two octaves. |
+| **[Up-Down Two Octaves](/library/detail/?kind=module&slug=arpeggiator#preset-3)** | Climbs and falls over two octaves without repeating the end notes. |
+| **[Up and Down Repeat](/library/detail/?kind=module&slug=arpeggiator#preset-4)** | Climbs and falls, repeating the top and bottom notes. |
+| **[Played Order](/library/detail/?kind=module&slug=arpeggiator#preset-5)** | Plays notes in the order you pressed them. |
+| **[Staccato Pluck](/library/detail/?kind=module&slug=arpeggiator#preset-6)** | Very short gates for plucked, bouncy arpeggios. |
+| **[Legato Flow](/library/detail/?kind=module&slug=arpeggiator#preset-7)** | Notes join up across three octaves: a smooth, flowing line. |
+| **[Swung Sixteenths](/library/detail/?kind=module&slug=arpeggiator#preset-8)** | Shuffled sixteenths for a groovy house-style arp. |
+| **[Triplet Gallop](/library/detail/?kind=module&slug=arpeggiator#preset-9)** | Eighth-note triplets that gallop upward. |
+| **[Converge](/library/detail/?kind=module&slug=arpeggiator#preset-10)** | Alternates from the outside in, meeting in the middle. |
+| **[Diverge](/library/detail/?kind=module&slug=arpeggiator#preset-11)** | Starts at the middle and spreads outward. |
+| **[Random Sparkle](/library/detail/?kind=module&slug=arpeggiator#preset-12)** | Random notes over four octaves: glittery and unpredictable. |
+| **[Latched Pad Arp](/library/detail/?kind=module&slug=arpeggiator#preset-13)** | Latch keeps the arp going after you let go. |
+| **[Fast Trance](/library/detail/?kind=module&slug=arpeggiator#preset-14)** | Thirty-second notes over three octaves for a fast trance run. |
+| **[Slow Quarter Walk](/library/detail/?kind=module&slug=arpeggiator#preset-15)** | A slow, spacious quarter-note walk down and up. |
 <!-- /generated -->
 
 <!-- generated:demos -->

@@ -68,28 +68,28 @@ Turn it off to ignore the *Sync* input without unplugging it.
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Oscillator view has 18 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Oscillator view has 18 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Oscillator; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Bright Saw** | The classic sawtooth: a rich, bright starting point for any filter. |
-| **Pure Sine** | A clean sine for sub bass, tones and as an FM carrier. |
-| **Soft Triangle** | Mellow triangle with only odd, quiet harmonics. |
-| **Hollow Square** | A 50 % square: woody, clarinet-like and hollow. |
-| **Reedy Pulse** | A narrower pulse with a nasal, reed-like colour. |
-| **Thin Pulse** | Very narrow pulse: thin and buzzy, great for chiptune leads. |
-| **Sub Sine** | Two octaves down sine for deep, clean sub bass. |
-| **Fat Bass Saw** | A saw an octave down, slightly flat: pair it with a second oscillator. |
-| **Triangle To Saw** | Half-way between triangle and saw: a soft, round buzz; sweep Morph with an LFO. |
-| **Sine To Square** | A sine with some square mixed in: round with a hollow edge; sweep Morph for a filter-like opening. |
-| **Octave Lead** | A bright saw-to-square blend one octave up for cutting leads. |
-| **Detuned Fifth** | Saw set a fifth up and slightly sharp: layer it with a root oscillator. |
-| **Gentle FM** | A sine with the FM input open: patch a modulator in for bell tones. |
-| **Strong FM** | Deep through-zero FM for metallic, clangorous timbres. |
-| **Clamped FM** | Linear FM that stops at 0 Hz instead of running backwards: grittier, slightly out of tune under deep modulation. |
-| **Exponential FM** | FM in octaves: the pitch swings up and down with the modulator, from vibrato to a snarling, inharmonic growl as the depth rises. |
-| **Sync Sweep Base** | Saw for hard sync: patch a gate or a faster oscillator into Sync and sweep Coarse. |
-| **Low Rumble** | Very low pulse: use as a drone, or slow rhythmic modulation. |
+| **[Bright Saw](/library/detail/?kind=module&slug=oscillator#preset-1)** | The classic sawtooth: a rich, bright starting point for any filter. |
+| **[Pure Sine](/library/detail/?kind=module&slug=oscillator#preset-2)** | A clean sine for sub bass, tones and as an FM carrier. |
+| **[Soft Triangle](/library/detail/?kind=module&slug=oscillator#preset-3)** | Mellow triangle with only odd, quiet harmonics. |
+| **[Hollow Square](/library/detail/?kind=module&slug=oscillator#preset-4)** | A 50 % square: woody, clarinet-like and hollow. |
+| **[Reedy Pulse](/library/detail/?kind=module&slug=oscillator#preset-5)** | A narrower pulse with a nasal, reed-like colour. |
+| **[Thin Pulse](/library/detail/?kind=module&slug=oscillator#preset-6)** | Very narrow pulse: thin and buzzy, great for chiptune leads. |
+| **[Sub Sine](/library/detail/?kind=module&slug=oscillator#preset-7)** | Two octaves down sine for deep, clean sub bass. |
+| **[Fat Bass Saw](/library/detail/?kind=module&slug=oscillator#preset-8)** | A saw an octave down, slightly flat: pair it with a second oscillator. |
+| **[Triangle To Saw](/library/detail/?kind=module&slug=oscillator#preset-9)** | Half-way between triangle and saw: a soft, round buzz; sweep Morph with an LFO. |
+| **[Sine To Square](/library/detail/?kind=module&slug=oscillator#preset-10)** | A sine with some square mixed in: round with a hollow edge; sweep Morph for a filter-like opening. |
+| **[Octave Lead](/library/detail/?kind=module&slug=oscillator#preset-11)** | A bright saw-to-square blend one octave up for cutting leads. |
+| **[Detuned Fifth](/library/detail/?kind=module&slug=oscillator#preset-12)** | Saw set a fifth up and slightly sharp: layer it with a root oscillator. |
+| **[Gentle FM](/library/detail/?kind=module&slug=oscillator#preset-13)** | A sine with the FM input open: patch a modulator in for bell tones. |
+| **[Strong FM](/library/detail/?kind=module&slug=oscillator#preset-14)** | Deep through-zero FM for metallic, clangorous timbres. |
+| **[Clamped FM](/library/detail/?kind=module&slug=oscillator#preset-15)** | Linear FM that stops at 0 Hz instead of running backwards: grittier, slightly out of tune under deep modulation. |
+| **[Exponential FM](/library/detail/?kind=module&slug=oscillator#preset-16)** | FM in octaves: the pitch swings up and down with the modulator, from vibrato to a snarling, inharmonic growl as the depth rises. |
+| **[Sync Sweep Base](/library/detail/?kind=module&slug=oscillator#preset-17)** | Saw for hard sync: patch a gate or a faster oscillator into Sync and sweep Coarse. |
+| **[Low Rumble](/library/detail/?kind=module&slug=oscillator#preset-18)** | Very low pulse: use as a drone, or slow rhythmic modulation. |
 <!-- /generated -->
 
 <!-- generated:demos -->

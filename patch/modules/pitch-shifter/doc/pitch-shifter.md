@@ -38,24 +38,24 @@ The pitch-shifting algorithm (two crossfading delay-line heads, and the Fun para
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Pitch Shifter view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Pitch Shifter view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Pitch Shifter; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Octave Up** | Straight octave up. |
-| **Octave Down** | Straight octave down. |
-| **Octave Blend** | Octave up under the dry signal for sparkle. |
-| **Fifth Up** | Adds a perfect fifth for power-chord thickness. |
-| **Sub Octave** | Dry plus an octave below for weight. |
-| **Detune Double** | A slightly sharp copy: classic detune thickening. |
-| **Wide Detune** | Flat detune with a little drift. |
-| **Tape Flutter** | Wobbling pitch like worn tape. |
-| **Shimmer Spiral** | Climbing octaves: put it before a reverb. |
-| **Dark Descent** | Falling spiral that sinks into the dark. |
-| **Minor Third Echo** | Feedback stacks minor thirds into a diminished haze. |
-| **Chipmunk** | An octave and a fifth up: cartoon voice. |
-| **Monster** | Dark, slow, huge voice. |
-| **Granular Window** | Tiny window: choppy, grainy artefacts. |
+| **[Octave Up](/library/detail/?kind=module&slug=pitch-shifter#preset-1)** | Straight octave up. |
+| **[Octave Down](/library/detail/?kind=module&slug=pitch-shifter#preset-2)** | Straight octave down. |
+| **[Octave Blend](/library/detail/?kind=module&slug=pitch-shifter#preset-3)** | Octave up under the dry signal for sparkle. |
+| **[Fifth Up](/library/detail/?kind=module&slug=pitch-shifter#preset-4)** | Adds a perfect fifth for power-chord thickness. |
+| **[Sub Octave](/library/detail/?kind=module&slug=pitch-shifter#preset-5)** | Dry plus an octave below for weight. |
+| **[Detune Double](/library/detail/?kind=module&slug=pitch-shifter#preset-6)** | A slightly sharp copy: classic detune thickening. |
+| **[Wide Detune](/library/detail/?kind=module&slug=pitch-shifter#preset-7)** | Flat detune with a little drift. |
+| **[Tape Flutter](/library/detail/?kind=module&slug=pitch-shifter#preset-8)** | Wobbling pitch like worn tape. |
+| **[Shimmer Spiral](/library/detail/?kind=module&slug=pitch-shifter#preset-9)** | Climbing octaves: put it before a reverb. |
+| **[Dark Descent](/library/detail/?kind=module&slug=pitch-shifter#preset-10)** | Falling spiral that sinks into the dark. |
+| **[Minor Third Echo](/library/detail/?kind=module&slug=pitch-shifter#preset-11)** | Feedback stacks minor thirds into a diminished haze. |
+| **[Chipmunk](/library/detail/?kind=module&slug=pitch-shifter#preset-12)** | An octave and a fifth up: cartoon voice. |
+| **[Monster](/library/detail/?kind=module&slug=pitch-shifter#preset-13)** | Dark, slow, huge voice. |
+| **[Granular Window](/library/detail/?kind=module&slug=pitch-shifter#preset-14)** | Tiny window: choppy, grainy artefacts. |
 <!-- /generated -->
 
 <!-- generated:demos -->

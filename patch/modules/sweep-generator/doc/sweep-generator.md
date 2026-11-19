@@ -99,25 +99,25 @@ Five whole patches show what Sweep Generator does. In the standalone app open **
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Sweep Generator view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Sweep Generator view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Sweep Generator; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Up Sweep** | A repeating four-second sine rise. |
-| **Riser 4 Bars** | Tempo-locked rise over four bars. |
-| **Falling Zap** | Short falling zap on every trigger. |
-| **Siren** | Up-down sweep: an emergency siren. |
-| **Square Siren** | Harder, buzzier siren. |
-| **Laser** | Very quick falling saw: classic laser shot. |
-| **Noise Whoosh LFO** | Sub-audio sweep: use Out as an LFO that accelerates. |
-| **Linear Rush** | Linear law rushes through the bass and lingers up high. |
-| **Tone Bursts** | Each trigger plays four cycles at the current sweep position. |
-| **Pulse Riser** | Narrow pulse rising: thin, urgent sound. |
-| **Gated Climb** | Climbs only while the gate is held. |
-| **Marker Scan** | Sine sweep that fires a trigger at three frequencies. |
-| **Glide Retrace** | Audible flyback after each sweep, like a bench sweeper. |
-| **Wobbly Bench** | Strong drift: an unstable old function generator. |
-| **Deep Fall** | Long sub drop for impacts. |
+| **[Up Sweep](/library/detail/?kind=module&slug=sweep-generator#preset-1)** | A repeating four-second sine rise. |
+| **[Riser 4 Bars](/library/detail/?kind=module&slug=sweep-generator#preset-2)** | Tempo-locked rise over four bars. |
+| **[Falling Zap](/library/detail/?kind=module&slug=sweep-generator#preset-3)** | Short falling zap on every trigger. |
+| **[Siren](/library/detail/?kind=module&slug=sweep-generator#preset-4)** | Up-down sweep: an emergency siren. |
+| **[Square Siren](/library/detail/?kind=module&slug=sweep-generator#preset-5)** | Harder, buzzier siren. |
+| **[Laser](/library/detail/?kind=module&slug=sweep-generator#preset-6)** | Very quick falling saw: classic laser shot. |
+| **[Noise Whoosh LFO](/library/detail/?kind=module&slug=sweep-generator#preset-7)** | Sub-audio sweep: use Out as an LFO that accelerates. |
+| **[Linear Rush](/library/detail/?kind=module&slug=sweep-generator#preset-8)** | Linear law rushes through the bass and lingers up high. |
+| **[Tone Bursts](/library/detail/?kind=module&slug=sweep-generator#preset-9)** | Each trigger plays four cycles at the current sweep position. |
+| **[Pulse Riser](/library/detail/?kind=module&slug=sweep-generator#preset-10)** | Narrow pulse rising: thin, urgent sound. |
+| **[Gated Climb](/library/detail/?kind=module&slug=sweep-generator#preset-11)** | Climbs only while the gate is held. |
+| **[Marker Scan](/library/detail/?kind=module&slug=sweep-generator#preset-12)** | Sine sweep that fires a trigger at three frequencies. |
+| **[Glide Retrace](/library/detail/?kind=module&slug=sweep-generator#preset-13)** | Audible flyback after each sweep, like a bench sweeper. |
+| **[Wobbly Bench](/library/detail/?kind=module&slug=sweep-generator#preset-14)** | Strong drift: an unstable old function generator. |
+| **[Deep Fall](/library/detail/?kind=module&slug=sweep-generator#preset-15)** | Long sub drop for impacts. |
 <!-- /generated -->
 
 ## Reference

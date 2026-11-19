@@ -139,7 +139,7 @@
         if (!n.params) n.params = {};
         body.append(bv.root);
         $("views").appendChild(win);
-        const v = { win, bv, pinned: false, pinButton: pin, power, docRoot: null, help, type: t.type };
+        const v = { id, win, bv, pinned: false, pinButton: pin, power, docRoot: null, help, type: t.type };
         let docHtml = null;
         // A Code node and a module saved from one have the help page their author wrote (Help tab), or one made from the module's description
         const ownHelp = () => (P.BleepCode && P.BleepCode.helpOf ? P.BleepCode.helpOf(nodeById(id)) : null);
@@ -200,7 +200,7 @@
             const section = el("section", "mod-doc");
             const doc = el("div", "v-doc");
             doc.innerHTML = docHtml;
-            doc.addEventListener("click", (e) => { const a = e.target.closest("a"); if (a) { e.preventDefault(); followDocLink(a, doc, () => { P.BleepModal.toggle(section, false); help.classList.remove("on"); }); } });  // the page must not navigate
+            doc.addEventListener("click", (e) => { const a = e.target.closest("a"); if (a) { e.preventDefault(); followDocLink(a, doc, v, () => { P.BleepModal.toggle(section, false); help.classList.remove("on"); }); } });  // the page must not navigate
             section.appendChild(doc);
             section.hidden = true;
             v.docRoot = section;
@@ -346,8 +346,9 @@
       }
       /// A link in a module's manual (the page itself must not navigate): `#heading` scrolls the manual, a site path ("/library/…", the
       /// demo patches) and a web address open in the browser, another manual (`adsr.md`) opens that module's entry in the Bleep Library.
-      /// A demo patch (`/library/detail/?kind=module&slug=<module>#demo-<n>`, or #examples) opens Open Project on it instead (`closeDoc` first).
-      function followDocLink(a, doc, closeDoc) {
+      /// A demo patch (`/library/detail/?kind=module&slug=<module>#demo-<n>`, or #examples) opens Open Project on it instead (`closeDoc` first),
+      /// and a factory preset of the module (`…#preset-<n>`) opens it there too, where Load sets the module of the view `v`.
+      function followDocLink(a, doc, v, closeDoc) {
         const href = a.getAttribute("href") || "";
         if (href.startsWith("#")) {
           const id = decodeURIComponent(href.slice(1));
@@ -361,6 +362,15 @@
           P.BleepProjectBrowser.showDemo(decodeURIComponent(demo[1]), demo[2] ? Number(demo[2]) : 1).then((ok) => { if (!ok && P.BleepAppMenu) P.BleepAppMenu.openSite(href); });
           return;
         }
+        const preset = href.match(/^\/library\/detail\/\?kind=module&slug=([\w-]+)#preset-(\d+)$/);
+        if (preset && P.BleepProjectBrowser && P.BleepProjectBrowser.showPreset) {
+          const n = Number(preset[2]), node = nodeById(v.id);
+          // Load in the browser sets this module, while its view is still open and it is the module the manual is about
+          const into = preset[1] === v.type && node ? { name: node.name, apply: (k) => views.get(v.id) === v && !!v.bv.presets && v.bv.presets.loadFactory(k) } : null;
+          closeDoc();
+          P.BleepProjectBrowser.showPreset(decodeURIComponent(preset[1]), n, into).then((ok) => { if (!ok && P.BleepAppMenu) P.BleepAppMenu.openSite(href); });
+          return;
+        }
         const manual = href.match(/^([\w-]+)\.md(#.*)?$/);
         const path = manual ? "/library/detail/?kind=module&slug=" + encodeURIComponent(manual[1]) : href.startsWith("/") ? href : null;
         if (path && P.BleepAppMenu && P.BleepAppMenu.openSite) P.BleepAppMenu.openSite(path);
@@ -371,7 +381,7 @@
       function moduleDoc(type) {
         if (!docs.has(type))
           // no-cache: asked again each session (an unchanged manual costs a 304), so a rebuilt one is never served from an old copy
-          docs.set(type, fetch(encodeURIComponent(type) + ".md")
+          docs.set(type, fetch(encodeURIComponent(type) + ".md", { cache: "no-cache" })
             .then((r) => (r.ok ? r.text() : null))
             .then((md) => (md && md.trim() ? md : null))
             .catch(() => null));

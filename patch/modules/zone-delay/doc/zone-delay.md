@@ -106,24 +106,24 @@ Five whole patches show what Zone Delay does. In the standalone app open **File 
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Zone Delay view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Zone Delay view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Zone Delay; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Tape Echo** | Classic mid-range echo with tape colour. |
-| **Dub Echo** | Tempo-synced dub repeats; ride Tone and Feedback. |
-| **Slapback** | Short single repeat. |
-| **Stereo Spread** | The right side lags the left for a wide echo. |
-| **Flanger** | In the comb zone: sweep Time with an LFO. |
-| **Tuned Comb** | Resonant ring; patch a pitch in to tune it. |
-| **Chorus Double** | Short, modulated times thicken a sound. |
-| **Diffuse Cloud** | Repeats melt into an ambient cloud. |
-| **Ambient Wash** | Long, washy feedback. |
-| **Looper** | Multi-second loop: patch Hold to keep a phrase. |
-| **Lo-Fi Loop** | A saturated, degraded loop that gets dirtier with each pass. |
-| **Crossfade Echo** | Clean time changes without pitch bending. |
-| **Tape Dive** | Slow glide: changing Time bends the echoes. |
-| **Bright Ping** | Clear and bright quick repeats. |
+| **[Tape Echo](/library/detail/?kind=module&slug=zone-delay#preset-1)** | Classic mid-range echo with tape colour. |
+| **[Dub Echo](/library/detail/?kind=module&slug=zone-delay#preset-2)** | Tempo-synced dub repeats; ride Tone and Feedback. |
+| **[Slapback](/library/detail/?kind=module&slug=zone-delay#preset-3)** | Short single repeat. |
+| **[Stereo Spread](/library/detail/?kind=module&slug=zone-delay#preset-4)** | The right side lags the left for a wide echo. |
+| **[Flanger](/library/detail/?kind=module&slug=zone-delay#preset-5)** | In the comb zone: sweep Time with an LFO. |
+| **[Tuned Comb](/library/detail/?kind=module&slug=zone-delay#preset-6)** | Resonant ring; patch a pitch in to tune it. |
+| **[Chorus Double](/library/detail/?kind=module&slug=zone-delay#preset-7)** | Short, modulated times thicken a sound. |
+| **[Diffuse Cloud](/library/detail/?kind=module&slug=zone-delay#preset-8)** | Repeats melt into an ambient cloud. |
+| **[Ambient Wash](/library/detail/?kind=module&slug=zone-delay#preset-9)** | Long, washy feedback. |
+| **[Looper](/library/detail/?kind=module&slug=zone-delay#preset-10)** | Multi-second loop: patch Hold to keep a phrase. |
+| **[Lo-Fi Loop](/library/detail/?kind=module&slug=zone-delay#preset-11)** | A saturated, degraded loop that gets dirtier with each pass. |
+| **[Crossfade Echo](/library/detail/?kind=module&slug=zone-delay#preset-12)** | Clean time changes without pitch bending. |
+| **[Tape Dive](/library/detail/?kind=module&slug=zone-delay#preset-13)** | Slow glide: changing Time bends the echoes. |
+| **[Bright Ping](/library/detail/?kind=module&slug=zone-delay#preset-14)** | Clear and bright quick repeats. |
 <!-- /generated -->
 
 ## Reference

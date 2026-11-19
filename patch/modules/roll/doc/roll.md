@@ -112,26 +112,26 @@ Five whole patches show what Roll does. In the standalone app open **File → Pr
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Roll view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Roll view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Roll; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Rising Line** | A short rising line, the starting point. |
-| **Minor Chords** | Four overlapping five-note chords, a bar each. |
-| **Walking Bass** | Eight-note bass line over two bars. |
-| **Held Pad Stack** | Long notes starting a little apart and ringing through each other. |
-| **Ratchet Pulse** | Notes that split into 2-6 quick repeats. |
-| **Chance Garden** | Sixteen notes that each play only some of the time. |
-| **Humanised Keys** | Chords that arrive a hair late and uneven. |
-| **Triplet Roll** | A rolling run on the triplet grid. |
-| **Morph Pair** | Two arps; Morph 50 % sits halfway between them. |
-| **Eight Bars** | A long melody that takes eight bars to come round. |
-| **Swung Arp** | A sixteenth-note arpeggio with a rolling swing. |
-| **Half-Time Drift** | Everything at half speed: a slow, stretched pattern. |
-| **Double-Time Run** | The pattern at twice the speed, snapped to the scale. |
-| **Loop Window** | Four bars drawn, only the second one loops. |
-| **Scale Snap Cluster** | A chromatic cluster pulled into Dorian when played. |
-| **Ghost Answer** | Slot 1 calls, slot 2 answers; the ghost shows the call. |
+| **[Rising Line](/library/detail/?kind=module&slug=roll#preset-1)** | A short rising line, the starting point. |
+| **[Minor Chords](/library/detail/?kind=module&slug=roll#preset-2)** | Four overlapping five-note chords, a bar each. |
+| **[Walking Bass](/library/detail/?kind=module&slug=roll#preset-3)** | Eight-note bass line over two bars. |
+| **[Held Pad Stack](/library/detail/?kind=module&slug=roll#preset-4)** | Long notes starting a little apart and ringing through each other. |
+| **[Ratchet Pulse](/library/detail/?kind=module&slug=roll#preset-5)** | Notes that split into 2-6 quick repeats. |
+| **[Chance Garden](/library/detail/?kind=module&slug=roll#preset-6)** | Sixteen notes that each play only some of the time. |
+| **[Humanised Keys](/library/detail/?kind=module&slug=roll#preset-7)** | Chords that arrive a hair late and uneven. |
+| **[Triplet Roll](/library/detail/?kind=module&slug=roll#preset-8)** | A rolling run on the triplet grid. |
+| **[Morph Pair](/library/detail/?kind=module&slug=roll#preset-9)** | Two arps; Morph 50 % sits halfway between them. |
+| **[Eight Bars](/library/detail/?kind=module&slug=roll#preset-10)** | A long melody that takes eight bars to come round. |
+| **[Swung Arp](/library/detail/?kind=module&slug=roll#preset-11)** | A sixteenth-note arpeggio with a rolling swing. |
+| **[Half-Time Drift](/library/detail/?kind=module&slug=roll#preset-12)** | Everything at half speed: a slow, stretched pattern. |
+| **[Double-Time Run](/library/detail/?kind=module&slug=roll#preset-13)** | The pattern at twice the speed, snapped to the scale. |
+| **[Loop Window](/library/detail/?kind=module&slug=roll#preset-14)** | Four bars drawn, only the second one loops. |
+| **[Scale Snap Cluster](/library/detail/?kind=module&slug=roll#preset-15)** | A chromatic cluster pulled into Dorian when played. |
+| **[Ghost Answer](/library/detail/?kind=module&slug=roll#preset-16)** | Slot 1 calls, slot 2 answers; the ghost shows the call. |
 <!-- /generated -->
 
 ## Reference

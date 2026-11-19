@@ -82,25 +82,25 @@ Five whole patches show what Wobble does. In the standalone app open **File → 
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Wobble view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Wobble view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Wobble; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Gentle Wander** | Slow smooth random movement: gentle, subtle drift. |
-| **Classic Sample and Hold** | Use the stepped output for random sample-and-hold steps. |
-| **Lazy Steps** | Slow random jumps for evolving filter changes. |
-| **Silky Glide** | Fully smoothed glides between random values. |
-| **Springy Overshoot** | Wobble output overshoots and rings after each jump. |
-| **Jelly Wobble** | Heavy ringing wobble: gelatinous pitch and filter motion. |
-| **Synced Eighths** | Random steps locked to eighth notes. |
-| **Synced Bars** | One new value per bar: slow, tempo-locked changes. |
-| **Burst Trigger** | Frequently fires bursts of triggers: fills and rolls. |
-| **Rapid Burst Roll** | Long fast trigger rolls from the burst output. |
-| **Chaotic Stream** | Chaos adds unpredictable behavior to the stream. |
-| **Fast Jitter** | Fast small-depth jitter: adds life to pitch or pan. |
-| **Unipolar Level** | Positive-only random values: for levels and mixes. |
-| **Quiet Shimmer** | Low-depth random flutter for subtle shimmer. |
-| **Seeded Pattern** | Steps from another seed: a different random pattern. |
+| **[Gentle Wander](/library/detail/?kind=module&slug=wobble#preset-1)** | Slow smooth random movement: gentle, subtle drift. |
+| **[Classic Sample and Hold](/library/detail/?kind=module&slug=wobble#preset-2)** | Use the stepped output for random sample-and-hold steps. |
+| **[Lazy Steps](/library/detail/?kind=module&slug=wobble#preset-3)** | Slow random jumps for evolving filter changes. |
+| **[Silky Glide](/library/detail/?kind=module&slug=wobble#preset-4)** | Fully smoothed glides between random values. |
+| **[Springy Overshoot](/library/detail/?kind=module&slug=wobble#preset-5)** | Wobble output overshoots and rings after each jump. |
+| **[Jelly Wobble](/library/detail/?kind=module&slug=wobble#preset-6)** | Heavy ringing wobble: gelatinous pitch and filter motion. |
+| **[Synced Eighths](/library/detail/?kind=module&slug=wobble#preset-7)** | Random steps locked to eighth notes. |
+| **[Synced Bars](/library/detail/?kind=module&slug=wobble#preset-8)** | One new value per bar: slow, tempo-locked changes. |
+| **[Burst Trigger](/library/detail/?kind=module&slug=wobble#preset-9)** | Frequently fires bursts of triggers: fills and rolls. |
+| **[Rapid Burst Roll](/library/detail/?kind=module&slug=wobble#preset-10)** | Long fast trigger rolls from the burst output. |
+| **[Chaotic Stream](/library/detail/?kind=module&slug=wobble#preset-11)** | Chaos adds unpredictable behavior to the stream. |
+| **[Fast Jitter](/library/detail/?kind=module&slug=wobble#preset-12)** | Fast small-depth jitter: adds life to pitch or pan. |
+| **[Unipolar Level](/library/detail/?kind=module&slug=wobble#preset-13)** | Positive-only random values: for levels and mixes. |
+| **[Quiet Shimmer](/library/detail/?kind=module&slug=wobble#preset-14)** | Low-depth random flutter for subtle shimmer. |
+| **[Seeded Pattern](/library/detail/?kind=module&slug=wobble#preset-15)** | Steps from another seed: a different random pattern. |
 <!-- /generated -->
 
 ## Reference

@@ -70,27 +70,27 @@ Five whole patches show what Bit Formula does. In the standalone app open **File
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Bit Formula view has 17 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Bit Formula view has 17 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Bit Formula; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Ramp Saw** | The counter itself: a rising saw that wraps. |
-| **Pulse Width** | A pulse; A sets its width. |
-| **Stair Climb** | Stepped ramps that climb in shifting groups. |
-| **Sierpinski Bass** | A hollow bass pattern from a shifted mask. |
-| **Sieve Melody** | A tune from the overlap of two shifted counters. |
-| **Crawl** | A slow, creeping melody with a sparse rhythm. |
-| **Chirp Drops** | Falling squeals: the counter squared. |
-| **Warble Pad** | Smoothed, wavering steps. |
-| **Mask Rhythm** | A rhythm of masked bit patterns. |
-| **Counting Noise** | Bit-counting noise with a ragged pitch. |
-| **Echo Ramp Soft** | Two ramps averaged: a soft buzz. |
-| **Grid Buzz** | An angular, buzzy grid of three masks. |
-| **Mirror Tone** | A triangle-like tone folded by the top bit. |
-| **Parity Pulse** | Parity of two shifted counters: pulsing and crunchy. |
-| **Crush Input** | Patch audio into In: it is cut to a few bits and crossed with the counter. |
-| **Lo-Fi 4 Bit** | A coarse four-bit staircase saw. |
-| **Custom Hat** | Your own formula slot, filled with a noisy hat-like one. |
+| **[Ramp Saw](/library/detail/?kind=module&slug=bit-formula#preset-1)** | The counter itself: a rising saw that wraps. |
+| **[Pulse Width](/library/detail/?kind=module&slug=bit-formula#preset-2)** | A pulse; A sets its width. |
+| **[Stair Climb](/library/detail/?kind=module&slug=bit-formula#preset-3)** | Stepped ramps that climb in shifting groups. |
+| **[Sierpinski Bass](/library/detail/?kind=module&slug=bit-formula#preset-4)** | A hollow bass pattern from a shifted mask. |
+| **[Sieve Melody](/library/detail/?kind=module&slug=bit-formula#preset-5)** | A tune from the overlap of two shifted counters. |
+| **[Crawl](/library/detail/?kind=module&slug=bit-formula#preset-6)** | A slow, creeping melody with a sparse rhythm. |
+| **[Chirp Drops](/library/detail/?kind=module&slug=bit-formula#preset-7)** | Falling squeals: the counter squared. |
+| **[Warble Pad](/library/detail/?kind=module&slug=bit-formula#preset-8)** | Smoothed, wavering steps. |
+| **[Mask Rhythm](/library/detail/?kind=module&slug=bit-formula#preset-9)** | A rhythm of masked bit patterns. |
+| **[Counting Noise](/library/detail/?kind=module&slug=bit-formula#preset-10)** | Bit-counting noise with a ragged pitch. |
+| **[Echo Ramp Soft](/library/detail/?kind=module&slug=bit-formula#preset-11)** | Two ramps averaged: a soft buzz. |
+| **[Grid Buzz](/library/detail/?kind=module&slug=bit-formula#preset-12)** | An angular, buzzy grid of three masks. |
+| **[Mirror Tone](/library/detail/?kind=module&slug=bit-formula#preset-13)** | A triangle-like tone folded by the top bit. |
+| **[Parity Pulse](/library/detail/?kind=module&slug=bit-formula#preset-14)** | Parity of two shifted counters: pulsing and crunchy. |
+| **[Crush Input](/library/detail/?kind=module&slug=bit-formula#preset-15)** | Patch audio into In: it is cut to a few bits and crossed with the counter. |
+| **[Lo-Fi 4 Bit](/library/detail/?kind=module&slug=bit-formula#preset-16)** | A coarse four-bit staircase saw. |
+| **[Custom Hat](/library/detail/?kind=module&slug=bit-formula#preset-17)** | Your own formula slot, filled with a noisy hat-like one. |
 <!-- /generated -->
 
 ## Reference

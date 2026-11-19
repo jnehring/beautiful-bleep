@@ -102,25 +102,25 @@ Five whole patches show what Quad LFO does. In the standalone app open **File â†
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Quad LFO view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Quad LFO view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Quad LFO; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Quadrature Sine** | Four sines 90 degrees apart: circular motion for panning or filters. |
-| **Slow Drift** | Four unrelated very slow sines: gentle, never-repeating drift. |
-| **Vibrato Pair** | Two close vibrato rates: use out1 and out2 on left and right pitch. |
-| **Wide Phase Spread** | One rate, four phases 120 degrees apart: wide stereo movement. |
-| **Triangle Cascade** | Closely staggered triangles for a rolling sweep across four targets. |
-| **Polyrhythm Divide** | Square waves divided from one rate: interlocking pulse patterns. |
-| **Synced Quarters** | Clock-locked divisions from fast to very slow, all in tempo. |
-| **Double Time Rise** | Tempo-synced rising ramps at related speeds. |
-| **Tremolo Square** | Hard on/off amplitude chop: patch out1 into a VCA. |
-| **Soft Tremolo** | Smooth classic tremolo depth for an amp. |
-| **Sample and Hold Steps** | Four random step streams at different speeds. |
-| **Random Glide** | Smooth random wandering on four outputs: organic pad motion. |
-| **Saw Pulse Mix** | Four different shapes at harmonic rates: use the sum for a complex contour. |
-| **Fast Audio-ish Wobble** | Very fast quadrature triangles for rough FM-style modulation. |
-| **Inverted Counter-Motion** | Opposed levels and phases: one rises while the other falls. |
+| **[Quadrature Sine](/library/detail/?kind=module&slug=quad-lfo#preset-1)** | Four sines 90 degrees apart: circular motion for panning or filters. |
+| **[Slow Drift](/library/detail/?kind=module&slug=quad-lfo#preset-2)** | Four unrelated very slow sines: gentle, never-repeating drift. |
+| **[Vibrato Pair](/library/detail/?kind=module&slug=quad-lfo#preset-3)** | Two close vibrato rates: use out1 and out2 on left and right pitch. |
+| **[Wide Phase Spread](/library/detail/?kind=module&slug=quad-lfo#preset-4)** | One rate, four phases 120 degrees apart: wide stereo movement. |
+| **[Triangle Cascade](/library/detail/?kind=module&slug=quad-lfo#preset-5)** | Closely staggered triangles for a rolling sweep across four targets. |
+| **[Polyrhythm Divide](/library/detail/?kind=module&slug=quad-lfo#preset-6)** | Square waves divided from one rate: interlocking pulse patterns. |
+| **[Synced Quarters](/library/detail/?kind=module&slug=quad-lfo#preset-7)** | Clock-locked divisions from fast to very slow, all in tempo. |
+| **[Double Time Rise](/library/detail/?kind=module&slug=quad-lfo#preset-8)** | Tempo-synced rising ramps at related speeds. |
+| **[Tremolo Square](/library/detail/?kind=module&slug=quad-lfo#preset-9)** | Hard on/off amplitude chop: patch out1 into a VCA. |
+| **[Soft Tremolo](/library/detail/?kind=module&slug=quad-lfo#preset-10)** | Smooth classic tremolo depth for an amp. |
+| **[Sample and Hold Steps](/library/detail/?kind=module&slug=quad-lfo#preset-11)** | Four random step streams at different speeds. |
+| **[Random Glide](/library/detail/?kind=module&slug=quad-lfo#preset-12)** | Smooth random wandering on four outputs: organic pad motion. |
+| **[Saw Pulse Mix](/library/detail/?kind=module&slug=quad-lfo#preset-13)** | Four different shapes at harmonic rates: use the sum for a complex contour. |
+| **[Fast Audio-ish Wobble](/library/detail/?kind=module&slug=quad-lfo#preset-14)** | Very fast quadrature triangles for rough FM-style modulation. |
+| **[Inverted Counter-Motion](/library/detail/?kind=module&slug=quad-lfo#preset-15)** | Opposed levels and phases: one rises while the other falls. |
 <!-- /generated -->
 
 ## Reference

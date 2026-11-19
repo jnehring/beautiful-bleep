@@ -64,25 +64,25 @@ another scale is selected copies that scale and switches *Scale* to
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Quantizer view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Quantizer view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Quantizer; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **C Major** | Snaps any pitch to C major: the safe, bright default. |
-| **Natural Minor** | A natural minor: melancholic and familiar. |
-| **Minor Pentatonic** | Five notes that can't clash: great for random melodies. |
-| **Major Pentatonic** | Open and folky: nothing sounds wrong. |
-| **Dorian Walk** | Minor with a lifted sixth: cool, jazzy lines. |
-| **Lydian Float** | A major scale with a raised fourth: dreamy and airy. |
-| **Phrygian Dark** | Flat second gives a tense, Spanish-tinged colour. |
-| **Harmonic Minor** | Dramatic minor with a leading tone. |
-| **Blues** | Blue notes for gritty, soulful lines. |
-| **Whole Tone Dream** | Six equal steps: ambiguous, floating melodies. |
-| **Hirajoshi** | A five-note scale with an east-Asian flavour. |
-| **Gliding Major** | A little slide between notes for a singing feel. |
-| **Wide Range** | Stretches the input over three octaves with a steadier hold. |
-| **Round Down** | Always rounds down to the scale note below. |
-| **Round Up Chromatic** | Chromatic, rounding up: plain semitone steps with no hold. |
+| **[C Major](/library/detail/?kind=module&slug=quantizer#preset-1)** | Snaps any pitch to C major: the safe, bright default. |
+| **[Natural Minor](/library/detail/?kind=module&slug=quantizer#preset-2)** | A natural minor: melancholic and familiar. |
+| **[Minor Pentatonic](/library/detail/?kind=module&slug=quantizer#preset-3)** | Five notes that can't clash: great for random melodies. |
+| **[Major Pentatonic](/library/detail/?kind=module&slug=quantizer#preset-4)** | Open and folky: nothing sounds wrong. |
+| **[Dorian Walk](/library/detail/?kind=module&slug=quantizer#preset-5)** | Minor with a lifted sixth: cool, jazzy lines. |
+| **[Lydian Float](/library/detail/?kind=module&slug=quantizer#preset-6)** | A major scale with a raised fourth: dreamy and airy. |
+| **[Phrygian Dark](/library/detail/?kind=module&slug=quantizer#preset-7)** | Flat second gives a tense, Spanish-tinged colour. |
+| **[Harmonic Minor](/library/detail/?kind=module&slug=quantizer#preset-8)** | Dramatic minor with a leading tone. |
+| **[Blues](/library/detail/?kind=module&slug=quantizer#preset-9)** | Blue notes for gritty, soulful lines. |
+| **[Whole Tone Dream](/library/detail/?kind=module&slug=quantizer#preset-10)** | Six equal steps: ambiguous, floating melodies. |
+| **[Hirajoshi](/library/detail/?kind=module&slug=quantizer#preset-11)** | A five-note scale with an east-Asian flavour. |
+| **[Gliding Major](/library/detail/?kind=module&slug=quantizer#preset-12)** | A little slide between notes for a singing feel. |
+| **[Wide Range](/library/detail/?kind=module&slug=quantizer#preset-13)** | Stretches the input over three octaves with a steadier hold. |
+| **[Round Down](/library/detail/?kind=module&slug=quantizer#preset-14)** | Always rounds down to the scale note below. |
+| **[Round Up Chromatic](/library/detail/?kind=module&slug=quantizer#preset-15)** | Chromatic, rounding up: plain semitone steps with no hold. |
 <!-- /generated -->
 
 <!-- generated:demos -->

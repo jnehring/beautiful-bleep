@@ -214,26 +214,26 @@ Five whole patches show what Macro Osc does. In the standalone app open **File â
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Macro Osc view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Macro Osc view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Macro Osc; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Fat VA Pair** | Two detuned saws: a fat classic analog voice. |
-| **Sync Sweep** | Hard-synced pair: move Blend for the classic sync sweep. |
-| **Wavefold Sine** | A sine folded back on itself: bright, harmonic timbre. |
-| **FM Bell Tone** | Two-operator FM with a bell-like ratio. |
-| **Phase Warp Bass** | A bent cosine: a warm, saw-like bass. |
-| **Vowel Voice** | A sung vowel: sweep Tone from a to u. |
-| **Hollow Harmonics** | Odd harmonics only: a hollow, clarinet-like tone. |
-| **Chord Stack** | A minor-seventh chord from one note: Aux plays the root. |
-| **Wavetable Walk** | An analog table: move Shape and Blend across the grid. |
-| **Grain Formant** | Windowed sine bursts: a vocal, filter-like peak. |
-| **Plucked String** | A plucked string: patch triggers to play it. |
-| **Struck Bell** | A struck bell with stretched modes: trigger it. |
-| **Sub Kick** | A swept-sine kick: patch triggers. |
-| **Snare Hit** | Two heads plus noise: a classic synthetic snare. |
-| **Closed Hat** | Six metallic squares, very short: a closed hat. |
-| **Dust Rain** | Random clicks like rain or crackle; no trigger needed. |
+| **[Fat VA Pair](/library/detail/?kind=module&slug=macro-osc#preset-1)** | Two detuned saws: a fat classic analog voice. |
+| **[Sync Sweep](/library/detail/?kind=module&slug=macro-osc#preset-2)** | Hard-synced pair: move Blend for the classic sync sweep. |
+| **[Wavefold Sine](/library/detail/?kind=module&slug=macro-osc#preset-3)** | A sine folded back on itself: bright, harmonic timbre. |
+| **[FM Bell Tone](/library/detail/?kind=module&slug=macro-osc#preset-4)** | Two-operator FM with a bell-like ratio. |
+| **[Phase Warp Bass](/library/detail/?kind=module&slug=macro-osc#preset-5)** | A bent cosine: a warm, saw-like bass. |
+| **[Vowel Voice](/library/detail/?kind=module&slug=macro-osc#preset-6)** | A sung vowel: sweep Tone from a to u. |
+| **[Hollow Harmonics](/library/detail/?kind=module&slug=macro-osc#preset-7)** | Odd harmonics only: a hollow, clarinet-like tone. |
+| **[Chord Stack](/library/detail/?kind=module&slug=macro-osc#preset-8)** | A minor-seventh chord from one note: Aux plays the root. |
+| **[Wavetable Walk](/library/detail/?kind=module&slug=macro-osc#preset-9)** | An analog table: move Shape and Blend across the grid. |
+| **[Grain Formant](/library/detail/?kind=module&slug=macro-osc#preset-10)** | Windowed sine bursts: a vocal, filter-like peak. |
+| **[Plucked String](/library/detail/?kind=module&slug=macro-osc#preset-11)** | A plucked string: patch triggers to play it. |
+| **[Struck Bell](/library/detail/?kind=module&slug=macro-osc#preset-12)** | A struck bell with stretched modes: trigger it. |
+| **[Sub Kick](/library/detail/?kind=module&slug=macro-osc#preset-13)** | A swept-sine kick: patch triggers. |
+| **[Snare Hit](/library/detail/?kind=module&slug=macro-osc#preset-14)** | Two heads plus noise: a classic synthetic snare. |
+| **[Closed Hat](/library/detail/?kind=module&slug=macro-osc#preset-15)** | Six metallic squares, very short: a closed hat. |
+| **[Dust Rain](/library/detail/?kind=module&slug=macro-osc#preset-16)** | Random clicks like rain or crackle; no trigger needed. |
 <!-- /generated -->
 
 ## Controls and jacks

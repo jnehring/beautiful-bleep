@@ -51,24 +51,24 @@ grow until the soft limiter holds them. *Low Cut* and
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Delay view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Delay view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Delay; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Eighth Echo** | A clean tempo-synced eighth-note echo. |
-| **Dotted Eighth** | The rhythmic dotted echo that fills gaps. |
-| **Tape Slap** | Short slapback with a dull top. |
-| **Ping-Pong Bounce** | Repeats bounce left and right. |
-| **Stereo Offset** | Different times per side widen the echo. |
-| **Dub Echo** | Filtered, long repeats that darken as they fade. |
-| **Triplet Ping-Pong** | Rolling triplet bounce. |
-| **Quarter Note Wash** | Spacious quarter-note repeats. |
-| **Chorus Doubler** | Very short times thicken a sound like a double-track. |
-| **Comb Resonance** | Millisecond delays with feedback ring as a metallic comb. |
-| **Long Haunt** | Slow, distant repeats for ambience. |
-| **Half Note Ping-Pong** | Wide, slow bounces. |
-| **Thin Radio Echo** | Band-limited, small-speaker echo. |
-| **Endless Repeat** | Near-infinite feedback; the filters keep it from blowing up. |
+| **[Eighth Echo](/library/detail/?kind=module&slug=delay#preset-1)** | A clean tempo-synced eighth-note echo. |
+| **[Dotted Eighth](/library/detail/?kind=module&slug=delay#preset-2)** | The rhythmic dotted echo that fills gaps. |
+| **[Tape Slap](/library/detail/?kind=module&slug=delay#preset-3)** | Short slapback with a dull top. |
+| **[Ping-Pong Bounce](/library/detail/?kind=module&slug=delay#preset-4)** | Repeats bounce left and right. |
+| **[Stereo Offset](/library/detail/?kind=module&slug=delay#preset-5)** | Different times per side widen the echo. |
+| **[Dub Echo](/library/detail/?kind=module&slug=delay#preset-6)** | Filtered, long repeats that darken as they fade. |
+| **[Triplet Ping-Pong](/library/detail/?kind=module&slug=delay#preset-7)** | Rolling triplet bounce. |
+| **[Quarter Note Wash](/library/detail/?kind=module&slug=delay#preset-8)** | Spacious quarter-note repeats. |
+| **[Chorus Doubler](/library/detail/?kind=module&slug=delay#preset-9)** | Very short times thicken a sound like a double-track. |
+| **[Comb Resonance](/library/detail/?kind=module&slug=delay#preset-10)** | Millisecond delays with feedback ring as a metallic comb. |
+| **[Long Haunt](/library/detail/?kind=module&slug=delay#preset-11)** | Slow, distant repeats for ambience. |
+| **[Half Note Ping-Pong](/library/detail/?kind=module&slug=delay#preset-12)** | Wide, slow bounces. |
+| **[Thin Radio Echo](/library/detail/?kind=module&slug=delay#preset-13)** | Band-limited, small-speaker echo. |
+| **[Endless Repeat](/library/detail/?kind=module&slug=delay#preset-14)** | Near-infinite feedback; the filters keep it from blowing up. |
 <!-- /generated -->
 
 <!-- generated:demos -->

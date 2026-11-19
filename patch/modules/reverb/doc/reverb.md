@@ -156,30 +156,30 @@ Five whole patches show what Verb does. In the standalone app open **File → Pr
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Verb view has 20 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Verb view has 20 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Verb; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Small Room** | A tight room for natural ambience. |
-| **Medium Hall** | General-purpose hall. |
-| **Bright Plate** | Dense, bright and fast building plate. |
-| **Vocal Space** | Pre-delay keeps a voice clear in front. |
-| **Warm Chamber** | Dark and cozy. |
-| **Big Cathedral** | Huge stone space with a long tail. |
-| **Wide Pad** | A lush, wide wash for sustained sounds. |
-| **Shimmer Mod** | Heavy modulation gives a chorus-like shimmer. |
-| **Gated Snap** | Short, punchy burst for snares. |
-| **Dub Spring** | Sparse, metallic-sounding tail. |
-| **Dark Abyss** | Very long, dark and rumbling. |
-| **Infinite Freeze** | Practically endless; gate Freeze to hold a chord. |
-| **Mono Closet** | Very small and mono: a hint of space. |
-| **Eco Wash** | A cheaper eight-line reverb for busy patches. |
-| **Boing Spring** | A bright coil that bends up on every hit and droops back: feed it clicks and snares. |
-| **Long Drip** | A long coil with slow, separate drips; the lows trail behind the highs. |
-| **Tight Flutter** | A short coil: fast metallic flutter with little chirp. |
-| **Held Coil** | An endless, wobbling metal drone; play into it, then lower Decay to let it go. |
-| **Studio Room** | Close, believable room: discrete early reflections around a short tail. |
-| **Chapel Echoes** | Distinct stone-wall echoes before a long, soft tail. |
+| **[Small Room](/library/detail/?kind=module&slug=reverb#preset-1)** | A tight room for natural ambience. |
+| **[Medium Hall](/library/detail/?kind=module&slug=reverb#preset-2)** | General-purpose hall. |
+| **[Bright Plate](/library/detail/?kind=module&slug=reverb#preset-3)** | Dense, bright and fast building plate. |
+| **[Vocal Space](/library/detail/?kind=module&slug=reverb#preset-4)** | Pre-delay keeps a voice clear in front. |
+| **[Warm Chamber](/library/detail/?kind=module&slug=reverb#preset-5)** | Dark and cozy. |
+| **[Big Cathedral](/library/detail/?kind=module&slug=reverb#preset-6)** | Huge stone space with a long tail. |
+| **[Wide Pad](/library/detail/?kind=module&slug=reverb#preset-7)** | A lush, wide wash for sustained sounds. |
+| **[Shimmer Mod](/library/detail/?kind=module&slug=reverb#preset-8)** | Heavy modulation gives a chorus-like shimmer. |
+| **[Gated Snap](/library/detail/?kind=module&slug=reverb#preset-9)** | Short, punchy burst for snares. |
+| **[Dub Spring](/library/detail/?kind=module&slug=reverb#preset-10)** | Sparse, metallic-sounding tail. |
+| **[Dark Abyss](/library/detail/?kind=module&slug=reverb#preset-11)** | Very long, dark and rumbling. |
+| **[Infinite Freeze](/library/detail/?kind=module&slug=reverb#preset-12)** | Practically endless; gate Freeze to hold a chord. |
+| **[Mono Closet](/library/detail/?kind=module&slug=reverb#preset-13)** | Very small and mono: a hint of space. |
+| **[Eco Wash](/library/detail/?kind=module&slug=reverb#preset-14)** | A cheaper eight-line reverb for busy patches. |
+| **[Boing Spring](/library/detail/?kind=module&slug=reverb#preset-15)** | A bright coil that bends up on every hit and droops back: feed it clicks and snares. |
+| **[Long Drip](/library/detail/?kind=module&slug=reverb#preset-16)** | A long coil with slow, separate drips; the lows trail behind the highs. |
+| **[Tight Flutter](/library/detail/?kind=module&slug=reverb#preset-17)** | A short coil: fast metallic flutter with little chirp. |
+| **[Held Coil](/library/detail/?kind=module&slug=reverb#preset-18)** | An endless, wobbling metal drone; play into it, then lower Decay to let it go. |
+| **[Studio Room](/library/detail/?kind=module&slug=reverb#preset-19)** | Close, believable room: discrete early reflections around a short tail. |
+| **[Chapel Echoes](/library/detail/?kind=module&slug=reverb#preset-20)** | Distinct stone-wall echoes before a long, soft tail. |
 <!-- /generated -->
 
 ## Reference

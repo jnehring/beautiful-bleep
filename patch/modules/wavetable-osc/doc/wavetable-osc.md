@@ -126,26 +126,26 @@ Five whole patches show what Wavetable Osc does. In the standalone app open **Fi
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Wavetable Osc view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Wavetable Osc view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Wavetable Osc; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Analog Saw** | A bright analog saw from the first bank. |
-| **Soft Sine Tri** | A round sine-to-triangle blend with a little sub. |
-| **Analog Sweep** | Scan the path across the shapes: modulate Scan for a sweeping tone. |
-| **Warm Organ** | A drawbar-style registration with light stereo width. |
-| **Vowel Voice** | A sung vowel: sweep X to change a-e-i-o-u. |
-| **Harmonic Glass** | Odd harmonics around a spectral centre: glassy and pure. |
-| **Pulse Width** | A pulse table: move X to change the width. |
-| **Sync Sweep** | Synced saw ratios inside the table: sweep X for a classic sync lead. |
-| **FM Table** | Stored FM spectra: X is index, Y is ratio. |
-| **Folded Wave** | Wavefolded cycles: bright, moving harmonics. |
-| **Bell Table** | Stretched partials: a glassy, bell-like tone. |
-| **Spectra Cloud** | Random seeded spectra with wide stereo: a textural pad. |
-| **Bent Analog** | Warp bends the cycle: a brighter, resonant tone. |
-| **Squashed PWM** | Squash gives pulse-width movement to any wave; modulate Warp. |
-| **Mirror Fold** | A mirrored read: a new even/odd balance. |
-| **Digital Crush** | Bit-reduced stepped cycles: lo-fi and gritty. |
+| **[Analog Saw](/library/detail/?kind=module&slug=wavetable-osc#preset-1)** | A bright analog saw from the first bank. |
+| **[Soft Sine Tri](/library/detail/?kind=module&slug=wavetable-osc#preset-2)** | A round sine-to-triangle blend with a little sub. |
+| **[Analog Sweep](/library/detail/?kind=module&slug=wavetable-osc#preset-3)** | Scan the path across the shapes: modulate Scan for a sweeping tone. |
+| **[Warm Organ](/library/detail/?kind=module&slug=wavetable-osc#preset-4)** | A drawbar-style registration with light stereo width. |
+| **[Vowel Voice](/library/detail/?kind=module&slug=wavetable-osc#preset-5)** | A sung vowel: sweep X to change a-e-i-o-u. |
+| **[Harmonic Glass](/library/detail/?kind=module&slug=wavetable-osc#preset-6)** | Odd harmonics around a spectral centre: glassy and pure. |
+| **[Pulse Width](/library/detail/?kind=module&slug=wavetable-osc#preset-7)** | A pulse table: move X to change the width. |
+| **[Sync Sweep](/library/detail/?kind=module&slug=wavetable-osc#preset-8)** | Synced saw ratios inside the table: sweep X for a classic sync lead. |
+| **[FM Table](/library/detail/?kind=module&slug=wavetable-osc#preset-9)** | Stored FM spectra: X is index, Y is ratio. |
+| **[Folded Wave](/library/detail/?kind=module&slug=wavetable-osc#preset-10)** | Wavefolded cycles: bright, moving harmonics. |
+| **[Bell Table](/library/detail/?kind=module&slug=wavetable-osc#preset-11)** | Stretched partials: a glassy, bell-like tone. |
+| **[Spectra Cloud](/library/detail/?kind=module&slug=wavetable-osc#preset-12)** | Random seeded spectra with wide stereo: a textural pad. |
+| **[Bent Analog](/library/detail/?kind=module&slug=wavetable-osc#preset-13)** | Warp bends the cycle: a brighter, resonant tone. |
+| **[Squashed PWM](/library/detail/?kind=module&slug=wavetable-osc#preset-14)** | Squash gives pulse-width movement to any wave; modulate Warp. |
+| **[Mirror Fold](/library/detail/?kind=module&slug=wavetable-osc#preset-15)** | A mirrored read: a new even/odd balance. |
+| **[Digital Crush](/library/detail/?kind=module&slug=wavetable-osc#preset-16)** | Bit-reduced stepped cycles: lo-fi and gritty. |
 <!-- /generated -->
 
 ## Reference

@@ -75,23 +75,23 @@ Five whole patches show what Neuron does. In the standalone app open **File → 
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Neuron view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Neuron view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Neuron; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Default Rhythm** | Two neurons that answer each other: a rhythm with no cables. |
-| **Steady Pulse** | Two independent steady pulse trains, no cross talk. |
-| **Slow Heartbeat** | Low, slow double-thump patterns. |
-| **Fast Chatter** | Rapid spikes for glitchy triggers. |
-| **Call and Response** | B only fires after A: a delayed answer. |
-| **Mutual Silence** | Each neuron inhibits the other for alternating bursts. |
-| **Compare Gates** | Self-switching gates that settle into slow on-off patterns. |
-| **Smooth Out** | Gentle control outputs with soft slopes for modulation. |
-| **Logic Mix** | Long pulses so the AND, OR and XOR outputs show overlaps. |
-| **Gate Cross** | Neurons listen to each other's gates instead of their outputs. |
-| **Independent Pair** | No cross talk: two polyrhythmic pulses of different speeds. |
-| **Sparse Triggers** | Barely above threshold: occasional, slow triggers. |
-| **Chaotic Pair** | Strong coupling creates unpredictable patterns. |
+| **[Default Rhythm](/library/detail/?kind=module&slug=neuron#preset-1)** | Two neurons that answer each other: a rhythm with no cables. |
+| **[Steady Pulse](/library/detail/?kind=module&slug=neuron#preset-2)** | Two independent steady pulse trains, no cross talk. |
+| **[Slow Heartbeat](/library/detail/?kind=module&slug=neuron#preset-3)** | Low, slow double-thump patterns. |
+| **[Fast Chatter](/library/detail/?kind=module&slug=neuron#preset-4)** | Rapid spikes for glitchy triggers. |
+| **[Call and Response](/library/detail/?kind=module&slug=neuron#preset-5)** | B only fires after A: a delayed answer. |
+| **[Mutual Silence](/library/detail/?kind=module&slug=neuron#preset-6)** | Each neuron inhibits the other for alternating bursts. |
+| **[Compare Gates](/library/detail/?kind=module&slug=neuron#preset-7)** | Self-switching gates that settle into slow on-off patterns. |
+| **[Smooth Out](/library/detail/?kind=module&slug=neuron#preset-8)** | Gentle control outputs with soft slopes for modulation. |
+| **[Logic Mix](/library/detail/?kind=module&slug=neuron#preset-9)** | Long pulses so the AND, OR and XOR outputs show overlaps. |
+| **[Gate Cross](/library/detail/?kind=module&slug=neuron#preset-10)** | Neurons listen to each other's gates instead of their outputs. |
+| **[Independent Pair](/library/detail/?kind=module&slug=neuron#preset-11)** | No cross talk: two polyrhythmic pulses of different speeds. |
+| **[Sparse Triggers](/library/detail/?kind=module&slug=neuron#preset-12)** | Barely above threshold: occasional, slow triggers. |
+| **[Chaotic Pair](/library/detail/?kind=module&slug=neuron#preset-13)** | Strong coupling creates unpredictable patterns. |
 <!-- /generated -->
 
 ## Reference

@@ -6,6 +6,7 @@
 //   kind     "project"  a whole board (Mine, Library)
 //            "cell"     a cell preset, placed on the board
 //            "demo"     a demo board of one module (five per advanced module)
+//            "preset"   a factory preset of one module (its view's preset bar), listed only in that module's view
 //   origin   "factory"  ships with the app
 //            "user"     made by the person using it
 //            "community" shared in the Bleep Library
@@ -25,7 +26,7 @@
       origin,
       name: String(o.name || ""),
       group: o.group || "",                      // cells: the category; demos: the module's name; projects: ""
-      module: o.module || "",                    // demos: the module type
+      module: o.module || "",                    // demos and module presets: the module type
       description: o.description || "",
       tags: Array.isArray(o.tags) ? o.tags : [],
       plays: o.plays && typeof o.plays === "object" ? o.plays : null,   // {instrument?, effect?}: what a plugin can load it as
@@ -80,6 +81,7 @@
 
   /// Does the entry belong to a view? Views: "all", "project" (saved, shared and factory projects), "cell", "demo" (factory projects), "instrument", "effect", "module:<type>", "cell:<category path>".
   function inView(e, view) {
+    if (e.kind === "preset") return view === "module:" + e.module;   // a module's presets: only in its own view, next to its demos
     if (view === "all") return true;
     // The factory projects are "demos" (listed by module as well) and are projects too.
     if (view === "project") return e.kind === "project" || e.kind === "demo";

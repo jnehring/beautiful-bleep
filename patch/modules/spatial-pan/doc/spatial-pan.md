@@ -73,23 +73,23 @@ Five whole patches show what Spatial Pan does. In the standalone app open **File
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Spatial Pan view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Spatial Pan view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Spatial Pan; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Front Centre** | Straight ahead, a little room. |
-| **Hard Left** | At the left ear. |
-| **Hard Right** | At the right ear. |
-| **Behind** | Behind you: duller, with the highs rolled off. |
-| **Above** | Overhead: the pinna notch moves up. |
-| **Below Left** | Low and to the left. |
-| **Slow Orbit** | A source circling the head every seven seconds. |
-| **Fast Orbit** | A quick spin, close in. |
-| **Distant** | Far away: quiet, soft and reverberant. |
-| **Close Whisper** | At the ear, almost dry. |
-| **Big Room** | A large space of long reflections. |
-| **Dry Booth** | No reflections: pure head cues. |
-| **Giant Head** | A large head: longer time differences. |
+| **[Front Centre](/library/detail/?kind=module&slug=spatial-pan#preset-1)** | Straight ahead, a little room. |
+| **[Hard Left](/library/detail/?kind=module&slug=spatial-pan#preset-2)** | At the left ear. |
+| **[Hard Right](/library/detail/?kind=module&slug=spatial-pan#preset-3)** | At the right ear. |
+| **[Behind](/library/detail/?kind=module&slug=spatial-pan#preset-4)** | Behind you: duller, with the highs rolled off. |
+| **[Above](/library/detail/?kind=module&slug=spatial-pan#preset-5)** | Overhead: the pinna notch moves up. |
+| **[Below Left](/library/detail/?kind=module&slug=spatial-pan#preset-6)** | Low and to the left. |
+| **[Slow Orbit](/library/detail/?kind=module&slug=spatial-pan#preset-7)** | A source circling the head every seven seconds. |
+| **[Fast Orbit](/library/detail/?kind=module&slug=spatial-pan#preset-8)** | A quick spin, close in. |
+| **[Distant](/library/detail/?kind=module&slug=spatial-pan#preset-9)** | Far away: quiet, soft and reverberant. |
+| **[Close Whisper](/library/detail/?kind=module&slug=spatial-pan#preset-10)** | At the ear, almost dry. |
+| **[Big Room](/library/detail/?kind=module&slug=spatial-pan#preset-11)** | A large space of long reflections. |
+| **[Dry Booth](/library/detail/?kind=module&slug=spatial-pan#preset-12)** | No reflections: pure head cues. |
+| **[Giant Head](/library/detail/?kind=module&slug=spatial-pan#preset-13)** | A large head: longer time differences. |
 <!-- /generated -->
 
 ## Reference

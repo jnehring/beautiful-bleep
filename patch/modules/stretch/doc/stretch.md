@@ -68,25 +68,25 @@ Five whole patches show what Stretch does. In the standalone app open **File →
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Stretch view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Stretch view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Stretch; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Half Speed** | Plays the recording at half speed with the pitch where it was. |
-| **Slow Motion** | Four times as long: transients melt, tones hold. |
-| **Crawl** | The longest stretch with the finest frequency resolution. |
-| **Double Time** | Twice as fast, same pitch. |
-| **Granular Cloud** | Long scattered grains: a cloud made from the recording. |
-| **Freeze Frame** | Stops time at the head and holds that moment as a drone. |
-| **Scrub Pad** | Position is the play head: move it by hand or with a CV to scrub. |
-| **Loop Window** | Loops a small window of the recording over and over. |
-| **Time Wobble** | Time itself sways: the sound speeds up and slows down but never changes pitch. |
-| **Drunk Time** | Time takes an uneven walk around a slow stretch. |
-| **Backwards Smear** | The recording plays backwards, slowly. |
-| **Octave Down Slow** | Half speed, an octave lower: the classic slowed-down sound. |
-| **Shimmer Stretch** | A slow sheen an octave above, mixed under the live sound. |
-| **Rolling Capture** | Keeps recording round a four-second loop while the head stretches through it. |
-| **Stutter Loop** | A tiny window of the last seconds on repeat. |
+| **[Half Speed](/library/detail/?kind=module&slug=stretch#preset-1)** | Plays the recording at half speed with the pitch where it was. |
+| **[Slow Motion](/library/detail/?kind=module&slug=stretch#preset-2)** | Four times as long: transients melt, tones hold. |
+| **[Crawl](/library/detail/?kind=module&slug=stretch#preset-3)** | The longest stretch with the finest frequency resolution. |
+| **[Double Time](/library/detail/?kind=module&slug=stretch#preset-4)** | Twice as fast, same pitch. |
+| **[Granular Cloud](/library/detail/?kind=module&slug=stretch#preset-5)** | Long scattered grains: a cloud made from the recording. |
+| **[Freeze Frame](/library/detail/?kind=module&slug=stretch#preset-6)** | Stops time at the head and holds that moment as a drone. |
+| **[Scrub Pad](/library/detail/?kind=module&slug=stretch#preset-7)** | Position is the play head: move it by hand or with a CV to scrub. |
+| **[Loop Window](/library/detail/?kind=module&slug=stretch#preset-8)** | Loops a small window of the recording over and over. |
+| **[Time Wobble](/library/detail/?kind=module&slug=stretch#preset-9)** | Time itself sways: the sound speeds up and slows down but never changes pitch. |
+| **[Drunk Time](/library/detail/?kind=module&slug=stretch#preset-10)** | Time takes an uneven walk around a slow stretch. |
+| **[Backwards Smear](/library/detail/?kind=module&slug=stretch#preset-11)** | The recording plays backwards, slowly. |
+| **[Octave Down Slow](/library/detail/?kind=module&slug=stretch#preset-12)** | Half speed, an octave lower: the classic slowed-down sound. |
+| **[Shimmer Stretch](/library/detail/?kind=module&slug=stretch#preset-13)** | A slow sheen an octave above, mixed under the live sound. |
+| **[Rolling Capture](/library/detail/?kind=module&slug=stretch#preset-14)** | Keeps recording round a four-second loop while the head stretches through it. |
+| **[Stutter Loop](/library/detail/?kind=module&slug=stretch#preset-15)** | A tiny window of the last seconds on repeat. |
 <!-- /generated -->
 
 ## Reference

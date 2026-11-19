@@ -100,25 +100,25 @@ Five whole patches show what Shift Register does. In the standalone app open **F
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Shift Register view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Shift Register view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Shift Register; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Frozen Loop** | The pattern repeats exactly every eight steps. |
-| **Slowly Mutating** | Mostly stable, with an occasional note changing. |
-| **Restless** | Changes often but keeps a recognisable contour. |
-| **Pure Random** | Every bit is a coin toss: random melodies. |
-| **Inverted Echo** | Repeats every twelve steps, the second half inverted. |
-| **Short Four** | A four-step loop for a hypnotic riff. |
-| **Odd Seven** | Seven steps: the loop slides across the bar. |
-| **Long Sixteen** | A long register that drifts slowly over time. |
-| **Slow Eighths** | Slower steps with long gates for a calm line. |
-| **Staccato Burst** | Fast, short notes in an Eastern scale. |
-| **Wide Four Octaves** | The pitch spreads over four octaves: big leaps. |
-| **Free Running** | Ignores the song tempo and steps at a set rate. |
-| **Gate Weights** | Different weights make the Mix output stepped and uneven. |
-| **All-Bits Combo** | Combo goes high only when every chosen bit is 1: sparse rhythms. |
-| **Odd-Parity Combo** | Combo of an odd number of bits: busy, shifting gate patterns. |
+| **[Frozen Loop](/library/detail/?kind=module&slug=shift-register#preset-1)** | The pattern repeats exactly every eight steps. |
+| **[Slowly Mutating](/library/detail/?kind=module&slug=shift-register#preset-2)** | Mostly stable, with an occasional note changing. |
+| **[Restless](/library/detail/?kind=module&slug=shift-register#preset-3)** | Changes often but keeps a recognisable contour. |
+| **[Pure Random](/library/detail/?kind=module&slug=shift-register#preset-4)** | Every bit is a coin toss: random melodies. |
+| **[Inverted Echo](/library/detail/?kind=module&slug=shift-register#preset-5)** | Repeats every twelve steps, the second half inverted. |
+| **[Short Four](/library/detail/?kind=module&slug=shift-register#preset-6)** | A four-step loop for a hypnotic riff. |
+| **[Odd Seven](/library/detail/?kind=module&slug=shift-register#preset-7)** | Seven steps: the loop slides across the bar. |
+| **[Long Sixteen](/library/detail/?kind=module&slug=shift-register#preset-8)** | A long register that drifts slowly over time. |
+| **[Slow Eighths](/library/detail/?kind=module&slug=shift-register#preset-9)** | Slower steps with long gates for a calm line. |
+| **[Staccato Burst](/library/detail/?kind=module&slug=shift-register#preset-10)** | Fast, short notes in an Eastern scale. |
+| **[Wide Four Octaves](/library/detail/?kind=module&slug=shift-register#preset-11)** | The pitch spreads over four octaves: big leaps. |
+| **[Free Running](/library/detail/?kind=module&slug=shift-register#preset-12)** | Ignores the song tempo and steps at a set rate. |
+| **[Gate Weights](/library/detail/?kind=module&slug=shift-register#preset-13)** | Different weights make the Mix output stepped and uneven. |
+| **[All-Bits Combo](/library/detail/?kind=module&slug=shift-register#preset-14)** | Combo goes high only when every chosen bit is 1: sparse rhythms. |
+| **[Odd-Parity Combo](/library/detail/?kind=module&slug=shift-register#preset-15)** | Combo of an odd number of bits: busy, shifting gate patterns. |
 <!-- /generated -->
 
 ## Reference

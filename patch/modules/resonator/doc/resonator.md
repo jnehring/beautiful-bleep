@@ -82,24 +82,24 @@ Five whole patches show what Resonator does. In the standalone app open **File â
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Resonator view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Resonator view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Resonator; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Glass Bar** | A struck bar: bell-like tuned percussion. |
-| **Hollow String** | A plucked string with a round body. |
-| **Bright Harp** | Four plucked strings: arpeggios turn harp-like. |
-| **Tuned Plate** | A metallic plate ring. |
-| **Bell Tower** | Low, long bell with many partials. |
-| **Sympathetic Drone** | Strings that ring along with a melody fed in. |
-| **Sitar Shimmer** | Buzzing sympathetic strings. |
-| **Drum Tuner** | Short tuned ring for drum loops. |
-| **Damped Marimba** | Short, woody mallet tone. |
-| **Kalimba Pluck** | Fast-decaying plucks. |
-| **Eternal String** | A very long-ringing string. |
-| **Wide Chord Body** | Four voices spread wide for chord-like clouds. |
-| **Octave Metal** | High, clangy metal, bright and inharmonic. |
-| **Onset Strummer** | Plays the string on every hit in the input; no strum cable needed. |
+| **[Glass Bar](/library/detail/?kind=module&slug=resonator#preset-1)** | A struck bar: bell-like tuned percussion. |
+| **[Hollow String](/library/detail/?kind=module&slug=resonator#preset-2)** | A plucked string with a round body. |
+| **[Bright Harp](/library/detail/?kind=module&slug=resonator#preset-3)** | Four plucked strings: arpeggios turn harp-like. |
+| **[Tuned Plate](/library/detail/?kind=module&slug=resonator#preset-4)** | A metallic plate ring. |
+| **[Bell Tower](/library/detail/?kind=module&slug=resonator#preset-5)** | Low, long bell with many partials. |
+| **[Sympathetic Drone](/library/detail/?kind=module&slug=resonator#preset-6)** | Strings that ring along with a melody fed in. |
+| **[Sitar Shimmer](/library/detail/?kind=module&slug=resonator#preset-7)** | Buzzing sympathetic strings. |
+| **[Drum Tuner](/library/detail/?kind=module&slug=resonator#preset-8)** | Short tuned ring for drum loops. |
+| **[Damped Marimba](/library/detail/?kind=module&slug=resonator#preset-9)** | Short, woody mallet tone. |
+| **[Kalimba Pluck](/library/detail/?kind=module&slug=resonator#preset-10)** | Fast-decaying plucks. |
+| **[Eternal String](/library/detail/?kind=module&slug=resonator#preset-11)** | A very long-ringing string. |
+| **[Wide Chord Body](/library/detail/?kind=module&slug=resonator#preset-12)** | Four voices spread wide for chord-like clouds. |
+| **[Octave Metal](/library/detail/?kind=module&slug=resonator#preset-13)** | High, clangy metal, bright and inharmonic. |
+| **[Onset Strummer](/library/detail/?kind=module&slug=resonator#preset-14)** | Plays the string on every hit in the input; no strum cable needed. |
 <!-- /generated -->
 
 ## Reference

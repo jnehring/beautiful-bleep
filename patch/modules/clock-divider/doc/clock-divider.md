@@ -63,22 +63,22 @@ Five whole patches show what Clock Div does. In the standalone app open **File â
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Clock Div view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Clock Div view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Clock Div; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Default Ladder** | A mix of even and odd divisions for polyrhythmic gates. |
-| **Powers of Two** | Classic binary divisions: everything lines up on the downbeat. |
-| **Even Grid** | Even divisions only: steady, interlocking pulses. |
-| **Odd Primes** | Primes: the outputs rarely coincide, so the rhythm takes ages to repeat. |
-| **Triggers Only** | Short triggers instead of gates, for drums and envelopes. |
-| **Short Pulses** | Narrow gates: staccato hits on every output. |
-| **Long Gates** | Nearly full-width gates that sustain between pulses. |
-| **Base Step Gates** | Every gate is one base step long, whatever the division. |
-| **Eighth Base Slow** | The base clock at eighths: a slower, more spacious set. |
-| **Triplet Base** | Triplet base clock for shuffling cross-rhythms. |
-| **Bar Realign** | Odd divisions snapped back together every bar. |
-| **Four-Bar Polyrhythm** | Complex divisions that resync every four bars. |
+| **[Default Ladder](/library/detail/?kind=module&slug=clock-divider#preset-1)** | A mix of even and odd divisions for polyrhythmic gates. |
+| **[Powers of Two](/library/detail/?kind=module&slug=clock-divider#preset-2)** | Classic binary divisions: everything lines up on the downbeat. |
+| **[Even Grid](/library/detail/?kind=module&slug=clock-divider#preset-3)** | Even divisions only: steady, interlocking pulses. |
+| **[Odd Primes](/library/detail/?kind=module&slug=clock-divider#preset-4)** | Primes: the outputs rarely coincide, so the rhythm takes ages to repeat. |
+| **[Triggers Only](/library/detail/?kind=module&slug=clock-divider#preset-5)** | Short triggers instead of gates, for drums and envelopes. |
+| **[Short Pulses](/library/detail/?kind=module&slug=clock-divider#preset-6)** | Narrow gates: staccato hits on every output. |
+| **[Long Gates](/library/detail/?kind=module&slug=clock-divider#preset-7)** | Nearly full-width gates that sustain between pulses. |
+| **[Base Step Gates](/library/detail/?kind=module&slug=clock-divider#preset-8)** | Every gate is one base step long, whatever the division. |
+| **[Eighth Base Slow](/library/detail/?kind=module&slug=clock-divider#preset-9)** | The base clock at eighths: a slower, more spacious set. |
+| **[Triplet Base](/library/detail/?kind=module&slug=clock-divider#preset-10)** | Triplet base clock for shuffling cross-rhythms. |
+| **[Bar Realign](/library/detail/?kind=module&slug=clock-divider#preset-11)** | Odd divisions snapped back together every bar. |
+| **[Four-Bar Polyrhythm](/library/detail/?kind=module&slug=clock-divider#preset-12)** | Complex divisions that resync every four bars. |
 <!-- /generated -->
 
 ## Reference

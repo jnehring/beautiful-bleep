@@ -90,24 +90,24 @@ Five whole patches show what Organic LFOs does. In the standalone app open **Fil
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Organic LFOs view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Organic LFOs view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Organic LFOs; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Living Group** | Eight related slow movers: a good default for evolving patches. |
-| **Glacial** | Extremely slow drift for long-form changes. |
-| **Gentle Breath** | Soft, breathing movement at reduced depth. |
-| **Swarm** | Faster, busier group, like insects. |
-| **Tight Family** | LFOs stay close together: subtle, related motion. |
-| **Wide Spread** | Rates spread widely from slow to quick. |
-| **Inverted Spread** | Spread reversed: the order of speeds flips. |
-| **Twisted** | Twist skews the phases so the group chases itself. |
-| **Counter Twist** | Twist the other way for opposite phase relations. |
-| **Unipolar Drift** | Positive-only values, ideal for levels and mix knobs. |
-| **Bar Locked** | Locked to the song for repeatable movement. |
-| **Restless Drift** | Maximum drift: the group wanders and never repeats. |
-| **Free Start** | Starts at random positions instead of anchored. |
-| **Different Seed** | Another family of movements from a different seed. |
+| **[Living Group](/library/detail/?kind=module&slug=organic-lfos#preset-1)** | Eight related slow movers: a good default for evolving patches. |
+| **[Glacial](/library/detail/?kind=module&slug=organic-lfos#preset-2)** | Extremely slow drift for long-form changes. |
+| **[Gentle Breath](/library/detail/?kind=module&slug=organic-lfos#preset-3)** | Soft, breathing movement at reduced depth. |
+| **[Swarm](/library/detail/?kind=module&slug=organic-lfos#preset-4)** | Faster, busier group, like insects. |
+| **[Tight Family](/library/detail/?kind=module&slug=organic-lfos#preset-5)** | LFOs stay close together: subtle, related motion. |
+| **[Wide Spread](/library/detail/?kind=module&slug=organic-lfos#preset-6)** | Rates spread widely from slow to quick. |
+| **[Inverted Spread](/library/detail/?kind=module&slug=organic-lfos#preset-7)** | Spread reversed: the order of speeds flips. |
+| **[Twisted](/library/detail/?kind=module&slug=organic-lfos#preset-8)** | Twist skews the phases so the group chases itself. |
+| **[Counter Twist](/library/detail/?kind=module&slug=organic-lfos#preset-9)** | Twist the other way for opposite phase relations. |
+| **[Unipolar Drift](/library/detail/?kind=module&slug=organic-lfos#preset-10)** | Positive-only values, ideal for levels and mix knobs. |
+| **[Bar Locked](/library/detail/?kind=module&slug=organic-lfos#preset-11)** | Locked to the song for repeatable movement. |
+| **[Restless Drift](/library/detail/?kind=module&slug=organic-lfos#preset-12)** | Maximum drift: the group wanders and never repeats. |
+| **[Free Start](/library/detail/?kind=module&slug=organic-lfos#preset-13)** | Starts at random positions instead of anchored. |
+| **[Different Seed](/library/detail/?kind=module&slug=organic-lfos#preset-14)** | Another family of movements from a different seed. |
 <!-- /generated -->
 
 ## Reference

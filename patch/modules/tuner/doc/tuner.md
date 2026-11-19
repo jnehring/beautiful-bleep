@@ -64,21 +64,21 @@ Five whole patches show what Tuner does. In the standalone app open **File → P
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Tuner view has 11 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Tuner view has 11 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Tuner; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Standard** | Concert pitch, A = 440 Hz. |
-| **Baroque 415** | A = 415 Hz, a semitone lower, for period instruments. |
-| **Bright 442** | A = 442 Hz, as many orchestras tune. |
-| **Warm 432** | A = 432 Hz. |
-| **Bass Tuner** | Low range for bass strings; slower and steadier. |
-| **Guitar** | Six strings and a tight in-tune window. |
-| **Violin and Voice** | High range for strings and singers, with a forgiving window. |
-| **Strict** | Only within two cents counts as in tune. |
-| **Loose** | A wide window for a quick check of a rough sound. |
-| **Slow Needle** | The needle takes its time and hardly twitches. |
-| **Fast Needle** | Shows every movement at once, e.g. to watch a vibrato. |
+| **[Standard](/library/detail/?kind=module&slug=tuner#preset-1)** | Concert pitch, A = 440 Hz. |
+| **[Baroque 415](/library/detail/?kind=module&slug=tuner#preset-2)** | A = 415 Hz, a semitone lower, for period instruments. |
+| **[Bright 442](/library/detail/?kind=module&slug=tuner#preset-3)** | A = 442 Hz, as many orchestras tune. |
+| **[Warm 432](/library/detail/?kind=module&slug=tuner#preset-4)** | A = 432 Hz. |
+| **[Bass Tuner](/library/detail/?kind=module&slug=tuner#preset-5)** | Low range for bass strings; slower and steadier. |
+| **[Guitar](/library/detail/?kind=module&slug=tuner#preset-6)** | Six strings and a tight in-tune window. |
+| **[Violin and Voice](/library/detail/?kind=module&slug=tuner#preset-7)** | High range for strings and singers, with a forgiving window. |
+| **[Strict](/library/detail/?kind=module&slug=tuner#preset-8)** | Only within two cents counts as in tune. |
+| **[Loose](/library/detail/?kind=module&slug=tuner#preset-9)** | A wide window for a quick check of a rough sound. |
+| **[Slow Needle](/library/detail/?kind=module&slug=tuner#preset-10)** | The needle takes its time and hardly twitches. |
+| **[Fast Needle](/library/detail/?kind=module&slug=tuner#preset-11)** | Shows every movement at once, e.g. to watch a vibrato. |
 <!-- /generated -->
 
 ## Reference

@@ -49,22 +49,22 @@ never play the same noise.
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Noise view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Noise view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Noise; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **White Noise** | Flat, full-spectrum noise: the all-round source for hats and snares. |
-| **Pink Noise** | Equal energy per octave: natural, balanced, like rain. |
-| **Brown Rumble** | Dark, deep noise: thunder, wind and engine rumble. |
-| **Soft Hiss** | A quiet, slightly bright hiss for tape or room atmosphere. |
-| **Bright Air** | Bright, airy noise for breaths, cymbals and shimmer. |
-| **Violet Fizz** | Only the top end: fizzy, icy noise for hats and sprays. |
-| **Wind** | Darkened noise: run it through a band-pass and sweep for wind. |
-| **Ocean** | Deep, rolling noise: modulate Level slowly for waves. |
-| **Snare Noise** | Full-level near-white noise: gate it with a fast envelope. |
-| **Hat Noise** | Very bright noise for closed and open hats. |
-| **Vinyl Bed** | A very quiet noise floor to add some grit under a mix. |
-| **Half Level** | White noise at half level: a safe starting point for mixing. |
+| **[White Noise](/library/detail/?kind=module&slug=noise#preset-1)** | Flat, full-spectrum noise: the all-round source for hats and snares. |
+| **[Pink Noise](/library/detail/?kind=module&slug=noise#preset-2)** | Equal energy per octave: natural, balanced, like rain. |
+| **[Brown Rumble](/library/detail/?kind=module&slug=noise#preset-3)** | Dark, deep noise: thunder, wind and engine rumble. |
+| **[Soft Hiss](/library/detail/?kind=module&slug=noise#preset-4)** | A quiet, slightly bright hiss for tape or room atmosphere. |
+| **[Bright Air](/library/detail/?kind=module&slug=noise#preset-5)** | Bright, airy noise for breaths, cymbals and shimmer. |
+| **[Violet Fizz](/library/detail/?kind=module&slug=noise#preset-6)** | Only the top end: fizzy, icy noise for hats and sprays. |
+| **[Wind](/library/detail/?kind=module&slug=noise#preset-7)** | Darkened noise: run it through a band-pass and sweep for wind. |
+| **[Ocean](/library/detail/?kind=module&slug=noise#preset-8)** | Deep, rolling noise: modulate Level slowly for waves. |
+| **[Snare Noise](/library/detail/?kind=module&slug=noise#preset-9)** | Full-level near-white noise: gate it with a fast envelope. |
+| **[Hat Noise](/library/detail/?kind=module&slug=noise#preset-10)** | Very bright noise for closed and open hats. |
+| **[Vinyl Bed](/library/detail/?kind=module&slug=noise#preset-11)** | A very quiet noise floor to add some grit under a mix. |
+| **[Half Level](/library/detail/?kind=module&slug=noise#preset-12)** | White noise at half level: a safe starting point for mixing. |
 <!-- /generated -->
 
 <!-- generated:demos -->

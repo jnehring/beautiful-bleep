@@ -67,23 +67,23 @@ Five whole patches show what Low Pass Gate does. In the standalone app open **Fi
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Low Pass Gate view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Low Pass Gate view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Low Pass Gate; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Classic Pluck** | Ping it with a trigger for a natural, darkening pluck. |
-| **Short Blip** | Tight, percussive blips for rhythmic lines. |
-| **Bongo Tone** | Short resonant knock: good on sine and triangle. |
-| **Soft Mallet** | Rounded, mellow hit. |
-| **Long Decay** | Slow, ringing close with a long dark tail. |
-| **Dark Pad Gate** | Slow swells and fades from a CV. |
-| **Filter Only** | Just the low-pass: a vactrol-style filter on a steady tone. |
-| **VCA Only** | Just the amplitude gate with vactrol smoothing. |
-| **Resonant Ping** | Resonance gives the pluck a vocal, ringing pitch. |
-| **Driven Hit** | Saturated, punchy attack. |
-| **Leaky Gate** | Never fully closes: a muffled signal always leaks through. |
-| **Open Bright** | Mostly open and bright, nudged by CV. |
-| **Slow Memory Pluck** | The vactrol remembers earlier hits, so fast repeats bloom. |
+| **[Classic Pluck](/library/detail/?kind=module&slug=low-pass-gate#preset-1)** | Ping it with a trigger for a natural, darkening pluck. |
+| **[Short Blip](/library/detail/?kind=module&slug=low-pass-gate#preset-2)** | Tight, percussive blips for rhythmic lines. |
+| **[Bongo Tone](/library/detail/?kind=module&slug=low-pass-gate#preset-3)** | Short resonant knock: good on sine and triangle. |
+| **[Soft Mallet](/library/detail/?kind=module&slug=low-pass-gate#preset-4)** | Rounded, mellow hit. |
+| **[Long Decay](/library/detail/?kind=module&slug=low-pass-gate#preset-5)** | Slow, ringing close with a long dark tail. |
+| **[Dark Pad Gate](/library/detail/?kind=module&slug=low-pass-gate#preset-6)** | Slow swells and fades from a CV. |
+| **[Filter Only](/library/detail/?kind=module&slug=low-pass-gate#preset-7)** | Just the low-pass: a vactrol-style filter on a steady tone. |
+| **[VCA Only](/library/detail/?kind=module&slug=low-pass-gate#preset-8)** | Just the amplitude gate with vactrol smoothing. |
+| **[Resonant Ping](/library/detail/?kind=module&slug=low-pass-gate#preset-9)** | Resonance gives the pluck a vocal, ringing pitch. |
+| **[Driven Hit](/library/detail/?kind=module&slug=low-pass-gate#preset-10)** | Saturated, punchy attack. |
+| **[Leaky Gate](/library/detail/?kind=module&slug=low-pass-gate#preset-11)** | Never fully closes: a muffled signal always leaks through. |
+| **[Open Bright](/library/detail/?kind=module&slug=low-pass-gate#preset-12)** | Mostly open and bright, nudged by CV. |
+| **[Slow Memory Pluck](/library/detail/?kind=module&slug=low-pass-gate#preset-13)** | The vactrol remembers earlier hits, so fast repeats bloom. |
 <!-- /generated -->
 
 ## Reference

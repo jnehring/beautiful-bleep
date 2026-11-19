@@ -97,26 +97,26 @@ Five whole patches show what Lines does. In the standalone app open **File → P
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Lines view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Lines view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Lines; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Drifting Four** | Four lines of 16, 5, 7 and 9 rows slide against each other. |
-| **Locked Lines** | All tracks the same length: a plain four-part pattern. |
-| **Double and Half** | Bass at half speed, a line at double, one at normal. |
-| **Thirds and Fifths** | Same length, speeds in simple ratios: a slow phase shift. |
-| **Ratchet Row** | Retrigger effects fill rows with quick repeats. |
-| **Slide Line** | Slide cells tie notes together with a glide. |
-| **Maybe Melody** | Every note carries a probability, so the tune varies. |
-| **Transposed Echo** | Track 2 plays track 1's notes shifted by an effect column. |
-| **Jump Around** | Jump and skip effects make the row order unpredictable. |
-| **Two Patterns** | An order of two patterns: verse and variation. |
-| **Per-Pattern Restart** | Tracks restart with each pattern instead of drifting on. |
-| **Long Thirty-Two** | Four slow lines of 32, 24, 20 and 28 rows: very long drift. |
-| **Octave Layers** | One motif on three tracks, an octave apart and at two speeds. |
-| **Gate Lengths** | The gate column from a short tick to nearly two rows. |
-| **Scale-Snapped Run** | Plain chromatic notes pulled into the scale on playing. |
-| **Row Jumper** | Short loops at odd speeds: fast cells over a slow base. |
+| **[Drifting Four](/library/detail/?kind=module&slug=lines#preset-1)** | Four lines of 16, 5, 7 and 9 rows slide against each other. |
+| **[Locked Lines](/library/detail/?kind=module&slug=lines#preset-2)** | All tracks the same length: a plain four-part pattern. |
+| **[Double and Half](/library/detail/?kind=module&slug=lines#preset-3)** | Bass at half speed, a line at double, one at normal. |
+| **[Thirds and Fifths](/library/detail/?kind=module&slug=lines#preset-4)** | Same length, speeds in simple ratios: a slow phase shift. |
+| **[Ratchet Row](/library/detail/?kind=module&slug=lines#preset-5)** | Retrigger effects fill rows with quick repeats. |
+| **[Slide Line](/library/detail/?kind=module&slug=lines#preset-6)** | Slide cells tie notes together with a glide. |
+| **[Maybe Melody](/library/detail/?kind=module&slug=lines#preset-7)** | Every note carries a probability, so the tune varies. |
+| **[Transposed Echo](/library/detail/?kind=module&slug=lines#preset-8)** | Track 2 plays track 1's notes shifted by an effect column. |
+| **[Jump Around](/library/detail/?kind=module&slug=lines#preset-9)** | Jump and skip effects make the row order unpredictable. |
+| **[Two Patterns](/library/detail/?kind=module&slug=lines#preset-10)** | An order of two patterns: verse and variation. |
+| **[Per-Pattern Restart](/library/detail/?kind=module&slug=lines#preset-11)** | Tracks restart with each pattern instead of drifting on. |
+| **[Long Thirty-Two](/library/detail/?kind=module&slug=lines#preset-12)** | Four slow lines of 32, 24, 20 and 28 rows: very long drift. |
+| **[Octave Layers](/library/detail/?kind=module&slug=lines#preset-13)** | One motif on three tracks, an octave apart and at two speeds. |
+| **[Gate Lengths](/library/detail/?kind=module&slug=lines#preset-14)** | The gate column from a short tick to nearly two rows. |
+| **[Scale-Snapped Run](/library/detail/?kind=module&slug=lines#preset-15)** | Plain chromatic notes pulled into the scale on playing. |
+| **[Row Jumper](/library/detail/?kind=module&slug=lines#preset-16)** | Short loops at odd speeds: fast cells over a slow base. |
 <!-- /generated -->
 
 ## Reference

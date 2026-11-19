@@ -103,24 +103,24 @@ Five whole patches show what Polymeter Seq does. In the standalone app open **Fi
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Polymeter Seq view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Polymeter Seq view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Polymeter Seq; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Straight Sixteenths** | Plain sixteenth notes: the neutral setup. |
-| **Tight Gates** | Short gates for plucks and percussion. |
-| **Long Gates** | Gates stretch past the step so notes overlap. |
-| **Swung Shuffle** | A loose swing across all six tracks. |
-| **Slow Eighths** | Eighth notes: a roomier polymeter. |
-| **Triplet Polymeter** | Triplet steps against the bar for a rolling feel. |
-| **Sparse Chance** | Lowers every step's probability: only some notes play. |
-| **Always Play** | Raises every probability so all steps fire. |
-| **Heavy Ratchets** | Ratchet steps repeat at full strength: stuttering hits. |
-| **No Ratchets** | Ratchets switched off: clean single notes. |
-| **Wide Spread** | Spreads the tracks across pitch and velocity for a lively line. |
-| **Soft Velocity** | Quiet notes for a gentle background pattern. |
-| **Low Octave Bass** | Two octaves down in E minor: a bass polymeter. |
-| **Blues Polymeter** | A blues scale with light swing. |
+| **[Straight Sixteenths](/library/detail/?kind=module&slug=polymeter-sequencer#preset-1)** | Plain sixteenth notes: the neutral setup. |
+| **[Tight Gates](/library/detail/?kind=module&slug=polymeter-sequencer#preset-2)** | Short gates for plucks and percussion. |
+| **[Long Gates](/library/detail/?kind=module&slug=polymeter-sequencer#preset-3)** | Gates stretch past the step so notes overlap. |
+| **[Swung Shuffle](/library/detail/?kind=module&slug=polymeter-sequencer#preset-4)** | A loose swing across all six tracks. |
+| **[Slow Eighths](/library/detail/?kind=module&slug=polymeter-sequencer#preset-5)** | Eighth notes: a roomier polymeter. |
+| **[Triplet Polymeter](/library/detail/?kind=module&slug=polymeter-sequencer#preset-6)** | Triplet steps against the bar for a rolling feel. |
+| **[Sparse Chance](/library/detail/?kind=module&slug=polymeter-sequencer#preset-7)** | Lowers every step's probability: only some notes play. |
+| **[Always Play](/library/detail/?kind=module&slug=polymeter-sequencer#preset-8)** | Raises every probability so all steps fire. |
+| **[Heavy Ratchets](/library/detail/?kind=module&slug=polymeter-sequencer#preset-9)** | Ratchet steps repeat at full strength: stuttering hits. |
+| **[No Ratchets](/library/detail/?kind=module&slug=polymeter-sequencer#preset-10)** | Ratchets switched off: clean single notes. |
+| **[Wide Spread](/library/detail/?kind=module&slug=polymeter-sequencer#preset-11)** | Spreads the tracks across pitch and velocity for a lively line. |
+| **[Soft Velocity](/library/detail/?kind=module&slug=polymeter-sequencer#preset-12)** | Quiet notes for a gentle background pattern. |
+| **[Low Octave Bass](/library/detail/?kind=module&slug=polymeter-sequencer#preset-13)** | Two octaves down in E minor: a bass polymeter. |
+| **[Blues Polymeter](/library/detail/?kind=module&slug=polymeter-sequencer#preset-14)** | A blues scale with light swing. |
 <!-- /generated -->
 
 ## Reference

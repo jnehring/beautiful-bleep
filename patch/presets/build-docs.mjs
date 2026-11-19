@@ -43,6 +43,8 @@ const NUMBER = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Ei
 
 /// The demo cards of a module in the Bleep Library (website/app/src/app/library/detail/page.tsx): `#examples`, one `#demo-<n>` per demo.
 export const libraryDemoUrl = (slug, n) => `/library/detail/?kind=module&slug=${encodeURIComponent(slug)}#${n ? `demo-${n}` : "examples"}`;
+/// A factory preset of a module in the Bleep Library: one `#preset-<n>` per preset. The board's manual window loads it into the view instead.
+export const libraryPresetUrl = (slug, n) => `/library/detail/?kind=module&slug=${encodeURIComponent(slug)}#preset-${n}`;
 
 /// `slug`: the module's folder, which is its Library entry; each demo name links to its card there.
 export function demoBlock(name, demos, slug) {
@@ -60,15 +62,17 @@ export function demoBlock(name, demos, slug) {
   ].join("\n");
 }
 
-export function presetBlock(name, presets) {
+/// `slug`: the module's folder, which is its Library entry; each preset name links to it there.
+export function presetBlock(name, presets, slug) {
   const n = presets.length;
   return [
     OPEN.presets,
     "## Presets",
     "",
-    `The preset bar of the ${name} view has ${n} factory preset${n === 1 ? "" : "s"}. Pick one to set the knobs, then change them to taste; your own presets sit next to them.`,
+    `The preset bar of the ${name} view has ${n} factory preset${n === 1 ? "" : "s"}. Pick one to set the knobs, then change them to taste; your own presets sit next to them. ` +
+      `In the board a click on a name below shows it in **Open Project**, where **Load into** sets the ${name}; on the website it leads to the module's entry in the Bleep Library.`,
     "",
-    table(["Preset", "What it does"], presets.map((p) => [p.name, p.description ?? ""])),
+    table(["Preset", "What it does"], presets.map((p, i) => [slug ? `[${cell(p.name)}](${libraryPresetUrl(slug, i + 1)})` : p.name, p.description ?? ""])),
     CLOSE,
   ].join("\n");
 }
@@ -106,7 +110,7 @@ export function applySection(text, kind, heading, block, after) {
 /// The manual with both generated sections as they should be.
 export function sync(text, name, demos, presets, slug) {
   let out = applySection(text, "demos", "Demo patches", demos.length ? demoBlock(name, demos, slug) : null);
-  out = applySection(out, "presets", "Presets", presets.length ? presetBlock(name, presets) : null, "demos");
+  out = applySection(out, "presets", "Presets", presets.length ? presetBlock(name, presets, slug) : null, "demos");
   return out;
 }
 

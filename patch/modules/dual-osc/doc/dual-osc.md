@@ -89,25 +89,25 @@ Five whole patches show what Dual Osc does. In the standalone app open **File â†
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Dual Osc view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Dual Osc view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Dual Osc; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Fat Saw Pair** | Two slightly detuned saws: the classic fat analog voice. |
-| **Octave Bass** | A saw over a square sub octave for a solid bass. |
-| **Hollow Pulse Duo** | Two pulses with different widths and slight detune: hollow and wide. |
-| **Sync Lead** | Hard sync: sweep Tune A for the classic tearing lead. |
-| **Soft Sync Voice** | Gentle reversing sync: a vocal, slightly nasal colour. |
-| **FM Bell** | Sine FM with a non-integer ratio: patch an envelope on FM Depth. |
-| **Electric Piano** | Soft 1:1 FM: a warm, tine-like electric piano tone. |
-| **Brass FM** | Harmonic FM with a touch of fold: a punchy brass-like tone. |
-| **Growl** | Exponential FM from a low sine: growling, siren-like bass. |
-| **West Coast Fold** | A sine pushed into the wavefolder: bright, harmonic. Modulate Fold. |
-| **Folded Pad** | Soft waves with gentle folding and wide drift: a moving pad. |
-| **Wide Stereo Saw** | Wide, drifting saw pair for pads and chords. |
-| **Slow Growl Mod** | B in Low range as a slow vibrato-rate FM for wobbling tone. |
-| **Metallic Clang** | Strong inharmonic FM and fold: metal, gongs and noise-like hits. |
-| **Drifting Duo** | Two soft waves with strong analog drift: unstable, vintage. |
+| **[Fat Saw Pair](/library/detail/?kind=module&slug=dual-osc#preset-1)** | Two slightly detuned saws: the classic fat analog voice. |
+| **[Octave Bass](/library/detail/?kind=module&slug=dual-osc#preset-2)** | A saw over a square sub octave for a solid bass. |
+| **[Hollow Pulse Duo](/library/detail/?kind=module&slug=dual-osc#preset-3)** | Two pulses with different widths and slight detune: hollow and wide. |
+| **[Sync Lead](/library/detail/?kind=module&slug=dual-osc#preset-4)** | Hard sync: sweep Tune A for the classic tearing lead. |
+| **[Soft Sync Voice](/library/detail/?kind=module&slug=dual-osc#preset-5)** | Gentle reversing sync: a vocal, slightly nasal colour. |
+| **[FM Bell](/library/detail/?kind=module&slug=dual-osc#preset-6)** | Sine FM with a non-integer ratio: patch an envelope on FM Depth. |
+| **[Electric Piano](/library/detail/?kind=module&slug=dual-osc#preset-7)** | Soft 1:1 FM: a warm, tine-like electric piano tone. |
+| **[Brass FM](/library/detail/?kind=module&slug=dual-osc#preset-8)** | Harmonic FM with a touch of fold: a punchy brass-like tone. |
+| **[Growl](/library/detail/?kind=module&slug=dual-osc#preset-9)** | Exponential FM from a low sine: growling, siren-like bass. |
+| **[West Coast Fold](/library/detail/?kind=module&slug=dual-osc#preset-10)** | A sine pushed into the wavefolder: bright, harmonic. Modulate Fold. |
+| **[Folded Pad](/library/detail/?kind=module&slug=dual-osc#preset-11)** | Soft waves with gentle folding and wide drift: a moving pad. |
+| **[Wide Stereo Saw](/library/detail/?kind=module&slug=dual-osc#preset-12)** | Wide, drifting saw pair for pads and chords. |
+| **[Slow Growl Mod](/library/detail/?kind=module&slug=dual-osc#preset-13)** | B in Low range as a slow vibrato-rate FM for wobbling tone. |
+| **[Metallic Clang](/library/detail/?kind=module&slug=dual-osc#preset-14)** | Strong inharmonic FM and fold: metal, gongs and noise-like hits. |
+| **[Drifting Duo](/library/detail/?kind=module&slug=dual-osc#preset-15)** | Two soft waves with strong analog drift: unstable, vintage. |
 <!-- /generated -->
 
 ## Reference

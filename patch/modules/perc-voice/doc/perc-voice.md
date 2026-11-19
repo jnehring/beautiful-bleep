@@ -93,25 +93,25 @@ Five whole patches show what Perc Voice does. In the standalone app open **File 
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Perc Voice view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Perc Voice view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Perc Voice; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Deep Kick** | Round sine kick with a downward pitch sweep. |
-| **Punchy Kick** | Short, clicky kick with a touch of drive. |
-| **Long Sub Boom** | Sub-heavy long kick: a decaying sine boom. |
-| **Tight Tom** | Membrane tom, mid-pitched. |
-| **Low Floor Tom** | Deep floor tom with longer ring. |
-| **Snare Body** | Bright snare-like hit with noisy body. |
-| **Rim Click** | Sharp, very short wooden click. |
-| **Clap Noise** | Noisy burst for claps and snaps. |
-| **Closed Hat** | Short metallic tick. |
-| **Open Hat** | Longer metallic shimmer. |
-| **Wood Block** | Dry, pitched wooden knock. |
-| **Bar Marimba** | Pitched bar sound that follows the Pitch input. |
-| **Cowbell** | Metallic FM clang. |
-| **Bell Ring** | Long inharmonic bell: play it from the Pitch input. |
-| **Zap Tom** | Extreme pitch sweep for sci-fi zaps. |
+| **[Deep Kick](/library/detail/?kind=module&slug=perc-voice#preset-1)** | Round sine kick with a downward pitch sweep. |
+| **[Punchy Kick](/library/detail/?kind=module&slug=perc-voice#preset-2)** | Short, clicky kick with a touch of drive. |
+| **[Long Sub Boom](/library/detail/?kind=module&slug=perc-voice#preset-3)** | Sub-heavy long kick: a decaying sine boom. |
+| **[Tight Tom](/library/detail/?kind=module&slug=perc-voice#preset-4)** | Membrane tom, mid-pitched. |
+| **[Low Floor Tom](/library/detail/?kind=module&slug=perc-voice#preset-5)** | Deep floor tom with longer ring. |
+| **[Snare Body](/library/detail/?kind=module&slug=perc-voice#preset-6)** | Bright snare-like hit with noisy body. |
+| **[Rim Click](/library/detail/?kind=module&slug=perc-voice#preset-7)** | Sharp, very short wooden click. |
+| **[Clap Noise](/library/detail/?kind=module&slug=perc-voice#preset-8)** | Noisy burst for claps and snaps. |
+| **[Closed Hat](/library/detail/?kind=module&slug=perc-voice#preset-9)** | Short metallic tick. |
+| **[Open Hat](/library/detail/?kind=module&slug=perc-voice#preset-10)** | Longer metallic shimmer. |
+| **[Wood Block](/library/detail/?kind=module&slug=perc-voice#preset-11)** | Dry, pitched wooden knock. |
+| **[Bar Marimba](/library/detail/?kind=module&slug=perc-voice#preset-12)** | Pitched bar sound that follows the Pitch input. |
+| **[Cowbell](/library/detail/?kind=module&slug=perc-voice#preset-13)** | Metallic FM clang. |
+| **[Bell Ring](/library/detail/?kind=module&slug=perc-voice#preset-14)** | Long inharmonic bell: play it from the Pitch input. |
+| **[Zap Tom](/library/detail/?kind=module&slug=perc-voice#preset-15)** | Extreme pitch sweep for sci-fi zaps. |
 <!-- /generated -->
 
 ## Reference

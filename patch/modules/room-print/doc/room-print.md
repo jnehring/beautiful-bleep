@@ -73,25 +73,25 @@ Five whole patches show what Room Print does. In the standalone app open **File 
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Room Print view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Room Print view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Room Print; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Small Room** | A short, close room. |
-| **Warm Hall** | A hall with the highs fading early. |
-| **Cathedral** | A very long, lofty tail. |
-| **Bright Plate** | Dense and bright, without early reflections. |
-| **Spring Tank** | Chirped, boingy echoes. |
-| **Metal Tank** | Ringing metal modes. |
-| **Deep Cave** | Dark, with a few large echoes. |
-| **Swell Bloom** | The reverb grows before the sound. |
-| **Gated Burst** | A dense burst cut off sharply. |
-| **Ping Pong Echoes** | Repeats that bounce left and right. |
-| **Tight Early** | Only the first reflections: room without wash. |
-| **Distant Wash** | Only the late tail, dark and far. |
-| **Big and Dark** | Stretched to a huge, murky space. |
-| **Closet** | A tiny, bright box. |
-| **Wide Plate** | A plate with exaggerated width. |
+| **[Small Room](/library/detail/?kind=module&slug=room-print#preset-1)** | A short, close room. |
+| **[Warm Hall](/library/detail/?kind=module&slug=room-print#preset-2)** | A hall with the highs fading early. |
+| **[Cathedral](/library/detail/?kind=module&slug=room-print#preset-3)** | A very long, lofty tail. |
+| **[Bright Plate](/library/detail/?kind=module&slug=room-print#preset-4)** | Dense and bright, without early reflections. |
+| **[Spring Tank](/library/detail/?kind=module&slug=room-print#preset-5)** | Chirped, boingy echoes. |
+| **[Metal Tank](/library/detail/?kind=module&slug=room-print#preset-6)** | Ringing metal modes. |
+| **[Deep Cave](/library/detail/?kind=module&slug=room-print#preset-7)** | Dark, with a few large echoes. |
+| **[Swell Bloom](/library/detail/?kind=module&slug=room-print#preset-8)** | The reverb grows before the sound. |
+| **[Gated Burst](/library/detail/?kind=module&slug=room-print#preset-9)** | A dense burst cut off sharply. |
+| **[Ping Pong Echoes](/library/detail/?kind=module&slug=room-print#preset-10)** | Repeats that bounce left and right. |
+| **[Tight Early](/library/detail/?kind=module&slug=room-print#preset-11)** | Only the first reflections: room without wash. |
+| **[Distant Wash](/library/detail/?kind=module&slug=room-print#preset-12)** | Only the late tail, dark and far. |
+| **[Big and Dark](/library/detail/?kind=module&slug=room-print#preset-13)** | Stretched to a huge, murky space. |
+| **[Closet](/library/detail/?kind=module&slug=room-print#preset-14)** | A tiny, bright box. |
+| **[Wide Plate](/library/detail/?kind=module&slug=room-print#preset-15)** | A plate with exaggerated width. |
 <!-- /generated -->
 
 ## Reference

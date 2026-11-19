@@ -118,24 +118,24 @@ Five whole patches show what Beat Oscillator does. In the standalone app open **
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Beat Oscillator view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Beat Oscillator view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Beat Oscillator; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Lab Tone** | Classic heterodyne sine around 260 Hz, slightly alive. |
-| **Pure Low** | A steady, drift-free low sine tone, good for sub and tests. |
-| **Bright Whistle** | High beat tone around 1.2 kHz, thin and whistly. |
-| **Diode Buzz** | Brighter, buzzy beat from a diode mixer: a reedy lead. |
-| **Overdriven Triangle** | Squared-off carriers give a triangle-like beat with a little leak. |
-| **Slow Tremolo** | Beat of a few hertz: the tone swells and fades like a tremolo. |
-| **Slow Pulse** | Sub-audio beat of about one hertz; use as a smooth LFO. |
-| **Wandering Zero** | Near zero beat with strong drift: the pitch lurches unpredictably. |
-| **Locking Stutter** | Coupled carriers try to lock: uneven blips between near-silences. |
-| **Hard Lock** | Strong coupling: the beat vanishes and returns as drift moves across the lock edge. |
-| **Open Detector** | Opening the detector lets the sum tone whistle through above the beat. |
-| **Cold Valve** | Starts flat and glides into tune like a cold instrument. |
-| **Hand Capacity** | Wide Detune range: patch a slow control to it for theremin-like hand moves. |
-| **FM Siren** | Mid-high buzzing beat to patch an LFO into FM for sirens. |
+| **[Lab Tone](/library/detail/?kind=module&slug=beat-oscillator#preset-1)** | Classic heterodyne sine around 260 Hz, slightly alive. |
+| **[Pure Low](/library/detail/?kind=module&slug=beat-oscillator#preset-2)** | A steady, drift-free low sine tone, good for sub and tests. |
+| **[Bright Whistle](/library/detail/?kind=module&slug=beat-oscillator#preset-3)** | High beat tone around 1.2 kHz, thin and whistly. |
+| **[Diode Buzz](/library/detail/?kind=module&slug=beat-oscillator#preset-4)** | Brighter, buzzy beat from a diode mixer: a reedy lead. |
+| **[Overdriven Triangle](/library/detail/?kind=module&slug=beat-oscillator#preset-5)** | Squared-off carriers give a triangle-like beat with a little leak. |
+| **[Slow Tremolo](/library/detail/?kind=module&slug=beat-oscillator#preset-6)** | Beat of a few hertz: the tone swells and fades like a tremolo. |
+| **[Slow Pulse](/library/detail/?kind=module&slug=beat-oscillator#preset-7)** | Sub-audio beat of about one hertz; use as a smooth LFO. |
+| **[Wandering Zero](/library/detail/?kind=module&slug=beat-oscillator#preset-8)** | Near zero beat with strong drift: the pitch lurches unpredictably. |
+| **[Locking Stutter](/library/detail/?kind=module&slug=beat-oscillator#preset-9)** | Coupled carriers try to lock: uneven blips between near-silences. |
+| **[Hard Lock](/library/detail/?kind=module&slug=beat-oscillator#preset-10)** | Strong coupling: the beat vanishes and returns as drift moves across the lock edge. |
+| **[Open Detector](/library/detail/?kind=module&slug=beat-oscillator#preset-11)** | Opening the detector lets the sum tone whistle through above the beat. |
+| **[Cold Valve](/library/detail/?kind=module&slug=beat-oscillator#preset-12)** | Starts flat and glides into tune like a cold instrument. |
+| **[Hand Capacity](/library/detail/?kind=module&slug=beat-oscillator#preset-13)** | Wide Detune range: patch a slow control to it for theremin-like hand moves. |
+| **[FM Siren](/library/detail/?kind=module&slug=beat-oscillator#preset-14)** | Mid-high buzzing beat to patch an LFO into FM for sirens. |
 <!-- /generated -->
 
 ## Reference

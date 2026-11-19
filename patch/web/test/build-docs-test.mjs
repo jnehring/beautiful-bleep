@@ -81,6 +81,9 @@ const linked = demoBlock("Grains", demos, "grains");
 assert.match(linked, /\[Grains entry of the Bleep Library\]\(\/library\/detail\/\?kind=module&slug=grains#examples\)/);
 demos.forEach((d, i) => assert.ok(linked.includes(`| **[${d.name}](/library/detail/?kind=module&slug=grains#demo-${i + 1})** |`)));
 assert.doesNotMatch(demoBlock("Grains", demos), /\]\(/);
+const linkedPresets = presetBlock("Grains", presets, "grains");
+presets.forEach((p, i) => assert.ok(linkedPresets.includes(`| **[${p.name}](/library/detail/?kind=module&slug=grains#preset-${i + 1})** |`)));
+assert.doesNotMatch(presetBlock("Grains", presets), /\]\(/);
 
 // the outline
 const ctx = { type: "grains", docDir: "/nonexistent", manuals: new Set(["grains", "adsr"]) };

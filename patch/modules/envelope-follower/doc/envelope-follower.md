@@ -52,22 +52,22 @@ sends one short pulse every time the gate opens.
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Envelope Follower view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Envelope Follower view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Envelope Follower; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Smooth Follow** | General loudness follower for modulation. |
-| **Fast Peak** | Snappy peak tracking that catches every hit. |
-| **Drum Trigger** | Use the trigger output to fire envelopes from drums. |
-| **Ducker** | Use the inverted output to duck a pad under a kick. |
-| **Slow Swell** | Slow average level for gentle, musical movement. |
-| **RMS Level** | Smooth perceived-loudness meter. |
-| **Hot Gain** | Boosts quiet signals to a strong control range. |
-| **Gate Sense** | High threshold gate for loud passages only. |
-| **Low Threshold Gate** | Gate that opens on almost any signal. |
-| **Positive Half** | Follows only positive swings of the input. |
-| **Signed Follow** | Passes the signal with smoothing, handy for CV. |
-| **Long Tail** | Slowly falling level for lingering effects. |
+| **[Smooth Follow](/library/detail/?kind=module&slug=envelope-follower#preset-1)** | General loudness follower for modulation. |
+| **[Fast Peak](/library/detail/?kind=module&slug=envelope-follower#preset-2)** | Snappy peak tracking that catches every hit. |
+| **[Drum Trigger](/library/detail/?kind=module&slug=envelope-follower#preset-3)** | Use the trigger output to fire envelopes from drums. |
+| **[Ducker](/library/detail/?kind=module&slug=envelope-follower#preset-4)** | Use the inverted output to duck a pad under a kick. |
+| **[Slow Swell](/library/detail/?kind=module&slug=envelope-follower#preset-5)** | Slow average level for gentle, musical movement. |
+| **[RMS Level](/library/detail/?kind=module&slug=envelope-follower#preset-6)** | Smooth perceived-loudness meter. |
+| **[Hot Gain](/library/detail/?kind=module&slug=envelope-follower#preset-7)** | Boosts quiet signals to a strong control range. |
+| **[Gate Sense](/library/detail/?kind=module&slug=envelope-follower#preset-8)** | High threshold gate for loud passages only. |
+| **[Low Threshold Gate](/library/detail/?kind=module&slug=envelope-follower#preset-9)** | Gate that opens on almost any signal. |
+| **[Positive Half](/library/detail/?kind=module&slug=envelope-follower#preset-10)** | Follows only positive swings of the input. |
+| **[Signed Follow](/library/detail/?kind=module&slug=envelope-follower#preset-11)** | Passes the signal with smoothing, handy for CV. |
+| **[Long Tail](/library/detail/?kind=module&slug=envelope-follower#preset-12)** | Slowly falling level for lingering effects. |
 <!-- /generated -->
 
 <!-- generated:demos -->

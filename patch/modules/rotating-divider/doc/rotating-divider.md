@@ -72,22 +72,22 @@ Five whole patches show what Rotating Div does. In the standalone app open **Fil
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Rotating Div view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Rotating Div view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Rotating Div; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Integer Set** | Divisions 1 to 8 across the outputs: the plain starting point. |
-| **Integers Rotated** | The same set shifted three outputs along, wrapping round. |
-| **Odd Divisions** | Divisions 1, 3, 5, 7 and so on: off-kilter, interlocking pulses. |
-| **Even Divisions** | Divisions 2, 4, 6 and so on: steady, related pulses. |
-| **Prime Rotation** | Prime divisions shifted by two: very slow to repeat. |
-| **Binary Ladder** | Powers of two: classic halving for kick, snare and hats. |
-| **Fibonacci Spiral** | Fibonacci divisions for organic cross-rhythms. |
-| **Extending Rotate** | Rotate extends the set upward instead of wrapping. |
-| **Triggers Instant** | Triggers for drums; rotation changes take effect at once. |
-| **Bar-Locked Rotation** | Rotation moves only at the bar line, resyncing each bar. |
-| **Eighth Base Pulses** | A slower base clock with long gates. |
-| **Triplet Fibonacci** | Triplet base with base-step gates for skittering hits. |
+| **[Integer Set](/library/detail/?kind=module&slug=rotating-divider#preset-1)** | Divisions 1 to 8 across the outputs: the plain starting point. |
+| **[Integers Rotated](/library/detail/?kind=module&slug=rotating-divider#preset-2)** | The same set shifted three outputs along, wrapping round. |
+| **[Odd Divisions](/library/detail/?kind=module&slug=rotating-divider#preset-3)** | Divisions 1, 3, 5, 7 and so on: off-kilter, interlocking pulses. |
+| **[Even Divisions](/library/detail/?kind=module&slug=rotating-divider#preset-4)** | Divisions 2, 4, 6 and so on: steady, related pulses. |
+| **[Prime Rotation](/library/detail/?kind=module&slug=rotating-divider#preset-5)** | Prime divisions shifted by two: very slow to repeat. |
+| **[Binary Ladder](/library/detail/?kind=module&slug=rotating-divider#preset-6)** | Powers of two: classic halving for kick, snare and hats. |
+| **[Fibonacci Spiral](/library/detail/?kind=module&slug=rotating-divider#preset-7)** | Fibonacci divisions for organic cross-rhythms. |
+| **[Extending Rotate](/library/detail/?kind=module&slug=rotating-divider#preset-8)** | Rotate extends the set upward instead of wrapping. |
+| **[Triggers Instant](/library/detail/?kind=module&slug=rotating-divider#preset-9)** | Triggers for drums; rotation changes take effect at once. |
+| **[Bar-Locked Rotation](/library/detail/?kind=module&slug=rotating-divider#preset-10)** | Rotation moves only at the bar line, resyncing each bar. |
+| **[Eighth Base Pulses](/library/detail/?kind=module&slug=rotating-divider#preset-11)** | A slower base clock with long gates. |
+| **[Triplet Fibonacci](/library/detail/?kind=module&slug=rotating-divider#preset-12)** | Triplet base with base-step gates for skittering hits. |
 <!-- /generated -->
 
 ## Reference

@@ -98,25 +98,25 @@ Five whole patches show what Pulse Generator does. In the standalone app open **
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Pulse Generator view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Pulse Generator view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Pulse Generator; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Clock 1/16** | Exact 1/16 clock pulse locked to the song position. |
-| **Slow Gate** | Gentle one-second gate with softened edges: a rhythmic envelope source. |
-| **Square Wave** | A 200 Hz square tone. |
-| **Narrow Pulse** | Thin 200 Hz pulse: nasal and bright. |
-| **Click Train** | A train of 25 Hz clicks: granular and tick-like. |
-| **Cable Ping** | Short pulses ringing like a mistuned cable. |
-| **Small Drum** | Low ringing resonance: a tiny tuned drum on every beat. |
-| **Metal Tick** | High, tight ring for hat-like ticks. |
-| **Burst Triggered** | Each trigger fires eight fast pulses: a flam or roll. |
-| **Double Pulse** | Two pulses per period for flams and double clocks. |
-| **Jittery Clock** | Human-ish wobble on each pulse while the grid stays put. |
-| **Gated Pulses** | Pulses run while the gate is high: a buzzy gated tone. |
-| **Complement Gate** | Inverted pulse: high most of the time, dips on the beat. |
-| **Percent Width** | Width follows the period, so the timbre stays put as you sweep pitch. |
-| **Soft Edges** | Slewed edges round a pulse into a soft, nearly triangle tone. |
+| **[Clock 1/16](/library/detail/?kind=module&slug=pulse-generator#preset-1)** | Exact 1/16 clock pulse locked to the song position. |
+| **[Slow Gate](/library/detail/?kind=module&slug=pulse-generator#preset-2)** | Gentle one-second gate with softened edges: a rhythmic envelope source. |
+| **[Square Wave](/library/detail/?kind=module&slug=pulse-generator#preset-3)** | A 200 Hz square tone. |
+| **[Narrow Pulse](/library/detail/?kind=module&slug=pulse-generator#preset-4)** | Thin 200 Hz pulse: nasal and bright. |
+| **[Click Train](/library/detail/?kind=module&slug=pulse-generator#preset-5)** | A train of 25 Hz clicks: granular and tick-like. |
+| **[Cable Ping](/library/detail/?kind=module&slug=pulse-generator#preset-6)** | Short pulses ringing like a mistuned cable. |
+| **[Small Drum](/library/detail/?kind=module&slug=pulse-generator#preset-7)** | Low ringing resonance: a tiny tuned drum on every beat. |
+| **[Metal Tick](/library/detail/?kind=module&slug=pulse-generator#preset-8)** | High, tight ring for hat-like ticks. |
+| **[Burst Triggered](/library/detail/?kind=module&slug=pulse-generator#preset-9)** | Each trigger fires eight fast pulses: a flam or roll. |
+| **[Double Pulse](/library/detail/?kind=module&slug=pulse-generator#preset-10)** | Two pulses per period for flams and double clocks. |
+| **[Jittery Clock](/library/detail/?kind=module&slug=pulse-generator#preset-11)** | Human-ish wobble on each pulse while the grid stays put. |
+| **[Gated Pulses](/library/detail/?kind=module&slug=pulse-generator#preset-12)** | Pulses run while the gate is high: a buzzy gated tone. |
+| **[Complement Gate](/library/detail/?kind=module&slug=pulse-generator#preset-13)** | Inverted pulse: high most of the time, dips on the beat. |
+| **[Percent Width](/library/detail/?kind=module&slug=pulse-generator#preset-14)** | Width follows the period, so the timbre stays put as you sweep pitch. |
+| **[Soft Edges](/library/detail/?kind=module&slug=pulse-generator#preset-15)** | Slewed edges round a pulse into a soft, nearly triangle tone. |
 <!-- /generated -->
 
 ## Reference

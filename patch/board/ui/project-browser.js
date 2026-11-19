@@ -2,7 +2,8 @@
 // project-browser.js — Open Project: the project browser (spec §11.5; standalone app, plugins and web). A project is a whole board with
 // its panels. Three sources, shown as groups:
 //
-//   Demo       five projects per advanced module (demo-patches.json, built from patch/presets/demos)
+//   Demo       five projects per advanced module (demo-patches.json, built from patch/presets/demos), and in a module's view
+//              its factory presets (module-presets.json): Add places the module set to one, or Load sets the module whose manual linked it
 //   Mine       the user's own. App and plugin: a folder on the computer (native "presets"/"savePreset" kind "projects").
 //              Web: the user's account on the website (/api/projects), so saving needs a login.
 //   Community  projects shared in the Bleep Library, searched there (/api/presets?type=patch) and downloaded on Load
@@ -30,7 +31,8 @@
   let cells = [];             // plugin mode: [{name, category, description, tags, current}]
   let root = null, listEl, groupsEl, viewsEl, cellsHeadEl, cellsEl, modHeadEl, modFilterEl, modsEl, originsEl, searchEl, saveRow, fileInput, noteEl;
   let signedIn = null;        // web: is there a login (null: not asked yet)
-  let selected = "";          // the name of the card shown selected and scrolled to (showDemo); cleared by the next pick in the browser
+  let selected = "";          // the name of the card shown selected and scrolled to (showDemo, showPreset); cleared when the browser closes
+  let target = null;          // showPreset from a module's manual: {type, name, apply(n)}, the module its presets' Load sets; cleared on close
   let current = null;         // the loaded project for the side menu: {name, source: "factory" | "user" | "community", address?, preset}
   const listeners = [];
   function setCurrent(c) { current = c; listeners.forEach((f) => f(current)); }
@@ -148,6 +150,12 @@
     for (const d of demos)
       out.push(I.entry({ kind: "demo", origin: "factory", name: d.name, group: d.moduleName, module: d.module,
                          description: d.preset.description, tags: d.preset.tags, ref: d }));
+    const VP = window.BleepViewPresets;
+    for (const type of VP && VP.factoryTypes ? VP.factoryTypes() : []) {
+      const group = (host.moduleName && host.moduleName(type)) || type;
+      VP.factoryOf(type).forEach((p, i) => out.push(I.entry({ kind: "preset", origin: "factory", name: p.name, group, module: type,
+                                                             description: p.description, ref: { type, n: i + 1, preset: p } })));
+    }
     for (const m of mine)
       out.push(I.entry({ kind: "project", origin: "user", name: m.name, description: m.preset && m.preset.description,
                          tags: m.preset && m.preset.tags, plays: m.preset && m.preset.plays, ref: Object.assign({}, m, { own: true }) }));
@@ -162,7 +170,7 @@
     return window.BleepPresetIndex.select(entries(), { view, origins, query });
   }
 
-  const KIND_LABELS = { project: "Project", cell: "Cell", demo: "Demo" };
+  const KIND_LABELS = { project: "Project", cell: "Cell", demo: "Demo", preset: "Preset" };
   /// Community presets come from the Library: they need an account (the apps with a library, Play) and a search.
   const communityOn = () => account() && origins.has("community");
 
@@ -283,7 +291,7 @@
     if (view.startsWith("cell:")) return view.slice(5).split("/").join(" › ");
     if (view.startsWith("module:")) {
       const hit = window.BleepPresetIndex.modules(entries()).find(([type]) => type === view.slice(7));
-      return hit ? hit[1] : "this module";
+      return hit ? hit[1] : (host.moduleName && host.moduleName(view.slice(7))) || "this module";
     }
     return names[view] || "";
   }
@@ -368,7 +376,10 @@
           foot.appendChild(alone);
         }
       }
-      const load = el("button", "pb-load", isCell ? "Add" : e.current || p.current ? "Loaded" : "Load");
+      const into = e.kind === "preset" && target && target.type === e.module;   // from the module's manual: set that module
+      if (e.kind === "preset") head.appendChild(el("span", "pb-chip", KIND_LABELS.preset));
+      const load = el("button", "pb-load", into ? "Load into " + target.name : isCell || e.kind === "preset" ? "Add" : e.current || p.current ? "Loaded" : "Load");
+      if (e.kind === "preset") load.title = into ? "Set " + target.name + " to this preset" : "Add " + e.group + " set to this preset to the board";
       load.addEventListener("click", (ev) => { ev.stopPropagation(); activate(e); });
       foot.appendChild(load);
       card.appendChild(foot);
@@ -377,9 +388,16 @@
     }
   }
 
-  /// Load a project or demo, or place a cell preset on the board.
+  /// Load a project or demo, or place a cell preset on the board; a module preset sets the module whose manual opened the browser, else
+  /// a new module set to it is placed.
   function activate(e) {
     if (e.kind === "cell") { close(); host.placeCell(e.ref.cellKey); return; }
+    if (e.kind === "preset") {
+      const t = target && target.type === e.module ? target : null;
+      close();
+      if (!(t && t.apply(e.ref.n)) && host.placeModule) host.placeModule(e.ref.type, e.ref.preset);
+      return;
+    }
     loadPatch(e.ref);
   }
 
@@ -695,8 +713,16 @@
     if (!root || root.hidden) return false;
     root.hidden = true;
     selected = "";
+    target = null;
     document.getElementById("canvas").focus();
     return true;
+  }
+
+  /// Opens the browser on a module's view (set by showDemo or showPreset). The list renders while the browser is still hidden, so the
+  /// module's row and the selected card come into sight once it shows.
+  async function showModule() {
+    await open();
+    for (const x of [modsEl && modsEl.querySelector(".pb-group.active"), listEl.querySelector(".pb-card.selected")]) if (x) x.scrollIntoView({ block: "nearest" });
   }
 
   P.BleepProjectBrowser = {
@@ -713,7 +739,6 @@
     },
     open,
     close,
-    /// After sharing a project: the browser on Community only, searched for its title, so the shared project is in sight.
     /// A module manual's demo link: the browser on the module's demos (Demos by module), the `n`-th of them (1-based) selected.
     /// Returns false when the board has no such demos (the browser stays closed).
     async showDemo(module, n) {
@@ -726,9 +751,24 @@
       query = "";
       if (searchEl) searchEl.value = "";
       selected = (list[(n || 1) - 1] || list[0]).name;
-      await open();
-      // The list renders while the browser is still hidden, so the module's row and the demo come into sight once it shows.
-      for (const x of [modsEl && modsEl.querySelector(".pb-group.active"), listEl.querySelector(".pb-card.selected")]) if (x) x.scrollIntoView({ block: "nearest" });
+      await showModule();
+      return true;
+    },
+    /// A module manual's preset link: the browser on the module's view, its `n`-th factory preset (1-based) selected. `into`
+    /// ({name, apply(n)}): the module whose manual it is; its Load sets that module. False when the module has no such preset.
+    async showPreset(type, n, into) {
+      if (!host || host.cells || !window.BleepViewPresets) return false;
+      const list = window.BleepViewPresets.factoryOf(type);
+      const p = list[(n || 1) - 1];
+      if (!p) return false;
+      origins.add("factory");
+      view = "module:" + type;
+      modsOpen = true;
+      query = "";
+      if (searchEl) searchEl.value = "";
+      selected = p.name;
+      target = into ? { type, name: into.name, apply: into.apply } : null;
+      await showModule();
       return true;
     },
     /// File → Open Library (Bleep Play): the browser on the projects shared in the Bleep Library; without an account, on everything.
@@ -738,6 +778,7 @@
       await open();
       for (const x of [groupsEl, listEl]) if (x) x.scrollTop = 0;   // "Everything" is at the top of the list on the left
     },
+    /// After sharing a project: the browser on Community only, searched for its title, so the shared project is in sight.
     async showShared(title) {
       if (!host || host.cells || !account()) return;
       origins.clear();

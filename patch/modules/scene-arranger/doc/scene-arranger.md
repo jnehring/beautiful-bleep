@@ -85,27 +85,27 @@ Five whole patches show what Scene Arranger does. In the standalone app open **F
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Scene Arranger view has 17 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Scene Arranger view has 17 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Scene Arranger; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Four Scene Loop** | Scenes 1 to 4, one bar each, round and round; manual launches wait for the bar line. |
-| **Verse and Chorus** | A song shape: two verse rounds, two chorus rounds, then a bridge and an outro. |
-| **Long Form** | Eight scenes of four bars, every odd one twice: a 48-bar arrangement. |
-| **Ping Pong** | Up through the scenes and back down without repeating the end scenes. |
-| **Random Walk** | Every scene hands over to a random other one; the seed makes the walk repeatable. |
-| **Drift Forward** | Follow action Next on every scene: the order list is ignored and the scenes simply step on. |
-| **Hold the Last** | Plays 1, 2, 3 and settles on scene 4 until you launch something else. |
-| **Chance Breakdown** | After scene 3 there is a one in three chance of dropping back to scene 1 instead of moving on. |
-| **Stutter Back** | Scene 2 always falls back to 1; scene 4 flips a coin between 3 and the start. |
-| **Beat Launcher** | Nothing moves on its own: launches from the knob, buttons or jack land on the next beat. |
-| **Bar Launcher** | Sixteen scenes for a pattern selector, launched on the bar; the Queued gate shows what is waiting. |
-| **Immediate Switch** | Scenes change every beat and a launch cuts in at once: for fast, hands-on switching. |
-| **Phrase Lengths** | Eight-bar phrases, the second and fourth played twice. |
-| **Lane Groups** | Each lane covers a range of scenes: pairs, the whole run, the middle and the centre two. |
-| **Lane Triggers** | Lane outputs give a short trigger when their scene starts instead of holding a gate. |
-| **Linear Scene CV** | The Scene output climbs from 0 to 1 over scenes 1 to 16: a staircase for filters and pitch. |
-| **Odd Meter Bars** | Seven beats to the bar: scene length and launches follow the odd bar. |
+| **[Four Scene Loop](/library/detail/?kind=module&slug=scene-arranger#preset-1)** | Scenes 1 to 4, one bar each, round and round; manual launches wait for the bar line. |
+| **[Verse and Chorus](/library/detail/?kind=module&slug=scene-arranger#preset-2)** | A song shape: two verse rounds, two chorus rounds, then a bridge and an outro. |
+| **[Long Form](/library/detail/?kind=module&slug=scene-arranger#preset-3)** | Eight scenes of four bars, every odd one twice: a 48-bar arrangement. |
+| **[Ping Pong](/library/detail/?kind=module&slug=scene-arranger#preset-4)** | Up through the scenes and back down without repeating the end scenes. |
+| **[Random Walk](/library/detail/?kind=module&slug=scene-arranger#preset-5)** | Every scene hands over to a random other one; the seed makes the walk repeatable. |
+| **[Drift Forward](/library/detail/?kind=module&slug=scene-arranger#preset-6)** | Follow action Next on every scene: the order list is ignored and the scenes simply step on. |
+| **[Hold the Last](/library/detail/?kind=module&slug=scene-arranger#preset-7)** | Plays 1, 2, 3 and settles on scene 4 until you launch something else. |
+| **[Chance Breakdown](/library/detail/?kind=module&slug=scene-arranger#preset-8)** | After scene 3 there is a one in three chance of dropping back to scene 1 instead of moving on. |
+| **[Stutter Back](/library/detail/?kind=module&slug=scene-arranger#preset-9)** | Scene 2 always falls back to 1; scene 4 flips a coin between 3 and the start. |
+| **[Beat Launcher](/library/detail/?kind=module&slug=scene-arranger#preset-10)** | Nothing moves on its own: launches from the knob, buttons or jack land on the next beat. |
+| **[Bar Launcher](/library/detail/?kind=module&slug=scene-arranger#preset-11)** | Sixteen scenes for a pattern selector, launched on the bar; the Queued gate shows what is waiting. |
+| **[Immediate Switch](/library/detail/?kind=module&slug=scene-arranger#preset-12)** | Scenes change every beat and a launch cuts in at once: for fast, hands-on switching. |
+| **[Phrase Lengths](/library/detail/?kind=module&slug=scene-arranger#preset-13)** | Eight-bar phrases, the second and fourth played twice. |
+| **[Lane Groups](/library/detail/?kind=module&slug=scene-arranger#preset-14)** | Each lane covers a range of scenes: pairs, the whole run, the middle and the centre two. |
+| **[Lane Triggers](/library/detail/?kind=module&slug=scene-arranger#preset-15)** | Lane outputs give a short trigger when their scene starts instead of holding a gate. |
+| **[Linear Scene CV](/library/detail/?kind=module&slug=scene-arranger#preset-16)** | The Scene output climbs from 0 to 1 over scenes 1 to 16: a staircase for filters and pitch. |
+| **[Odd Meter Bars](/library/detail/?kind=module&slug=scene-arranger#preset-17)** | Seven beats to the bar: scene length and launches follow the odd bar. |
 <!-- /generated -->
 
 ## Reference

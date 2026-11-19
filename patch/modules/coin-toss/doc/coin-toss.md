@@ -79,22 +79,22 @@ Five whole patches show what Coin Toss does. In the standalone app open **File â
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Coin Toss view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Coin Toss view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Coin Toss; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Fair Coin** | Each gate goes to A or B at random, half and half. |
-| **Mostly A** | Most gates go to A, B only sometimes: an occasional accent. |
-| **Mostly B** | Most gates go to B, A only now and then. |
-| **Rare Fill** | A very rare toss: a fill every so often. |
-| **Sticky Streaks** | High memory repeats the last result: long runs on one side. |
-| **Alternating Feel** | Two channels play opposite results for call-and-response. |
-| **Shared Toss** | One toss decides both channels together. |
-| **Latch Switch** | The chosen output stays on until the next toss. |
-| **Toggle Flip** | Each toss can flip the output on or off. |
-| **Loop Four** | Four tosses repeat in a loop: random but a repeating pattern. |
-| **Loop Sixteen** | A sixteen-toss pattern that repeats for a bar of variation. |
-| **Loop Three vs Eight** | Short loops give a rhythm that keeps shifting. |
+| **[Fair Coin](/library/detail/?kind=module&slug=coin-toss#preset-1)** | Each gate goes to A or B at random, half and half. |
+| **[Mostly A](/library/detail/?kind=module&slug=coin-toss#preset-2)** | Most gates go to A, B only sometimes: an occasional accent. |
+| **[Mostly B](/library/detail/?kind=module&slug=coin-toss#preset-3)** | Most gates go to B, A only now and then. |
+| **[Rare Fill](/library/detail/?kind=module&slug=coin-toss#preset-4)** | A very rare toss: a fill every so often. |
+| **[Sticky Streaks](/library/detail/?kind=module&slug=coin-toss#preset-5)** | High memory repeats the last result: long runs on one side. |
+| **[Alternating Feel](/library/detail/?kind=module&slug=coin-toss#preset-6)** | Two channels play opposite results for call-and-response. |
+| **[Shared Toss](/library/detail/?kind=module&slug=coin-toss#preset-7)** | One toss decides both channels together. |
+| **[Latch Switch](/library/detail/?kind=module&slug=coin-toss#preset-8)** | The chosen output stays on until the next toss. |
+| **[Toggle Flip](/library/detail/?kind=module&slug=coin-toss#preset-9)** | Each toss can flip the output on or off. |
+| **[Loop Four](/library/detail/?kind=module&slug=coin-toss#preset-10)** | Four tosses repeat in a loop: random but a repeating pattern. |
+| **[Loop Sixteen](/library/detail/?kind=module&slug=coin-toss#preset-11)** | A sixteen-toss pattern that repeats for a bar of variation. |
+| **[Loop Three vs Eight](/library/detail/?kind=module&slug=coin-toss#preset-12)** | Short loops give a rhythm that keeps shifting. |
 <!-- /generated -->
 
 ## Reference

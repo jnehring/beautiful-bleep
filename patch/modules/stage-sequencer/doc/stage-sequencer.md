@@ -101,24 +101,24 @@ Five whole patches show what Stage Seq does. In the standalone app open **File â
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Stage Seq view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Stage Seq view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Stage Seq; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Eight Stages** | Eight stages played forward: the neutral setup. |
-| **Sixteen Stages** | All sixteen stages for a long phrase. |
-| **Short Four** | A four-stage loop: tight and repetitive. |
-| **Reverse** | Stages play backward. |
-| **Slow Pendulum** | Swings forward and back through the stages. |
-| **Random Stages** | Stages in random order. |
-| **Brownian Wander** | Each step moves one stage up or down: a drifting melody. |
-| **Slidey Lead** | Long slide times make marked stages glide. |
-| **Snappy Slide** | Very short slides: a quick portamento snap. |
-| **Hard Accents** | Accented stages hit at full strength. |
-| **Soft Accents** | Accents barely stand out: an even, gentle line. |
-| **Swung Stages** | A shuffle across the stages. |
-| **Triplet Phrase** | Triplets over a two-bar phrase. |
-| **Long Phrase Bass** | A long eight-bar phrase an octave pair down. |
+| **[Eight Stages](/library/detail/?kind=module&slug=stage-sequencer#preset-1)** | Eight stages played forward: the neutral setup. |
+| **[Sixteen Stages](/library/detail/?kind=module&slug=stage-sequencer#preset-2)** | All sixteen stages for a long phrase. |
+| **[Short Four](/library/detail/?kind=module&slug=stage-sequencer#preset-3)** | A four-stage loop: tight and repetitive. |
+| **[Reverse](/library/detail/?kind=module&slug=stage-sequencer#preset-4)** | Stages play backward. |
+| **[Slow Pendulum](/library/detail/?kind=module&slug=stage-sequencer#preset-5)** | Swings forward and back through the stages. |
+| **[Random Stages](/library/detail/?kind=module&slug=stage-sequencer#preset-6)** | Stages in random order. |
+| **[Brownian Wander](/library/detail/?kind=module&slug=stage-sequencer#preset-7)** | Each step moves one stage up or down: a drifting melody. |
+| **[Slidey Lead](/library/detail/?kind=module&slug=stage-sequencer#preset-8)** | Long slide times make marked stages glide. |
+| **[Snappy Slide](/library/detail/?kind=module&slug=stage-sequencer#preset-9)** | Very short slides: a quick portamento snap. |
+| **[Hard Accents](/library/detail/?kind=module&slug=stage-sequencer#preset-10)** | Accented stages hit at full strength. |
+| **[Soft Accents](/library/detail/?kind=module&slug=stage-sequencer#preset-11)** | Accents barely stand out: an even, gentle line. |
+| **[Swung Stages](/library/detail/?kind=module&slug=stage-sequencer#preset-12)** | A shuffle across the stages. |
+| **[Triplet Phrase](/library/detail/?kind=module&slug=stage-sequencer#preset-13)** | Triplets over a two-bar phrase. |
+| **[Long Phrase Bass](/library/detail/?kind=module&slug=stage-sequencer#preset-14)** | A long eight-bar phrase an octave pair down. |
 <!-- /generated -->
 
 ## Reference

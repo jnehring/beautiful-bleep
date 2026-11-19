@@ -83,25 +83,25 @@ Five whole patches show what Formant Osc does. In the standalone app open **File
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Formant Osc view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Formant Osc view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Formant Osc; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Vowel Tone** | A sung vowel: the peak stays fixed while the note moves. |
-| **Talking Bass** | Bass with a resonant peak: put an envelope on Formant. |
-| **Wah Lead** | Sweep Formant with an LFO for a wah-pedal lead. |
-| **Filter-less Squelch** | Acid-like squelch with no filter: envelope the Formant. |
-| **Hollow Ghost** | Formant near zero: a hollow, soft pulse; sweep through it. |
-| **Reverse Formant** | Negative formant runs backwards: a different, hollow colour. |
-| **Wide Choir** | Spread and drifting reset: a wide, breathy choir pad. |
-| **Two Peaks** | Left and right ears get different formants for a two-peak sound. |
-| **Buzzy Saw** | Narrow, bright bursts: a buzzy, sawlike tone. |
-| **Soft Sine Voice** | A wide, smooth burst: mellow and almost sinelike. |
-| **Phasing Roll** | Roll moves the window; modulate it for phasing against the square. |
-| **Inharmonic Ring** | Low reset lets the formant drift: ring-modulated, bell-like colours. |
-| **FM Formant** | Open FM depth: patch an audio source to Formant FM for growling timbre. |
-| **Pinging Sub** | Very low note turns into rhythmic pings: odd modulation or percussion. |
-| **Bright Bell High** | Clean high register thanks to High quality. |
+| **[Vowel Tone](/library/detail/?kind=module&slug=formant-osc#preset-1)** | A sung vowel: the peak stays fixed while the note moves. |
+| **[Talking Bass](/library/detail/?kind=module&slug=formant-osc#preset-2)** | Bass with a resonant peak: put an envelope on Formant. |
+| **[Wah Lead](/library/detail/?kind=module&slug=formant-osc#preset-3)** | Sweep Formant with an LFO for a wah-pedal lead. |
+| **[Filter-less Squelch](/library/detail/?kind=module&slug=formant-osc#preset-4)** | Acid-like squelch with no filter: envelope the Formant. |
+| **[Hollow Ghost](/library/detail/?kind=module&slug=formant-osc#preset-5)** | Formant near zero: a hollow, soft pulse; sweep through it. |
+| **[Reverse Formant](/library/detail/?kind=module&slug=formant-osc#preset-6)** | Negative formant runs backwards: a different, hollow colour. |
+| **[Wide Choir](/library/detail/?kind=module&slug=formant-osc#preset-7)** | Spread and drifting reset: a wide, breathy choir pad. |
+| **[Two Peaks](/library/detail/?kind=module&slug=formant-osc#preset-8)** | Left and right ears get different formants for a two-peak sound. |
+| **[Buzzy Saw](/library/detail/?kind=module&slug=formant-osc#preset-9)** | Narrow, bright bursts: a buzzy, sawlike tone. |
+| **[Soft Sine Voice](/library/detail/?kind=module&slug=formant-osc#preset-10)** | A wide, smooth burst: mellow and almost sinelike. |
+| **[Phasing Roll](/library/detail/?kind=module&slug=formant-osc#preset-11)** | Roll moves the window; modulate it for phasing against the square. |
+| **[Inharmonic Ring](/library/detail/?kind=module&slug=formant-osc#preset-12)** | Low reset lets the formant drift: ring-modulated, bell-like colours. |
+| **[FM Formant](/library/detail/?kind=module&slug=formant-osc#preset-13)** | Open FM depth: patch an audio source to Formant FM for growling timbre. |
+| **[Pinging Sub](/library/detail/?kind=module&slug=formant-osc#preset-14)** | Very low note turns into rhythmic pings: odd modulation or percussion. |
+| **[Bright Bell High](/library/detail/?kind=module&slug=formant-osc#preset-15)** | Clean high register thanks to High quality. |
 <!-- /generated -->
 
 ## Reference

@@ -78,22 +78,22 @@ Five whole patches show what Pitch Follower does. In the standalone app open **F
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Pitch Follower view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Pitch Follower view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Pitch Follower; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Voice** | All-round setting for a singing or speaking voice. |
-| **Bass** | Low range for a bass; the firm guard ignores octave mix-ups on heavy low notes. |
-| **Guitar** | Plucked strings: a vote of three evens out the first wobbly cycles. |
-| **Flute and Whistle** | High and pure sounds with a quick response. |
-| **Fast and Twitchy** | No stabilisers and almost no glide: every little movement reaches the output. |
-| **Smooth Glide** | Notes slide into each other, a portamento from any voice. |
-| **Rock Steady** | A firm guard and a vote of nine: slow to believe, then very stable. |
-| **Long Hold** | The gate stays open for a second and a half after the sound stops. |
-| **Strict Confidence** | Only clean, clearly pitched sound counts. For dirty input. |
-| **Loose Tracker** | Follows rough and breathy sounds, at the price of the odd wrong note. |
-| **Pad Follower** | Slow envelope and gate for driving pads and drones from a voice. |
-| **Deep Range** | Sub-bass territory; the longest analysis window, so the slowest to answer. |
+| **[Voice](/library/detail/?kind=module&slug=pitch-follower#preset-1)** | All-round setting for a singing or speaking voice. |
+| **[Bass](/library/detail/?kind=module&slug=pitch-follower#preset-2)** | Low range for a bass; the firm guard ignores octave mix-ups on heavy low notes. |
+| **[Guitar](/library/detail/?kind=module&slug=pitch-follower#preset-3)** | Plucked strings: a vote of three evens out the first wobbly cycles. |
+| **[Flute and Whistle](/library/detail/?kind=module&slug=pitch-follower#preset-4)** | High and pure sounds with a quick response. |
+| **[Fast and Twitchy](/library/detail/?kind=module&slug=pitch-follower#preset-5)** | No stabilisers and almost no glide: every little movement reaches the output. |
+| **[Smooth Glide](/library/detail/?kind=module&slug=pitch-follower#preset-6)** | Notes slide into each other, a portamento from any voice. |
+| **[Rock Steady](/library/detail/?kind=module&slug=pitch-follower#preset-7)** | A firm guard and a vote of nine: slow to believe, then very stable. |
+| **[Long Hold](/library/detail/?kind=module&slug=pitch-follower#preset-8)** | The gate stays open for a second and a half after the sound stops. |
+| **[Strict Confidence](/library/detail/?kind=module&slug=pitch-follower#preset-9)** | Only clean, clearly pitched sound counts. For dirty input. |
+| **[Loose Tracker](/library/detail/?kind=module&slug=pitch-follower#preset-10)** | Follows rough and breathy sounds, at the price of the odd wrong note. |
+| **[Pad Follower](/library/detail/?kind=module&slug=pitch-follower#preset-11)** | Slow envelope and gate for driving pads and drones from a voice. |
+| **[Deep Range](/library/detail/?kind=module&slug=pitch-follower#preset-12)** | Sub-bass territory; the longest analysis window, so the slowest to answer. |
 <!-- /generated -->
 
 ## Reference

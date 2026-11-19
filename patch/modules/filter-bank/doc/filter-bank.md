@@ -115,25 +115,25 @@ Five whole patches show what Filter Bank does. In the standalone app open **File
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Filter Bank view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Filter Bank view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Filter Bank; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Flat Bank** | All ten bands at unity: a transparent starting point. |
-| **Warm Tilt** | Tilts the spectrum darker. |
-| **Bright Tilt** | Tilts the spectrum brighter. |
-| **Scooped Mids** | Classic smile curve: mids pulled down. |
-| **Telephone Bands** | Only the speech range survives. |
-| **Odd Harmonics** | Only odd bands: hollow, clarinet-like colour. |
-| **Even Harmonics** | Only even bands: octave-ish, reedy colour. |
-| **Scanning Window** | Two-band window: sweep Scan with an LFO or sequencer. |
-| **Single Band Pinger** | One band at a time: sequence Scan for a melodic filter. |
-| **Phaser Sweep** | Modulate Shift with an LFO to slide the bands like a phaser. |
-| **Harmonic Comb** | Bands on harmonics of the pitch input: resonant comb tones. |
-| **Scale Chimes** | Bands snapped to a scale: noise and pads ring with chords. |
-| **Robot Vocoder** | Patch a voice into the sidechain and a buzzy synth into the input. |
-| **Soft Vocoder** | Smoother vocoder for pads and choirs. |
-| **Stretched Bands** | Wider band spacing: inharmonic, metallic resonances. |
+| **[Flat Bank](/library/detail/?kind=module&slug=filter-bank#preset-1)** | All ten bands at unity: a transparent starting point. |
+| **[Warm Tilt](/library/detail/?kind=module&slug=filter-bank#preset-2)** | Tilts the spectrum darker. |
+| **[Bright Tilt](/library/detail/?kind=module&slug=filter-bank#preset-3)** | Tilts the spectrum brighter. |
+| **[Scooped Mids](/library/detail/?kind=module&slug=filter-bank#preset-4)** | Classic smile curve: mids pulled down. |
+| **[Telephone Bands](/library/detail/?kind=module&slug=filter-bank#preset-5)** | Only the speech range survives. |
+| **[Odd Harmonics](/library/detail/?kind=module&slug=filter-bank#preset-6)** | Only odd bands: hollow, clarinet-like colour. |
+| **[Even Harmonics](/library/detail/?kind=module&slug=filter-bank#preset-7)** | Only even bands: octave-ish, reedy colour. |
+| **[Scanning Window](/library/detail/?kind=module&slug=filter-bank#preset-8)** | Two-band window: sweep Scan with an LFO or sequencer. |
+| **[Single Band Pinger](/library/detail/?kind=module&slug=filter-bank#preset-9)** | One band at a time: sequence Scan for a melodic filter. |
+| **[Phaser Sweep](/library/detail/?kind=module&slug=filter-bank#preset-10)** | Modulate Shift with an LFO to slide the bands like a phaser. |
+| **[Harmonic Comb](/library/detail/?kind=module&slug=filter-bank#preset-11)** | Bands on harmonics of the pitch input: resonant comb tones. |
+| **[Scale Chimes](/library/detail/?kind=module&slug=filter-bank#preset-12)** | Bands snapped to a scale: noise and pads ring with chords. |
+| **[Robot Vocoder](/library/detail/?kind=module&slug=filter-bank#preset-13)** | Patch a voice into the sidechain and a buzzy synth into the input. |
+| **[Soft Vocoder](/library/detail/?kind=module&slug=filter-bank#preset-14)** | Smoother vocoder for pads and choirs. |
+| **[Stretched Bands](/library/detail/?kind=module&slug=filter-bank#preset-15)** | Wider band spacing: inharmonic, metallic resonances. |
 <!-- /generated -->
 
 ## Reference

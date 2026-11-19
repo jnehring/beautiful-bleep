@@ -92,23 +92,23 @@ Five whole patches show what Freq Shifter does. In the standalone app open **Fil
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Freq Shifter view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Freq Shifter view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Freq Shifter; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Slow Barber Pole** | Endless, slow phasing against the dry sound. |
-| **Gentle Detune** | Beating, chorus-like shimmer. |
-| **Stereo Widener** | Opposite small shifts left and right for a wide image. |
-| **Down Spiral** | Feedback makes the sound sink in steps. |
-| **Up Spiral** | Rising, bell-like spiral. |
-| **Phase Bells** | Metallic ringing from resonant feedback. |
-| **Inharmonic Bell** | Moves partials off the harmonic series: dissonant, bell-like. |
-| **Dissonant Shift** | Fully wet and inharmonic. |
-| **Negative Shift** | Pushes downward: reversed-sounding tones. |
-| **Wide Stereo Spread** | Different shift per channel for a swirling image. |
-| **Negative Feedback Cloud** | Inverted feedback: a darker, diffuse smear. |
-| **Synced Sweep** | Tempo-synced shift movement. |
-| **Extreme Warp** | Large shift: robotic and alien. |
+| **[Slow Barber Pole](/library/detail/?kind=module&slug=freq-shifter#preset-1)** | Endless, slow phasing against the dry sound. |
+| **[Gentle Detune](/library/detail/?kind=module&slug=freq-shifter#preset-2)** | Beating, chorus-like shimmer. |
+| **[Stereo Widener](/library/detail/?kind=module&slug=freq-shifter#preset-3)** | Opposite small shifts left and right for a wide image. |
+| **[Down Spiral](/library/detail/?kind=module&slug=freq-shifter#preset-4)** | Feedback makes the sound sink in steps. |
+| **[Up Spiral](/library/detail/?kind=module&slug=freq-shifter#preset-5)** | Rising, bell-like spiral. |
+| **[Phase Bells](/library/detail/?kind=module&slug=freq-shifter#preset-6)** | Metallic ringing from resonant feedback. |
+| **[Inharmonic Bell](/library/detail/?kind=module&slug=freq-shifter#preset-7)** | Moves partials off the harmonic series: dissonant, bell-like. |
+| **[Dissonant Shift](/library/detail/?kind=module&slug=freq-shifter#preset-8)** | Fully wet and inharmonic. |
+| **[Negative Shift](/library/detail/?kind=module&slug=freq-shifter#preset-9)** | Pushes downward: reversed-sounding tones. |
+| **[Wide Stereo Spread](/library/detail/?kind=module&slug=freq-shifter#preset-10)** | Different shift per channel for a swirling image. |
+| **[Negative Feedback Cloud](/library/detail/?kind=module&slug=freq-shifter#preset-11)** | Inverted feedback: a darker, diffuse smear. |
+| **[Synced Sweep](/library/detail/?kind=module&slug=freq-shifter#preset-12)** | Tempo-synced shift movement. |
+| **[Extreme Warp](/library/detail/?kind=module&slug=freq-shifter#preset-13)** | Large shift: robotic and alien. |
 <!-- /generated -->
 
 ## Reference

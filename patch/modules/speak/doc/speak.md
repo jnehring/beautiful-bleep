@@ -87,23 +87,23 @@ Five whole patches show what Speak does. In the standalone app open **File → P
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Speak view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Speak view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Speak; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Hello World** | A greeting, loosely. |
-| **Robot Choir** | Sustained vowels on one note: a mechanical choir. |
-| **Mumble** | A blurred, low conversation. |
-| **Hat Talk** | Hisses and stops as percussion. |
-| **Giant** | Formants down: a huge, slow voice. |
-| **Child** | Formants and pitch up: a small voice. |
-| **Whisper** | All breath and little voice. |
-| **Vowel Walk** | Every vowel in turn: a sweeping formant tune. |
-| **Nasal Hum** | Long nasals and open vowels. |
-| **Stutter** | Plosive stutters into a rising vowel. |
-| **Spoken Bass** | A low, pulsing talk: layer it with a bass. |
-| **Yes No** | Two short words with a lift at the end. |
-| **Step Words** | Step mode: send gates into Go to play one sound at a time. |
+| **[Hello World](/library/detail/?kind=module&slug=speak#preset-1)** | A greeting, loosely. |
+| **[Robot Choir](/library/detail/?kind=module&slug=speak#preset-2)** | Sustained vowels on one note: a mechanical choir. |
+| **[Mumble](/library/detail/?kind=module&slug=speak#preset-3)** | A blurred, low conversation. |
+| **[Hat Talk](/library/detail/?kind=module&slug=speak#preset-4)** | Hisses and stops as percussion. |
+| **[Giant](/library/detail/?kind=module&slug=speak#preset-5)** | Formants down: a huge, slow voice. |
+| **[Child](/library/detail/?kind=module&slug=speak#preset-6)** | Formants and pitch up: a small voice. |
+| **[Whisper](/library/detail/?kind=module&slug=speak#preset-7)** | All breath and little voice. |
+| **[Vowel Walk](/library/detail/?kind=module&slug=speak#preset-8)** | Every vowel in turn: a sweeping formant tune. |
+| **[Nasal Hum](/library/detail/?kind=module&slug=speak#preset-9)** | Long nasals and open vowels. |
+| **[Stutter](/library/detail/?kind=module&slug=speak#preset-10)** | Plosive stutters into a rising vowel. |
+| **[Spoken Bass](/library/detail/?kind=module&slug=speak#preset-11)** | A low, pulsing talk: layer it with a bass. |
+| **[Yes No](/library/detail/?kind=module&slug=speak#preset-12)** | Two short words with a lift at the end. |
+| **[Step Words](/library/detail/?kind=module&slug=speak#preset-13)** | Step mode: send gates into Go to play one sound at a time. |
 <!-- /generated -->
 
 ## Reference

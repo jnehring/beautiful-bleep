@@ -76,26 +76,26 @@ Five whole patches show what Melody Mirror does. In the standalone app open **Fi
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Melody Mirror view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Melody Mirror view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Melody Mirror; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Backwards Tune** | A beat after you stop, the last six notes come back in reverse. |
-| **Upside Down** | The phrase mirrored in pitch around its first note, same rhythm. |
-| **Rotated Pitches** | The pitches shift one place along the same rhythm. |
-| **Mirror Image** | Backwards and upside down together. |
-| **Call And Response** | Play a phrase; it waits for your pause, answers with the mirror image and listens again. |
-| **Answer Upside Down** | A calm answer: your phrase inverted after two beats of silence. |
-| **Answer In Reverse** | A quick reply that plays your last four notes backwards. |
-| **Slow Retrograde** | The reversed phrase at half speed. |
-| **Double Time Mirror** | The mirror image at double speed, like a tape running fast. |
-| **Octave Up Reverse** | The reversed phrase an octave higher. |
-| **Scale Snapped Inversion** | The inverted phrase is pulled into C major so it never leaves the key. |
-| **Fixed Axis Flip** | Pitches mirrored around C5: low notes become high ones. |
-| **Mean Axis Flip** | Mirrored around the average pitch of the phrase. |
-| **Triggered Replay** | Plays only when a trigger arrives or you press Replay. |
-| **Short Motif Turner** | A four-note motif comes back with its pitches turned two places. |
-| **Soft Reply** | The answer is quieter and shorter than the question. |
+| **[Backwards Tune](/library/detail/?kind=module&slug=melody-mirror#preset-1)** | A beat after you stop, the last six notes come back in reverse. |
+| **[Upside Down](/library/detail/?kind=module&slug=melody-mirror#preset-2)** | The phrase mirrored in pitch around its first note, same rhythm. |
+| **[Rotated Pitches](/library/detail/?kind=module&slug=melody-mirror#preset-3)** | The pitches shift one place along the same rhythm. |
+| **[Mirror Image](/library/detail/?kind=module&slug=melody-mirror#preset-4)** | Backwards and upside down together. |
+| **[Call And Response](/library/detail/?kind=module&slug=melody-mirror#preset-5)** | Play a phrase; it waits for your pause, answers with the mirror image and listens again. |
+| **[Answer Upside Down](/library/detail/?kind=module&slug=melody-mirror#preset-6)** | A calm answer: your phrase inverted after two beats of silence. |
+| **[Answer In Reverse](/library/detail/?kind=module&slug=melody-mirror#preset-7)** | A quick reply that plays your last four notes backwards. |
+| **[Slow Retrograde](/library/detail/?kind=module&slug=melody-mirror#preset-8)** | The reversed phrase at half speed. |
+| **[Double Time Mirror](/library/detail/?kind=module&slug=melody-mirror#preset-9)** | The mirror image at double speed, like a tape running fast. |
+| **[Octave Up Reverse](/library/detail/?kind=module&slug=melody-mirror#preset-10)** | The reversed phrase an octave higher. |
+| **[Scale Snapped Inversion](/library/detail/?kind=module&slug=melody-mirror#preset-11)** | The inverted phrase is pulled into C major so it never leaves the key. |
+| **[Fixed Axis Flip](/library/detail/?kind=module&slug=melody-mirror#preset-12)** | Pitches mirrored around C5: low notes become high ones. |
+| **[Mean Axis Flip](/library/detail/?kind=module&slug=melody-mirror#preset-13)** | Mirrored around the average pitch of the phrase. |
+| **[Triggered Replay](/library/detail/?kind=module&slug=melody-mirror#preset-14)** | Plays only when a trigger arrives or you press Replay. |
+| **[Short Motif Turner](/library/detail/?kind=module&slug=melody-mirror#preset-15)** | A four-note motif comes back with its pitches turned two places. |
+| **[Soft Reply](/library/detail/?kind=module&slug=melody-mirror#preset-16)** | The answer is quieter and shorter than the question. |
 <!-- /generated -->
 
 ## Reference

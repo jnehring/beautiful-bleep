@@ -41,24 +41,24 @@ With only *In L* patched, the signal feeds both sides.
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Saturator view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Saturator view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Saturator; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Subtle Warmth** | A hint of even harmonics on anything. |
-| **Bus Glue** | Soft, compressed tape-like cohesion for a mix bus. |
-| **Tape Drums** | Rounded transients and a fatter body for drum loops. |
-| **Tube Crunch** | Amp-like crunch with edge in the upper mids. |
-| **Fat Bass** | Thick low end that stays smooth on top. |
-| **Sub Weight** | Even-harmonic weight under a sub. |
-| **Diode Bite** | Edgy, vocal asymmetry. |
-| **Vocal Heat** | Gentle presence and density for a voice. |
-| **Breathing Pad** | Slow drift makes a held chord shimmer and breathe. |
-| **Loose Gear** | Everything wanders a little, like old hardware. |
-| **Sagging Supply** | Hard hits squash and bloom. |
-| **Fuzz Wall** | Thick, compressed, anti-aliased fuzz. |
-| **Parallel Grit** | Hard-driven copy blended under the clean signal. |
-| **Eco Warmth** | Light on CPU for many instances. |
+| **[Subtle Warmth](/library/detail/?kind=module&slug=saturator#preset-1)** | A hint of even harmonics on anything. |
+| **[Bus Glue](/library/detail/?kind=module&slug=saturator#preset-2)** | Soft, compressed tape-like cohesion for a mix bus. |
+| **[Tape Drums](/library/detail/?kind=module&slug=saturator#preset-3)** | Rounded transients and a fatter body for drum loops. |
+| **[Tube Crunch](/library/detail/?kind=module&slug=saturator#preset-4)** | Amp-like crunch with edge in the upper mids. |
+| **[Fat Bass](/library/detail/?kind=module&slug=saturator#preset-5)** | Thick low end that stays smooth on top. |
+| **[Sub Weight](/library/detail/?kind=module&slug=saturator#preset-6)** | Even-harmonic weight under a sub. |
+| **[Diode Bite](/library/detail/?kind=module&slug=saturator#preset-7)** | Edgy, vocal asymmetry. |
+| **[Vocal Heat](/library/detail/?kind=module&slug=saturator#preset-8)** | Gentle presence and density for a voice. |
+| **[Breathing Pad](/library/detail/?kind=module&slug=saturator#preset-9)** | Slow drift makes a held chord shimmer and breathe. |
+| **[Loose Gear](/library/detail/?kind=module&slug=saturator#preset-10)** | Everything wanders a little, like old hardware. |
+| **[Sagging Supply](/library/detail/?kind=module&slug=saturator#preset-11)** | Hard hits squash and bloom. |
+| **[Fuzz Wall](/library/detail/?kind=module&slug=saturator#preset-12)** | Thick, compressed, anti-aliased fuzz. |
+| **[Parallel Grit](/library/detail/?kind=module&slug=saturator#preset-13)** | Hard-driven copy blended under the clean signal. |
+| **[Eco Warmth](/library/detail/?kind=module&slug=saturator#preset-14)** | Light on CPU for many instances. |
 <!-- /generated -->
 
 <!-- generated:demos -->

@@ -73,25 +73,25 @@ Five whole patches show what Note Looper does. In the standalone app open **File
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Note Looper view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Note Looper view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Note Looper; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Two Bar Loop** | A two-bar loop in play: set Mode to Record and play it in. |
-| **One Bar Pulse** | A one-bar loop for short, repeating figures. |
-| **Four Bar Phrase** | Four bars: room for a melody that goes somewhere. |
-| **Eight Bar Story** | Eight bars for a whole verse of notes. |
-| **Overdub Layers** | Records on top of what is already looping; Undo takes the last layer off. |
-| **Fresh Take** | Throws the old loop away and records a new one. |
-| **Half Speed Drift** | The loop plays at half speed: the same notes, twice as long. |
-| **Double Speed Flurry** | The loop at double speed. |
-| **Tight Sixteenths** | Notes snap fully to the sixteenth grid. |
-| **Loose Eighths** | Notes move halfway to the eighth grid: tidied, but still human. |
-| **Triplet Snap** | Everything snaps to triplets. |
-| **Ghost Notes** | Each pass plays about 60 % of the notes, differently every time. |
-| **Sparse Memory** | A handful of notes per pass: the loop hints at the tune. |
-| **Silent Thru** | What you play is recorded but not heard until the loop comes round. |
-| **Waltz Loop** | Bars of three beats. |
+| **[Two Bar Loop](/library/detail/?kind=module&slug=note-looper#preset-1)** | A two-bar loop in play: set Mode to Record and play it in. |
+| **[One Bar Pulse](/library/detail/?kind=module&slug=note-looper#preset-2)** | A one-bar loop for short, repeating figures. |
+| **[Four Bar Phrase](/library/detail/?kind=module&slug=note-looper#preset-3)** | Four bars: room for a melody that goes somewhere. |
+| **[Eight Bar Story](/library/detail/?kind=module&slug=note-looper#preset-4)** | Eight bars for a whole verse of notes. |
+| **[Overdub Layers](/library/detail/?kind=module&slug=note-looper#preset-5)** | Records on top of what is already looping; Undo takes the last layer off. |
+| **[Fresh Take](/library/detail/?kind=module&slug=note-looper#preset-6)** | Throws the old loop away and records a new one. |
+| **[Half Speed Drift](/library/detail/?kind=module&slug=note-looper#preset-7)** | The loop plays at half speed: the same notes, twice as long. |
+| **[Double Speed Flurry](/library/detail/?kind=module&slug=note-looper#preset-8)** | The loop at double speed. |
+| **[Tight Sixteenths](/library/detail/?kind=module&slug=note-looper#preset-9)** | Notes snap fully to the sixteenth grid. |
+| **[Loose Eighths](/library/detail/?kind=module&slug=note-looper#preset-10)** | Notes move halfway to the eighth grid: tidied, but still human. |
+| **[Triplet Snap](/library/detail/?kind=module&slug=note-looper#preset-11)** | Everything snaps to triplets. |
+| **[Ghost Notes](/library/detail/?kind=module&slug=note-looper#preset-12)** | Each pass plays about 60 % of the notes, differently every time. |
+| **[Sparse Memory](/library/detail/?kind=module&slug=note-looper#preset-13)** | A handful of notes per pass: the loop hints at the tune. |
+| **[Silent Thru](/library/detail/?kind=module&slug=note-looper#preset-14)** | What you play is recorded but not heard until the loop comes round. |
+| **[Waltz Loop](/library/detail/?kind=module&slug=note-looper#preset-15)** | Bars of three beats. |
 <!-- /generated -->
 
 ## Reference

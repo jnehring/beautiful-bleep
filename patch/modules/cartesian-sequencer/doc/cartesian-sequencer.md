@@ -108,23 +108,23 @@ Five whole patches show what Cartesian Seq does. In the standalone app open **Fi
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Cartesian Seq view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Cartesian Seq view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Cartesian Seq; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Four by Four** | A 4 x 4 grid read left to right, row by row. |
-| **Eight by Eight** | The full grid: sixty-four steps of melody. |
-| **Single Row** | Just one row: a plain eight-step sequence. |
-| **Slow Rows** | X steps fast, Y creeps slowly: rows change every half note. |
-| **Backward Walk** | Both playheads run in reverse. |
-| **Ping-Pong Grid** | Both playheads bounce back and forth. |
-| **Random Walk** | Playheads jump about at random: a shuffled melody. |
-| **Polymetric 5x3** | Two clocks at the same rate on uneven sizes: patterns drift. |
-| **Swung Grid** | A swung four by four. |
-| **Triplet Grid** | Triplet steps across six columns. |
-| **Manual Cartesian** | Pick notes with X and Y: modulate them with LFOs. |
-| **Smooth Mod Walk** | X/Y control with a slewed mod output for a smooth line. |
-| **Low Drone Grid** | A slow, held low-octave pattern. |
+| **[Four by Four](/library/detail/?kind=module&slug=cartesian-sequencer#preset-1)** | A 4 x 4 grid read left to right, row by row. |
+| **[Eight by Eight](/library/detail/?kind=module&slug=cartesian-sequencer#preset-2)** | The full grid: sixty-four steps of melody. |
+| **[Single Row](/library/detail/?kind=module&slug=cartesian-sequencer#preset-3)** | Just one row: a plain eight-step sequence. |
+| **[Slow Rows](/library/detail/?kind=module&slug=cartesian-sequencer#preset-4)** | X steps fast, Y creeps slowly: rows change every half note. |
+| **[Backward Walk](/library/detail/?kind=module&slug=cartesian-sequencer#preset-5)** | Both playheads run in reverse. |
+| **[Ping-Pong Grid](/library/detail/?kind=module&slug=cartesian-sequencer#preset-6)** | Both playheads bounce back and forth. |
+| **[Random Walk](/library/detail/?kind=module&slug=cartesian-sequencer#preset-7)** | Playheads jump about at random: a shuffled melody. |
+| **[Polymetric 5x3](/library/detail/?kind=module&slug=cartesian-sequencer#preset-8)** | Two clocks at the same rate on uneven sizes: patterns drift. |
+| **[Swung Grid](/library/detail/?kind=module&slug=cartesian-sequencer#preset-9)** | A swung four by four. |
+| **[Triplet Grid](/library/detail/?kind=module&slug=cartesian-sequencer#preset-10)** | Triplet steps across six columns. |
+| **[Manual Cartesian](/library/detail/?kind=module&slug=cartesian-sequencer#preset-11)** | Pick notes with X and Y: modulate them with LFOs. |
+| **[Smooth Mod Walk](/library/detail/?kind=module&slug=cartesian-sequencer#preset-12)** | X/Y control with a slewed mod output for a smooth line. |
+| **[Low Drone Grid](/library/detail/?kind=module&slug=cartesian-sequencer#preset-13)** | A slow, held low-octave pattern. |
 <!-- /generated -->
 
 ## Reference

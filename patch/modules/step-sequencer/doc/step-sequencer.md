@@ -78,25 +78,25 @@ time.
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Step Sequencer view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Step Sequencer view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Step Sequencer; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Straight Sixteenths** | Plain forward sixteenth notes in C major: the neutral starting point. |
-| **Tight Staccato** | Short, clipped gates in minor pentatonic for plucks and bass. |
-| **Legato Eighths** | Full-length gates in eighths so the notes run together. |
-| **Swung Shuffle** | Sixteenths with a loose swing in Dorian for a laid-back groove. |
-| **Triplet Roll** | Eighth-note triplets for a rolling, rounded feel. |
-| **Slow Pendulum** | Eight steps bouncing back and forth in Lydian: dreamy and floating. |
-| **Backward Run** | Plays the pattern in reverse for a falling line. |
-| **Short Loop Eight** | A tight eight-step loop in Phrygian for driving basslines. |
-| **Odd Five** | Five steps against a four-beat bar: the pattern keeps shifting. |
-| **Dense Random** | Thirty-second notes in random order across the whole scale. |
-| **Gentle Drift** | Notes wander a few semitones from the written pitches. |
-| **Wild Variation** | Heavy variation of up to an octave: the sequence never plays the same twice. |
-| **Blues Walk** | Dotted eighths in an A blues scale with a little swing. |
-| **Eastern Lines** | Sixteenth triplets in a Phrygian dominant scale. |
-| **Low Octave Drone** | Slow, held quarter notes two octaves down for a sub line. |
+| **[Straight Sixteenths](/library/detail/?kind=module&slug=step-sequencer#preset-1)** | Plain forward sixteenth notes in C major: the neutral starting point. |
+| **[Tight Staccato](/library/detail/?kind=module&slug=step-sequencer#preset-2)** | Short, clipped gates in minor pentatonic for plucks and bass. |
+| **[Legato Eighths](/library/detail/?kind=module&slug=step-sequencer#preset-3)** | Full-length gates in eighths so the notes run together. |
+| **[Swung Shuffle](/library/detail/?kind=module&slug=step-sequencer#preset-4)** | Sixteenths with a loose swing in Dorian for a laid-back groove. |
+| **[Triplet Roll](/library/detail/?kind=module&slug=step-sequencer#preset-5)** | Eighth-note triplets for a rolling, rounded feel. |
+| **[Slow Pendulum](/library/detail/?kind=module&slug=step-sequencer#preset-6)** | Eight steps bouncing back and forth in Lydian: dreamy and floating. |
+| **[Backward Run](/library/detail/?kind=module&slug=step-sequencer#preset-7)** | Plays the pattern in reverse for a falling line. |
+| **[Short Loop Eight](/library/detail/?kind=module&slug=step-sequencer#preset-8)** | A tight eight-step loop in Phrygian for driving basslines. |
+| **[Odd Five](/library/detail/?kind=module&slug=step-sequencer#preset-9)** | Five steps against a four-beat bar: the pattern keeps shifting. |
+| **[Dense Random](/library/detail/?kind=module&slug=step-sequencer#preset-10)** | Thirty-second notes in random order across the whole scale. |
+| **[Gentle Drift](/library/detail/?kind=module&slug=step-sequencer#preset-11)** | Notes wander a few semitones from the written pitches. |
+| **[Wild Variation](/library/detail/?kind=module&slug=step-sequencer#preset-12)** | Heavy variation of up to an octave: the sequence never plays the same twice. |
+| **[Blues Walk](/library/detail/?kind=module&slug=step-sequencer#preset-13)** | Dotted eighths in an A blues scale with a little swing. |
+| **[Eastern Lines](/library/detail/?kind=module&slug=step-sequencer#preset-14)** | Sixteenth triplets in a Phrygian dominant scale. |
+| **[Low Octave Drone](/library/detail/?kind=module&slug=step-sequencer#preset-15)** | Slow, held quarter notes two octaves down for a sub line. |
 <!-- /generated -->
 
 <!-- generated:demos -->

@@ -35,23 +35,23 @@ The overdrive curve and its gain structure are Émilie Gillet's (Mutable Instrum
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Crunch view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Crunch view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Crunch; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Warm Saturation** | Gentle tube-like warmth on anything. |
-| **Overdrive** | Classic mid-gain overdrive. |
-| **Fuzz Wall** | Thick, compressed fuzz with the top rolled off. |
-| **Lo-Fi Bits** | 8-bit quantisation noise, old sampler style. |
-| **Telephone Crush** | Narrow, crushed and aliased. |
-| **Rate Grinder** | Sample-rate reduction aliasing without much bit loss. |
-| **Broken Machine** | Harsh digital breakdown. |
-| **Parallel Grit** | Crunch blended under a clean signal for grit with body. |
-| **Drum Crunch** | Adds bite and crackle to drum loops. |
-| **Dark Dirt** | Heavy drive filtered dark for bass. |
-| **Bit Dust** | Subtle degradation, like a worn digital converter. |
-| **Square Wave Mangler** | Two bits turn everything into buzzing pulses. |
-| **Total Destruction** | Everything at once; keep the level low. |
+| **[Warm Saturation](/library/detail/?kind=module&slug=crunch#preset-1)** | Gentle tube-like warmth on anything. |
+| **[Overdrive](/library/detail/?kind=module&slug=crunch#preset-2)** | Classic mid-gain overdrive. |
+| **[Fuzz Wall](/library/detail/?kind=module&slug=crunch#preset-3)** | Thick, compressed fuzz with the top rolled off. |
+| **[Lo-Fi Bits](/library/detail/?kind=module&slug=crunch#preset-4)** | 8-bit quantisation noise, old sampler style. |
+| **[Telephone Crush](/library/detail/?kind=module&slug=crunch#preset-5)** | Narrow, crushed and aliased. |
+| **[Rate Grinder](/library/detail/?kind=module&slug=crunch#preset-6)** | Sample-rate reduction aliasing without much bit loss. |
+| **[Broken Machine](/library/detail/?kind=module&slug=crunch#preset-7)** | Harsh digital breakdown. |
+| **[Parallel Grit](/library/detail/?kind=module&slug=crunch#preset-8)** | Crunch blended under a clean signal for grit with body. |
+| **[Drum Crunch](/library/detail/?kind=module&slug=crunch#preset-9)** | Adds bite and crackle to drum loops. |
+| **[Dark Dirt](/library/detail/?kind=module&slug=crunch#preset-10)** | Heavy drive filtered dark for bass. |
+| **[Bit Dust](/library/detail/?kind=module&slug=crunch#preset-11)** | Subtle degradation, like a worn digital converter. |
+| **[Square Wave Mangler](/library/detail/?kind=module&slug=crunch#preset-12)** | Two bits turn everything into buzzing pulses. |
+| **[Total Destruction](/library/detail/?kind=module&slug=crunch#preset-13)** | Everything at once; keep the level low. |
 <!-- /generated -->
 
 <!-- generated:demos -->

@@ -80,25 +80,25 @@ Five whole patches show what Harmony Master does. In the standalone app open **F
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Harmony Master view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Harmony Master view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Harmony Master; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **C Major Home** | The board in C major on the tonic triad. |
-| **A Minor Home** | A natural minor, tonic triad: a sad, simple centre. |
-| **Seventh Colours** | Diatonic sevenths on the second degree: soft and jazzy. |
-| **Dorian Groove** | D Dorian with a minor seventh chord. |
-| **Lydian Lift** | A bright, floating Lydian centre. |
-| **Phrygian Tension** | E Phrygian with a minor chord: dark and tense. |
-| **Harmonic Minor Drama** | The dominant of A harmonic minor: ready to resolve. |
-| **Blues Dominant** | Dominant seventh in an A blues scale. |
-| **Pentatonic Open** | Open pentatonic sus2: nothing to resolve. |
-| **Progression Stepper** | Plays its stored progression, moving with the song. |
-| **Triggered Changes** | Steps the progression on each pulse into Next. |
-| **Chord Detector** | Follows chords you play into Notes. |
-| **Low Bass Root** | Fourth degree power chord, an octave down: a strong bass centre. |
-| **Quartal Mood** | Stacked fourths over D Dorian for modern pads. |
-| **Bus B Whole Tone** | Floating whole-tone harmony on bus B. |
+| **[C Major Home](/library/detail/?kind=module&slug=harmony-master#preset-1)** | The board in C major on the tonic triad. |
+| **[A Minor Home](/library/detail/?kind=module&slug=harmony-master#preset-2)** | A natural minor, tonic triad: a sad, simple centre. |
+| **[Seventh Colours](/library/detail/?kind=module&slug=harmony-master#preset-3)** | Diatonic sevenths on the second degree: soft and jazzy. |
+| **[Dorian Groove](/library/detail/?kind=module&slug=harmony-master#preset-4)** | D Dorian with a minor seventh chord. |
+| **[Lydian Lift](/library/detail/?kind=module&slug=harmony-master#preset-5)** | A bright, floating Lydian centre. |
+| **[Phrygian Tension](/library/detail/?kind=module&slug=harmony-master#preset-6)** | E Phrygian with a minor chord: dark and tense. |
+| **[Harmonic Minor Drama](/library/detail/?kind=module&slug=harmony-master#preset-7)** | The dominant of A harmonic minor: ready to resolve. |
+| **[Blues Dominant](/library/detail/?kind=module&slug=harmony-master#preset-8)** | Dominant seventh in an A blues scale. |
+| **[Pentatonic Open](/library/detail/?kind=module&slug=harmony-master#preset-9)** | Open pentatonic sus2: nothing to resolve. |
+| **[Progression Stepper](/library/detail/?kind=module&slug=harmony-master#preset-10)** | Plays its stored progression, moving with the song. |
+| **[Triggered Changes](/library/detail/?kind=module&slug=harmony-master#preset-11)** | Steps the progression on each pulse into Next. |
+| **[Chord Detector](/library/detail/?kind=module&slug=harmony-master#preset-12)** | Follows chords you play into Notes. |
+| **[Low Bass Root](/library/detail/?kind=module&slug=harmony-master#preset-13)** | Fourth degree power chord, an octave down: a strong bass centre. |
+| **[Quartal Mood](/library/detail/?kind=module&slug=harmony-master#preset-14)** | Stacked fourths over D Dorian for modern pads. |
+| **[Bus B Whole Tone](/library/detail/?kind=module&slug=harmony-master#preset-15)** | Floating whole-tone harmony on bus B. |
 <!-- /generated -->
 
 ## Reference

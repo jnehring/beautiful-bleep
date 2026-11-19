@@ -106,24 +106,24 @@ Five whole patches show what Six Slopes does. In the standalone app open **File 
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Six Slopes view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Six Slopes view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Six Slopes; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Overtone Cascade** | Six looping slopes at overtone ratios: rich, related motion. |
-| **Undertone Drift** | Slopes spread downward: slower and slower layers. |
-| **Unison Pulse** | All six at one rate: use the sum or stagger with triggers. |
-| **Six Plucks** | Fast attack decays on each trigger: six different plucks. |
-| **Swell Gates** | Rise, hold while gated, fall: six sustained envelopes. |
-| **Slow Breath** | Ten-second cycles: very slow evolving modulation. |
-| **Synced Eighths** | Tempo-locked slopes with overtone ratios. |
-| **Quarter Note Saws** | Rising ramps locked to the beat. |
-| **Just Intervals** | Rates snapped to just-intonation ratios: consonant polyrhythms. |
-| **Integer Ratios** | Whole-number rate ratios: layers that realign cleanly. |
-| **Bipolar Wander** | Bipolar outputs for pitch or pan wandering. |
-| **Tilted Levels** | Higher slopes louder: emphasises the faster layers. |
-| **Audio Rate Slopes** | Slopes as audio oscillators at harmonic ratios. |
-| **Sharp Curves** | Strongly curved spikes: percussive modulation. |
+| **[Overtone Cascade](/library/detail/?kind=module&slug=six-slopes#preset-1)** | Six looping slopes at overtone ratios: rich, related motion. |
+| **[Undertone Drift](/library/detail/?kind=module&slug=six-slopes#preset-2)** | Slopes spread downward: slower and slower layers. |
+| **[Unison Pulse](/library/detail/?kind=module&slug=six-slopes#preset-3)** | All six at one rate: use the sum or stagger with triggers. |
+| **[Six Plucks](/library/detail/?kind=module&slug=six-slopes#preset-4)** | Fast attack decays on each trigger: six different plucks. |
+| **[Swell Gates](/library/detail/?kind=module&slug=six-slopes#preset-5)** | Rise, hold while gated, fall: six sustained envelopes. |
+| **[Slow Breath](/library/detail/?kind=module&slug=six-slopes#preset-6)** | Ten-second cycles: very slow evolving modulation. |
+| **[Synced Eighths](/library/detail/?kind=module&slug=six-slopes#preset-7)** | Tempo-locked slopes with overtone ratios. |
+| **[Quarter Note Saws](/library/detail/?kind=module&slug=six-slopes#preset-8)** | Rising ramps locked to the beat. |
+| **[Just Intervals](/library/detail/?kind=module&slug=six-slopes#preset-9)** | Rates snapped to just-intonation ratios: consonant polyrhythms. |
+| **[Integer Ratios](/library/detail/?kind=module&slug=six-slopes#preset-10)** | Whole-number rate ratios: layers that realign cleanly. |
+| **[Bipolar Wander](/library/detail/?kind=module&slug=six-slopes#preset-11)** | Bipolar outputs for pitch or pan wandering. |
+| **[Tilted Levels](/library/detail/?kind=module&slug=six-slopes#preset-12)** | Higher slopes louder: emphasises the faster layers. |
+| **[Audio Rate Slopes](/library/detail/?kind=module&slug=six-slopes#preset-13)** | Slopes as audio oscillators at harmonic ratios. |
+| **[Sharp Curves](/library/detail/?kind=module&slug=six-slopes#preset-14)** | Strongly curved spikes: percussive modulation. |
 <!-- /generated -->
 
 ## Reference

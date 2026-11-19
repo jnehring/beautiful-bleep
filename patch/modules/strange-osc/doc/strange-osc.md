@@ -82,24 +82,24 @@ Five whole patches show what Strange Osc does. In the standalone app open **File
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Strange Osc view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Strange Osc view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Strange Osc; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Tamed Spiral** | Almost a clean periodic tone, with a slow grain from the orbit. |
-| **Wobbling Lead** | Pitched, with a restless wobble in every cycle. |
-| **Edge of Order** | Between a note and noise: period-doubling roughness. |
-| **Lorenz Grit** | Gritty, irregular low tone from two flipping lobes. |
-| **Lorenz Loop** | The tamed Lorenz orbit: a hollow, steady voice. |
-| **Thomas Glass** | Smooth, lazy tumbling that rings like glass. |
-| **Halvorsen Star** | A three-armed orbit with a cool, buzzy character. |
-| **Chaos Noise** | Full chaos high up: noise with a pitch centre. |
-| **Dark Chaos** | Slow, dark rumble for sub layers. |
-| **Y Voice** | The Y axis: rounder and less spiky than X. |
-| **Z Spike** | The Z axis: sharp spikes that cut through a mix. |
-| **Forced Orbit** | Patch an audio signal into Force In to push the orbit. |
-| **Slow Orbit** | Control-rate chaos: use X, Y and Z as modulation. |
-| **Irregular Clock** | Use the Flip gate as a clock that never quite repeats. |
+| **[Tamed Spiral](/library/detail/?kind=module&slug=strange-osc#preset-1)** | Almost a clean periodic tone, with a slow grain from the orbit. |
+| **[Wobbling Lead](/library/detail/?kind=module&slug=strange-osc#preset-2)** | Pitched, with a restless wobble in every cycle. |
+| **[Edge of Order](/library/detail/?kind=module&slug=strange-osc#preset-3)** | Between a note and noise: period-doubling roughness. |
+| **[Lorenz Grit](/library/detail/?kind=module&slug=strange-osc#preset-4)** | Gritty, irregular low tone from two flipping lobes. |
+| **[Lorenz Loop](/library/detail/?kind=module&slug=strange-osc#preset-5)** | The tamed Lorenz orbit: a hollow, steady voice. |
+| **[Thomas Glass](/library/detail/?kind=module&slug=strange-osc#preset-6)** | Smooth, lazy tumbling that rings like glass. |
+| **[Halvorsen Star](/library/detail/?kind=module&slug=strange-osc#preset-7)** | A three-armed orbit with a cool, buzzy character. |
+| **[Chaos Noise](/library/detail/?kind=module&slug=strange-osc#preset-8)** | Full chaos high up: noise with a pitch centre. |
+| **[Dark Chaos](/library/detail/?kind=module&slug=strange-osc#preset-9)** | Slow, dark rumble for sub layers. |
+| **[Y Voice](/library/detail/?kind=module&slug=strange-osc#preset-10)** | The Y axis: rounder and less spiky than X. |
+| **[Z Spike](/library/detail/?kind=module&slug=strange-osc#preset-11)** | The Z axis: sharp spikes that cut through a mix. |
+| **[Forced Orbit](/library/detail/?kind=module&slug=strange-osc#preset-12)** | Patch an audio signal into Force In to push the orbit. |
+| **[Slow Orbit](/library/detail/?kind=module&slug=strange-osc#preset-13)** | Control-rate chaos: use X, Y and Z as modulation. |
+| **[Irregular Clock](/library/detail/?kind=module&slug=strange-osc#preset-14)** | Use the Flip gate as a clock that never quite repeats. |
 <!-- /generated -->
 
 ## Reference

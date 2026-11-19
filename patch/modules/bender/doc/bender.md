@@ -100,24 +100,24 @@ Five whole patches show what Bender does. In the standalone app open **File → 
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Bender view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Bender view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Bender; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Stutter Repeats** | Occasional clean repeats of a sixteenth slice. |
-| **Octave Jumps** | Slices randomly hop up or down octaves. |
-| **Fifths Glitch** | Re-pitched slices in musical fifths and octaves. |
-| **Tape Stop Fall** | Occasional downward pitch dives. |
-| **Reverse Slices** | Shuffled slices that play back reversed. |
-| **Dropouts** | Pieces of the signal drop out like a bad connection. |
-| **Smear Clouds** | Smeared, blurred repeats for soft textures. |
-| **Fold Mangle** | Folded, harsher glitches. |
-| **Bit Crush Bursts** | Crushed bursts on random sixteenths. |
-| **Slicer** | Chopped, rearranged slices for rhythmic breaks. |
-| **Constant Corruption** | Always-on digital damage with occasional glitches. |
-| **Free Roll** | Unsynced rolls with wandering pitch. |
-| **Semitone Chaos** | Dense, random, chromatic glitch storm. |
-| **Half-Time Freeze** | Rare long, slowed-down grabs. |
+| **[Stutter Repeats](/library/detail/?kind=module&slug=bender#preset-1)** | Occasional clean repeats of a sixteenth slice. |
+| **[Octave Jumps](/library/detail/?kind=module&slug=bender#preset-2)** | Slices randomly hop up or down octaves. |
+| **[Fifths Glitch](/library/detail/?kind=module&slug=bender#preset-3)** | Re-pitched slices in musical fifths and octaves. |
+| **[Tape Stop Fall](/library/detail/?kind=module&slug=bender#preset-4)** | Occasional downward pitch dives. |
+| **[Reverse Slices](/library/detail/?kind=module&slug=bender#preset-5)** | Shuffled slices that play back reversed. |
+| **[Dropouts](/library/detail/?kind=module&slug=bender#preset-6)** | Pieces of the signal drop out like a bad connection. |
+| **[Smear Clouds](/library/detail/?kind=module&slug=bender#preset-7)** | Smeared, blurred repeats for soft textures. |
+| **[Fold Mangle](/library/detail/?kind=module&slug=bender#preset-8)** | Folded, harsher glitches. |
+| **[Bit Crush Bursts](/library/detail/?kind=module&slug=bender#preset-9)** | Crushed bursts on random sixteenths. |
+| **[Slicer](/library/detail/?kind=module&slug=bender#preset-10)** | Chopped, rearranged slices for rhythmic breaks. |
+| **[Constant Corruption](/library/detail/?kind=module&slug=bender#preset-11)** | Always-on digital damage with occasional glitches. |
+| **[Free Roll](/library/detail/?kind=module&slug=bender#preset-12)** | Unsynced rolls with wandering pitch. |
+| **[Semitone Chaos](/library/detail/?kind=module&slug=bender#preset-13)** | Dense, random, chromatic glitch storm. |
+| **[Half-Time Freeze](/library/detail/?kind=module&slug=bender#preset-14)** | Rare long, slowed-down grabs. |
 <!-- /generated -->
 
 ## Reference

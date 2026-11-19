@@ -68,22 +68,22 @@ Five whole patches show what Endless Tone does. In the standalone app open **Fil
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Endless Tone view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Endless Tone view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Endless Tone; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Endless Riser** | A slow glide upward that never arrives. |
-| **Falling Drone** | A warm tone that falls for ever. |
-| **Slow Cloud** | A wide, dense wash of octaves, barely moving. |
-| **Fast Spin** | A quick rising swirl. |
-| **Saw Staircase** | Bright saw partials in a steady climb. |
-| **Few Clear Partials** | Individual voices passing through the window. |
-| **Frozen Chord** | No glide: a fixed stack of octaves; Phase moves it. |
-| **Low Descent** | A deep, sinking tone. |
-| **High Shimmer** | A glittering, wide rise high up. |
-| **Gentle Mono** | Quiet and centred: a calm pad. |
-| **Alarm Rise** | Tense, fast and bright. |
-| **Reverse Slow** | A slow fall across many octaves. |
+| **[Endless Riser](/library/detail/?kind=module&slug=endless-tone#preset-1)** | A slow glide upward that never arrives. |
+| **[Falling Drone](/library/detail/?kind=module&slug=endless-tone#preset-2)** | A warm tone that falls for ever. |
+| **[Slow Cloud](/library/detail/?kind=module&slug=endless-tone#preset-3)** | A wide, dense wash of octaves, barely moving. |
+| **[Fast Spin](/library/detail/?kind=module&slug=endless-tone#preset-4)** | A quick rising swirl. |
+| **[Saw Staircase](/library/detail/?kind=module&slug=endless-tone#preset-5)** | Bright saw partials in a steady climb. |
+| **[Few Clear Partials](/library/detail/?kind=module&slug=endless-tone#preset-6)** | Individual voices passing through the window. |
+| **[Frozen Chord](/library/detail/?kind=module&slug=endless-tone#preset-7)** | No glide: a fixed stack of octaves; Phase moves it. |
+| **[Low Descent](/library/detail/?kind=module&slug=endless-tone#preset-8)** | A deep, sinking tone. |
+| **[High Shimmer](/library/detail/?kind=module&slug=endless-tone#preset-9)** | A glittering, wide rise high up. |
+| **[Gentle Mono](/library/detail/?kind=module&slug=endless-tone#preset-10)** | Quiet and centred: a calm pad. |
+| **[Alarm Rise](/library/detail/?kind=module&slug=endless-tone#preset-11)** | Tense, fast and bright. |
+| **[Reverse Slow](/library/detail/?kind=module&slug=endless-tone#preset-12)** | A slow fall across many octaves. |
 <!-- /generated -->
 
 ## Reference

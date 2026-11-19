@@ -78,26 +78,26 @@ Five whole patches show what Clock Mult does. In the standalone app open **File 
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Clock Mult view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Clock Mult view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Clock Mult; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Ratio Ladder** | Whole and fractional ratios side by side: 2, 3, 4, 3/2, 5/4 and 8 per clock. |
-| **Straight Doubles** | Powers of two up from the clock, plus a half-speed output: everything lines up. |
-| **Triplet Roll** | Threes in every size, from a lazy 3/4 to a rolling 12 per clock. |
-| **Five Against Four** | Fifths over a four-beat feel: the odd outputs slide against the plain ones. |
-| **Seven Over** | Septuplets against halves and quarters; the anchors meet on every clock. |
-| **Shuffled Sixteenths** | Swing on the in-between ticks only: the beat stays put, the offbeats lean late. |
-| **Loose Hands** | Every in-between tick lands a little late, differently each time round; anchors stay tight. |
-| **Thinning Out** | The same fast clock, each output losing more ticks than the one before. |
-| **Ghost Hats** | Half the eighths and most of the sixteenths drop out; what is left feels played. |
-| **Free Skips** | Keep Beat off: even the ticks on the clock can drop, so the pulse itself gets loose. |
-| **Half-Time Pulses** | Slower than the clock: gates for pads, chord changes and slow modulation. |
-| **Dotted Feel** | Ratios of three over two give dotted spacing; a little swing leans the in-betweens. |
-| **Flywheel** | Phase Lock at zero: the outputs keep running on the learned tempo when the clock stops. |
-| **Soft Lock** | A partial lock: a wobbly input clock is smoothed instead of followed tick for tick. |
-| **Long Gates** | Gate output at 80 % of each interval: legato gates for envelopes and holds. |
-| **Swung Everything** | Heavy swing, a hint of humanize and an occasional dropped tick on the busy output. |
+| **[Ratio Ladder](/library/detail/?kind=module&slug=clock-multiplier#preset-1)** | Whole and fractional ratios side by side: 2, 3, 4, 3/2, 5/4 and 8 per clock. |
+| **[Straight Doubles](/library/detail/?kind=module&slug=clock-multiplier#preset-2)** | Powers of two up from the clock, plus a half-speed output: everything lines up. |
+| **[Triplet Roll](/library/detail/?kind=module&slug=clock-multiplier#preset-3)** | Threes in every size, from a lazy 3/4 to a rolling 12 per clock. |
+| **[Five Against Four](/library/detail/?kind=module&slug=clock-multiplier#preset-4)** | Fifths over a four-beat feel: the odd outputs slide against the plain ones. |
+| **[Seven Over](/library/detail/?kind=module&slug=clock-multiplier#preset-5)** | Septuplets against halves and quarters; the anchors meet on every clock. |
+| **[Shuffled Sixteenths](/library/detail/?kind=module&slug=clock-multiplier#preset-6)** | Swing on the in-between ticks only: the beat stays put, the offbeats lean late. |
+| **[Loose Hands](/library/detail/?kind=module&slug=clock-multiplier#preset-7)** | Every in-between tick lands a little late, differently each time round; anchors stay tight. |
+| **[Thinning Out](/library/detail/?kind=module&slug=clock-multiplier#preset-8)** | The same fast clock, each output losing more ticks than the one before. |
+| **[Ghost Hats](/library/detail/?kind=module&slug=clock-multiplier#preset-9)** | Half the eighths and most of the sixteenths drop out; what is left feels played. |
+| **[Free Skips](/library/detail/?kind=module&slug=clock-multiplier#preset-10)** | Keep Beat off: even the ticks on the clock can drop, so the pulse itself gets loose. |
+| **[Half-Time Pulses](/library/detail/?kind=module&slug=clock-multiplier#preset-11)** | Slower than the clock: gates for pads, chord changes and slow modulation. |
+| **[Dotted Feel](/library/detail/?kind=module&slug=clock-multiplier#preset-12)** | Ratios of three over two give dotted spacing; a little swing leans the in-betweens. |
+| **[Flywheel](/library/detail/?kind=module&slug=clock-multiplier#preset-13)** | Phase Lock at zero: the outputs keep running on the learned tempo when the clock stops. |
+| **[Soft Lock](/library/detail/?kind=module&slug=clock-multiplier#preset-14)** | A partial lock: a wobbly input clock is smoothed instead of followed tick for tick. |
+| **[Long Gates](/library/detail/?kind=module&slug=clock-multiplier#preset-15)** | Gate output at 80 % of each interval: legato gates for envelopes and holds. |
+| **[Swung Everything](/library/detail/?kind=module&slug=clock-multiplier#preset-16)** | Heavy swing, a hint of humanize and an occasional dropped tick on the busy output. |
 <!-- /generated -->
 
 ## Reference

@@ -75,24 +75,24 @@ Five whole patches show what Shape Table does. In the standalone app open **File
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Shape Table view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Shape Table view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Shape Table; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Soft Warmth** | Gentle saturation blended under the dry sound. |
-| **Hard Clip** | A hard limit with bright, odd harmonics. |
-| **Fold Over** | A sine folded into a rich, vocal tone. |
-| **Staircase** | Eight steps: a digital, quantised edge. |
-| **Lopsided** | Soft on one side, harder on the other: even harmonics. |
-| **Rectifier** | Full-wave rectification: the octave jumps up. |
-| **Sine Table Wrap** | The curve repeats beyond the edges: a wavetable of one sine. |
-| **Mirror Fold** | The curve mirrors at the edges: folding with a smooth bend. |
-| **Gentle Saturator** | Subtle warmth for a full mix. |
-| **Octave Up** | Rectifier blended with the dry signal. |
-| **Bias Growl** | A biased soft curve: growly and asymmetric. |
-| **Wrap Chaos** | Extreme drive with wrapping: dense and metallic. |
-| **Crunch Eco** | No oversampling: raw, aliased crunch. |
-| **Linear Pass** | A straight line: the sound passes unchanged. Draw on it. |
+| **[Soft Warmth](/library/detail/?kind=module&slug=shape-table#preset-1)** | Gentle saturation blended under the dry sound. |
+| **[Hard Clip](/library/detail/?kind=module&slug=shape-table#preset-2)** | A hard limit with bright, odd harmonics. |
+| **[Fold Over](/library/detail/?kind=module&slug=shape-table#preset-3)** | A sine folded into a rich, vocal tone. |
+| **[Staircase](/library/detail/?kind=module&slug=shape-table#preset-4)** | Eight steps: a digital, quantised edge. |
+| **[Lopsided](/library/detail/?kind=module&slug=shape-table#preset-5)** | Soft on one side, harder on the other: even harmonics. |
+| **[Rectifier](/library/detail/?kind=module&slug=shape-table#preset-6)** | Full-wave rectification: the octave jumps up. |
+| **[Sine Table Wrap](/library/detail/?kind=module&slug=shape-table#preset-7)** | The curve repeats beyond the edges: a wavetable of one sine. |
+| **[Mirror Fold](/library/detail/?kind=module&slug=shape-table#preset-8)** | The curve mirrors at the edges: folding with a smooth bend. |
+| **[Gentle Saturator](/library/detail/?kind=module&slug=shape-table#preset-9)** | Subtle warmth for a full mix. |
+| **[Octave Up](/library/detail/?kind=module&slug=shape-table#preset-10)** | Rectifier blended with the dry signal. |
+| **[Bias Growl](/library/detail/?kind=module&slug=shape-table#preset-11)** | A biased soft curve: growly and asymmetric. |
+| **[Wrap Chaos](/library/detail/?kind=module&slug=shape-table#preset-12)** | Extreme drive with wrapping: dense and metallic. |
+| **[Crunch Eco](/library/detail/?kind=module&slug=shape-table#preset-13)** | No oversampling: raw, aliased crunch. |
+| **[Linear Pass](/library/detail/?kind=module&slug=shape-table#preset-14)** | A straight line: the sound passes unchanged. Draw on it. |
 <!-- /generated -->
 
 ## Reference

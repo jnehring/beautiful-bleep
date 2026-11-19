@@ -93,25 +93,25 @@ Five whole patches show what Chord Osc does. In the standalone app open **File â
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Chord Osc view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Chord Osc view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Chord Osc; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Major Triad** | A plain major triad of saws, gently widened. |
-| **Minor Seventh** | Warm four-note minor 7 stack for pads and stabs. |
-| **Power Fifth** | Root and fifth with extra edge: rock-style power chord. |
-| **Suspended Pad** | Open, unresolved sus4 with wide stereo and a little glide. |
-| **Dream Nine** | Airy major 9 in open voicing with soft waves. |
-| **Hollow Fifths** | Stacked fourths spread wide: modern, ambiguous. |
-| **Dominant Stab** | Buzzy dominant 7 for punchy organ-like stabs. |
-| **Jazz Voicing** | Drop 2 minor 9 with near-sine tone: soft electric-piano colour. |
-| **First Inversion** | Major triad with the third in the bass. |
-| **Sine Organ** | Pure sines on a major 7: a clean drawbar-like chord. |
-| **Pulse Stack** | Narrow pulse minor chord: thin, nasal and synthetic. |
-| **Scale Harmony** | Diatonic mode: plays the matching seventh chord of A minor on each note. |
-| **Pentatonic Cloud** | Wide, forgiving cloud on D minor pentatonic. |
-| **Diminished Dread** | Symmetrical, tense diminished 7 with heavy detune. |
-| **Sub Octaves** | Detuned unison saws an octave down: thick mono-compatible bass. |
+| **[Major Triad](/library/detail/?kind=module&slug=chord-osc#preset-1)** | A plain major triad of saws, gently widened. |
+| **[Minor Seventh](/library/detail/?kind=module&slug=chord-osc#preset-2)** | Warm four-note minor 7 stack for pads and stabs. |
+| **[Power Fifth](/library/detail/?kind=module&slug=chord-osc#preset-3)** | Root and fifth with extra edge: rock-style power chord. |
+| **[Suspended Pad](/library/detail/?kind=module&slug=chord-osc#preset-4)** | Open, unresolved sus4 with wide stereo and a little glide. |
+| **[Dream Nine](/library/detail/?kind=module&slug=chord-osc#preset-5)** | Airy major 9 in open voicing with soft waves. |
+| **[Hollow Fifths](/library/detail/?kind=module&slug=chord-osc#preset-6)** | Stacked fourths spread wide: modern, ambiguous. |
+| **[Dominant Stab](/library/detail/?kind=module&slug=chord-osc#preset-7)** | Buzzy dominant 7 for punchy organ-like stabs. |
+| **[Jazz Voicing](/library/detail/?kind=module&slug=chord-osc#preset-8)** | Drop 2 minor 9 with near-sine tone: soft electric-piano colour. |
+| **[First Inversion](/library/detail/?kind=module&slug=chord-osc#preset-9)** | Major triad with the third in the bass. |
+| **[Sine Organ](/library/detail/?kind=module&slug=chord-osc#preset-10)** | Pure sines on a major 7: a clean drawbar-like chord. |
+| **[Pulse Stack](/library/detail/?kind=module&slug=chord-osc#preset-11)** | Narrow pulse minor chord: thin, nasal and synthetic. |
+| **[Scale Harmony](/library/detail/?kind=module&slug=chord-osc#preset-12)** | Diatonic mode: plays the matching seventh chord of A minor on each note. |
+| **[Pentatonic Cloud](/library/detail/?kind=module&slug=chord-osc#preset-13)** | Wide, forgiving cloud on D minor pentatonic. |
+| **[Diminished Dread](/library/detail/?kind=module&slug=chord-osc#preset-14)** | Symmetrical, tense diminished 7 with heavy detune. |
+| **[Sub Octaves](/library/detail/?kind=module&slug=chord-osc#preset-15)** | Detuned unison saws an octave down: thick mono-compatible bass. |
 <!-- /generated -->
 
 ## Reference

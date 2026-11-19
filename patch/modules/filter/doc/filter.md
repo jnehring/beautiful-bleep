@@ -198,30 +198,30 @@ it shows the quiet-signal (linear) response.
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Filter view has 20 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Filter view has 20 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Filter; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Warm Low-Pass** | Gentle, round low-pass for taking the fizz off a saw. |
-| **Dark Room** | A soft 6 dB slope that darkens everything without a peak. |
-| **Ladder Bass** | Fat ladder low-pass with some bite from the resonance. |
-| **Acid Squelch** | Screaming diode ladder: sweep the cutoff and add an envelope. |
-| **Self-Oscillating Ladder** | Resonance at the top makes the ladder ring as a sine; play it with Key Track. |
-| **Telephone** | Narrow band-pass: a thin, nasal voice. |
-| **Thin Air** | High-pass that leaves just the sparkle. |
-| **Rumble Cut** | Clears out the sub-bass below 90 Hz. |
-| **Notch Sweep** | A notch you can sweep for a hollow, phasing colour. |
-| **Vocal Peak** | A resonant peak with the lows and highs still intact. |
-| **Presence Boost** | Lifts the upper mids by 6 dB. |
-| **Bass Shelf** | Adds weight under 200 Hz. |
-| **Air Shelf** | A little air on top. |
-| **Slow Phaser** | Notches that sound best when you modulate the cutoff with an LFO. |
-| **Jet Flanger** | Comb filtering: sweep the cutoff slowly for a jet sound. |
-| **Gritty Drive** | Overdriven, saturating state-variable filter. |
-| **Wall Squeal** | A two-pole low-pass whose resonance rings clean, then bites against the wall when pushed. |
-| **Vowel Mouth** | Four formants: sweep Vowel from A to U, or move Cutoff to change the size of the throat. |
-| **Hollow Tube** | A tuned comb with negative feedback: only the odd harmonics ring, like a closed pipe. |
-| **Terraced Lows** | Six 1-pole sections with staggered corners: a steep, stepped slope without a resonant peak. |
+| **[Warm Low-Pass](/library/detail/?kind=module&slug=filter#preset-1)** | Gentle, round low-pass for taking the fizz off a saw. |
+| **[Dark Room](/library/detail/?kind=module&slug=filter#preset-2)** | A soft 6 dB slope that darkens everything without a peak. |
+| **[Ladder Bass](/library/detail/?kind=module&slug=filter#preset-3)** | Fat ladder low-pass with some bite from the resonance. |
+| **[Acid Squelch](/library/detail/?kind=module&slug=filter#preset-4)** | Screaming diode ladder: sweep the cutoff and add an envelope. |
+| **[Self-Oscillating Ladder](/library/detail/?kind=module&slug=filter#preset-5)** | Resonance at the top makes the ladder ring as a sine; play it with Key Track. |
+| **[Telephone](/library/detail/?kind=module&slug=filter#preset-6)** | Narrow band-pass: a thin, nasal voice. |
+| **[Thin Air](/library/detail/?kind=module&slug=filter#preset-7)** | High-pass that leaves just the sparkle. |
+| **[Rumble Cut](/library/detail/?kind=module&slug=filter#preset-8)** | Clears out the sub-bass below 90 Hz. |
+| **[Notch Sweep](/library/detail/?kind=module&slug=filter#preset-9)** | A notch you can sweep for a hollow, phasing colour. |
+| **[Vocal Peak](/library/detail/?kind=module&slug=filter#preset-10)** | A resonant peak with the lows and highs still intact. |
+| **[Presence Boost](/library/detail/?kind=module&slug=filter#preset-11)** | Lifts the upper mids by 6 dB. |
+| **[Bass Shelf](/library/detail/?kind=module&slug=filter#preset-12)** | Adds weight under 200 Hz. |
+| **[Air Shelf](/library/detail/?kind=module&slug=filter#preset-13)** | A little air on top. |
+| **[Slow Phaser](/library/detail/?kind=module&slug=filter#preset-14)** | Notches that sound best when you modulate the cutoff with an LFO. |
+| **[Jet Flanger](/library/detail/?kind=module&slug=filter#preset-15)** | Comb filtering: sweep the cutoff slowly for a jet sound. |
+| **[Gritty Drive](/library/detail/?kind=module&slug=filter#preset-16)** | Overdriven, saturating state-variable filter. |
+| **[Wall Squeal](/library/detail/?kind=module&slug=filter#preset-17)** | A two-pole low-pass whose resonance rings clean, then bites against the wall when pushed. |
+| **[Vowel Mouth](/library/detail/?kind=module&slug=filter#preset-18)** | Four formants: sweep Vowel from A to U, or move Cutoff to change the size of the throat. |
+| **[Hollow Tube](/library/detail/?kind=module&slug=filter#preset-19)** | A tuned comb with negative feedback: only the odd harmonics ring, like a closed pipe. |
+| **[Terraced Lows](/library/detail/?kind=module&slug=filter#preset-20)** | Six 1-pole sections with staggered corners: a steep, stepped slope without a resonant peak. |
 <!-- /generated -->
 
 <!-- generated:demos -->

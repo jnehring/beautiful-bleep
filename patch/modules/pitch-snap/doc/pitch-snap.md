@@ -80,26 +80,26 @@ Five whole patches show what Pitch Snap does. In the standalone app open **File 
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Pitch Snap view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Pitch Snap view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Pitch Snap; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Hard Snap** | Every note jumps straight to the nearest semitone: the classic stepped sound. |
-| **Natural Major** | A gentle pull toward the C major scale that still sounds sung. |
-| **Gentle Nudge** | Half the error is corrected, slowly: a tired voice gets a little help. |
-| **Keep the Vibrato** | The average pitch lands on the note while the vibrato around it survives. |
-| **Drifty Slide** | Slow retune with plenty of drift: notes wander in from the side. |
-| **Pentatonic Lock** | Whatever you sing ends up on an A minor pentatonic note. |
-| **Blues Voice** | Pulls toward the E blues scale, with the speed of a bent note. |
-| **Whole Tone Dream** | Hard retune onto a whole-tone scale: floating, unresolved. |
-| **Octave Up** | Snaps, then sings an octave higher with the vowel left where it was. |
-| **Fifth Above** | A harmony voice a fifth above the corrected note. |
-| **Octave Down** | A second voice an octave below, which keeps the vowel. |
-| **Chipmunk** | Formant Preserve off: raising the pitch drags the vowel up too. |
-| **Follow the Band** | Takes its notes from a Harmony Master on bus A: chord tones first, then the scale. |
-| **Chord Tones Only** | Only the notes of the current chord are allowed. |
-| **Bass Corrector** | Low range and a firm tracker for a bass. |
-| **Quick Monitor** | As little delay as it can: for monitoring a voice while singing. |
+| **[Hard Snap](/library/detail/?kind=module&slug=pitch-snap#preset-1)** | Every note jumps straight to the nearest semitone: the classic stepped sound. |
+| **[Natural Major](/library/detail/?kind=module&slug=pitch-snap#preset-2)** | A gentle pull toward the C major scale that still sounds sung. |
+| **[Gentle Nudge](/library/detail/?kind=module&slug=pitch-snap#preset-3)** | Half the error is corrected, slowly: a tired voice gets a little help. |
+| **[Keep the Vibrato](/library/detail/?kind=module&slug=pitch-snap#preset-4)** | The average pitch lands on the note while the vibrato around it survives. |
+| **[Drifty Slide](/library/detail/?kind=module&slug=pitch-snap#preset-5)** | Slow retune with plenty of drift: notes wander in from the side. |
+| **[Pentatonic Lock](/library/detail/?kind=module&slug=pitch-snap#preset-6)** | Whatever you sing ends up on an A minor pentatonic note. |
+| **[Blues Voice](/library/detail/?kind=module&slug=pitch-snap#preset-7)** | Pulls toward the E blues scale, with the speed of a bent note. |
+| **[Whole Tone Dream](/library/detail/?kind=module&slug=pitch-snap#preset-8)** | Hard retune onto a whole-tone scale: floating, unresolved. |
+| **[Octave Up](/library/detail/?kind=module&slug=pitch-snap#preset-9)** | Snaps, then sings an octave higher with the vowel left where it was. |
+| **[Fifth Above](/library/detail/?kind=module&slug=pitch-snap#preset-10)** | A harmony voice a fifth above the corrected note. |
+| **[Octave Down](/library/detail/?kind=module&slug=pitch-snap#preset-11)** | A second voice an octave below, which keeps the vowel. |
+| **[Chipmunk](/library/detail/?kind=module&slug=pitch-snap#preset-12)** | Formant Preserve off: raising the pitch drags the vowel up too. |
+| **[Follow the Band](/library/detail/?kind=module&slug=pitch-snap#preset-13)** | Takes its notes from a Harmony Master on bus A: chord tones first, then the scale. |
+| **[Chord Tones Only](/library/detail/?kind=module&slug=pitch-snap#preset-14)** | Only the notes of the current chord are allowed. |
+| **[Bass Corrector](/library/detail/?kind=module&slug=pitch-snap#preset-15)** | Low range and a firm tracker for a bass. |
+| **[Quick Monitor](/library/detail/?kind=module&slug=pitch-snap#preset-16)** | As little delay as it can: for monitoring a voice while singing. |
 <!-- /generated -->
 
 ## Reference

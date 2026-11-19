@@ -73,30 +73,30 @@ full over that time after each Reset and each time the transport starts.
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the LFO view has 20 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the LFO view has 20 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the LFO; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Gentle Sine** | Slow sine for subtle filter or pitch drift. |
-| **Vibrato** | Classic vibrato speed that fades in after the note starts. |
-| **Tremolo** | Unipolar triangle for amplitude tremolo. |
-| **Beat Pump** | Falling ramp locked to the beat: sidechain-like ducking. |
-| **Eighth Chop** | Square gate on every eighth for rhythmic chopping. |
-| **Slow Sweep** | A 20-second triangle for long filter sweeps. |
-| **Rising Saw** | Ramp that climbs over two bars and snaps back. |
-| **Sample and Hold** | Random stepped values, a classic sample-and-hold. |
-| **Smooth Random** | Wandering smooth random for organic movement. |
-| **Narrow Pulse** | Thin pulse for staccato jumps. |
-| **Wide Slow Tide** | A four-bar sine swell locked to the song. |
-| **Triplet Feel Wobble** | Fast synced triangle for shimmering wobble. |
-| **Offset Sine** | Sine starting at its peak: pair with another LFO for quadrature. |
-| **Fast Flutter** | Tape-like flutter, best used very lightly. |
-| **Wild Random** | Fast random jitter for glitchy modulation. |
-| **Ramp from Triangle** | Skew pushes the triangle's peak to the end: a rising ramp. |
-| **Exponential Sine** | Curve bends the sine towards exponential: slow start, fast finish. |
-| **Soft Square** | Morph rounds the edges of the square into a trapezoid. |
-| **Dotted Eighth** | A triangle locked to a dotted eighth. |
-| **Triplet Pulse** | Square gate on eighth-note triplets. |
+| **[Gentle Sine](/library/detail/?kind=module&slug=lfo#preset-1)** | Slow sine for subtle filter or pitch drift. |
+| **[Vibrato](/library/detail/?kind=module&slug=lfo#preset-2)** | Classic vibrato speed that fades in after the note starts. |
+| **[Tremolo](/library/detail/?kind=module&slug=lfo#preset-3)** | Unipolar triangle for amplitude tremolo. |
+| **[Beat Pump](/library/detail/?kind=module&slug=lfo#preset-4)** | Falling ramp locked to the beat: sidechain-like ducking. |
+| **[Eighth Chop](/library/detail/?kind=module&slug=lfo#preset-5)** | Square gate on every eighth for rhythmic chopping. |
+| **[Slow Sweep](/library/detail/?kind=module&slug=lfo#preset-6)** | A 20-second triangle for long filter sweeps. |
+| **[Rising Saw](/library/detail/?kind=module&slug=lfo#preset-7)** | Ramp that climbs over two bars and snaps back. |
+| **[Sample and Hold](/library/detail/?kind=module&slug=lfo#preset-8)** | Random stepped values, a classic sample-and-hold. |
+| **[Smooth Random](/library/detail/?kind=module&slug=lfo#preset-9)** | Wandering smooth random for organic movement. |
+| **[Narrow Pulse](/library/detail/?kind=module&slug=lfo#preset-10)** | Thin pulse for staccato jumps. |
+| **[Wide Slow Tide](/library/detail/?kind=module&slug=lfo#preset-11)** | A four-bar sine swell locked to the song. |
+| **[Triplet Feel Wobble](/library/detail/?kind=module&slug=lfo#preset-12)** | Fast synced triangle for shimmering wobble. |
+| **[Offset Sine](/library/detail/?kind=module&slug=lfo#preset-13)** | Sine starting at its peak: pair with another LFO for quadrature. |
+| **[Fast Flutter](/library/detail/?kind=module&slug=lfo#preset-14)** | Tape-like flutter, best used very lightly. |
+| **[Wild Random](/library/detail/?kind=module&slug=lfo#preset-15)** | Fast random jitter for glitchy modulation. |
+| **[Ramp from Triangle](/library/detail/?kind=module&slug=lfo#preset-16)** | Skew pushes the triangle's peak to the end: a rising ramp. |
+| **[Exponential Sine](/library/detail/?kind=module&slug=lfo#preset-17)** | Curve bends the sine towards exponential: slow start, fast finish. |
+| **[Soft Square](/library/detail/?kind=module&slug=lfo#preset-18)** | Morph rounds the edges of the square into a trapezoid. |
+| **[Dotted Eighth](/library/detail/?kind=module&slug=lfo#preset-19)** | A triangle locked to a dotted eighth. |
+| **[Triplet Pulse](/library/detail/?kind=module&slug=lfo#preset-20)** | Square gate on eighth-note triplets. |
 <!-- /generated -->
 
 <!-- generated:demos -->

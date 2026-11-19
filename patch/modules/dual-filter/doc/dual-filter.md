@@ -95,23 +95,23 @@ Five whole patches show what Dual Filter does. In the standalone app open **File
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Dual Filter view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Dual Filter view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Dual Filter; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Warm Serial LP** | Two low-passes in a row: a steep, smooth roll-off. |
-| **Wide Band-Pass** | High-pass into low-pass: an adjustable band you widen with Spread. |
-| **Formant Pair** | Two resonant band-passes side by side, like vowel formants. |
-| **Vowel Sweep** | Sweep Cutoff with an LFO for a talking vowel movement. |
-| **Stereo Split** | Left and right get different cutoffs for a wide, shifting image. |
-| **Phase Notch** | Inverted parallel sum: moving, hollow notches. |
-| **Dark Pad Filter** | Closed, soft low-pass to tuck a pad behind a mix. |
-| **Thin Radio** | Lo-fi band-limited voice. |
-| **Mirror Morph** | Linked modes move opposite ways: sweep Mode 1 to morph. |
-| **Resonant Bass** | Round, resonant low end with a bit of drive. |
-| **Acid Twin** | Squelchy two-stage low-pass; envelope on Cutoff. |
-| **Crossed Filters** | Negative spread swaps the filters: low-pass above, high-pass below. |
-| **Ringing Pair** | Highly resonant pings: pluck or noise input rings like a bell. |
+| **[Warm Serial LP](/library/detail/?kind=module&slug=dual-filter#preset-1)** | Two low-passes in a row: a steep, smooth roll-off. |
+| **[Wide Band-Pass](/library/detail/?kind=module&slug=dual-filter#preset-2)** | High-pass into low-pass: an adjustable band you widen with Spread. |
+| **[Formant Pair](/library/detail/?kind=module&slug=dual-filter#preset-3)** | Two resonant band-passes side by side, like vowel formants. |
+| **[Vowel Sweep](/library/detail/?kind=module&slug=dual-filter#preset-4)** | Sweep Cutoff with an LFO for a talking vowel movement. |
+| **[Stereo Split](/library/detail/?kind=module&slug=dual-filter#preset-5)** | Left and right get different cutoffs for a wide, shifting image. |
+| **[Phase Notch](/library/detail/?kind=module&slug=dual-filter#preset-6)** | Inverted parallel sum: moving, hollow notches. |
+| **[Dark Pad Filter](/library/detail/?kind=module&slug=dual-filter#preset-7)** | Closed, soft low-pass to tuck a pad behind a mix. |
+| **[Thin Radio](/library/detail/?kind=module&slug=dual-filter#preset-8)** | Lo-fi band-limited voice. |
+| **[Mirror Morph](/library/detail/?kind=module&slug=dual-filter#preset-9)** | Linked modes move opposite ways: sweep Mode 1 to morph. |
+| **[Resonant Bass](/library/detail/?kind=module&slug=dual-filter#preset-10)** | Round, resonant low end with a bit of drive. |
+| **[Acid Twin](/library/detail/?kind=module&slug=dual-filter#preset-11)** | Squelchy two-stage low-pass; envelope on Cutoff. |
+| **[Crossed Filters](/library/detail/?kind=module&slug=dual-filter#preset-12)** | Negative spread swaps the filters: low-pass above, high-pass below. |
+| **[Ringing Pair](/library/detail/?kind=module&slug=dual-filter#preset-13)** | Highly resonant pings: pluck or noise input rings like a bell. |
 <!-- /generated -->
 
 ## Reference

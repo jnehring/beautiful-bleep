@@ -128,26 +128,26 @@ Five whole patches show what Tidal does. In the standalone app open **File → P
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Tidal view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Tidal view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Tidal; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Gentle Loop** | A plain 1 Hz triangle-like loop with four related outputs. |
-| **Slow Tide** | Minute-long swells: ambient filter and level motion. |
-| **Rising Saw** | Ramp up then quick drop: repeating risers. |
-| **Falling Saw** | Instant rise and linear fall: sidechain-like pumping. |
-| **Plucked AD** | One-shot attack and decay per trigger: a snappy envelope. |
-| **Pad AR** | Rise while held, fall on release: a soft pad envelope. |
-| **Synced Quarter** | Locked to the tempo at quarter notes. |
-| **Synced Dotted Eighth** | Dotted-eighth swells for rhythmic filter movement. |
-| **Wide Phase Outputs** | Four outputs at different phases: stereo or multi-target motion. |
-| **Harmonic Stack** | Outputs carry harmonics of the main rate: complex contours. |
-| **Ratio Cluster** | Outputs at related speeds, starting from a triplet ratio. |
-| **Level Fan** | Same rate, four different depths for scaled modulation. |
-| **Smooth Sine-ish** | Heavily smoothed slope: nearly a sine for vibrato. |
-| **Bipolar Wobble** | Centred wobble for vibrato and pitch effects. |
-| **Unipolar Pump** | Positive-only fast-attack pump for ducking. |
-| **Audio Rate Tone** | Slope oscillator at audio rate: a raw, lo-fi tone source. |
+| **[Gentle Loop](/library/detail/?kind=module&slug=tidal#preset-1)** | A plain 1 Hz triangle-like loop with four related outputs. |
+| **[Slow Tide](/library/detail/?kind=module&slug=tidal#preset-2)** | Minute-long swells: ambient filter and level motion. |
+| **[Rising Saw](/library/detail/?kind=module&slug=tidal#preset-3)** | Ramp up then quick drop: repeating risers. |
+| **[Falling Saw](/library/detail/?kind=module&slug=tidal#preset-4)** | Instant rise and linear fall: sidechain-like pumping. |
+| **[Plucked AD](/library/detail/?kind=module&slug=tidal#preset-5)** | One-shot attack and decay per trigger: a snappy envelope. |
+| **[Pad AR](/library/detail/?kind=module&slug=tidal#preset-6)** | Rise while held, fall on release: a soft pad envelope. |
+| **[Synced Quarter](/library/detail/?kind=module&slug=tidal#preset-7)** | Locked to the tempo at quarter notes. |
+| **[Synced Dotted Eighth](/library/detail/?kind=module&slug=tidal#preset-8)** | Dotted-eighth swells for rhythmic filter movement. |
+| **[Wide Phase Outputs](/library/detail/?kind=module&slug=tidal#preset-9)** | Four outputs at different phases: stereo or multi-target motion. |
+| **[Harmonic Stack](/library/detail/?kind=module&slug=tidal#preset-10)** | Outputs carry harmonics of the main rate: complex contours. |
+| **[Ratio Cluster](/library/detail/?kind=module&slug=tidal#preset-11)** | Outputs at related speeds, starting from a triplet ratio. |
+| **[Level Fan](/library/detail/?kind=module&slug=tidal#preset-12)** | Same rate, four different depths for scaled modulation. |
+| **[Smooth Sine-ish](/library/detail/?kind=module&slug=tidal#preset-13)** | Heavily smoothed slope: nearly a sine for vibrato. |
+| **[Bipolar Wobble](/library/detail/?kind=module&slug=tidal#preset-14)** | Centred wobble for vibrato and pitch effects. |
+| **[Unipolar Pump](/library/detail/?kind=module&slug=tidal#preset-15)** | Positive-only fast-attack pump for ducking. |
+| **[Audio Rate Tone](/library/detail/?kind=module&slug=tidal#preset-16)** | Slope oscillator at audio rate: a raw, lo-fi tone source. |
 <!-- /generated -->
 
 ## Reference

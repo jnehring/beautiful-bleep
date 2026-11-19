@@ -92,25 +92,25 @@ Five whole patches show what Additive Osc does. In the standalone app open **Fil
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Additive Osc view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Additive Osc view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Additive Osc; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Soft Saw** | A smooth, slightly darkened additive saw. |
-| **Organ Drawbars** | Odd partials with a limited count: a hollow organ. |
-| **Clarinet** | Mostly odd partials: hollow and woody. |
-| **Even Glass** | Even partials only: a thin, glassy octave-like tone. |
-| **Dark Sine Pad** | Few, quiet upper partials: a dark, near-sine pad. |
-| **Bright Buzz** | Strong high partials: a very bright, buzzing tone. |
-| **Ensemble Pad** | Detuned partials and stereo spread: a shimmering ensemble pad. |
-| **Bell** | Stretched partials struck by a trigger: patch the note gate to Trigger. |
-| **Pluck** | A short, plucked string-like tone; needs a trigger from the note. |
-| **Metal Shift** | Shifted, inharmonic partials: ring-modulated and metallic. |
-| **Comb Notches** | Notches carved in the spectrum: modulate Comb Phase with a slow LFO. |
-| **Squeezed Choir** | Compressed partials: dense, vocal and choir-like. |
-| **Stiff Strings** | A slightly stretched, piano-like struck tone. |
-| **Fundamental Whisper** | Just the first few partials: a pure, flute-like tone. |
-| **Random Phase Cloud** | Heavily detuned partials: a wide, cloudy texture. |
+| **[Soft Saw](/library/detail/?kind=module&slug=additive-osc#preset-1)** | A smooth, slightly darkened additive saw. |
+| **[Organ Drawbars](/library/detail/?kind=module&slug=additive-osc#preset-2)** | Odd partials with a limited count: a hollow organ. |
+| **[Clarinet](/library/detail/?kind=module&slug=additive-osc#preset-3)** | Mostly odd partials: hollow and woody. |
+| **[Even Glass](/library/detail/?kind=module&slug=additive-osc#preset-4)** | Even partials only: a thin, glassy octave-like tone. |
+| **[Dark Sine Pad](/library/detail/?kind=module&slug=additive-osc#preset-5)** | Few, quiet upper partials: a dark, near-sine pad. |
+| **[Bright Buzz](/library/detail/?kind=module&slug=additive-osc#preset-6)** | Strong high partials: a very bright, buzzing tone. |
+| **[Ensemble Pad](/library/detail/?kind=module&slug=additive-osc#preset-7)** | Detuned partials and stereo spread: a shimmering ensemble pad. |
+| **[Bell](/library/detail/?kind=module&slug=additive-osc#preset-8)** | Stretched partials struck by a trigger: patch the note gate to Trigger. |
+| **[Pluck](/library/detail/?kind=module&slug=additive-osc#preset-9)** | A short, plucked string-like tone; needs a trigger from the note. |
+| **[Metal Shift](/library/detail/?kind=module&slug=additive-osc#preset-10)** | Shifted, inharmonic partials: ring-modulated and metallic. |
+| **[Comb Notches](/library/detail/?kind=module&slug=additive-osc#preset-11)** | Notches carved in the spectrum: modulate Comb Phase with a slow LFO. |
+| **[Squeezed Choir](/library/detail/?kind=module&slug=additive-osc#preset-12)** | Compressed partials: dense, vocal and choir-like. |
+| **[Stiff Strings](/library/detail/?kind=module&slug=additive-osc#preset-13)** | A slightly stretched, piano-like struck tone. |
+| **[Fundamental Whisper](/library/detail/?kind=module&slug=additive-osc#preset-14)** | Just the first few partials: a pure, flute-like tone. |
+| **[Random Phase Cloud](/library/detail/?kind=module&slug=additive-osc#preset-15)** | Heavily detuned partials: a wide, cloudy texture. |
 <!-- /generated -->
 
 ## Reference

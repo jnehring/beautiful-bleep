@@ -41,26 +41,26 @@ Every band is a *biquad* filter (the formulas of the well-known "Audio EQ Cookbo
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the EQ view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the EQ view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the EQ; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Smile Curve** | Boosted lows and highs: instant polish. |
-| **Bass Boost** | More weight below 80 Hz. |
-| **Low Cut Lite** | Removes rumble below 90 Hz and clears a little mud. |
-| **Mud Remover** | Cuts the boxy low-mids. |
-| **Presence Lift** | Brings the sound forward. |
-| **Air** | Open, airy top end. |
-| **Warm Darkness** | Rolls off the top and warms the bottom. |
-| **Vocal Clarity** | Cuts the rumble, cleans up and brightens a voice. |
-| **Telephone** | Steep cuts below 400 Hz and above 4 kHz, a nasal band in between. |
-| **Hollow Notch** | Two deep notches for a phase-like, hollow tone. |
-| **Resonant Peaks** | Narrow, ringing boosts: formant-like colour. |
-| **Kick Shaper** | Weight and click for kick drums. |
-| **Lo-Fi Radio** | Small-speaker colouration. |
-| **Tilt Down** | Dark tilt; tames harsh sources. |
-| **Rumble Remover** | A steep cut below 35 Hz: clears sub-bass rumble and DC drift. |
-| **De-Harsh** | Two narrow dips and a soft top cut tame a piercing source. |
+| **[Smile Curve](/library/detail/?kind=module&slug=eq#preset-1)** | Boosted lows and highs: instant polish. |
+| **[Bass Boost](/library/detail/?kind=module&slug=eq#preset-2)** | More weight below 80 Hz. |
+| **[Low Cut Lite](/library/detail/?kind=module&slug=eq#preset-3)** | Removes rumble below 90 Hz and clears a little mud. |
+| **[Mud Remover](/library/detail/?kind=module&slug=eq#preset-4)** | Cuts the boxy low-mids. |
+| **[Presence Lift](/library/detail/?kind=module&slug=eq#preset-5)** | Brings the sound forward. |
+| **[Air](/library/detail/?kind=module&slug=eq#preset-6)** | Open, airy top end. |
+| **[Warm Darkness](/library/detail/?kind=module&slug=eq#preset-7)** | Rolls off the top and warms the bottom. |
+| **[Vocal Clarity](/library/detail/?kind=module&slug=eq#preset-8)** | Cuts the rumble, cleans up and brightens a voice. |
+| **[Telephone](/library/detail/?kind=module&slug=eq#preset-9)** | Steep cuts below 400 Hz and above 4 kHz, a nasal band in between. |
+| **[Hollow Notch](/library/detail/?kind=module&slug=eq#preset-10)** | Two deep notches for a phase-like, hollow tone. |
+| **[Resonant Peaks](/library/detail/?kind=module&slug=eq#preset-11)** | Narrow, ringing boosts: formant-like colour. |
+| **[Kick Shaper](/library/detail/?kind=module&slug=eq#preset-12)** | Weight and click for kick drums. |
+| **[Lo-Fi Radio](/library/detail/?kind=module&slug=eq#preset-13)** | Small-speaker colouration. |
+| **[Tilt Down](/library/detail/?kind=module&slug=eq#preset-14)** | Dark tilt; tames harsh sources. |
+| **[Rumble Remover](/library/detail/?kind=module&slug=eq#preset-15)** | A steep cut below 35 Hz: clears sub-bass rumble and DC drift. |
+| **[De-Harsh](/library/detail/?kind=module&slug=eq#preset-16)** | Two narrow dips and a soft top cut tame a piercing source. |
 <!-- /generated -->
 
 <!-- generated:demos -->

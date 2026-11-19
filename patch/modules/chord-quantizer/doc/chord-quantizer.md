@@ -82,25 +82,25 @@ Five whole patches show what Chord Quantizer does. In the standalone app open **
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Chord Quantizer view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Chord Quantizer view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Chord Quantizer; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Major Triads** | Plain major triads on whatever root comes in. |
-| **Minor Seventh Stabs** | Minor sevenths in Drop 2 voicing: warm, jazzy stabs. |
-| **Dominant Seventh** | Bluesy dominant chords, first inversion. |
-| **Diatonic Triads** | Triads that follow the key: major, minor and diminished as the scale dictates. |
-| **Diatonic Sevenths** | Seventh chords built from A natural minor. |
-| **Smooth Pad** | Voice leading with a wide spread for a flowing pad. |
-| **Dorian Ninths** | Open ninth chords in Dorian, gently strummed. |
-| **Suspended Air** | Unresolved sus4 chords that glide between roots. |
-| **Quartal Voicing** | Stacked fourths: modern, open and unresolved. |
-| **Power Fifths** | Two-note fifths for heavy, simple riffs. |
-| **Slow Harp Strum** | A wide strum rolling the chord upward like a harp. |
-| **Downward Strum** | Minor ninths strummed from the top down. |
-| **Whole-Tone Augmented** | Every chord is augmented: ambiguous and shimmering. |
-| **Top Voice Anchor** | Keeps the top voice near the melody while the chords change underneath. |
-| **Follow the Key** | Takes the chord from a Harmony Master (set Harmony to its bus). |
+| **[Major Triads](/library/detail/?kind=module&slug=chord-quantizer#preset-1)** | Plain major triads on whatever root comes in. |
+| **[Minor Seventh Stabs](/library/detail/?kind=module&slug=chord-quantizer#preset-2)** | Minor sevenths in Drop 2 voicing: warm, jazzy stabs. |
+| **[Dominant Seventh](/library/detail/?kind=module&slug=chord-quantizer#preset-3)** | Bluesy dominant chords, first inversion. |
+| **[Diatonic Triads](/library/detail/?kind=module&slug=chord-quantizer#preset-4)** | Triads that follow the key: major, minor and diminished as the scale dictates. |
+| **[Diatonic Sevenths](/library/detail/?kind=module&slug=chord-quantizer#preset-5)** | Seventh chords built from A natural minor. |
+| **[Smooth Pad](/library/detail/?kind=module&slug=chord-quantizer#preset-6)** | Voice leading with a wide spread for a flowing pad. |
+| **[Dorian Ninths](/library/detail/?kind=module&slug=chord-quantizer#preset-7)** | Open ninth chords in Dorian, gently strummed. |
+| **[Suspended Air](/library/detail/?kind=module&slug=chord-quantizer#preset-8)** | Unresolved sus4 chords that glide between roots. |
+| **[Quartal Voicing](/library/detail/?kind=module&slug=chord-quantizer#preset-9)** | Stacked fourths: modern, open and unresolved. |
+| **[Power Fifths](/library/detail/?kind=module&slug=chord-quantizer#preset-10)** | Two-note fifths for heavy, simple riffs. |
+| **[Slow Harp Strum](/library/detail/?kind=module&slug=chord-quantizer#preset-11)** | A wide strum rolling the chord upward like a harp. |
+| **[Downward Strum](/library/detail/?kind=module&slug=chord-quantizer#preset-12)** | Minor ninths strummed from the top down. |
+| **[Whole-Tone Augmented](/library/detail/?kind=module&slug=chord-quantizer#preset-13)** | Every chord is augmented: ambiguous and shimmering. |
+| **[Top Voice Anchor](/library/detail/?kind=module&slug=chord-quantizer#preset-14)** | Keeps the top voice near the melody while the chords change underneath. |
+| **[Follow the Key](/library/detail/?kind=module&slug=chord-quantizer#preset-15)** | Takes the chord from a Harmony Master (set Harmony to its bus). |
 <!-- /generated -->
 
 ## Reference

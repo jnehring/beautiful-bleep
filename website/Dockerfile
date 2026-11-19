@@ -3,7 +3,8 @@
 # Builds the static site and serves it with Caddy. The build context is the
 # repository root, because the site reads the docs (website/content), module
 # metadata (patch/modules/*/module.json, board/ui/demo-types.json for the
-# categories), the bus header (spec version) and
+# categories; demo-patches.json, module-presets.json and factory-presets.json for the
+# Library's example patches and presets and the instrument and effect pages), the bus header (spec version) and
 # the docs generator (scripts/docs/build-docs.py).
 #
 #   docker compose -f website/docker-compose.yml up --build
@@ -45,6 +46,7 @@ RUN --mount=type=cache,target=/root/.npm \
 COPY bus/include bus/include
 COPY patch/modules patch/modules
 COPY patch/board/ui/demo-types.json patch/board/ui/demo-types.json
+COPY patch/board/ui/demo-patches.json patch/board/ui/module-presets.json patch/board/ui/factory-presets.json patch/board/ui/
 COPY scripts scripts
 COPY website/content website/content
 COPY website/app website/app

@@ -83,26 +83,26 @@ Five whole patches show what Uncertainty does. In the standalone app open **File
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Uncertainty view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Uncertainty view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Uncertainty; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Slow Random Drift** | Two lazy fluctuating curves: gentle analogue-style drift. |
-| **Lively Fluctuation** | Faster, wider random curves for obvious movement. |
-| **Synced Fluctuation** | Fluctuations that move in step with the tempo. |
-| **Eighth Note Steps** | Two random step sequences: eighths and quarters. |
-| **Sixteenth Chaos** | Dense sixteenth-note random steps with many levels. |
-| **Octave Jumps** | Random steps in octave leaps: wild but tonal pitch jumps. |
-| **Fifths and Fourths** | Random steps in fifths and fourths: open, melodic. |
-| **Whole-Tone Walk** | Whole-tone random steps for a floating melody. |
-| **Bell Distribution** | Values cluster near the middle, with rare extremes. |
-| **Edge Seeker** | Values favour the extremes: dramatic jumps. |
-| **Biased High** | Stored value skewed upward: mostly high, occasionally low. |
-| **Correlated Walk** | Each stored value resembles the last: a gradual random walk. |
-| **Anti-Correlated** | Stored values alternate high and low: a zigzag. |
-| **Integrator Wander** | The integrated output smooths the stored value into slow glides. |
-| **Slow Store** | Everything stretched over bars for evolving ambient control. |
-| **Free Clocked Chaos** | All generators unsynced and fast: loose, jittery movement. |
+| **[Slow Random Drift](/library/detail/?kind=module&slug=uncertainty#preset-1)** | Two lazy fluctuating curves: gentle analogue-style drift. |
+| **[Lively Fluctuation](/library/detail/?kind=module&slug=uncertainty#preset-2)** | Faster, wider random curves for obvious movement. |
+| **[Synced Fluctuation](/library/detail/?kind=module&slug=uncertainty#preset-3)** | Fluctuations that move in step with the tempo. |
+| **[Eighth Note Steps](/library/detail/?kind=module&slug=uncertainty#preset-4)** | Two random step sequences: eighths and quarters. |
+| **[Sixteenth Chaos](/library/detail/?kind=module&slug=uncertainty#preset-5)** | Dense sixteenth-note random steps with many levels. |
+| **[Octave Jumps](/library/detail/?kind=module&slug=uncertainty#preset-6)** | Random steps in octave leaps: wild but tonal pitch jumps. |
+| **[Fifths and Fourths](/library/detail/?kind=module&slug=uncertainty#preset-7)** | Random steps in fifths and fourths: open, melodic. |
+| **[Whole-Tone Walk](/library/detail/?kind=module&slug=uncertainty#preset-8)** | Whole-tone random steps for a floating melody. |
+| **[Bell Distribution](/library/detail/?kind=module&slug=uncertainty#preset-9)** | Values cluster near the middle, with rare extremes. |
+| **[Edge Seeker](/library/detail/?kind=module&slug=uncertainty#preset-10)** | Values favour the extremes: dramatic jumps. |
+| **[Biased High](/library/detail/?kind=module&slug=uncertainty#preset-11)** | Stored value skewed upward: mostly high, occasionally low. |
+| **[Correlated Walk](/library/detail/?kind=module&slug=uncertainty#preset-12)** | Each stored value resembles the last: a gradual random walk. |
+| **[Anti-Correlated](/library/detail/?kind=module&slug=uncertainty#preset-13)** | Stored values alternate high and low: a zigzag. |
+| **[Integrator Wander](/library/detail/?kind=module&slug=uncertainty#preset-14)** | The integrated output smooths the stored value into slow glides. |
+| **[Slow Store](/library/detail/?kind=module&slug=uncertainty#preset-15)** | Everything stretched over bars for evolving ambient control. |
+| **[Free Clocked Chaos](/library/detail/?kind=module&slug=uncertainty#preset-16)** | All generators unsynced and fast: loose, jittery movement. |
 <!-- /generated -->
 
 ## Reference

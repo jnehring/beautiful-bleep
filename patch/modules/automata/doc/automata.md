@@ -73,28 +73,28 @@ Five whole patches show what Automata does. In the standalone app open **File â†
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Automata view has 18 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Automata view has 18 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Automata; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Rule 30 Ring** | One seed cell grows into a lopsided, never-quite-repeating pattern. |
-| **Rule 90 Lace** | A symmetrical lattice: the melody mirrors itself as it grows. |
-| **Rule 110 Drift** | Structures drift sideways through a longer ring. |
-| **Rule 184 Traffic** | Cells move along the ring like cars in traffic: slow, flowing lines. |
-| **Garden Grid** | A small wrapping world: colonies grow, collide and die out. |
-| **Mazy Grid** | Structures build up slowly into a maze of long-lived notes. |
-| **Seeds Burst** | Every cell lives one step: a restless, sparkling grid. |
-| **Gentle Chain** | Mostly stepwise motion with occasional rests. |
-| **Student Chain** | Patch a melody into Learn: the chain picks up its habits. |
-| **Wandering Walker** | A walker with two turn rules draws a looping highway. |
-| **Crowded Walker** | A walker among old marks: gaps and bursts. |
-| **Wide Walker** | Six turn rules: a sprawling, unpredictable path over three octaves. |
-| **Cascade Phrase** | A phrase that rewrites itself every time it ends. |
-| **Climbing Phrase** | Rising lines with octave jumps. |
-| **Breathing Tide** | Slow phrases with rests that breathe. |
-| **Restless Ring** | Interference keeps nudging the ring: it never settles into a pattern. |
-| **Fork Phrase** | A rewriting phrase with a few mutations each pass. |
-| **Free Grid** | Ignores the song tempo and steps at a set rate. |
+| **[Rule 30 Ring](/library/detail/?kind=module&slug=automata#preset-1)** | One seed cell grows into a lopsided, never-quite-repeating pattern. |
+| **[Rule 90 Lace](/library/detail/?kind=module&slug=automata#preset-2)** | A symmetrical lattice: the melody mirrors itself as it grows. |
+| **[Rule 110 Drift](/library/detail/?kind=module&slug=automata#preset-3)** | Structures drift sideways through a longer ring. |
+| **[Rule 184 Traffic](/library/detail/?kind=module&slug=automata#preset-4)** | Cells move along the ring like cars in traffic: slow, flowing lines. |
+| **[Garden Grid](/library/detail/?kind=module&slug=automata#preset-5)** | A small wrapping world: colonies grow, collide and die out. |
+| **[Mazy Grid](/library/detail/?kind=module&slug=automata#preset-6)** | Structures build up slowly into a maze of long-lived notes. |
+| **[Seeds Burst](/library/detail/?kind=module&slug=automata#preset-7)** | Every cell lives one step: a restless, sparkling grid. |
+| **[Gentle Chain](/library/detail/?kind=module&slug=automata#preset-8)** | Mostly stepwise motion with occasional rests. |
+| **[Student Chain](/library/detail/?kind=module&slug=automata#preset-9)** | Patch a melody into Learn: the chain picks up its habits. |
+| **[Wandering Walker](/library/detail/?kind=module&slug=automata#preset-10)** | A walker with two turn rules draws a looping highway. |
+| **[Crowded Walker](/library/detail/?kind=module&slug=automata#preset-11)** | A walker among old marks: gaps and bursts. |
+| **[Wide Walker](/library/detail/?kind=module&slug=automata#preset-12)** | Six turn rules: a sprawling, unpredictable path over three octaves. |
+| **[Cascade Phrase](/library/detail/?kind=module&slug=automata#preset-13)** | A phrase that rewrites itself every time it ends. |
+| **[Climbing Phrase](/library/detail/?kind=module&slug=automata#preset-14)** | Rising lines with octave jumps. |
+| **[Breathing Tide](/library/detail/?kind=module&slug=automata#preset-15)** | Slow phrases with rests that breathe. |
+| **[Restless Ring](/library/detail/?kind=module&slug=automata#preset-16)** | Interference keeps nudging the ring: it never settles into a pattern. |
+| **[Fork Phrase](/library/detail/?kind=module&slug=automata#preset-17)** | A rewriting phrase with a few mutations each pass. |
+| **[Free Grid](/library/detail/?kind=module&slug=automata#preset-18)** | Ignores the song tempo and steps at a set rate. |
 <!-- /generated -->
 
 ## Reference

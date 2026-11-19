@@ -43,23 +43,23 @@ The top of the view shows what the compressor is doing to the last two seconds o
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Compressor view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Compressor view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Compressor; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Gentle Glue** | Light bus compression that holds a mix together. |
-| **Vocal Leveler** | Even out a voice or lead with smooth RMS detection. |
-| **Drum Punch** | Slow attack lets the transient through, then clamps the body. |
-| **Bass Control** | Keeps a bass line steady and solid. |
-| **Parallel Smash** | Hard compression blended under the dry signal for density. |
-| **Soft Limiter** | Catches peaks at the end of a chain. |
-| **Brick Wall** | Near-hard limiting; nothing gets past the ceiling. |
-| **Slow Opto** | Slow, smooth levelling with a wide knee. |
-| **Sustain Boost** | Pulls up tails: guitars and plucks ring longer. |
-| **Pump Duck** | Audible pumping on loud material; patch a kick into Key for ducking. |
-| **Transient Tamer** | Fast attack rounds off clicks and spikes. |
-| **Wide Squash** | Heavy squash with loosely linked channels for a wider image. |
-| **Gain Reduction Source** | Take the Reduction output as a control signal for pumping other modules. |
+| **[Gentle Glue](/library/detail/?kind=module&slug=compressor#preset-1)** | Light bus compression that holds a mix together. |
+| **[Vocal Leveler](/library/detail/?kind=module&slug=compressor#preset-2)** | Even out a voice or lead with smooth RMS detection. |
+| **[Drum Punch](/library/detail/?kind=module&slug=compressor#preset-3)** | Slow attack lets the transient through, then clamps the body. |
+| **[Bass Control](/library/detail/?kind=module&slug=compressor#preset-4)** | Keeps a bass line steady and solid. |
+| **[Parallel Smash](/library/detail/?kind=module&slug=compressor#preset-5)** | Hard compression blended under the dry signal for density. |
+| **[Soft Limiter](/library/detail/?kind=module&slug=compressor#preset-6)** | Catches peaks at the end of a chain. |
+| **[Brick Wall](/library/detail/?kind=module&slug=compressor#preset-7)** | Near-hard limiting; nothing gets past the ceiling. |
+| **[Slow Opto](/library/detail/?kind=module&slug=compressor#preset-8)** | Slow, smooth levelling with a wide knee. |
+| **[Sustain Boost](/library/detail/?kind=module&slug=compressor#preset-9)** | Pulls up tails: guitars and plucks ring longer. |
+| **[Pump Duck](/library/detail/?kind=module&slug=compressor#preset-10)** | Audible pumping on loud material; patch a kick into Key for ducking. |
+| **[Transient Tamer](/library/detail/?kind=module&slug=compressor#preset-11)** | Fast attack rounds off clicks and spikes. |
+| **[Wide Squash](/library/detail/?kind=module&slug=compressor#preset-12)** | Heavy squash with loosely linked channels for a wider image. |
+| **[Gain Reduction Source](/library/detail/?kind=module&slug=compressor#preset-13)** | Take the Reduction output as a control signal for pumping other modules. |
 <!-- /generated -->
 
 <!-- generated:demos -->

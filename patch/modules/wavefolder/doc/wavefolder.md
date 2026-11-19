@@ -84,23 +84,23 @@ Five whole patches show what Folder does. In the standalone app open **File → 
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Folder view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Folder view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Folder; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Soft Fold** | Mild folding that adds a few bright harmonics. |
-| **Classic Fold** | The classic folded-sine timbre. |
-| **Hollow Fold** | Asymmetry adds even harmonics for a reedy sound. |
-| **Vocal Folds** | Formant-like tone when the fold is swept. |
-| **Metal Bright** | Deep folding: bright, metallic and inharmonic. |
-| **Low Tap Tame** | Heavy fold but only the early stages, so it stays smooth. |
-| **Wide Folder** | Spread decorrelates left and right: a mono source becomes wide. |
-| **Internal Sine Lead** | Use the built-in oscillator; play it from Pitch. |
-| **Triangle Fold** | Folded triangle from the internal oscillator: softer and rounder. |
-| **FM Fold** | FM adds sidebands before the folder for glassy tones. |
-| **Detuned Growl** | An octave down with asymmetric folding: a growling bass. |
-| **Parallel Fold** | Folded signal mixed under the dry one. |
-| **Eco Chaos** | Extreme settings with cheaper oversampling; aliasing is part of it. |
+| **[Soft Fold](/library/detail/?kind=module&slug=wavefolder#preset-1)** | Mild folding that adds a few bright harmonics. |
+| **[Classic Fold](/library/detail/?kind=module&slug=wavefolder#preset-2)** | The classic folded-sine timbre. |
+| **[Hollow Fold](/library/detail/?kind=module&slug=wavefolder#preset-3)** | Asymmetry adds even harmonics for a reedy sound. |
+| **[Vocal Folds](/library/detail/?kind=module&slug=wavefolder#preset-4)** | Formant-like tone when the fold is swept. |
+| **[Metal Bright](/library/detail/?kind=module&slug=wavefolder#preset-5)** | Deep folding: bright, metallic and inharmonic. |
+| **[Low Tap Tame](/library/detail/?kind=module&slug=wavefolder#preset-6)** | Heavy fold but only the early stages, so it stays smooth. |
+| **[Wide Folder](/library/detail/?kind=module&slug=wavefolder#preset-7)** | Spread decorrelates left and right: a mono source becomes wide. |
+| **[Internal Sine Lead](/library/detail/?kind=module&slug=wavefolder#preset-8)** | Use the built-in oscillator; play it from Pitch. |
+| **[Triangle Fold](/library/detail/?kind=module&slug=wavefolder#preset-9)** | Folded triangle from the internal oscillator: softer and rounder. |
+| **[FM Fold](/library/detail/?kind=module&slug=wavefolder#preset-10)** | FM adds sidebands before the folder for glassy tones. |
+| **[Detuned Growl](/library/detail/?kind=module&slug=wavefolder#preset-11)** | An octave down with asymmetric folding: a growling bass. |
+| **[Parallel Fold](/library/detail/?kind=module&slug=wavefolder#preset-12)** | Folded signal mixed under the dry one. |
+| **[Eco Chaos](/library/detail/?kind=module&slug=wavefolder#preset-13)** | Extreme settings with cheaper oversampling; aliasing is part of it. |
 <!-- /generated -->
 
 ## Reference

@@ -62,25 +62,25 @@ At 0 % Spread all four outputs are identical.
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Function view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Function view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Function; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Slow Triangle LFO** | A gentle 0.25 Hz triangle sweep for filters and pans. |
-| **Pluck Envelope** | Snappy one-shot decay: patch a gate into Trig and A onto a cutoff or level. |
-| **Soft Swell** | A slow one-shot swell and fade for pads. |
-| **Ramp Down Beat** | Tempo-synced saw falling on every beat: instant pumping. |
-| **Ramp Up Bar** | Rising ramp that resets every bar, for risers and builds. |
-| **Vibrato Wobble** | About 6 Hz triangle: patch to pitch with a small amount. |
-| **Quarter-Phase Quad** | Four outputs a quarter cycle apart for coordinated movement. |
-| **Growing Echoes** | A through D are one-shot decays of 1x, 2x, 4x and 8x length. |
-| **Eighth Pulse** | Short percussive curve on every eighth note. |
-| **Lazy Drift** | Very slow, uneven wave with offset outputs for evolving textures. |
-| **Bouncy Curve** | Exponential bounce, like a ball losing energy each beat. |
-| **Reverse Swell** | Slow-start rise that cuts off: a reverse-style swell. |
-| **Half-Bar Staggered** | Synced slope with phase-shifted outputs for rolling motion. |
-| **Audio-Rate Buzz** | Fast triangle in the audible range: a FM or ring-style source. |
-| **Eight-Bar Rise** | Huge synced build-up that restarts every eight bars. |
+| **[Slow Triangle LFO](/library/detail/?kind=module&slug=function#preset-1)** | A gentle 0.25 Hz triangle sweep for filters and pans. |
+| **[Pluck Envelope](/library/detail/?kind=module&slug=function#preset-2)** | Snappy one-shot decay: patch a gate into Trig and A onto a cutoff or level. |
+| **[Soft Swell](/library/detail/?kind=module&slug=function#preset-3)** | A slow one-shot swell and fade for pads. |
+| **[Ramp Down Beat](/library/detail/?kind=module&slug=function#preset-4)** | Tempo-synced saw falling on every beat: instant pumping. |
+| **[Ramp Up Bar](/library/detail/?kind=module&slug=function#preset-5)** | Rising ramp that resets every bar, for risers and builds. |
+| **[Vibrato Wobble](/library/detail/?kind=module&slug=function#preset-6)** | About 6 Hz triangle: patch to pitch with a small amount. |
+| **[Quarter-Phase Quad](/library/detail/?kind=module&slug=function#preset-7)** | Four outputs a quarter cycle apart for coordinated movement. |
+| **[Growing Echoes](/library/detail/?kind=module&slug=function#preset-8)** | A through D are one-shot decays of 1x, 2x, 4x and 8x length. |
+| **[Eighth Pulse](/library/detail/?kind=module&slug=function#preset-9)** | Short percussive curve on every eighth note. |
+| **[Lazy Drift](/library/detail/?kind=module&slug=function#preset-10)** | Very slow, uneven wave with offset outputs for evolving textures. |
+| **[Bouncy Curve](/library/detail/?kind=module&slug=function#preset-11)** | Exponential bounce, like a ball losing energy each beat. |
+| **[Reverse Swell](/library/detail/?kind=module&slug=function#preset-12)** | Slow-start rise that cuts off: a reverse-style swell. |
+| **[Half-Bar Staggered](/library/detail/?kind=module&slug=function#preset-13)** | Synced slope with phase-shifted outputs for rolling motion. |
+| **[Audio-Rate Buzz](/library/detail/?kind=module&slug=function#preset-14)** | Fast triangle in the audible range: a FM or ring-style source. |
+| **[Eight-Bar Rise](/library/detail/?kind=module&slug=function#preset-15)** | Huge synced build-up that restarts every eight bars. |
 <!-- /generated -->
 
 <!-- generated:demos -->

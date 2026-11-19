@@ -105,25 +105,25 @@ Five whole patches show what Meta Mod does. In the standalone app open **File â†
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Meta Mod view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Meta Mod view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them. In the board a click on a name below shows it in **Open Project**, where **Load into** sets the Meta Mod; on the website it leads to the module's entry in the Bleep Library.
 
 | Preset | What it does |
 |---|---|
-| **Analog Ring** | Diode-style ring modulation with the internal oscillator. |
-| **Ring Bells** | Inharmonic, bell-like sidebands from a sine carrier. |
-| **Tremolo AM** | Amplitude modulation: slow oscillator wobbles the sound. |
-| **Crossfade Blend** | Equal-power mix of carrier and modulator; sweep Timbre. |
-| **Folded Input** | Wavefolded carrier with the modulator as fold source. |
-| **Digital Ring** | Clean digital ring modulation: only sum and difference tones. |
-| **Bitwise XOR** | Gritty digital combination of two sources. |
-| **Bitwise AND** | Hollow, buzzy intersection of the two waveforms. |
-| **Comparator Edge** | Hard-edged comparator tones that follow the input. |
-| **Robot Vocoder** | Voice or drums in Modulator talk through a buzzy Carrier. |
-| **Harmonic Pick** | Chebyshev: turns a sine into its Nth harmonic; sweep Timbre. |
-| **Harmonic Shimmer** | Added harmonics blended under the dry signal. |
-| **Algorithm Drift** | Between two algorithms: modulate Algorithm for morphing. |
-| **Sub Osc Ring** | Low internal oscillator ring-modulates for growling bass. |
-| **Metallic Clang** | Mismatched diodes and a bright oscillator: clangorous metal. |
+| **[Analog Ring](/library/detail/?kind=module&slug=meta-mod#preset-1)** | Diode-style ring modulation with the internal oscillator. |
+| **[Ring Bells](/library/detail/?kind=module&slug=meta-mod#preset-2)** | Inharmonic, bell-like sidebands from a sine carrier. |
+| **[Tremolo AM](/library/detail/?kind=module&slug=meta-mod#preset-3)** | Amplitude modulation: slow oscillator wobbles the sound. |
+| **[Crossfade Blend](/library/detail/?kind=module&slug=meta-mod#preset-4)** | Equal-power mix of carrier and modulator; sweep Timbre. |
+| **[Folded Input](/library/detail/?kind=module&slug=meta-mod#preset-5)** | Wavefolded carrier with the modulator as fold source. |
+| **[Digital Ring](/library/detail/?kind=module&slug=meta-mod#preset-6)** | Clean digital ring modulation: only sum and difference tones. |
+| **[Bitwise XOR](/library/detail/?kind=module&slug=meta-mod#preset-7)** | Gritty digital combination of two sources. |
+| **[Bitwise AND](/library/detail/?kind=module&slug=meta-mod#preset-8)** | Hollow, buzzy intersection of the two waveforms. |
+| **[Comparator Edge](/library/detail/?kind=module&slug=meta-mod#preset-9)** | Hard-edged comparator tones that follow the input. |
+| **[Robot Vocoder](/library/detail/?kind=module&slug=meta-mod#preset-10)** | Voice or drums in Modulator talk through a buzzy Carrier. |
+| **[Harmonic Pick](/library/detail/?kind=module&slug=meta-mod#preset-11)** | Chebyshev: turns a sine into its Nth harmonic; sweep Timbre. |
+| **[Harmonic Shimmer](/library/detail/?kind=module&slug=meta-mod#preset-12)** | Added harmonics blended under the dry signal. |
+| **[Algorithm Drift](/library/detail/?kind=module&slug=meta-mod#preset-13)** | Between two algorithms: modulate Algorithm for morphing. |
+| **[Sub Osc Ring](/library/detail/?kind=module&slug=meta-mod#preset-14)** | Low internal oscillator ring-modulates for growling bass. |
+| **[Metallic Clang](/library/detail/?kind=module&slug=meta-mod#preset-15)** | Mismatched diodes and a bright oscillator: clangorous metal. |
 <!-- /generated -->
 
 ## Reference

@@ -87,8 +87,9 @@
             if (!t) return false;
             newId = uid("n");
             const params = {};
-            for (const p of t.params) params[p.id] = p.default;
+            for (const p of t.params) params[p.id] = what.params && p.id in what.params ? what.params[p.id] : p.default;   // what.params: a module preset
             const node = { id: newId, type: t.type, name: t.name, x: Math.round(x), y: Math.round(y), parent: lvl, params };
+            if (what.data !== undefined && what.data !== null) node.data = JSON.parse(JSON.stringify(what.data));
             if (t.port) {  // a port the user adds (MIDI Device): the app follows it by this id
               if (lvl) return false;  // ports live on the top level (spec §6)
               node.port = what.port || uid("mdev-");  // an app port (standalone): the one the user picked
