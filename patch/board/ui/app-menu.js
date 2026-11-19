@@ -189,7 +189,8 @@
     "edit.copyPatch": () => P.BleepProjectBrowser && P.BleepProjectBrowser.copyPatch(),
     "file.settings": () => P.BleepSettingsView && P.BleepSettingsView.show(),
     "library.open": () => {
-      if (window.BleepWeb) window.open("/library/", "_blank", "noopener");   // the browser board installs its modules itself; the library is the site's page
+      // The browser board installs its modules itself: its Library is the projects shared there, in Open Project
+      if (window.BleepWeb) { if (P.BleepProjectBrowser) P.BleepProjectBrowser.showLibrary(); }
       else if (P.BleepLibraryView) P.BleepLibraryView.show();
     },
     "share.share": () => P.BleepProjectBrowser.share(),

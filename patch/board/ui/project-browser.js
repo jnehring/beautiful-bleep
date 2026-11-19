@@ -30,6 +30,7 @@
   let cells = [];             // plugin mode: [{name, category, description, tags, current}]
   let root = null, listEl, groupsEl, viewsEl, cellsHeadEl, cellsEl, modHeadEl, modFilterEl, modsEl, originsEl, searchEl, saveRow, fileInput, noteEl;
   let signedIn = null;        // web: is there a login (null: not asked yet)
+  let selected = "";          // the name of the card shown selected and scrolled to (showDemo); cleared by the next pick in the browser
   let current = null;         // the loaded project for the side menu: {name, source: "factory" | "user" | "community", address?, preset}
   const listeners = [];
   function setCurrent(c) { current = c; listeners.forEach((f) => f(current)); }
@@ -322,7 +323,7 @@
     }
     for (const e of items) {
       const p = e.ref;
-      const card = el("div", "pb-card" + (e.current || p.current ? " current" : ""));
+      const card = el("div", "pb-card" + (e.current || p.current ? " current" : "") + (selected && e.name === selected ? " selected" : ""));
       const head = el("div", "pb-card-head");
       head.appendChild(el("span", "pb-name", e.name));
       if (e.origin) head.appendChild(el("span", "pb-badge pb-badge-" + e.origin, window.BleepPresetIndex.ORIGIN_LABELS[e.origin]));
@@ -691,6 +692,7 @@
   function close() {
     if (!root || root.hidden) return false;
     root.hidden = true;
+    selected = "";
     document.getElementById("canvas").focus();
     return true;
   }
@@ -710,6 +712,30 @@
     open,
     close,
     /// After sharing a project: the browser on Community only, searched for its title, so the shared project is in sight.
+    /// A module manual's demo link: the browser on the module's demos (Demos by module), the `n`-th of them (1-based) selected.
+    /// Returns false when the board has no such demos (the browser stays closed).
+    async showDemo(module, n) {
+      if (!host || host.cells) return false;
+      const list = demos.filter((d) => d.module === module);
+      if (!list.length) return false;
+      origins.add("factory");
+      view = "module:" + module;
+      modsOpen = true;
+      query = "";
+      if (searchEl) searchEl.value = "";
+      selected = (list[(n || 1) - 1] || list[0]).name;
+      await open();
+      // The list renders while the browser is still hidden, so the module's row and the demo come into sight once it shows.
+      for (const x of [modsEl && modsEl.querySelector(".pb-group.active"), listEl.querySelector(".pb-card.selected")]) if (x) x.scrollIntoView({ block: "nearest" });
+      return true;
+    },
+    /// File → Open Library (Bleep Play): the browser on the projects shared in the Bleep Library; without an account, on everything.
+    async showLibrary() {
+      if (!host) return;
+      if (!host.cells && account()) { origins.clear(); origins.add("community"); view = "all"; query = ""; if (searchEl) searchEl.value = ""; }
+      await open();
+      for (const x of [groupsEl, listEl]) if (x) x.scrollTop = 0;   // "Everything" is at the top of the list on the left
+    },
     async showShared(title) {
       if (!host || host.cells || !account()) return;
       origins.clear();
