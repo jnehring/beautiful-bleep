@@ -18,6 +18,8 @@ export default [
   ["Strong FM", { wave: "Triangle", fmdepth: 0.7 }, "Deep through-zero FM for metallic, clangorous timbres."],
   ["Clamped FM", { wave: "Sine", fmdepth: 0.6, tzfm: false }, "Linear FM that stops at 0 Hz instead of running backwards: grittier, slightly out of tune under deep modulation."],
   ["Exponential FM", { wave: "Sine", fmdepth: 0.3, fmmode: "Exponential" }, "FM in octaves: the pitch swings up and down with the modulator, from vibrato to a snarling, inharmonic growl as the depth rises."],
+  ["Phase Mod Bell", { wave: "Sine", fmdepth: 0.35, fmmode: "Phase" }, "Phase modulation: patch a sine a few octaves up into FM for DX-style bells and electric pianos that stay in tune at any depth."],
+  ["Analog Saw Bass", { wave: "Saw", octave: "-1", sublevel: 0.6, drift: 0.3 }, "A saw an octave down with a square sub under it and a little drift: a full, slightly unstable analog bass."],
   ["Sync Sweep Base", { wave: "Saw", coarse: 5 }, "Saw for hard sync: patch a gate or a faster oscillator into Sync and sweep Coarse."],
   ["Low Rumble", { wave: "Square", pw: 0.3, octave: "-3" }, "Very low pulse: use as a drone, or slow rhythmic modulation."],
 ];

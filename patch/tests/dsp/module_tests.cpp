@@ -165,12 +165,138 @@ static void oscillator() {
     p.expFm = false;
     p.wave = OscWave::Saw;
 
+    // Free pitch: the base frequency in Hz, the pitch (input) still 1 V/oct on top of it.
+    p.fmDepth = 0.0f;
+    p.wave = OscWave::Sine;
+    p.freePitch = true;
+    p.freeHz = 100.0f;
+    p.pitch = 1.0f;  // one octave up: 200 Hz
+    crossings = 0;
+    last = 0.0f;
+    for (int i = 0; i < 48000; ++i) {
+        const float y = o.tick(p, 0.0f, 0.0f);
+        if (last < 0.0f && y >= 0.0f) ++crossings;
+        last = y;
+    }
+    EXPECT(crossings >= 199 && crossings <= 201);
+    p.freePitch = false;
+    p.pitch = 9.0f / 12.0f;
+    p.wave = OscWave::Saw;
+
     // Deep through-zero FM stays finite and bounded.
     p.fmDepth = 1.0f;
     for (int i = 0; i < 48000; ++i) {
         const float y = o.tick(p, std::sin(i * 0.05f), 0.0f);
         EXPECT(std::isfinite(y) && std::fabs(y) <= 1.5f);
         if (g_failures) return;
+    }
+    p.fmDepth = 0.0f;
+
+    // Sub oscillator on a sine carrier at C4: Sync Out pulses once per carrier cycle, the square sub adds to the
+    // level, and Out minus the plain sine is the sub alone, 1 or 2 octaves down.
+    p.pitch = 0.0f;  // C4
+    p.wave = OscWave::Sine;
+    p.subLevel = 1.0f;
+    p.subSine = false;
+    o.reset();
+    int pulses = 0, subFlips = 0;
+    bool lastPulse = false;
+    float peakSum = 0.0f;
+    for (int i = 0; i < 48000; ++i) {
+        const float y = o.tick(p, 0.0f, 0.0f);
+        peakSum = std::max(peakSum, std::fabs(y));
+        if (o.syncOut() && !lastPulse) ++pulses;
+        lastPulse = o.syncOut();
+    }
+    EXPECT(pulses >= 261 && pulses <= 263);   // Sync Out: one pulse per cycle
+    EXPECT(peakSum > 1.5f && peakSum < 2.2f); // sine + square sub add up
+    {
+        // the square sub alone: Out minus the sine, sign changes = 2 per sub cycle
+        OscillatorDsp a, b;
+        a.prepare(48000.0), b.prepare(48000.0);
+        a.reset(), b.reset();
+        OscillatorParams q = p;
+        q.subLevel = 0.0f;
+        for (int oct = 1; oct <= 2; ++oct) {
+            p.subOctaves = oct;
+            subFlips = 0;
+            float lastS = 0.0f;
+            for (int i = 0; i < 48000; ++i) {
+                const float s = a.tick(p, 0.0f, 0.0f) - b.tick(q, 0.0f, 0.0f);
+                if ((s > 0.0f) != (lastS > 0.0f) && i > 0) ++subFlips;
+                lastS = s;
+            }
+            const int want = (int)std::lround(2.0 * 261.6256 / (oct == 1 ? 2.0 : 4.0));
+            EXPECT(std::abs(subFlips - want) <= 2);
+        }
+        p.subOctaves = 1;
+    }
+    p.subLevel = 0.0f;
+
+    // Reset restarts the cycle at Phase, whatever Hard Sync says: two oscillators reset at different times play
+    // the same samples afterwards.
+    {
+        OscillatorDsp a, b;
+        a.prepare(48000.0), b.prepare(48000.0);
+        a.reset(), b.reset();
+        OscillatorParams q = p;
+        q.wave = OscWave::Saw;
+        q.hardSync = false;
+        q.phase = 0.25f;
+        for (int i = 0; i < 1000; ++i) a.tick(q, 0.0f, 0.0f);
+        for (int i = 0; i < 377; ++i) b.tick(q, 0.0f, 0.0f);
+        float ya = a.tick(q, 0.0f, 0.0f, 1.0f), yb = b.tick(q, 0.0f, 0.0f, 1.0f);
+        EXPECT_NEAR(ya, yb, 1e-6);
+        EXPECT_NEAR(ya, -0.5, 1e-3);   // saw at a quarter cycle: 2·0.25 − 1
+        for (int i = 0; i < 500; ++i) {
+            ya = a.tick(q, 0.0f, 0.0f, 0.0f), yb = b.tick(q, 0.0f, 0.0f, 0.0f);
+            EXPECT_NEAR(ya, yb, 1e-6);
+            if (g_failures) return;
+        }
+    }
+
+    // Phase modulation keeps the pitch: a steady PM input only shifts the phase, a sine one makes sidebands
+    // but the carrier still completes 440 cycles a second (Sync Out counts the carrier).
+    p.pitch = 9.0f / 12.0f;
+    p.phaseMod = true;
+    p.fmDepth = 1.0f;
+    o.reset();
+    pulses = 0;
+    lastPulse = false;
+    for (int i = 0; i < 48000; ++i) {
+        const float y = o.tick(p, std::sin(i * 0.05f), 0.0f);
+        EXPECT(std::isfinite(y) && std::fabs(y) <= 1.01f);
+        if (o.syncOut() && !lastPulse) ++pulses;
+        lastPulse = o.syncOut();
+        if (g_failures) return;
+    }
+    EXPECT(pulses >= 439 && pulses <= 441);
+    p.phaseMod = false;
+    p.fmDepth = 0.0f;
+
+    // Drift: off is exactly in tune; on wanders by a few cents only, and two seeds differ.
+    {
+        OscillatorDsp a, b;
+        a.prepare(48000.0), b.prepare(48000.0);
+        a.seedDrift(1), b.seedDrift(2);
+        a.reset(), b.reset();
+        OscillatorParams q = p;
+        q.wave = OscWave::Sine;
+        q.drift = 1.0f;
+        int ca = 0, cb = 0;
+        float la = 0.0f, lb = 0.0f;
+        bool differ = false;
+        for (int i = 0; i < 48000 * 4; ++i) {
+            const float ya = a.tick(q, 0.0f, 0.0f), yb = b.tick(q, 0.0f, 0.0f);
+            if (la < 0.0f && ya >= 0.0f) ++ca;
+            if (lb < 0.0f && yb >= 0.0f) ++cb;
+            if (std::fabs(ya - yb) > 0.01f) differ = true;
+            la = ya, lb = yb;
+        }
+        // ±12.5 cents at most: 440 · 2^(±12.5/1200) over four seconds
+        EXPECT(ca >= 1747 && ca <= 1773);
+        EXPECT(cb >= 1747 && cb <= 1773);
+        EXPECT(differ);
     }
 }
 

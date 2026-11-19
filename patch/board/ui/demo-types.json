@@ -4,7 +4,7 @@
     "name": "Oscillator",
     "category": "Sources/Oscillators",
     "colour": "#5eead4",
-    "description": "Triangle-core oscillator: two waveforms with a morph between them, through-zero FM and hard sync.",
+    "description": "Triangle-core oscillator: two waveforms with a morph between them, a sub oscillator, through-zero FM, phase modulation, hard sync and analog drift.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,
@@ -30,7 +30,12 @@
         "max": 6.0,
         "def": 3.0,
         "format": "choice",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "freepitch",
+          "min": 0,
+          "max": 0
+        }
       },
       {
         "id": "coarse",
@@ -45,7 +50,12 @@
         "def": 0.0,
         "format": "number",
         "decimals": 1,
-        "label": "st"
+        "label": "st",
+        "show": {
+          "param": "freepitch",
+          "min": 0,
+          "max": 0
+        }
       },
       {
         "id": "fine",
@@ -60,7 +70,12 @@
         "def": 0.0,
         "format": "number",
         "decimals": 0,
-        "label": "ct"
+        "label": "ct",
+        "show": {
+          "param": "freepitch",
+          "min": 0,
+          "max": 0
+        }
       },
       {
         "id": "wave",
@@ -149,15 +164,16 @@
         "name": "FM Mode",
         "kind": "choice",
         "default": 0.0,
-        "steps": 2,
+        "steps": 3,
         "modulatable": true,
         "cableable": true,
         "choices": [
           "Linear",
+          "Phase",
           "Exponential"
         ],
         "min": 0.0,
-        "max": 1.0,
+        "max": 2.0,
         "def": 0.0,
         "format": "choice",
         "decimals": 2
@@ -189,6 +205,139 @@
         "def": 1.0,
         "format": "toggle",
         "decimals": 2
+      },
+      {
+        "id": "freepitch",
+        "name": "Free",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2
+      },
+      {
+        "id": "freehz",
+        "name": "Coarse",
+        "kind": "float",
+        "default": 0.644721388816833,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.100000001490116,
+        "max": 20000.0,
+        "def": 261.6300048828125,
+        "format": "hertz",
+        "decimals": 2,
+        "map": "exp",
+        "show": {
+          "param": "freepitch",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "freefine",
+        "name": "Fine",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -10.0,
+        "max": 10.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "Hz",
+        "show": {
+          "param": "freepitch",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "phase",
+        "name": "Phase",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 360.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 0,
+        "label": "°"
+      },
+      {
+        "id": "sublevel",
+        "name": "Sub Level",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "suboct",
+        "name": "Sub Octave",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": true,
+        "cableable": true,
+        "choices": [
+          "-1",
+          "-2"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "subwave",
+        "name": "Sub Wave",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": true,
+        "cableable": true,
+        "choices": [
+          "Square",
+          "Sine"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "drift",
+        "name": "Drift",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -209,6 +358,12 @@
         "name": "Sync",
         "type": "gate",
         "bipolar": true
+      },
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true
       }
     ],
     "outputs": [
@@ -217,6 +372,12 @@
         "name": "Out",
         "type": "audio",
         "bipolar": true
+      },
+      {
+        "id": "syncout",
+        "name": "Sync Out",
+        "type": "gate",
+        "bipolar": false
       }
     ]
   },

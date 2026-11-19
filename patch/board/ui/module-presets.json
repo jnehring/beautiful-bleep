@@ -733,6 +733,8 @@
       {"name":"Strong FM","description":"Deep through-zero FM for metallic, clangorous timbres.","params":{"wave":0.333333,"fmdepth":0.7}},
       {"name":"Clamped FM","description":"Linear FM that stops at 0 Hz instead of running backwards: grittier, slightly out of tune under deep modulation.","params":{"wave":0,"fmdepth":0.6,"tzfm":0}},
       {"name":"Exponential FM","description":"FM in octaves: the pitch swings up and down with the modulator, from vibrato to a snarling, inharmonic growl as the depth rises.","params":{"wave":0,"fmdepth":0.3,"fmmode":1}},
+      {"name":"Phase Mod Bell","description":"Phase modulation: patch a sine a few octaves up into FM for DX-style bells and electric pianos that stay in tune at any depth.","params":{"wave":0,"fmdepth":0.35,"fmmode":0.5}},
+      {"name":"Analog Saw Bass","description":"A saw an octave down with a square sub under it and a little drift: a full, slightly unstable analog bass.","params":{"octave":0.333333,"sublevel":0.6,"drift":0.3}},
       {"name":"Sync Sweep Base","description":"Saw for hard sync: patch a gate or a faster oscillator into Sync and sweep Coarse.","params":{"coarse":0.708333}},
       {"name":"Low Rumble","description":"Very low pulse: use as a drone, or slow rhythmic modulation.","params":{"wave":1,"pw":0.277778,"octave":0}}
     ],
