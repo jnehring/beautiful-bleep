@@ -48,7 +48,7 @@ public:
         p.phaseMod = fmMode == 1;
         p.expFm = fmMode == 2;
         p.subOctaves = setting(SubOctave) >= 0.5f ? 2 : 1;
-        p.subSine = setting(SubWave) >= 0.5f;
+        p.subWave = (patch::OscSubWave)std::clamp((int)std::lround(setting(SubWave)), 0, 2);
         const bool syncOut = c.isOutputConnected(SyncOut);
         p.hardSync = setting(HardSync) >= 0.5f;
         p.throughZero = setting(ThroughZero) >= 0.5f;
@@ -109,7 +109,7 @@ void registerOscillatorModule(Registry& r) {
                 ParamSpec::number("phase", "Phase", 0.0f, 360.0f, 0.0f, "°", 0),
                 ParamSpec::percent("sublevel", "Sub Level", 0.0f, 1.0f, 0.0f),
                 ParamSpec::choice("suboct", "Sub Octave", {"-1", "-2"}, 0),
-                ParamSpec::choice("subwave", "Sub Wave", {"Square", "Sine"}, 0),
+                ParamSpec::choice("subwave", "Sub Wave", {"Square", "Sine", "Main"}, 0),
                 ParamSpec::percent("drift", "Drift", 0.0f, 1.0f, 0.0f)};
     s.inputs = {{"pitch", "Pitch", Signal::Pitch},
                 {"fm", "FM", Signal::Audio},

@@ -2,7 +2,7 @@
 // Oscillator: a triangle-core oscillator with a primary and a secondary waveform
 // (Morph crossfades between them), linear FM (through zero or clamped at 0 Hz)
 // or exponential FM or phase modulation, and hard sync. A sub oscillator (square
-// or sine, one or two octaves down) is mixed in at its own level; Drift detunes
+// or sine or a copy of the main waveform, one or two octaves down) is mixed in at its own level; Drift detunes
 // it all by a slow seeded wander; Reset (and Sync) restart the cycle at Phase;
 // syncOut() is a short pulse at the start of every cycle. Saw, square and the
 // square sub are band-limited (polyBLEP).
@@ -21,6 +21,10 @@ namespace bleep::patch {
 /// The waveforms the Oscillator offers, in the order of its Waveform choices.
 enum class OscWave { Sine, Triangle, Saw, Square };
 
+/// The sub oscillator's waveforms, in the order of its Sub Wave choices; Main copies Waveform / Secondary / Morph
+/// and Pulse Width.
+enum class OscSubWave { Square, Sine, Main };
+
 struct OscillatorParams {
     float pitch = 0.0f;              ///< octaves (1 V/oct): Tuned: octave + semitones + cents + input, from C4;
                                      ///< Free: the input alone, from freeHz
@@ -38,7 +42,7 @@ struct OscillatorParams {
     float phase = 0.0f;              ///< 0..1: where Reset and Sync restart the cycle
     float subLevel = 0.0f;           ///< 0..1: the sub oscillator, added to the waveform
     int subOctaves = 1;              ///< 1 or 2 octaves below
-    bool subSine = false;            ///< sub waveform: square (false) or sine
+    OscSubWave subWave = OscSubWave::Square;  ///< the sub's waveform
     float drift = 0.0f;              ///< 0..1: seeded pitch wander, ±kDriftCents at 1
 };
 
@@ -153,11 +157,21 @@ private:
     }
 
     /// The sub oscillator: its own phase is the carrier's slowed down by 2 or 4 (the carrier's cycles counted),
-    /// so it follows FM and sync exactly. The square is band-limited like the main one.
+    /// so it follows FM and sync exactly. The square is band-limited like the main one; Main reads the main
+    /// waveforms (Waveform / Secondary / Morph, Pulse Width) at the sub's phase, band-limited at its rate.
     float sub(double ph, double dt, const OscillatorParams& p) const noexcept {
         const unsigned n = p.subOctaves >= 2 ? 4u : 2u;
         const double sp = (ph + (double)(subCount_ & (n - 1))) / (double)n;
-        if (p.subSine) return (float)std::sin(dsp::osc::kTwoPi * sp);
+        if (p.subWave == OscSubWave::Sine) return (float)std::sin(dsp::osc::kTwoPi * sp);
+        if (p.subWave == OscSubWave::Main) {
+            dsp::OscCore read;
+            read.setPhase(sp);
+            const dsp::OscWaves w = read.waves(dt / (double)n, p.pulseWidth);
+            float y = pick(w, p.wave);
+            const float m = std::clamp(p.morph, 0.0f, 1.0f);
+            if (m > 0.0f && p.wave != p.wave2) y += m * (pick(w, p.wave2) - y);
+            return y;
+        }
         const double adt = std::max(std::fabs(dt) / (double)n, 1e-9);
         double sq = sp < 0.5 ? 1.0 : -1.0;
         sq += dsp::osc::polyBlep(sp, adt);

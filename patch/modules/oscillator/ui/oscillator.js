@@ -34,10 +34,10 @@
     const x = one(phase, a, pw), m = Math.min(Math.max(morph, 0), 1);
     return m > 0 && a !== b ? x + m * (one(phase, b, pw) - x) : x;
   }
-  // the sub: the carrier's phase slowed down by 2 or 4, a square or a sine
-  function sub(phase, n, sine) {
+  // the sub: the carrier's phase slowed down by 2 or 4: a square, a sine, or the main waveforms (Main)
+  function sub(phase, n, kind, a, b, morph, pw) {
     const s = frac(phase / n);
-    return sine ? Math.sin(2 * Math.PI * s) : s < 0.5 ? 1 : -1;
+    return kind === 2 ? wave(s, a, b, morph, pw) : kind === 1 ? Math.sin(2 * Math.PI * s) : s < 0.5 ? 1 : -1;
   }
 
   function draw(view, cv, t) {
@@ -49,7 +49,7 @@
     // FM Mode: Linear, Phase, Exponential
     const mode = Math.round(view.units("fmmode")), pm = mode === 1, expo = mode === 2;
     const tz = view.value(st, "tzfm") >= 0.5;
-    const subLevel = view.value(st, "sublevel"), subN = view.units("suboct") >= 1 ? 4 : 2, subSine = view.units("subwave") >= 1;
+    const subLevel = view.value(st, "sublevel"), subN = view.units("suboct") >= 1 ? 4 : 2, subWave = Math.round(view.units("subwave"));   // Square, Sine, Main
     const drift = view.value(st, "drift");
     // Tuned: Octave + Coarse (semitones) + Fine (cents) from C4; Free: Coarse + Fine in Hz
     const free = view.units("freepitch") >= 1;
@@ -87,7 +87,7 @@
         if (drift > 0) f *= 1 + 0.08 * drift * Math.sin(2 * Math.PI * (0.7 * u + 0.13 * t)) * Math.sin(0.37 * t);
         ph += cycles * f * dx / w;
         let v = wave(pm ? ph + fm * mod : ph, wa, wb, morph, pw);
-        if (subLevel > 0) v += subLevel * sub(ph, subN, subSine);
+        if (subLevel > 0) v += subLevel * sub(ph, subN, subWave, wa, wb, morph, pw);
         const y = mid - amp * v;
         x ? g.lineTo(x, y) : g.moveTo(x, y);
       }

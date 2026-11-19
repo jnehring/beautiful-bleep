@@ -197,7 +197,7 @@ static void oscillator() {
     p.pitch = 0.0f;  // C4
     p.wave = OscWave::Sine;
     p.subLevel = 1.0f;
-    p.subSine = false;
+    p.subWave = OscSubWave::Square;
     o.reset();
     int pulses = 0, subFlips = 0;
     bool lastPulse = false;
@@ -230,6 +230,24 @@ static void oscillator() {
             EXPECT(std::abs(subFlips - want) <= 2);
         }
         p.subOctaves = 1;
+
+        // Main: a copy of the main waveform an octave down. On a saw carrier, Out minus the plain saw is a saw at
+        // half the frequency: it falls once per sub cycle (130.8 per second) and stays within the saw's range.
+        p.subWave = OscSubWave::Main;
+        p.wave = q.wave = OscWave::Saw;
+        a.reset(), b.reset();
+        int falls = 0;
+        float lastS = 0.0f, peakS = 0.0f;
+        for (int i = 0; i < 48000; ++i) {
+            const float s = a.tick(p, 0.0f, 0.0f) - b.tick(q, 0.0f, 0.0f);
+            if (i > 0 && s < lastS - 1.0f) ++falls;
+            peakS = std::max(peakS, std::fabs(s));
+            lastS = s;
+        }
+        EXPECT(std::abs(falls - 131) <= 1);
+        EXPECT(peakS < 1.2f);
+        p.subWave = OscSubWave::Square;
+        p.wave = OscWave::Sine;
     }
     p.subLevel = 0.0f;
 

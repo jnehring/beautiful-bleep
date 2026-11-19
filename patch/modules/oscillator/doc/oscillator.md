@@ -54,8 +54,10 @@ with a slow or offset modulator, and bells and electric pianos come out
 clean. *Through-Zero* does nothing here.
 
 **Sub oscillator.** **Sub Level** mixes a second waveform one or two octaves
-below (**Sub Octave**) into *Out*: a square (band-limited) or a sine (**Sub
-Wave**). It counts the main oscillator's cycles, so it follows the pitch, FM
+below (**Sub Octave**) into *Out*: a square (band-limited), a sine, or *Main*,
+a copy of the main waveform (**Sub Wave**). *Main* follows *Waveform*,
+*Secondary*, *Morph* and *Pulse Width*, so a saw gets a saw under it and a
+morph sweep moves both. It counts the main oscillator's cycles, so it follows the pitch, FM
 and sync exactly. At 100 % the sub is as loud as the main waveform and *Out*
 reaches ±2; with phase modulation the sub keeps the steady carrier.
 
@@ -185,7 +187,7 @@ Five whole patches show what Oscillator does. In the standalone app open **File 
 | Phase | 0 … 360° | 0° |
 | Sub Level | 0 – 100 % | 0 % |
 | Sub Octave | −1, −2 | −1 |
-| Sub Wave | Square, Sine | Square |
+| Sub Wave | Square, Sine, Main | Square |
 | Drift | 0 – 100 % | 0 % |
 
 - **Free:** the pitch mode. Off, *Tuned*: *Octave*, *Coarse* in semitones and
@@ -222,7 +224,8 @@ Five whole patches show what Oscillator does. In the standalone app open **File 
 - **Sub Level:** how much of the sub oscillator is added to *Out*. At 0 %
   there is none.
 - **Sub Octave:** the sub one or two octaves below the main pitch.
-- **Sub Wave:** a square (hollow and full) or a sine (clean and deep) sub.
+- **Sub Wave:** a square (hollow and full), a sine (clean and deep) or *Main*
+  (the main waveform, Morph and Pulse Width included, an octave or two down).
 - **Drift:** the slow random pitch wander, up to about ±12 cents at 100 %.
 
 Knobs (*Coarse*, *Fine* in both modes, *Morph*, *Pulse Width*, *FM Depth*,
