@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // The Audio Console's recorder on the real module: Record from the message thread while another thread runs the
 // audio, one file per armed track, manual and follow-transport takes, the tap choice (doc/specs/modules/audio-console.md §8).
 #include "Module.h"

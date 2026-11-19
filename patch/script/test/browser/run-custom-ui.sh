@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 # Runs custom-ui.html in headless Chrome against a static server of patch/ (the Code node's sandboxed UI page, checked like a browser would).
 # The page posts its result back to a tiny server; Chrome runs in real time (virtual time does not load the sandboxed frames).
 #   test/browser/run-custom-ui.sh [chrome]

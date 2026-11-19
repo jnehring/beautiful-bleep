@@ -25,7 +25,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 SOURCE_SUFFIXES = {".c", ".h", ".cpp", ".hpp", ".js", ".ts", ".tsx", ".css", ".py", ".cmake", ".sh"}
-SKIP_DIRS = {"build", ".venv", "node_modules", ".next", "out", ".git", "public", "third_party"}  # third_party: code with its own licence
+SKIP_DIRS = {"build", "dist", ".venv", "node_modules", ".next", "out", ".git", "public", "third_party"}  # third_party: code with its own licence; dist: bundles
 GENERATED = {"next-env.d.ts"}
 problems: list[str] = []
 

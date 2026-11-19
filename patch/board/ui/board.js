@@ -793,7 +793,7 @@
     window.BleepPlayKeys.restore();   // Bleep Play: the piano of an instrument preset comes back with the board after a reload
     {  // Bleep Play opened from a library preset: /play/index.html?preset=author/slug, or from a module's demo: ?demo=Grains: Frozen Cloud
       const q = new URLSearchParams(location.search);
-      if (q.get("embed")) document.body.classList.add("embed");   // inside the embed frame (website/app/public/embed): no menu bar
+      if (q.get("embed")) document.body.classList.add("embed");   // inside the website's embed frame (app/public/embed): no menu bar
       const shared = q.get("preset"), demo = q.get("demo"), byId = q.get("patch");
       if (byId && !pluginMode) P.BleepProjectBrowser.loadById(byId, q.get("v") || "").catch((e) => notice(e.message));   // /play/?patch=<pid>&v=<n>
       else if (shared && !pluginMode) P.BleepProjectBrowser.loadShared(shared).catch((e) => notice(e.message));

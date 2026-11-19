@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Audio Console view (doc/specs/modules/audio-console.md §5): a row of channel strips (name, mono/stereo, filters,
 // EQ, sends, pan, fader with meter, S / M / R), one strip per aux bus, the master, and below them the Record
 // panel: Record, Arm all / Unarm all, the time left, the Setup and Record settings, and the View toggles that

@@ -22,9 +22,14 @@ def dispatch(argv, settings=None, live=False):
     return calls
 
 
+def patch_configure(calls):
+    """The cmake call that configures the plugins (patch/): `build` without a target configures the bus first."""
+    return next(c for c in calls if c[:2] == ["cmake", "-S"] and c[2].endswith("/patch"))
+
+
 class Commands(unittest.TestCase):
     def test_build_plugins_is_the_default_and_uses_the_juce_setting(self):
-        conf = dispatch(["build"], {"juceDir": "/j", "buildConfig": "Release"})[0]
+        conf = patch_configure(dispatch(["build"], {"juceDir": "/j", "buildConfig": "Release"}))
         self.assertIn("-DBLEEP_JUCE_DIR=/j", conf)
         self.assertIn("-DBLEEP_BUILD_TESTS=ON", conf)
 
@@ -34,19 +39,19 @@ class Commands(unittest.TestCase):
 
     def test_build_plugins_copies_them_to_the_plugin_folders_by_default(self):
         self.assertIn("-DBLEEP_COPY_PLUGINS=ON", dispatch(["build", "plugins"])[0])
-        self.assertIn("-DBLEEP_COPY_PLUGINS=ON", dispatch(["build"])[0])
+        self.assertIn("-DBLEEP_COPY_PLUGINS=ON", patch_configure(dispatch(["build"])))
         self.assertIn("-DBLEEP_COPY_PLUGINS=ON", dispatch(["build", "plugins", "--install"])[0])
         self.assertIn("-DBLEEP_COPY_PLUGINS=OFF", dispatch(["build", "plugins", "--no-install"])[0])
 
-    def test_while_live_runs_the_default_builds_without_copying_but_install_still_copies(self):
-        self.assertIn("-DBLEEP_COPY_PLUGINS=OFF", dispatch(["build", "plugins"], live=True)[0])
+    def test_while_live_runs_the_default_still_copies_and_no_install_does_not(self):
+        self.assertIn("-DBLEEP_COPY_PLUGINS=ON", dispatch(["build", "plugins"], live=True)[0])
         self.assertIn("-DBLEEP_COPY_PLUGINS=ON", dispatch(["build", "plugins", "--install"], live=True)[0])
         self.assertIn("-DBLEEP_COPY_PLUGINS=OFF", dispatch(["build", "plugins", "--no-install"], live=True)[0])
 
     def test_the_live_link_device_goes_with_the_plugins(self):
         self.assertIn(["install-live-link"], dispatch(["build", "plugins"]))
         self.assertNotIn(["install-live-link"], dispatch(["build", "plugins", "--no-install"]))
-        self.assertNotIn(["install-live-link"], dispatch(["build", "plugins"], live=True))
+        self.assertIn(["install-live-link"], dispatch(["build", "plugins"], live=True))
 
     def test_install_live_link_device_copies_into_the_user_library(self):
         import tempfile

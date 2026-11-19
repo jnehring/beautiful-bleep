@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Audio Console: unity and pan, mute and solo, the sends (post and pre fader), filters and EQ against their analytic
 // response, direct outputs, the recorder taps, channels beyond the count (doc/specs/modules/audio-console.md §8).
 #include "AudioConsoleDsp.h"

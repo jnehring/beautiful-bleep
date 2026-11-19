@@ -14,7 +14,7 @@
   "use strict";
 
   const ID = /^[0-9a-f]{16}\.wav$/;
-  /// What a shared preset may carry: the API refuses more (website/api/app/routers/presets.py).
+  /// What a shared preset may carry: the API refuses more (its routers/presets.py).
   const LIMITS = { files: 8, bytes: 5 * 1024 * 1024 };
 
   /// The media ids the nodes use, in order, once each: every string in a node's `data` that is a media id.

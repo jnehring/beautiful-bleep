@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
-// bleep/abi — the part of the Bleep module ABI (website/content/developers/modules/module-abi.md) that does not depend on
+// bleep/abi — the part of the Bleep module ABI (the developer docs' modules/module-abi.md) that does not depend on
 // the module. A module class extends `Module`; its entry file exports the `bleep_*` functions. Today that entry file is
 // written by hand (see gains.entry.ts); the Bleep Script transform will generate it from the decorators.
 

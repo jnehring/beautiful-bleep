@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // The recorder service (engine/Recording.h): files per track, takes, the three sample formats, safe names,
 // a take that ends where the audio thread ended it, and a session that fails instead of blocking.
 #include "Recording.h"
