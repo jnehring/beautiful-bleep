@@ -5,6 +5,7 @@
 // model and the compiler all work from these descriptions. No JUCE here.
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <functional>
@@ -34,6 +35,7 @@ struct ShowIf {
     int min = 0, max = 0;
     std::string param2;  ///< optional second condition, both must hold (e.g. a channel exists and is stereo)
     int min2 = 0, max2 = 0;
+    std::vector<int> values;  ///< optional: instead of min..max, the first setting must be one of these (whenAny())
     bool active() const noexcept { return !param.empty(); }
 };
 
@@ -77,6 +79,13 @@ struct ParamSpec {
     ParamSpec when(std::string param, int lo, int hi) const {
         ParamSpec p = *this;
         p.show = {std::move(param), lo, hi, {}, 0, 0};
+        return p;
+    }
+    /// Shown only while the setting is one of these values (they need not be adjacent; min/max still span them).
+    ParamSpec whenAny(std::string param, std::vector<int> list) const {
+        ParamSpec p = *this;
+        const auto [lo, hi] = std::minmax_element(list.begin(), list.end());
+        p.show = {std::move(param), *lo, *hi, {}, 0, 0, std::move(list)};
         return p;
     }
     ParamSpec namedBy(std::string param, std::vector<std::string> list) const {

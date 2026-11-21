@@ -256,7 +256,7 @@ std::string structDiff(const ModuleSpec& native, const ModuleSpec& rebuilt) {
         same((at + " fields").c_str(), a.id == b.id && a.name == b.name && a.kind == b.kind && a.map == b.map && a.format == b.format && a.decimals == b.decimals &&
                                            a.label == b.label && a.choices == b.choices && a.choiceGroups == b.choiceGroups && a.modulatable == b.modulatable &&
                                            a.group == b.group && a.names == b.names && a.namesBy == b.namesBy && a.show.param == b.show.param &&
-                                           a.show.min == b.show.min && a.show.max == b.show.max);
+                                           a.show.min == b.show.min && a.show.max == b.show.max && a.show.values == b.show.values);
         for (float x : {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 1.0f}) {
             const float u = a.fromNormalised(x), v = b.fromNormalised(x);
             same((at + " maps differently").c_str(), std::fabs(u - v) <= 1e-4f * std::max(1.0f, std::fabs(u)));

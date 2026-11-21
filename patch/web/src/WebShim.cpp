@@ -146,6 +146,11 @@ void showAndNames(std::string& out, const ShowIf& show, const std::string& names
             quote(out, show.param2);
             out += ",\"min2\":" + std::to_string(show.min2) + ",\"max2\":" + std::to_string(show.max2);
         }
+        if (!show.values.empty()) {
+            out += ",\"values\":[";
+            for (size_t i = 0; i < show.values.size(); ++i) out += (i ? "," : "") + std::to_string(show.values[i]);
+            out += "]";
+        }
         out += "}";
     }
     if (!namesBy.empty() && !names.empty()) {

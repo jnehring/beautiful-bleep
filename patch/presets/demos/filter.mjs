@@ -66,14 +66,13 @@ function drumBandpass() {
 function keyTrack() {
   const p = patch("Multi Filter: Key-Tracked Pluck", {
     module: "filter", tempo: 98,
-    description: "The sequencer's pitch also goes into the filter, and Key Track at full makes Cutoff follow every note, so high and low notes keep the same brightness. Lower Key Track to hear the low notes go dull, or move Mode to morph from low-pass to high-pass.",
+    description: "The sequencer's pitch also goes into the filter, and Key Track at full makes Cutoff follow every note, so high and low notes keep the same brightness. Lower Key Track to hear the low notes go dull, or switch Mode to Band-pass or High-pass.",
     tags: ["key tracking", "pluck", "svf", "mode", "resonance"],
   });
   const m = melody(p, [0, 0], [0, 7, 12, 7, 3, 10, 15, 10, 5, 12, 17, 12, 7, 14, 19, 14], {
     rate: "1/8", root: "C", scale: "Natural Minor", octave: 0, shape: 1, gatelength: 0.35, env: { decay: 0.35, sustain: 0, release: 0.25 } });
   const f = p.add("filter", [3, 0], { type: "SVF Multimode", cutoff: 500, resonance: 0.5, keytrack: 1, mode: "LP", drive: 0.1 });
-  const lfo = p.add("lfo", [3, 1], { rate: 0.08 }, { name: "Mode" });
-  p.cable(m.seq, "pitch", f, "pitch").cable(m.amp, "l", f, "l").cable(m.amp, "l", f, "r").cable(lfo, "out", f, "mode", 0.12);
+  p.cable(m.seq, "pitch", f, "pitch").cable(m.amp, "l", f, "l").cable(m.amp, "l", f, "r");
   finish(p, [4, 0], f, -8, { size: 0.55, decay: 2.5, mix: 0.25 });
   return p;
 }

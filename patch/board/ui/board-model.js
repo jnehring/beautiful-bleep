@@ -139,7 +139,7 @@
       function isShown(n, item) {
         if (!item.show) return true;
         const v = paramValue(n, item.show.param);
-        if (v < item.show.min || v > item.show.max) return false;
+        if (item.show.values ? !item.show.values.includes(v) : v < item.show.min || v > item.show.max) return false;
         if (!item.show.param2) return true;
         const v2 = paramValue(n, item.show.param2);
         return v2 >= item.show.min2 && v2 <= item.show.max2;

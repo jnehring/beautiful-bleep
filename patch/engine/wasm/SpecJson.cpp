@@ -18,6 +18,8 @@ void showAndNames(const juce::var& o, ShowIf& show, std::string& namesBy, std::v
     if (o["show"].isObject()) {
         show = {str(o["show"]["param"]), (int)o["show"]["min"], (int)o["show"]["max"]};
         if (o["show"]["param2"].isString()) show.param2 = str(o["show"]["param2"]), show.min2 = (int)o["show"]["min2"], show.max2 = (int)o["show"]["max2"];
+        if (auto* a = o["show"]["values"].getArray())
+            for (const auto& v : *a) show.values.push_back((int)v);
     }
     if (o["names"].isObject()) {
         namesBy = str(o["names"]["by"]);

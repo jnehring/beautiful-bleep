@@ -24,17 +24,18 @@ audio rate. **Type** picks the algorithm; the dropdown groups them by family.
   bottom, 20 kHz at the top, about ten octaves in total. Modulation therefore
   works in octaves: a cable at 10 % moves the cutoff by about one octave,
   whatever the cutoff is.
-- **Resonance** boosts the frequencies around the cutoff. On the ladder and
-  allpass types it's the feedback amount; some types self-oscillate near the
-  top (see the table).
+- **Resonance** (not shown for the 1-pole types) boosts the frequencies
+  around the cutoff. On the ladder and allpass types it's the feedback amount;
+  some types self-oscillate near the top (see the table).
 - **Drive** saturates the input before the filter (a soft tanh curve) for
   warmth and grit. The saturating types add their own distortion on top.
-- **Mode** is a dropdown that picks the response on the multimode types:
-  Low-pass, Band-pass, High-pass or Notch. A cable into it steps through the four.
-
-  On the phasers and the flanger it does something else (see below).
-- **Gain** sets the boost or cut of the shelving types, in dB. On the vowel
-  filter it stretches or squeezes the spacing of the formants.
+- **Mode** (only shown for the types it acts on) is a dropdown that picks the
+  response of the multimode types: Low-pass, Band-pass, High-pass or Notch. A
+  cable sets it (0 Low-pass … 3 Notch). On the phasers and the flanger it does
+  something else (see below).
+- **Gain** (only shown for the shelving types and the vowel filter) sets the
+  boost or cut of the shelves, in dB. On the vowel filter it stretches or
+  squeezes the spacing of the formants.
 - **Vowel** (only shown for the vowel filter) moves through A, E, I, O, U.
 - **Damping** (only shown for the comb types) dulls the loop, so the upper
   peaks die away.
@@ -51,13 +52,13 @@ response at once.
 
 | Type | What it is | Mode | Gain |
 |---|---|---|---|
-| SVF Multimode | LP / BP / HP / notch morph | ✓ | |
+| SVF Multimode | low-pass, band-pass, high-pass or notch, picked by *Mode* | ✓ | |
 | SVF Bandpass (unit gain) | band-pass with 0 dB at the cutoff, whatever the resonance; resonance makes the band narrower | | |
 | SVF Band Shelf | boosts or cuts a band around the cutoff; resonance narrows it | | ✓ |
 | SVF Peaking | low-pass minus high-pass: a resonant peak with full bass and treble | | |
 | SVF Allpass | flat level, phase turns around the cutoff (resonance makes the turn steeper) | | |
 
-**1-Pole (6 dB/oct)** — gentle tone shaping. *Resonance* has no effect.
+**1-Pole (6 dB/oct)** — gentle tone shaping. There is no *Resonance*.
 
 | Type | What it is | Gain |
 |---|---|---|
@@ -66,7 +67,7 @@ response at once.
 | 1-Pole Low Shelf / High Shelf | tilt the lows or highs by *Gain*; *Cutoff* is the middle of the slope | ✓ |
 
 **Transistor Ladder (24 dB/oct)** — four low-passes in a feedback loop: the
-classic fat, steep synth filter. *Mode* morphs LP → BP → HP → notch, all
+classic fat, steep synth filter. *Mode* picks LP, BP, HP or notch, all
 built from the ladder's taps. In low-pass mode the input is boosted with the
 resonance, so the bass doesn't thin out.
 
@@ -80,7 +81,7 @@ resonance, so the bass doesn't thin out.
 
 **Diode Ladder (24 dB/oct)** — the coupled stages of a diode ladder give a
 squelchier, less predictable resonance than the transistor ladder.
-Low-pass only (*Mode* has no effect).
+Low-pass only (no *Mode*).
 
 | Type | What it is | Self-oscillates |
 |---|---|---|
@@ -94,8 +95,8 @@ the classic sweep. *Resonance* is feedback (sharper peaks). Set *Mix* to
 
 | Type | What it is | Mode |
 |---|---|---|
-| Phaser 1-Pole ×4 | four 1-pole allpasses: two notches, around 0.4× and 2.4× the cutoff | below 50 %: normal; from 50 %: inverted (peaks and notches swap) |
-| Phaser 2-Pole ×2 | two 2-pole allpasses: two notches whose spacing you set | notch spacing: wide at 0 %, close at 100 % |
+| Phaser 1-Pole ×4 | four 1-pole allpasses: two notches, around 0.4× and 2.4× the cutoff | Low-pass, Band-pass: normal; High-pass, Notch: inverted (peaks and notches swap) |
+| Phaser 2-Pole ×2 | two 2-pole allpasses: two notches whose spacing you set | notch spacing: widest at Low-pass, closest at Notch; from High-pass also inverted |
 | Flanger | a short delay of 1 / *Cutoff* (20 Hz = 50 ms, 1 kHz = 1 ms): a comb of evenly spaced notches | as the 1-pole phaser |
 
 **Classic Digital** — the textbook digital filters the book improves on,
@@ -103,11 +104,11 @@ kept for comparison and for their sound.
 
 | Type | What it is |
 |---|---|
-| Naive 1-Pole Low-pass | the simplest digital low-pass; above a few kHz the cutoff no longer tracks and it opens fully |
+| Naive 1-Pole Low-pass | the simplest digital low-pass; above a few kHz the cutoff no longer tracks and it opens fully; no *Resonance* |
 | Biquad (Direct Form I) | the classic biquad of the SVF multimode (*Mode* works); same sound when static, but fast cutoff modulation at high resonance can make it misbehave (a safety limit keeps it bounded) |
 
 **Nonlinear State Variable (12 dB/oct)** — the SVF with saturation inside.
-*Mode* morphs LP → BP → HP → notch.
+*Mode* picks LP, BP, HP or notch.
 
 | Type | What it is |
 |---|---|
@@ -121,7 +122,7 @@ gain sets the resonance. *Resonance* raises that gain towards the edge of
 self-oscillation (a peak of Q = 1/(3 − gain)). The twist here: the amplifier
 clips against a hard-knee wall, so quiet signals ring cleanly but the
 resonance bites as soon as it hits the wall, and at 100 % the filter holds a
-bounded, self-sustaining tone. *Mode* has no effect.
+bounded, self-sustaining tone. There is no *Mode*.
 
 | Type | What it is |
 |---|---|
@@ -132,7 +133,7 @@ bounded, self-sustaining tone. *Mode* has no effect.
 
 | Type | What it is |
 |---|---|
-| Vowel A-E-I-O-U | four parallel resonators placed like the first four formants of a voice. *Vowel* morphs A → E → I → O → U (the positions move smoothly, in pitch and level). *Cutoff* is the size of the throat: 2 kHz leaves the formants where they are, an octave up makes a smaller mouth, an octave down a larger one. *Resonance* narrows them (low: breathy, high: ringing). *Gain* stretches (+) or squeezes (−) the spacing of the formants. *Mode* has no effect. Feed it a bright, harmonic source: a saw or a pulse |
+| Vowel A-E-I-O-U | four parallel resonators placed like the first four formants of a voice. *Vowel* morphs A → E → I → O → U (the positions move smoothly, in pitch and level). *Cutoff* is the size of the throat: 2 kHz leaves the formants where they are, an octave up makes a smaller mouth, an octave down a larger one. *Resonance* narrows them (low: breathy, high: ringing). *Gain* stretches (+) or squeezes (−) the spacing of the formants. There is no *Mode*. Feed it a bright, harmonic source: a saw or a pulse |
 
 **Tuned Comb** — a delay line fed back on itself, tuned by the *Cutoff*:
 the peaks sit at the cutoff frequency and its multiples. Patch Voice In
@@ -188,8 +189,9 @@ it shows the quiet-signal (linear) response.
   Track* at 100 %.
 - **Squealing resonance:** *Sallen-Key Low-pass* with *Resonance* at 85 – 100 %
   and an envelope on *Cutoff*; the wall keeps it bounded.
-- **Filter sweeps:** patch a slow Function or Random onto *Cutoff*, or onto
-  *Mode* for a sweep from low-pass to high-pass.
+- **Filter sweeps:** patch a slow Function or Random onto *Cutoff*. For a
+  smooth sweep from low-pass to high-pass, use the Dual Filter, whose *Mode*
+  morphs.
 - **Process a track:** route a track's audio onto the board with an input
   port, through the filter, and back out with an output port.
 - **Sidechain-style movement:** patch *Env* onto another module, e.g. a pad's

@@ -208,7 +208,8 @@
       if (!p) return 0;
       return Math.round(p.min + (view.node.params[id] ?? p.default) * (p.max - p.min));
     }
-    const isShown = (item) => (!item.show || (units(item.show.param) >= item.show.min && units(item.show.param) <= item.show.max)) &&
+    const inShow = (s, v) => (s.values ? s.values.includes(v) : v >= s.min && v <= s.max);
+    const isShown = (item) => (!item.show || inShow(item.show, units(item.show.param))) &&
       !(h && h.visible && h.visible(item, view) === false);
     const shownName = (item) => (item.names && item.names.list[units(item.names.by)]) || item.name;
     view.isShown = isShown;
