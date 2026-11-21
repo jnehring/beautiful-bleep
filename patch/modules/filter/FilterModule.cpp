@@ -15,7 +15,7 @@ namespace va = patch::va;
 
 class FilterModule final : public Module {
 public:
-    enum { Cutoff, Resonance, Drive, Morph, Mix, KeyTrack, Type, Gain, Vowel, Damping, Slope };
+    enum { Cutoff, Resonance, Drive, Morph, Mix, KeyTrack, Type, Gain, Vowel, Damping, Slope, Analog };
     enum { InL, InR, Pitch };
     enum { OutL, OutR, Env };
 
@@ -52,6 +52,7 @@ public:
             p.damping = value(c, Damping, i);
             p.slope = (int)std::round(value(c, Slope, i)) + 1;  // 6 dB per section
             p.mix = value(c, Mix, i);
+            p.analog = value(c, Analog, i);
             p.keyTrack = value(c, KeyTrack, i);
             float frame[2] = {c.inputs[InL][i], inR[i]};
             c.outputs[Env][i] = dsp_.tick(p, c.inputs[Pitch][i], frame, 2);
@@ -76,8 +77,9 @@ void registerFilterModule(Registry& r) {
     s.name = "Multi Filter";
     s.category = "Audio/Filters";
     s.colour = "#f472b6";
-    s.description = "Stereo multimode filter: 32 virtual-analog algorithms (SVF, ladders, 1-poles, shelves, phasers, flanger, "
-                    "Sallen-Key, vowel formants, tuned comb, staircase), LP/BP/HP/notch mode, drive, key tracking, envelope out.";
+    s.description = "Stereo multimode filter: 38 virtual-analog algorithms (SVF, ladders, 1-poles, shelves, phasers, flanger, "
+                    "Sallen-Key, vowel formants, tuned comb, staircase, op-amp, diode, OTA and CMOS circuits), LP/BP/HP/notch "
+                    "mode, drive per algorithm, analog character, key tracking, envelope out.";
     using T = va::FilterType;
     // Mode only where it does something: the multimode types mix LP, BP, HP and notch; the phasers and the
     // flanger read it as polarity (Phaser 2-Pole also as notch spacing). A setting, so a cable sets it.
@@ -85,7 +87,8 @@ void registerFilterModule(Registry& r) {
                          .whenAny("type", {(int)T::Svf, (int)T::Ladder, (int)T::LadderFeedbackHp, (int)T::LadderTanh,
                                            (int)T::LadderHyperbolic, (int)T::LadderNonlinear, (int)T::Phaser1, (int)T::Phaser2,
                                            (int)T::Flanger, (int)T::Biquad, (int)T::SvfAtanh, (int)T::SvfHyperbolic,
-                                           (int)T::SvfSaturating});
+                                           (int)T::SvfSaturating, (int)T::SlewSvf, (int)T::DiodePair, (int)T::Ota4,
+                                           (int)T::CmosSvf});
     std::vector<std::string> names, groups;
     for (const auto& group : patch::va::typeGroups())
         for (const char* name : group.types) {
@@ -98,7 +101,11 @@ void registerFilterModule(Registry& r) {
         if ((t < (int)T::OnePoleLp || t > (int)T::OnePoleHighShelf) && t != (int)T::NaiveOnePole) resonant.push_back(t);
     ParamSpec types = ParamSpec::choice("type", "Type", names, 0);
     types.choiceGroups = std::move(groups);
-    types.legacyChoices = patch::va::legacyNames();  // boards saved with the 25-algorithm list
+    types.legacyChoices = patch::va::legacyLists();  // boards saved with the 25- and the 32-algorithm lists
+    // Analog on every type but the two digital ones.
+    std::vector<int> analogTypes;
+    for (int t = 0; t < va::kNumTypes; ++t)
+        if (t != (int)T::NaiveOnePole && t != (int)T::Biquad) analogTypes.push_back(t);
     s.params = {ParamSpec::hertz("cutoff", "Cutoff", 20.0f, 20000.0f, 2000.0f),
                 ParamSpec::percent("resonance", "Resonance", 0.0f, 1.0f, 0.2f).whenAny("type", resonant),
                 ParamSpec::percent("drive", "Drive", 0.0f, 1.0f, 0.0f),
@@ -112,7 +119,8 @@ void registerFilterModule(Registry& r) {
                 ParamSpec::percent("vowel", "Vowel", 0.0f, 1.0f, 0.0f).when("type", (int)va::FilterType::Vowel, (int)va::FilterType::Vowel),
                 ParamSpec::percent("damping", "Damping", 0.0f, 1.0f, 0.3f).when("type", (int)va::FilterType::CombPositive, (int)va::FilterType::CombNegative),
                 ParamSpec::stepped("slope", "Slope", {"6 dB", "12 dB", "18 dB", "24 dB", "30 dB", "36 dB", "42 dB", "48 dB"}, 3)
-                    .when("type", (int)va::FilterType::StaircaseLp, (int)va::FilterType::StaircaseHp)};
+                    .when("type", (int)va::FilterType::StaircaseLp, (int)va::FilterType::StaircaseHp),
+                ParamSpec::percent("analog", "Analog", 0.0f, 1.0f, 0.5f).whenAny("type", analogTypes)};
     s.inputs = {{"l", "In L", Signal::Audio}, {"r", "In R", Signal::Audio}, {"pitch", "Pitch", Signal::Pitch}};
     s.outputs = {{"l", "Out L", Signal::Audio, true}, {"r", "Out R", Signal::Audio, true},
                  {"env", "Env", Signal::Control, false}};

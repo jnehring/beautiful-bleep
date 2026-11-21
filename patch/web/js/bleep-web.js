@@ -424,8 +424,10 @@
       };
     },
     /// A board saved before the output was renamed: its Audio Out node still says "Speakers" / "Synth" (the device is picked in the node now).
-    upgradeBoard(b) {
+    /// Old saves in today's form. `typeList`: the board page's node types (their earlier choice lists, "legacy").
+    upgradeBoard(b, typeList) {
       migrateOscillators(b);
+      migrateLegacyChoices(b, typeList || types);
       for (const n of (b && b.nodes) || []) {
         if (n.type !== "audio-out") continue;
         if (n.name === "Speakers") n.name = "Audio Out";
@@ -435,6 +437,32 @@
     },
     get sampleRate() { return ctx ? ctx.sampleRate : 0; },
   });
+
+  /// A choice saved against an earlier list of the setting (its type's "legacy" lists, e.g. the Multi Filter's Type
+  /// before algorithms were added) moves to the same name in today's list, as the engine's migrateLegacyChoice
+  /// (engine/Board.cpp): the grids k / (n − 1) of the lists only meet at 0 and 1, so a value on today's grid stays.
+  /// A node that pins a module version keeps its value: it runs that version, with that version's list. In place.
+  function migrateLegacyChoices(b, typeList) {
+    if (!b || !b.nodes || !typeList || !typeList.length) return b;
+    const byType = new Map(typeList.map((t) => [t.type, t]));
+    const onGrid = (x, n) => { const r = x * (n - 1); return Math.abs(r - Math.round(r)) < 0.005; };
+    for (const n of b.nodes) {
+      const t = byType.get(n.type);
+      if (!t || !n.params || n.version) continue;
+      for (const p of t.params || []) {
+        if (!p.legacy || !p.choices || !(p.id in n.params)) continue;
+        const x = Math.min(Math.max(+n.params[p.id] || 0, 0), 1), newN = p.choices.length;
+        if (newN < 2 || onGrid(x, newN)) continue;
+        for (const old of p.legacy) {
+          if (old.length < 2 || old.length === newN || !onGrid(x, old.length)) continue;
+          const j = p.choices.indexOf(old[Math.round(x * (old.length - 1))]);
+          if (j >= 0) n.params[p.id] = j / (newN - 1);
+          break;
+        }
+      }
+    }
+    return b;
+  }
 
   /// Boards saved before the Oscillator had Waveform / Secondary / Morph (one Shape knob, an output per waveform and
   /// a Sub): the same sound in today's form, as the engine's board::migrateOscillators (engine/Board.cpp). A node that

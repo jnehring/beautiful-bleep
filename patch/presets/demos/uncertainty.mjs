@@ -124,7 +124,7 @@ function edges() {
   const u = p.add("uncertainty", [3, 1], { shape: "Edges", f1rate: 1, f1spread: 1, fsync: "1/2", qrate: 3, qsync: "1/8", q1bits: 1, distribution: 0 });
   p.cable(u, "fluct1", v.filt, "cutoff", 0.5).cable(u, "quant1", v.filt, "resonance", 0.2);
   const drums = beat(p, [0, 4], { style: "four", level: -7 });
-  const mix = p.add("audio-mixer", [4, 0], { level1: -6, level2: -11, master: 0 });
+  const mix = p.add("audio-mixer", [4, 0], { level1: -7, level2: -11, master: 0 });
   const verb = p.add("reverb", [5, 0], { size: 0.4, decay: 1.8, mix: 0.12, quality: "Eco (8 lines)" });
   p.cable(v.filt, "l", mix, "in1l").cable(v.filt, "l", mix, "in1r").stereo(drums, mix, { from: ["outl", "outr"], to: ["in2l", "in2r"] })
     .stereo(mix, verb, { from: ["outl", "outr"] }).stereo(verb, p.out);

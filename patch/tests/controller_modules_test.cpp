@@ -549,11 +549,15 @@ void filterTypeMigration() {
         return m.nodes.empty() ? -1.0f : m.nodes[0].params.at("type");
     };
     const int n = (int)type.choices.size();
-    const auto& legacy = type.legacyChoices;
-    EXPECT(n == 32 && legacy.size() == 25);
-    for (size_t k = 0; k < legacy.size(); ++k)  // old: k / 24 → the same name in the new list
-        EXPECT_NEAR(load((float)k / 24.0f), (float)indexOf(legacy[k].c_str()) / (float)(n - 1), 1e-5);
-    for (int j = 0; j < n; ++j)  // new: j / 31 stays
+    EXPECT(n == 38 && type.legacyChoices.size() == 2);
+    for (const auto& legacy : type.legacyChoices) {  // old: k / (old − 1) → the same name in the new list
+        const float steps = (float)legacy.size() - 1.0f;
+        for (size_t k = 0; k < legacy.size(); ++k) {
+            EXPECT(indexOf(legacy[k].c_str()) < n);
+            EXPECT_NEAR(load((float)k / steps), (float)indexOf(legacy[k].c_str()) / (float)(n - 1), 1e-5);
+        }
+    }
+    for (int j = 0; j < n; ++j)  // new: j / 37 stays
         EXPECT_NEAR(load((float)j / (float)(n - 1)), (float)j / (float)(n - 1), 1e-6);
     EXPECT_NEAR(load(1.0f), 1.0f, 1e-6);  // the former Rough is still the last
 }

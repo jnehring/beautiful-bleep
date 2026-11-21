@@ -81,6 +81,15 @@ juce::var describeTypes() {
                 for (const auto& x : p.choiceGroups) g.add(juce::String(x));
                 o->setProperty("groups", g);
             }
+            if (!p.legacyChoices.empty()) {   // earlier lists, so the web board migrates saved choices as Board.cpp does
+                juce::Array<juce::var> lists;
+                for (const auto& list : p.legacyChoices) {
+                    juce::Array<juce::var> l;
+                    for (const auto& x : list) l.add(juce::String(x));
+                    lists.add(l);
+                }
+                o->setProperty("legacy", lists);
+            }
             o->setProperty("min", p.min);
             o->setProperty("max", p.max);
             o->setProperty("def", p.def);

@@ -2,7 +2,7 @@
   "name": "Filter",
   "slug": "filter",
   "license": "GPL-3.0-only",
-  "tagline": "Stereo multimode filter with 32 virtual analog algorithms",
+  "tagline": "Stereo multimode filter with 38 virtual analog algorithms",
   "colour": "#f472b6",
   "formats": [
     "Board module"

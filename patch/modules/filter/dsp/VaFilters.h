@@ -21,6 +21,32 @@
 //   Comb    a tuned feedback comb with either polarity and damping in the loop
 //   Staircase  a cascade of 1-pole sections, 6-48 dB, with staggered corners
 //
+// And circuit models of their own, each after a classic topology:
+//   Op-Amp Slew SVF   a state-variable filter whose op-amp integrators are
+//           slew-limited and rail-bound: loud, high signals turn to ramps
+//   Diode-Feedback LP/HP  the Sallen-Key structure with a diode clipper in
+//           the resonance path instead of a hard wall: soft, screaming
+//   Diode Pair Multimode  integrators fed through diode pairs (tanh)
+//   OTA 4-Pole  four OTA stages (each integrates tanh(in − out)) in a loop
+//   CMOS Inverter SVF  inverters as integrators: asymmetric, very dirty
+//
+// Analog (0 … 1) brings in what the circuits do beyond their equations:
+// component tolerances (each channel's cutoff and each ladder stage differ a
+// little), slow drift and a noise floor (FilterDsp), slightly mismatched
+// transistor pairs (asymmetric stages), the ladders' bass loss at high
+// resonance, a coupling high-pass in the diode ladder's feedback, and a
+// touch of stage saturation in the feedback-saturated ladders, so their
+// self-oscillation shifts in pitch with its level. Analog 0 is the ideal
+// circuit. The saturating ladders are solved in full (Newton over the loop).
+//
+// Drive is the algorithm's own: each family saturates where its circuit does
+// (driveSpec()): the ladders in their stages, the diode ladder asymmetrically
+// in its loop, the Sallen-Key against its amplifier's wall, the phasers,
+// flanger and comb in their feedback, the 1-poles after the filter like tape,
+// the linear SVFs and the biquad in a warm input stage. Drive raises the level
+// into the nonlinearity and lowers the output again, so it changes the sound
+// more than the loudness.
+//
 // One FilterVoice holds the state of one channel for every algorithm.
 #pragma once
 
@@ -29,6 +55,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdint>
 #include <initializer_list>
 #include <string>
 #include <vector>
@@ -50,9 +77,12 @@ enum class FilterType {
     NaiveOnePole, Biquad,
     // Own designs.
     SallenKeyLp, SallenKeyHp, Vowel, CombPositive, CombNegative, StaircaseLp, StaircaseHp,
+    // Circuit models.
+    SlewSvf, DiodeFeedbackLp, DiodeFeedbackHp, DiodePair, Ota4, CmosSvf,
     // Nonlinear state variable (§5.4). SvfSaturating must stay last: boards
     // saved before the algorithm list store it as type 1.0 ("Rough"). Boards
-    // saved with the 25-algorithm list are migrated by name (legacyNames()).
+    // saved with the 25- and the 32-algorithm lists are migrated by name
+    // (legacyLists()); the list's length − 1 must stay coprime to 24 and 31.
     SvfAtanh, SvfHyperbolic, SvfSaturating,
     Count
 };
@@ -75,6 +105,11 @@ inline const std::vector<TypeGroup>& typeGroups() {
         {"Formant", {"Vowel A-E-I-O-U"}},
         {"Tuned Comb", {"Comb Positive", "Comb Negative"}},
         {"Staircase (6-48 dB)", {"Staircase Low-pass", "Staircase High-pass"}},
+        {"Op-Amp Slew (12 dB)", {"Op-Amp Slew SVF"}},
+        {"Diode Feedback (12 dB)", {"Diode-Feedback Low-pass", "Diode-Feedback High-pass"}},
+        {"Diode Pair (12 dB)", {"Diode Pair Multimode"}},
+        {"OTA Cascade (24 dB)", {"OTA 4-Pole"}},
+        {"CMOS Inverter (12 dB)", {"CMOS Inverter SVF"}},
         {"Nonlinear State Variable", {"SVF Atanh Damping", "SVF Hyperbolic Damping", "SVF Saturating (Rough)"}},
     };
     return groups;
@@ -91,6 +126,22 @@ inline const std::vector<std::string>& legacyNames() {
         "Naive 1-Pole Low-pass", "Biquad (Direct Form I)",
         "SVF Atanh Damping", "SVF Hyperbolic Damping", "SVF Saturating (Rough)"};
     return names;
+}
+
+/// Every earlier list boards may have stored Type against (index / (n − 1)), oldest first:
+/// the 25 algorithms of the book, then the 32 with the own designs.
+inline const std::vector<std::vector<std::string>>& legacyLists() {
+    static const std::vector<std::vector<std::string>> lists = {
+        legacyNames(),
+        {"SVF Multimode", "SVF Bandpass (unit gain)", "SVF Band Shelf", "SVF Peaking", "SVF Allpass",
+         "1-Pole Low-pass", "1-Pole High-pass", "1-Pole Allpass", "1-Pole Low Shelf", "1-Pole High Shelf",
+         "Ladder Linear", "Ladder Feedback HP", "Ladder Tanh", "Ladder Hyperbolic", "Ladder Nonlinear Stages",
+         "Diode Ladder Linear", "Diode Ladder Tanh", "Phaser 1-Pole ×4", "Phaser 2-Pole ×2", "Flanger",
+         "Naive 1-Pole Low-pass", "Biquad (Direct Form I)", "Sallen-Key Low-pass", "Sallen-Key High-pass",
+         "Vowel A-E-I-O-U", "Comb Positive", "Comb Negative", "Staircase Low-pass", "Staircase High-pass",
+         "SVF Atanh Damping", "SVF Hyperbolic Damping", "SVF Saturating (Rough)"},
+    };
+    return lists;
 }
 
 constexpr double kPi = 3.14159265358979323846;
@@ -110,6 +161,104 @@ inline float prewarp(double hz, double sampleRate) noexcept {
 
 /// Static ladder feedback high-pass (§4.3): kills the resonance below it.
 constexpr double kFeedbackHpHz = 250.0;
+
+// Analog (at 100 %).
+constexpr float kStageTolerance = 0.03f;   ///< ±3 % cutoff spread between the stages of a ladder / cascade
+constexpr float kStageMismatch = 0.08f;    ///< asymmetry of the transistor / OTA pairs (even harmonics)
+constexpr float kBassLoss = 0.5f;          ///< share of the ladders' resonance compensation given up
+constexpr float kCouplingHpHz = 90.0f;     ///< the diode ladder's feedback coupling high-pass
+constexpr float kSlewHz = 4000.0f;         ///< op-amp slew: a full-scale sine above this is limited
+constexpr float kOpAmpRail = 1.5f;         ///< op-amp / inverter integrators clip softly here
+
+/// Where Drive acts: an input stage before the filter, a stage after it, or
+/// inside the filter (its stages, loop or amplifier).
+enum class DriveAt { Before, After, Inside };
+
+/// Drive of one type: up to maxDb into the nonlinearity and asymmetry (even
+/// harmonics) up to bias. The output is lowered again as a soft clipper with
+/// level `knee` would grow a reference signal (driveMakeup()): full make-up
+/// while Drive is low, less once the curve limits the level anyway.
+struct DriveSpec {
+    DriveAt at;
+    float maxDb, knee, bias;
+};
+
+constexpr float kDriveReference = 0.5f;  ///< the level (peak) the make-up keeps steady
+
+/// Output gain for an input gain g: tanh(r/knee) / tanh(g·r/knee), 1 at g = 1.
+inline float driveMakeup(float g, float knee) noexcept {
+    const float r = kDriveReference / knee;
+    return std::tanh(r) / std::tanh(g * r);
+}
+
+inline const DriveSpec& driveSpec(FilterType type) noexcept {
+    // FilterType order. Calibrated so that the same Drive sounds about as driven
+    // on every type, at about the same loudness.
+    static const DriveSpec specs[] = {
+        // SVF Multimode, Bandpass (unit gain), Band Shelf, Peaking, Allpass: warm input stage
+        {DriveAt::Before, 30.0f, 1.84f, 0.15f}, {DriveAt::Before, 30.0f, 1.27f, 0.15f}, {DriveAt::Before, 30.0f, 1.80f, 0.15f},
+        {DriveAt::Before, 30.0f, 1.68f, 0.15f}, {DriveAt::Before, 30.0f, 1.88f, 0.15f},
+        // 1-Pole LP, HP, AP, Low Shelf, High Shelf: tape-like stage after the filter
+        {DriveAt::After, 24.0f, 1.88f, 0.1f}, {DriveAt::After, 24.0f, 1.59f, 0.1f}, {DriveAt::After, 24.0f, 1.78f, 0.1f},
+        {DriveAt::After, 24.0f, 0.92f, 0.1f}, {DriveAt::After, 24.0f, 1.62f, 0.1f},
+        // Ladder Linear, Feedback HP, Tanh, Hyperbolic, Nonlinear Stages: input stage, then into the stages
+        {DriveAt::Inside, 24.0f, 2.33f, 0.0f}, {DriveAt::Inside, 36.0f, 3.18f, 0.0f}, {DriveAt::Inside, 30.0f, 1.69f, 0.0f},
+        {DriveAt::Inside, 30.0f, 1.63f, 0.0f}, {DriveAt::Inside, 30.0f, 2.43f, 0.0f},
+        // Diode Linear, Diode Tanh: asymmetric input stage, then in the loop (the ladder's input)
+        {DriveAt::Inside, 20.0f, 2.12f, 0.4f}, {DriveAt::Inside, 24.0f, 2.49f, 0.4f},
+        // Phaser 1-Pole, Phaser 2-Pole, Flanger: in the feedback loop
+        {DriveAt::Inside, 30.0f, 1.69f, 0.0f}, {DriveAt::Inside, 30.0f, 0.91f, 0.0f}, {DriveAt::Inside, 30.0f, 1.60f, 0.0f},
+        // Naive 1-Pole: hard digital clipping before; Biquad: warm input stage
+        {DriveAt::Before, 24.0f, 1.87f, 0.0f}, {DriveAt::Before, 30.0f, 1.84f, 0.15f},
+        // Sallen-Key LP, HP: into the amplifier's wall, which turns asymmetric
+        {DriveAt::Inside, 30.0f, 2.12f, 0.3f}, {DriveAt::Inside, 30.0f, 2.32f, 0.3f},
+        // Vowel: a driven voice before the formants
+        {DriveAt::Before, 24.0f, 1.01f, 0.3f},
+        // Comb Positive, Negative: in the loop
+        {DriveAt::Inside, 30.0f, 2.15f, 0.0f}, {DriveAt::Inside, 30.0f, 2.89f, 0.0f},
+        // Staircase LP, HP: into every section
+        {DriveAt::Inside, 30.0f, 3.32f, 0.0f}, {DriveAt::Inside, 30.0f, 0.32f, 0.0f},
+        // Op-Amp Slew SVF: into the slewing integrators
+        {DriveAt::Inside, 30.0f, 2.53f, 0.1f},
+        // Diode-Feedback LP, HP: into the amplifier and its diode clipper
+        {DriveAt::Inside, 30.0f, 1.03f, 0.25f}, {DriveAt::Inside, 30.0f, 1.63f, 0.25f},
+        // Diode Pair: into the diode pairs
+        {DriveAt::Inside, 20.0f, 2.29f, 0.1f},
+        // OTA 4-Pole: input stage, then into the OTA stages
+        {DriveAt::Inside, 30.0f, 3.49f, 0.05f},
+        // CMOS Inverter SVF: into the inverters
+        {DriveAt::Inside, 24.0f, 1.92f, 0.35f},
+        // SVF Atanh, Hyperbolic, Saturating: into their own nonlinearity
+        {DriveAt::Inside, 24.0f, 11.2f, 0.0f}, {DriveAt::Inside, 24.0f, 12.1f, 0.0f}, {DriveAt::Inside, 24.0f, 1.31f, 0.0f},
+    };
+    static_assert(sizeof(specs) / sizeof(specs[0]) == (size_t)FilterType::Count, "one DriveSpec per FilterType");
+    return specs[(size_t)type];
+}
+
+/// tanh with an offset, shifted back through the origin and normalised to slope 1 there:
+/// b = 0 is tanh; b > 0 clips the negative side earlier (even harmonics, a diode's bend).
+inline double asym(double v, double b) noexcept {
+    const double tb = std::tanh(b);
+    return (std::tanh(v + b) - tb) / (1.0 - tb * tb);
+}
+inline double asymD(double v, double b) noexcept {
+    const double tb = std::tanh(b), t = std::tanh(v + b);
+    return (1.0 - t * t) / (1.0 - tb * tb);
+}
+/// The largest |asym(v, b)|, for the Newton brackets.
+inline double asymBound(double b) noexcept { return 1.0 / (1.0 - std::fabs(std::tanh(b))); }
+
+/// An integrator's output against its supply rails: exactly linear up to 80 %
+/// of the rail, then softly into it (lo < 0 < hi). Unlike a curve over the
+/// whole range, it can be applied to a state every sample without damping or
+/// shifting it.
+inline float rails(float v, float lo, float hi) noexcept {
+    const auto side = [](float a, float rail) {
+        const float knee = 0.8f * rail;
+        return a <= knee ? a : knee + (rail - knee) * std::tanh((a - knee) / (rail - knee));
+    };
+    return v >= 0.0f ? side(v, hi) : -side(-v, -lo);
+}
 
 /// Everything derived from the knobs, shared by both channels.
 struct Coeffs {
@@ -132,6 +281,19 @@ struct Coeffs {
     float norm = 1.0f;     ///< comb: output scaling, 1 − |feedback|
     int stages = 4;        ///< staircase: number of 1-pole sections
     std::array<float, kMaxStages> stageG{};  ///< staircase: each section's G
+    float drive = 0.0f;    ///< 0..1
+    float inGain = 1.0f;   ///< level into the nonlinearity
+    float outGain = 1.0f;  ///< level compensation after it
+    float bias = 0.0f;     ///< asymmetry of the curve
+    float stageSat = 0.0f; ///< hardness of the stage saturators (ladders, diodes, staircase); 0: linear stages
+    float loopSat = 0.0f;  ///< hardness of the loop saturator (diodes, phasers, flanger, comb); 0: linear loop
+    float analog = 0.0f;   ///< 0..1: tolerances, mismatch, bass loss, coupling (see the top)
+    float stageBias = 0.0f;///< asymmetry of the ladder / OTA stages (mismatched pairs)
+    double stageTb = 0.0, stageNorm = 1.0;  ///< tanh(stageBias), 1 / (1 − tanh²): asym() without its constant tanh
+    bool couplingHp = false; ///< diode ladder: a high-pass (Gh) in the feedback
+    float wallLevel = (float)2.0;  ///< Sallen-Key / diode-feedback: where the amplifier's output limits
+    bool softWall = false;  ///< diode clipper (soft) instead of the hard-knee wall
+    float slew = 1.0f;     ///< op-amp slew SVF: largest integrator step per sample
     struct Formant {
         float g = 0.1f, R = 0.1f, amp = 0.0f;  ///< prewarped centre, damping, level
     };
@@ -167,9 +329,37 @@ inline std::array<float, 4> morphWeights(float morph) noexcept {
 
 /// Computes the coefficients. resonance, morph 0..1; gainDb −24..+24.
 inline Coeffs makeCoeffs(FilterType type, float hz, float resonance, float morph, float gainDb,
-                         double sampleRate, float vowel = 0.0f, float damping = 0.0f, int slope = 4) noexcept {
+                         double sampleRate, float vowel = 0.0f, float damping = 0.0f, int slope = 4,
+                         float drive = 0.0f, float analog = 0.0f) noexcept {
     Coeffs c;
     c.type = type;
+    c.analog = std::clamp(analog, 0.0f, 1.0f);
+    {
+        const DriveSpec& d = driveSpec(type);
+        c.drive = std::clamp(drive, 0.0f, 1.0f);
+        // A curve, so the lower half of the knob stays fine-grained.
+        c.inGain = c.drive > 0.0f ? std::pow(10.0f, d.maxDb * std::pow(c.drive, 1.5f) / 20.0f) : 1.0f;
+        c.outGain = driveMakeup(c.inGain, d.knee);
+        c.bias = d.bias * c.drive;
+        // The saturators' hardness grows with Drive, so Drive 0 stays exactly linear on the linear types and
+        // the knee comes in gently (a: f(v) = tanh(a·v)/a, linear for small a).
+        const float fade = c.drive;
+        const bool ladderType = type >= FilterType::Ladder && type <= FilterType::LadderNonlinear;
+        const bool stair = type == FilterType::StaircaseLp || type == FilterType::StaircaseHp;
+        // Nonlinear Stages and the OTA cascade always saturate in their stages; Tanh and Hyperbolic get a touch with
+        // Analog (a real ladder is never linear), Linear and Feedback HP only with Drive.
+        const bool fbSat = type == FilterType::LadderTanh || type == FilterType::LadderHyperbolic;
+        c.stageSat = (type == FilterType::LadderNonlinear || type == FilterType::Ota4) ? 1.0f
+                     : fbSat ? std::max(fade, 0.5f * c.analog)
+                     : (ladderType || stair) ? fade : 0.0f;
+        c.stageBias = kStageMismatch * c.analog;
+        c.stageTb = std::tanh((double)c.stageBias);
+        c.stageNorm = 1.0 / (1.0 - c.stageTb * c.stageTb);
+        c.loopSat = type == FilterType::DiodeTanh ? 1.0f
+                    : (type == FilterType::Diode || type == FilterType::Phaser1 || type == FilterType::Phaser2 ||
+                       type == FilterType::Flanger || type == FilterType::CombPositive || type == FilterType::CombNegative)
+                        ? fade : 0.0f;
+    }
     c.hz = hz;
     c.morph = morph;
     const float res = std::clamp(resonance, 0.0f, 1.0f);
@@ -198,7 +388,30 @@ inline Coeffs makeCoeffs(FilterType type, float hz, float resonance, float morph
     if (is({FilterType::SvfAtanh, FilterType::SvfHyperbolic}))
         c.R -= 0.06f * res * res;  // slightly negative at the top: self-oscillation
     if (is({FilterType::Ladder, FilterType::LadderTanh, FilterType::LadderHyperbolic, FilterType::LadderNonlinear}))
-        c.comp = 1.0f + c.k * lpWeight;  // §4.3: boost the input by (1 + k) in low-pass mode
+        // §4.3: boost the input by (1 + k) in low-pass mode; with Analog partly, so the bass thins out at high
+        // resonance as on the circuit.
+        c.comp = std::pow(1.0f + c.k * lpWeight, 1.0f - kBassLoss * c.analog);
+    if (type == FilterType::Ota4) {
+        c.k = 4.3f * res;  // self-oscillates above ~93 %
+        c.comp = std::pow(1.0f + c.k * lpWeight, 0.5f - 0.25f * c.analog);  // the cascade loses bass with resonance
+    }
+    if ((type == FilterType::Diode || type == FilterType::DiodeTanh) && c.analog > 0.0f) {
+        c.couplingHp = true;
+        const float gh = prewarp(kCouplingHpHz * c.analog, sampleRate);
+        c.Gh = gh / (1.0f + gh);
+    }
+    if (type == FilterType::SallenKeyLp || type == FilterType::SallenKeyHp) c.wallLevel = (float)kWall;
+    if (type == FilterType::DiodeFeedbackLp || type == FilterType::DiodeFeedbackHp) {
+        c.amp = 1.0f + 2.3f * res;  // 3 (self-oscillation) at ~87 %
+        c.wallLevel = 0.9f;
+        c.softWall = true;
+    }
+    if (type == FilterType::SlewSvf) {
+        c.R -= 0.05f * res * res;  // rings into oscillation at the top
+        c.slew = (float)(2.0 * kPi * kSlewHz / sampleRate) * kOpAmpRail;
+    }
+    if (type == FilterType::DiodePair) c.R -= 0.05f * res * res;
+    if (type == FilterType::CmosSvf) c.R -= 0.08f * res * res;
     if (type == FilterType::Diode || type == FilterType::DiodeTanh) c.comp = std::pow(1.0f + c.k, 0.75f);  // partial: full compensation overdrives
     if (type == FilterType::LadderFeedbackHp) {
         const float gh = prewarp(kFeedbackHpHz, sampleRate);
@@ -271,11 +484,11 @@ struct OnePole {
     void commit(float y) noexcept { z = 2.0f * y - z; }
 };
 
-/// Solves u + a·f(u) = b for a monotonic saturator |f| < 1 with a ≥ 0:
-/// Newton's method, kept inside the bracket b ± a.
+/// Solves u + a·f(u) = b for a monotonic saturator |f| < bound with a ≥ 0:
+/// Newton's method, kept inside the bracket b ± a·bound.
 template <typename F, typename DF>
-inline float solveFeedback(float a, float b, float guess, F f, DF df) noexcept {
-    double lo = (double)b - a, hi = (double)b + a, u = std::clamp((double)guess, lo, hi);
+inline float solveFeedback(float a, float b, float guess, F f, DF df, double bound = 1.0) noexcept {
+    double lo = (double)b - a * bound, hi = (double)b + a * bound, u = std::clamp((double)guess, lo, hi);
     for (int i = 0; i < 12; ++i) {
         const double r = u + a * f(u) - b;
         if (std::fabs(r) < 1e-7) break;
@@ -288,6 +501,16 @@ inline float solveFeedback(float a, float b, float guess, F f, DF df) noexcept {
 }
 
 inline double tanhD(double u) noexcept { const double t = std::tanh(u); return 1.0 - t * t; }
+
+/// tanh by its [7/6] Padé approximant: within 1e-6 for |x| < 4.2, clamped to ±1
+/// beyond 4.97 (where it meets 1 within 1e-4). For the stage solvers, which
+/// evaluate it dozens of times per sample.
+inline double fastTanh(double x) noexcept {
+    if (x > 4.97) return 1.0;
+    if (x < -4.97) return -1.0;
+    const double x2 = x * x;
+    return x * (135135.0 + x2 * (17325.0 + x2 * (378.0 + x2))) / (135135.0 + x2 * (62370.0 + x2 * (3150.0 + 28.0 * x2)));
+}
 inline double hyper(double u) noexcept { return u / (1.0 + std::fabs(u)); }
 inline double hyperD(double u) noexcept { const double d = 1.0 + std::fabs(u); return 1.0 / (d * d); }
 
@@ -298,6 +521,10 @@ public:
         delay_.assign((size_t)(sampleRate * 0.25) + 4, 0.0f);
         reset();
     }
+
+    /// This voice's component spread: one value in −1 … 1 per ladder stage (Analog scales it).
+    void setVariation(const std::array<float, 4>& v) noexcept { tol_ = v; }
+    void seedNoise(uint32_t seed) noexcept { rng_ = seed ? seed : 0x9e3779b9u; }
 
     void reset() noexcept {
         for (auto& p : p_) p = {};
@@ -313,9 +540,36 @@ public:
         write_ = 0;
         rough_.reset();
         roughQ_ = roughHz_ = -1.0f;
+        lastW_ = 0.0;
+        lastY_.fill(0.0);
     }
 
+    /// One sample, with the type's Drive (driveSpec()).
     float process(const Coeffs& c, float x, double sampleRate) noexcept {
+        // Analog: a noise floor around −90 dB, which also lets self-oscillation start on its own.
+        if (c.analog > 0.0f && c.type != FilterType::NaiveOnePole && c.type != FilterType::Biquad)
+            x += 3.0e-5f * c.analog * noise();
+        if (c.drive <= 0.0f) return core(c, x, sampleRate);
+        const DriveSpec& d = driveSpec(c.type);
+        const double in = (double)c.inGain * x;
+        switch (d.at) {
+            case DriveAt::Before: {
+                const double shaped = c.type == FilterType::NaiveOnePole ? std::clamp(in, -1.0, 1.0) : asym(in, c.bias);
+                return c.outGain * core(c, (float)shaped, sampleRate);
+            }
+            case DriveAt::After: return c.outGain * (float)asym((double)c.inGain * core(c, x, sampleRate), c.bias);
+            case DriveAt::Inside: {
+                // The ladders and diodes have a soft input stage of their own (clipping at ±2).
+                const bool stage = (c.type >= FilterType::Ladder && c.type <= FilterType::DiodeTanh) || c.type == FilterType::Ota4;
+                const double v = stage ? 2.0 * asym(0.5 * in, c.bias) : in;
+                return c.outGain * core(c, (float)v, sampleRate);
+            }
+        }
+        return x;
+    }
+
+private:
+    float core(const Coeffs& c, float x, double sampleRate) noexcept {
         switch (c.type) {
             case FilterType::Svf: return morph(svf(c, x), c.morph);
             case FilterType::SvfUnitBp: return 2.0f * c.R * svf(c, x)[1];
@@ -332,8 +586,9 @@ public:
             case FilterType::Ladder:
             case FilterType::LadderFeedbackHp:
             case FilterType::LadderTanh:
-            case FilterType::LadderHyperbolic: return ladder(c, x);
-            case FilterType::LadderNonlinear: return ladderNonlinear(c, x);
+            case FilterType::LadderHyperbolic:
+            case FilterType::LadderNonlinear:
+            case FilterType::Ota4: return ladder(c, x);
 
             case FilterType::Diode:
             case FilterType::DiodeTanh: return diode(c, x);
@@ -356,8 +611,13 @@ public:
                     roughQ_ = c.q;
                 }
                 return dsp::morphSvf(rough_.process(x), c.morph);
-            case FilterType::SallenKeyLp: return sallenKeyLp(c, x);
-            case FilterType::SallenKeyHp: return sallenKeyHp(c, x);
+            case FilterType::SallenKeyLp:
+            case FilterType::DiodeFeedbackLp: return sallenKeyLp(c, x);
+            case FilterType::SallenKeyHp:
+            case FilterType::DiodeFeedbackHp: return sallenKeyHp(c, x);
+            case FilterType::SlewSvf:
+            case FilterType::DiodePair:
+            case FilterType::CmosSvf: return morph(svfShaped(c, x), c.morph);
             case FilterType::Vowel: return vowel(c, x);
             case FilterType::CombPositive:
             case FilterType::CombNegative: return comb(c, x);
@@ -365,8 +625,19 @@ public:
             case FilterType::StaircaseHp: {
                 float y = x;
                 for (int n = 0; n < c.stages; ++n) {
-                    const float lp = stair_[(size_t)n].tick(y, c.stageG[(size_t)n]);
-                    y = c.type == FilterType::StaircaseLp ? lp : y - lp;
+                    float G = c.stageG[(size_t)n];
+                    if (c.analog > 0.0f) {  // the sections' spread
+                        const float gs = G / (1.0f - G) * (1.0f + kStageTolerance * c.analog * tol_[(size_t)n % 4]);
+                        G = gs / (1.0f + gs);
+                    }
+                    if (c.type == FilterType::StaircaseLp) {
+                        y = c.stageSat > 0.0f ? satStage(stair_[(size_t)n], y, G / (1.0f - G), c.stageSat)
+                                              : stair_[(size_t)n].tick(y, G);
+                    } else {
+                        // High-pass: input − low-pass only cancels with a linear low-pass; saturate the section's input.
+                        if (c.stageSat > 0.0f) y = (float)(std::tanh((double)c.stageSat * y) / c.stageSat);
+                        y -= stair_[(size_t)n].tick(y, G);
+                    }
                 }
                 return y;
             }
@@ -375,7 +646,6 @@ public:
         return x;
     }
 
-private:
     using Lbh = std::array<float, 3>;  // low-, band-, high-pass
 
     static float morph(const Lbh& o, float m) noexcept {
@@ -434,54 +704,146 @@ private:
         return w[0] * y[4] + w[1] * 4.0f * bp + w[2] * hp + w[3] * (y[4] + 2.0f * bp + hp);
     }
 
-    /// §4.2–4.5: four TPT 1-poles in a negative feedback loop. The loop is
-    /// solved at the feedback point u; with a saturator there (tanh or
-    /// x/(1 + |x|)) the equation u = x − k(G·f(u) + S) is solved numerically.
+    /// §4.2–4.6: four TPT 1-poles in a negative feedback loop, solved at the
+    /// feedback point. Linear stages: closed form, with a saturator there
+    /// (tanh or x/(1 + |x|)) the equation u = x − k(G·f(u) + S) is solved
+    /// numerically. Saturating stages (Nonlinear Stages, the OTA cascade, and
+    /// the others with Drive or Analog): Newton's method over the whole loop,
+    /// every stage solved inside it. With Analog the stages' cutoffs spread.
     float ladder(const Coeffs& c, float in) noexcept {
-        const float G = c.G, x = in * c.comp;
-        const float S = ((p_[0].offset(G) * G + p_[1].offset(G)) * G + p_[2].offset(G)) * G + p_[3].offset(G);
-        const float G4 = G * G * G * G;
-        float y[5];
-        const float linear = (x - c.k * S) / (1.0f + c.k * G4);
-        if (c.type == FilterType::LadderFeedbackHp) {
-            // §4.3: a static 1-pole high-pass on the feedback path.
-            const float hpGain = 1.0f - c.Gh;
-            y[0] = (x - c.k * hpGain * (S - hp_.z)) / (1.0f + c.k * hpGain * G4);
-        } else if (c.type == FilterType::LadderTanh) {
-            y[0] = std::tanh(solveFeedback(c.k * G4, x - c.k * S, linear, [](double v) { return std::tanh(v); }, tanhD));
-        } else if (c.type == FilterType::LadderHyperbolic) {
-            y[0] = (float)hyper(solveFeedback(c.k * G4, x - c.k * S, linear, hyper, hyperD));
-        } else {
-            y[0] = linear;
+        std::array<float, 4> g{}, G{};
+        for (size_t i = 0; i < 4; ++i) {
+            g[i] = c.g * (1.0f + kStageTolerance * c.analog * tol_[i]);
+            G[i] = g[i] / (1.0f + g[i]);
         }
-        for (int i = 0; i < 4; ++i) y[i + 1] = p_[(size_t)i].tick(y[i], G);
-        if (c.type == FilterType::LadderFeedbackHp) hp_.tick(y[4], c.Gh);
+        const float x = in * c.comp;
+        // The chain's instantaneous response y4 = Gt·y0 + St.
+        float Gt = 1.0f, St = 0.0f;
+        for (size_t i = 0; i < 4; ++i) {
+            St = G[i] * St + p_[i].offset(G[i]);
+            Gt *= G[i];
+        }
+        // Feedback signal: y4, or its high-pass (Feedback HP): hpGain·(y4 − z).
+        const bool fbHp = c.type == FilterType::LadderFeedbackHp;
+        const float hpGain = fbHp ? 1.0f - c.Gh : 1.0f, hpZ = fbHp ? hp_.z : 0.0f;
+        const float kf = c.k * hpGain;
+        const float linear = (x - kf * (St - hpZ)) / (1.0f + kf * Gt);
+        float y[5];
+        // A touch of stage saturation from Analog alone (Tanh, Hyperbolic without Drive): the loop as for linear
+        // stages, then each stage takes one step linearised around its last output.
+        const bool light = c.stageSat > 0.0f && c.drive <= 0.0f &&
+                           (c.type == FilterType::LadderTanh || c.type == FilterType::LadderHyperbolic);
+        if (light) {
+            if (c.type == FilterType::LadderTanh)
+                y[0] = std::tanh(solveFeedback(kf * Gt, x - kf * (St - hpZ), linear, [](double v) { return std::tanh(v); }, tanhD));
+            else
+                y[0] = (float)hyper(solveFeedback(kf * Gt, x - kf * (St - hpZ), linear, hyper, hyperD));
+            const double a = c.stageSat;
+            for (size_t i = 0; i < 4; ++i) {
+                // y = z + g·(f(in) − f(y)), f(y) ≈ f(yp) + f'(yp)·(y − yp)
+                const double yp = lastY_[i], fi = (fastTanh(a * y[i] + c.stageBias) - c.stageTb) * c.stageNorm / a;
+                const double tp = fastTanh(a * yp + c.stageBias), fp = (tp - c.stageTb) * c.stageNorm / a,
+                             dp = (1.0 - tp * tp) * c.stageNorm;
+                const double out = (p_[i].z + g[i] * (fi - fp + dp * yp)) / (1.0 + g[i] * dp);
+                y[i + 1] = (float)out;
+                lastY_[i] = out;
+                p_[i].commit(y[i + 1]);
+            }
+        } else if (c.stageSat <= 0.0f) {
+            if (c.type == FilterType::LadderTanh)
+                y[0] = std::tanh(solveFeedback(kf * Gt, x - kf * (St - hpZ), linear, [](double v) { return std::tanh(v); }, tanhD));
+            else if (c.type == FilterType::LadderHyperbolic)
+                y[0] = (float)hyper(solveFeedback(kf * Gt, x - kf * (St - hpZ), linear, hyper, hyperD));
+            else
+                y[0] = linear;
+            for (size_t i = 0; i < 4; ++i) y[i + 1] = p_[i].tick(y[i], G[i]);
+        } else {
+            // w: the feedback point before the loop's saturator (if any), y0 = fb(w).
+            const int fb = c.type == FilterType::LadderTanh ? 1 : c.type == FilterType::LadderHyperbolic ? 2 : 0;
+            const auto fbF = [fb](double w) { return fb == 1 ? std::tanh(w) : fb == 2 ? hyper(w) : w; };
+            const auto fbD = [fb](double w) { return fb == 1 ? tanhD(w) : fb == 2 ? hyperD(w) : 1.0; };
+            // Warm start: at 4× oversampling the feedback point moves little from one sample to the next.
+            double w = std::isfinite(lastW_) ? lastW_ : (double)linear;
+            std::array<double, 4> ys = lastY_;
+            bool solved = false;
+            for (int it = 0; it < 4; ++it) {
+                double d4 = 1.0;
+                double v = fbF(w);
+                for (size_t i = 0; i < 4; ++i) {
+                    double di = 0.0;
+                    v = stage(c, p_[i].z, g[i], v, di, ys[i]);
+                    ys[i] = v;
+                    d4 *= di;
+                }
+                const double r = w - x + kf * (v - hpZ);
+                if (std::fabs(r) < 1e-6) { solved = true; break; }  // ys belong to this w
+                const double next = w - r / (1.0 + kf * d4 * fbD(w));
+                if (!std::isfinite(next)) { w = linear; break; }
+                w = next;
+            }
+            lastW_ = w;
+            y[0] = (float)fbF(w);
+            for (size_t i = 0; i < 4; ++i) {
+                if (!solved) {  // the last step moved w: run the stages once more for it
+                    double di = 0.0;
+                    ys[i] = stage(c, p_[i].z, g[i], y[i], di, ys[i]);
+                }
+                y[i + 1] = (float)ys[i];
+                lastY_[i] = ys[i];
+                p_[i].commit(y[i + 1]);
+            }
+        }
+        if (fbHp) hp_.tick(y[4], c.Gh);
         return ladderModes(y, c.morph);
     }
 
-    /// §4.6: every stage integrates tanh(in) − tanh(out). Uses the "cheap"
-    /// method: the feedback point comes from the linear model, then the
-    /// nonlinear stages run on top (each solved by Newton's method).
-    float ladderNonlinear(const Coeffs& c, float in) noexcept {
-        const float G = c.G, g = c.g, x = in * c.comp;
-        const float S = ((p_[0].offset(G) * G + p_[1].offset(G)) * G + p_[2].offset(G)) * G + p_[3].offset(G);
-        float y[5];
-        y[0] = (x - c.k * S) / (1.0f + c.k * G * G * G * G);
-        for (int i = 0; i < 4; ++i) {
-            auto& st = p_[(size_t)i];
-            const double ti = std::tanh((double)y[i]), z = st.z;
-            // y = z + g·(tanh(in) − tanh(y))
-            double out = z;
+    /// One saturating stage, solved for its output (Newton, from `guess`: the
+    /// stage's last output), with dy/din. Transistor (§4.6): y = z + g·(f(in) −
+    /// f(y)); OTA: y = z + g·f(in − y); f(v) = asym(a·v, b)/a (a: stageSat, b:
+    /// the pairs' mismatch).
+    static double stage(const Coeffs& c, double z, double g, double in, double& dydin, double guess) noexcept {
+        const double a = c.stageSat, ia = 1.0 / a, tb = c.stageTb, norm = c.stageNorm;
+        const auto f = [&](double v, double& d) {  // asym(a·v, b)/a and its slope, with tanh(b) precomputed
+            const double t = fastTanh(a * v + c.stageBias);
+            d = (1.0 - t * t) * norm;
+            return (t - tb) * norm * ia;
+        };
+        double y = std::isfinite(guess) ? guess : (z + g * in) / (1.0 + g);
+        double d = 0.0;
+        if (c.type == FilterType::Ota4) {
             for (int n = 0; n < 4; ++n) {
-                const double t = std::tanh(out);
-                const double r = out - z - g * (ti - t);
-                out -= r / (1.0 + g * (1.0 - t * t));
+                const double r = y - z - g * f(in - y, d);
+                y -= r / (1.0 + g * d);
                 if (std::fabs(r) < 1e-8) break;
             }
-            y[i + 1] = (float)out;
-            st.commit(y[i + 1]);
+            dydin = g * d / (1.0 + g * d);
+            return y;
         }
-        return ladderModes(y, c.morph);
+        double din = 0.0;
+        const double fi = f(in, din);
+        for (int n = 0; n < 4; ++n) {
+            const double r = y - z - g * (fi - f(y, d));
+            y -= r / (1.0 + g * d);
+            if (std::fabs(r) < 1e-8) break;
+        }
+        dydin = g * din / (1.0 + g * d);  // d: the slope at the last iterate, close enough for the outer Newton
+        return y;
+    }
+
+    /// §4.6: a 1-pole stage that integrates f(in) − f(out), f(v) = tanh(a·v)/a
+    /// (a = 1: the book's transistor stage; smaller a: a softer, later knee).
+    /// Solved by Newton's method; g is the prewarped gain.
+    static float satStage(OnePole& st, float in, double g, double a) noexcept {
+        const double fi = std::tanh(a * in) / a, z = st.z;
+        double out = z;
+        for (int n = 0; n < 4; ++n) {
+            const double t = std::tanh(a * out);
+            const double r = out - z - g * (fi - t / a);
+            out -= r / (1.0 + g * (1.0 - t * t));
+            if (std::fabs(r) < 1e-8) break;
+        }
+        st.commit((float)out);
+        return (float)out;
     }
 
     /// §4.7: the linearised diode ladder in instantaneous-response form,
@@ -496,17 +858,27 @@ private:
         const float d1 = 1.0f - 2.0f * g * G2, G1 = 2.0f * g / d1, S1 = (2.0f * g * S2 + s[0]) / d1;
         const float Gt = G4 * G3 * G2 * G1;
         const float St = G4 * G3 * G2 * S1 + G4 * G3 * S2 + G4 * S3 + S4;
+        // Analog: a coupling high-pass in the feedback, hg·(y4 − z), so the bass keeps less resonance.
+        const float hg = c.couplingHp ? 1.0f - c.Gh : 1.0f, hz = c.couplingHp ? hp_.z : 0.0f;
+        const float kf = c.k * hg, St0 = St - hz;
         float u;
-        if (c.type == FilterType::DiodeTanh)
-            u = std::tanh(solveFeedback(c.k * Gt, x - c.k * St, (x - c.k * St) / (1.0f + c.k * Gt),
-                                        [](double v) { return std::tanh(v); }, tanhD));
-        else
-            u = (x - c.k * St) / (1.0f + c.k * Gt);
+        if (c.loopSat > 0.0f) {
+            // The loop saturator: tanh (Diode Tanh), turning asymmetric with Drive like a diode's bend.
+            const double a = c.loopSat, b = c.bias;
+            const auto f = [a, b](double v) { return asym(a * v, b) / a; };
+            const auto df = [a, b](double v) { return asymD(a * v, b); };
+            u = (float)f(solveFeedback(kf * Gt, x - kf * St0, (x - kf * St0) / (1.0f + kf * Gt), f, df, asymBound(b) / a));
+        } else {
+            u = (x - kf * St0) / (1.0f + kf * Gt);
+        }
+        // The coupled stages are solved as one linear block; Drive saturates their input u (in the loop) instead,
+        // where the ladder's input pair sits.
         const float y1 = G1 * u + S1, y2 = G2 * y1 + S2, y3 = G3 * y2 + S3, y4 = G4 * y3 + S4;
         p_[0].commit(y1);
         p_[1].commit(y2);
         p_[2].commit(y3);
         p_[3].commit(y4);
+        if (c.couplingHp) hp_.tick(y4, c.Gh);
         return y4;
     }
 
@@ -519,7 +891,7 @@ private:
             B = a * B + 2.0f * p.offset(c.G);
             A *= a;
         }
-        const float u = (x + c.k * B) / (1.0f - c.k * A);
+        const float u = loop(c, (x + c.k * B) / (1.0f - c.k * A));
         float ap = u;
         for (auto& p : p_) ap = 2.0f * p.tick(ap, c.G) - ap;
         return 0.5f * (u + c.invert * ap);
@@ -533,7 +905,7 @@ private:
         const float b1 = -2.0f * r2 * (s1_ - g * ((r2 + g) * s1_ + s2_) / D);
         const float b2 = -2.0f * r2 * (t1_ - g * ((r2 + g) * t1_ + t2_) / D);
         const float A = a * a, B = a * b1 + b2;
-        const float u = (x + c.k * B) / (1.0f - c.k * A);
+        const float u = loop(c, (x + c.k * B) / (1.0f - c.k * A));
         auto allpass = [&](float in, float& z1, float& z2) {
             const float hp = (in - (r2 + g) * z1 - z2) / D;
             const float v1 = g * hp, bp = v1 + z1;
@@ -568,7 +940,7 @@ private:
     /// §6.2: the allpass chain replaced by a delay of 1/cutoff.
     float flanger(const Coeffs& c, float x) noexcept {
         const float wet = readDelay(c.delay);
-        const float u = x + c.k * wet;
+        const float u = loop(c, x + c.k * wet);
         writeDelay(u);
         return 0.5f * (u + c.invert * wet);
     }
@@ -578,30 +950,51 @@ private:
     /// damping low-pass in the loop. Normalised to unity gain at the peaks.
     float comb(const Coeffs& c, float x) noexcept {
         const float fed = hp_.tick(readDelay(c.delay), c.damp);
-        const float y = x + c.k * fed;
+        // The loop saturates around the level a unit input builds up (1 / norm).
+        const float y = c.loopSat > 0.0f ? (float)(std::tanh(c.loopSat * c.norm * (x + c.k * fed)) / (c.loopSat * c.norm))
+                                         : x + c.k * fed;
         writeDelay(y);
         return y * c.norm;
     }
 
+    /// The phasers' and the flanger's loop saturator (with Drive): the
+    /// summing point before the allpasses or the delay, cheap method.
+    static float loop(const Coeffs& c, float u) noexcept {
+        return c.loopSat > 0.0f ? (float)(std::tanh((double)c.loopSat * u) / c.loopSat) : u;
+    }
+
     /// The wall: a hard-knee clipper, linear below about 0.6 of kWall,
     /// bounded by kWall. f'(t) = (1 + |t|^4)^(-5/4) on the unit curve.
-    static double wall(double v) noexcept {
-        const double t = v / kWall, t2 = t * t;
-        return v / std::pow(1.0 + t2 * t2, 0.25);
+    /// The amplifier's limit: the hard-knee wall (Sallen-Key) or a diode
+    /// clipper (Diode-Feedback, soft: level·tanh(v/level)). With Drive it turns
+    /// asymmetric: the negative side limits at level / (1 + b).
+    struct Wall {
+        double level = kWall, b = 0.0;
+        bool soft = false;
+    };
+    static Wall wallOf(const Coeffs& c) noexcept { return {(double)c.wallLevel, (double)c.bias, c.softWall}; }
+    static double wall(double v, const Wall& w) noexcept {
+        const double s = v < 0.0 ? 1.0 + w.b : 1.0, u = v * s;
+        if (w.soft) return w.level * std::tanh(u / w.level) / s;
+        const double t = u / w.level, t2 = t * t;
+        return u / std::pow(1.0 + t2 * t2, 0.25) / s;
     }
-    static double wallD(double v) noexcept {
-        const double t = v / kWall, t2 = t * t;
+    static double wallD(double v, const Wall& w) noexcept {
+        const double t = (v < 0.0 ? v * (1.0 + w.b) : v) / w.level;
+        if (w.soft) return tanhD(t);
+        const double t2 = t * t;
         return std::pow(1.0 + t2 * t2, -1.25);
     }
     /// Solves F(v) = a·v − rhs − m·wall(arg(v)) = 0 for increasing F, v in [lo, hi].
     template <typename Arg, typename DArg>
-    static float solveWall(double lo, double hi, double a, double rhs, double m, Arg arg, DArg darg, double guess) noexcept {
+    static float solveWall(double lo, double hi, double a, double rhs, double m, Arg arg, DArg darg, double guess,
+                           const Wall& w) noexcept {
         double v = std::clamp(guess, lo, hi);
         for (int i = 0; i < 12; ++i) {
-            const double r = a * v - rhs - m * wall(arg(v));
+            const double r = a * v - rhs - m * wall(arg(v), w);
             if (std::fabs(r) < 1e-7) break;
             if (r > 0.0) hi = v; else lo = v;
-            double next = v - r / (a - m * wallD(arg(v)) * darg);
+            double next = v - r / (a - m * wallD(arg(v), w) * darg);
             if (!(next > lo && next < hi)) next = 0.5 * (lo + hi);
             v = next;
         }
@@ -618,9 +1011,10 @@ private:
         const double Su = p_[0].offset(c.G);
         const double a = 1.0 + 2.0 * g - g * G, rhs = skState_ + g * x + g * Su;
         const double guess = (rhs + K * Su) / (a - K * G);
-        const float v = solveWall((rhs - kWall) / a, (rhs + kWall) / a, a, rhs, 1.0,
-                                  [&](double vv) { return K * (G * vv + Su); }, K * G, std::clamp(guess, -1e3, 1e3));
-        const double u = G * v + Su, y = wall(K * u);
+        const Wall w = wallOf(c);
+        const float v = solveWall((rhs - w.level) / a, (rhs + w.level) / a, a, rhs, 1.0,
+                                  [&](double vv) { return K * (G * vv + Su); }, K * G, std::clamp(guess, -1e3, 1e3), w);
+        const double u = G * v + Su, y = wall(K * u, w);
         const double in = x - 2.0 * v + u;
         const double cap = skState_ + g * in;
         skState_ = (float)(cap + g * in);
@@ -636,13 +1030,50 @@ private:
         const double a = 1.0 + G + g, rhs = x - S2 - skState_;
         // F(v) = a·v − rhs − g·wall(K·((1 − G)·v − S2)): the 'm' is g.
         const double guess = (rhs - g * K * S2) / (a - g * K * (1.0 - G));
-        const float v = solveWall((rhs - g * kWall) / a, (rhs + g * kWall) / a, a, rhs, g,
+        const Wall w = wallOf(c);
+        const float v = solveWall((rhs - g * w.level) / a, (rhs + g * w.level) / a, a, rhs, g,
                                   [&](double vv) { return K * ((1.0 - G) * vv - S2); }, K * (1.0 - G),
-                                  std::clamp(guess, -1e3, 1e3));
-        const double c2 = G * v + S2, u = v - c2, y = wall(K * u);
+                                  std::clamp(guess, -1e3, 1e3), w);
+        const double c2 = G * v + S2, u = v - c2, y = wall(K * u, w);
         skState_ = (float)(skState_ + 2.0 * g * (v - y));
         p_[0].commit((float)c2);
         return (float)(y / K);
+    }
+
+    /// The circuit SVFs: the TPT state-variable filter (§5.2) solved linearly
+    /// for the high-pass, then each integrator integrates through its circuit
+    /// (cheap method):
+    ///   Op-Amp Slew  the step is slew-limited, the state clips at the rails
+    ///   Diode Pair   the input goes through a diode pair (tanh)
+    ///   CMOS         an inverter (asymmetric, early) in, a soft rail on the state
+    Lbh svfShaped(const Coeffs& c, float x) noexcept {
+        const float g = c.g, r2 = 2.0f * c.R;
+        const float hp = (x - (r2 + g) * s1_ - s2_) / (1.0f + r2 * g + g * g);
+        float bp, lp;
+        if (c.type == FilterType::SlewSvf) {
+            const float v1 = std::clamp(g * hp, -c.slew, c.slew);
+            bp = v1 + s1_;
+            s1_ = rails(bp + v1, -kOpAmpRail, kOpAmpRail);
+            const float v2 = std::clamp(g * bp, -c.slew, c.slew);
+            lp = v2 + s2_;
+            s2_ = rails(lp + v2, -kOpAmpRail, kOpAmpRail);
+        } else if (c.type == FilterType::DiodePair) {
+            const float v1 = g * (float)asym(hp, 0.05);
+            bp = v1 + s1_;
+            s1_ = rails(bp + v1, -kOpAmpRail, kOpAmpRail);
+            const float v2 = g * (float)asym(bp, 0.05);
+            lp = v2 + s2_;
+            s2_ = rails(lp + v2, -kOpAmpRail, kOpAmpRail);
+        } else {  // CMOS inverters: an asymmetric gain stage in, lopsided rails on the state
+            const auto inv = [](float v) { return (float)(asym(1.5 * v, 0.3) / 1.5); };
+            const float v1 = g * inv(hp);
+            bp = v1 + s1_;
+            s1_ = rails(bp + v1, -1.0f, 1.4f);
+            const float v2 = g * inv(bp);
+            lp = v2 + s2_;
+            s2_ = rails(lp + v2, -1.0f, 1.4f);
+        }
+        return {lp, bp, hp};
     }
 
     /// Four parallel unit-gain band-passes at the formants.
@@ -690,6 +1121,17 @@ private:
     int write_ = 0;
     dsp::RoughSvf rough_;
     float roughHz_ = -1.0f, roughQ_ = -1.0f;
+    std::array<float, 4> tol_{};  ///< component spread per ladder stage, −1 … 1
+    double lastW_ = 0.0;              ///< the ladder's last feedback point (warm start)
+    std::array<double, 4> lastY_{};   ///< each ladder stage's last output (warm start)
+    uint32_t rng_ = 0x9e3779b9u;  ///< noise floor (xorshift)
+    /// White noise, −1 … 1.
+    float noise() noexcept {
+        rng_ ^= rng_ << 13;
+        rng_ ^= rng_ >> 17;
+        rng_ ^= rng_ << 5;
+        return (float)rng_ * (2.0f / 4294967295.0f) - 1.0f;
+    }
 };
 
 }  // namespace bleep::patch::va

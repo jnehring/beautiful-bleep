@@ -10,8 +10,9 @@
     "diode", "diodeTanh",
     "phaser1", "phaser2", "flanger",
     "naive", "biquad",
-    "svfAtanh", "svfHyper", "svfRough",
-    "keyLp", "keyHp", "vowel", "combPos", "combNeg", "stairLp", "stairHp"];
+    "keyLp", "keyHp", "vowel", "combPos", "combNeg", "stairLp", "stairHp",
+    "slewSvf", "dfbLp", "dfbHp", "diodePair", "ota4", "cmosSvf",
+    "svfAtanh", "svfHyper", "svfRough"];  // FilterType order
 
   // Vowel table: formant centre (Hz), level (dB), bandwidth (Hz), as in VaFilters.h.
   const VOWELS = [
@@ -50,14 +51,18 @@
     if (type === "diodeTanh") c.k = 21 * res;
     if (type === "phaser1" || type === "phaser2" || type === "flanger") c.k = 0.85 * res;
     if (type === "svfAtanh" || type === "svfHyper") c.R -= 0.06 * res * res;
+    if (type === "slewSvf" || type === "diodePair") c.R -= 0.05 * res * res;
+    if (type === "cmosSvf") c.R -= 0.08 * res * res;
+    if (type === "ota4") { c.k = 4.3 * res; c.comp = Math.pow(1 + c.k * morphWeights(mode)[0], 0.5); }
     if (type.startsWith("ladder") && type !== "ladderHp") c.comp = 1 + c.k * morphWeights(mode)[0];
-    if (type.startsWith("diode")) { c.comp = Math.pow(1 + c.k, 0.75); c.scale = Math.SQRT2; }
+    if (type === "diode" || type === "diodeTanh") { c.comp = Math.pow(1 + c.k, 0.75); c.scale = Math.SQRT2; }
     if (type === "lowShelf1") c.scale = 1 / Math.sqrt(1 + c.K);
     if (type === "highShelf1") c.scale = Math.sqrt(1 + c.K);
     if (type === "phaser2") c.R = 5 * Math.pow(0.02, Math.min(Math.max(mode, 0), 1));
     // The linear curve of a self-oscillating model would be unstable: draw it just below.
-    c.k = Math.min(c.k, type.startsWith("diode") ? 16.9 : type.startsWith("ladder") ? 3.97 : c.k);
+    c.k = Math.min(c.k, type === "diode" || type === "diodeTanh" ? 16.9 : type.startsWith("ladder") || type === "ota4" ? 3.97 : c.k);
     if (type === "keyLp" || type === "keyHp") c.R = (3 - (1 + 2.04 * res)) / 2;  // amplifier gain K: H = 1 / (s² + (3 − K)·s + 1)
+    if (type === "dfbLp" || type === "dfbHp") c.R = (3 - (1 + 2.3 * res)) / 2;
     c.R = Math.max(c.R, 0.01);
     c.ex = ex || {};
     c.res = res;
@@ -127,13 +132,14 @@
     }
     const fbMix = (ap) => div(scale(add(ONE, scale(ap, c.invert)), 0.5), sub(ONE, scale(ap, c.k)));
     switch (type) {
-      case "svf": case "biquad": case "svfAtanh": case "svfHyper": case "svfRough": return svfMorph();
+      case "svf": case "biquad": case "svfAtanh": case "svfHyper": case "svfRough":
+      case "slewSvf": case "diodePair": case "cmosSvf": return svfMorph();
       case "svfUnitBp": return scale(svf().bp, 2 * c.R);
       case "svfBandShelf": return add(ONE, scale(svf().bp, 2 * c.R * c.K));
       case "svfPeak": { const o = svf(); return sub(o.lp, o.hp); }
       case "svfAllpass": return sub(ONE, scale(svf().bp, 4 * c.R));
-      case "keyLp": return svf().lp;
-      case "keyHp": return svf().hp;
+      case "keyLp": case "dfbLp": return svf().lp;
+      case "keyHp": case "dfbHp": return svf().hp;
       case "lp1": case "naive": return lp1();
       case "hp1": return sub(ONE, lp1());
       case "ap1": return sub(scale(lp1(), 2), ONE);
@@ -232,7 +238,7 @@
     layout: [
       { title: "Algorithm", params: ["type", "mode", "vowel", "damping", "slope"] },
       { title: "Cutoff", params: ["cutoff", "keytrack", "resonance"] },
-      { title: "Drive / Output", params: ["drive", "gain", "mix"] },
+      { title: "Drive / Output", params: ["drive", "analog", "gain", "mix"] },
     ],
     template: '<div class="bv-panel"><h2>Response <span style="float:right;font-weight:normal;font-size:11px">' +
       ["in", "out"].map((k) => '<button type="button" class="flt-legend-btn" data-s="' + k + '" title="Show or hide the ' + k + 'put spectrum">▬ ' + k + '</button>').join(" ") +

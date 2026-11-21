@@ -57,7 +57,7 @@ struct ParamSpec {
     std::string label;           ///< unit suffix for Format::Number
     std::vector<std::string> choices;
     std::vector<std::string> choiceGroups;  ///< optional: each choice's heading in the dropdown
-    std::vector<std::string> legacyChoices; ///< optional: an earlier, shorter list that boards stored this choice
+    std::vector<std::vector<std::string>> legacyChoices; ///< optional: earlier lists that boards stored this choice
                                             ///< against (normalised: index / (n − 1)); Board::parse moves those
                                             ///< values to the same names in `choices`
     bool modulatable = true;     ///< a knob (input jack) or a plain setting;
@@ -78,7 +78,7 @@ struct ParamSpec {
     }
     ParamSpec when(std::string param, int lo, int hi) const {
         ParamSpec p = *this;
-        p.show = {std::move(param), lo, hi, {}, 0, 0};
+        p.show = {std::move(param), lo, hi, {}, 0, 0, {}};
         return p;
     }
     /// Shown only while the setting is one of these values (they need not be adjacent; min/max still span them).
@@ -140,7 +140,7 @@ struct JackSpec {
 
     JackSpec when(std::string param, int lo, int hi) const {
         JackSpec j = *this;
-        j.show = {std::move(param), lo, hi, {}, 0, 0};
+        j.show = {std::move(param), lo, hi, {}, 0, 0, {}};
         return j;
     }
     /// Also requires another setting in range (with when()).

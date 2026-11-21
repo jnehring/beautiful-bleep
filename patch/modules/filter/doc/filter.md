@@ -5,12 +5,14 @@
 ## Introduction
 
 The Multi Filter shapes the tone of a sound by removing or emphasising
-frequencies. It's stereo and offers 32 filter algorithms, from clean
+frequencies. It's stereo and offers 38 filter algorithms, from clean
 state-variable and ladder filters to shelves, phasers and a flanger, and on
-to a Sallen-Key filter with a hard wall, a vowel filter, a tuned comb and a
-staircase of 1-pole sections. Most of
-them have a low-pass, band-pass, high-pass and notch response that you can
-morph between continuously. It comes with drive and key tracking. An envelope
+to a Sallen-Key filter with a hard wall, a vowel filter, a tuned comb, a
+staircase of 1-pole sections and models of classic circuits: slewing op-amps,
+a diode clipper in the resonance, diode pairs, OTAs and CMOS inverters. Most of
+them have a low-pass, band-pass, high-pass and notch response to pick from.
+Every type has its own drive, saturating where its circuit would, an *Analog*
+knob for the imperfections of real parts, and key tracking. An envelope
 output tells the rest of the patch how loud the filtered signal is.
 
 ## How does it work?
@@ -27,8 +29,12 @@ audio rate. **Type** picks the algorithm; the dropdown groups them by family.
 - **Resonance** (not shown for the 1-pole types) boosts the frequencies
   around the cutoff. On the ladder and allpass types it's the feedback amount;
   some types self-oscillate near the top (see the table).
-- **Drive** saturates the input before the filter (a soft tanh curve) for
-  warmth and grit. The saturating types add their own distortion on top.
+- **Drive** saturates each type in its own way, where its circuit would (see
+  *Drive per type* below): the ladders in their stages, the Sallen-Key against
+  its amplifier's wall, the phasers and combs in their feedback. It changes
+  the sound, not the loudness: the level stays within a few dB.
+- **Analog** adds what real circuits do beyond their equations (see
+  *Analog* below). At 0 % the filter is the ideal circuit.
 - **Mode** (only shown for the types it acts on) is a dropdown that picks the
   response of the multimode types: Low-pass, Band-pass, High-pass or Notch. A
   cable sets it (0 Low-pass … 3 Notch). On the phasers and the flanger it does
@@ -44,6 +50,52 @@ audio rate. **Type** picks the algorithm; the dropdown groups them by family.
 - **Key Track** moves the cutoff with the *Pitch* input, so high notes are as
   bright as low ones.
 - **Mix** blends the dry input with the filtered signal.
+
+### Drive per type
+
+| Types | Where Drive acts | Sound |
+|---|---|---|
+| Transistor ladders | a soft input stage, then every one of the four stages saturates (tanh, like the transistor pairs) | the classic ladder overdrive: the bass stays fat, the resonance gets squeezed and rounder the harder you drive |
+| Diode ladders | an asymmetric input stage, then an asymmetric saturator in the loop at the ladder's input | even and odd harmonics, squelchy; the resonance tilts and smears rather than shrinking |
+| Sallen-Key | into the amplifier, whose wall turns asymmetric | hard and screaming: the resonance bites harder with Drive, the opposite of the ladder |
+| Nonlinear SVFs | into their own nonlinearity (the damping, or the integrators of *Rough*) | the resonance breaks up and growls |
+| SVF types, Biquad | a warm, slightly asymmetric input stage before the filter | a clean filter fed by a driven preamp |
+| 1-Pole types | a tape-like stage after the filter | warmth that keeps the overtones (they are not filtered away) |
+| Phasers, Flanger, Combs | a saturator in the feedback loop | grainier feedback that limits itself, like a tape flanger; plucked combs get bite |
+| Staircase | every section saturates (low-pass) or is driven into (high-pass) | denser with more sections |
+| Vowel | an asymmetric stage before the formants | a driven voice: the formants get more harmonics to shape |
+| Naive 1-Pole | hard digital clipping before the filter | deliberately raw |
+| Op-Amp Slew SVF | into the slewing integrators | loud highs turn into ramps: gnarly, rasping |
+| Diode-Feedback LP / HP | into the amplifier and the diode clipper in its resonance path | soft but screaming; the clipper turns asymmetric |
+| Diode Pair | into the diode pairs at the integrators | a harsh, buzzy resonance |
+| OTA 4-Pole | a soft input stage, then into the four OTA stages | smoother than the transistor ladder, rounder resonance |
+| CMOS Inverter SVF | into the inverters | very dirty and asymmetric, early |
+
+### Analog
+
+*Analog* (0 – 100 %, default 50 %) brings in the imperfections of real
+parts. Each one is small; together they make the filter breathe:
+
+- **Tolerances:** the two channels' cutoffs differ a little (up to ±1.2 %),
+  so a stereo signal widens, and the stages of the ladders, the OTA cascade
+  and the staircase each sit at a slightly different cutoff (up to ±3 %).
+  Every filter on the board gets its own spread.
+- **Drift:** the cutoff wanders slowly (up to ±0.6 %), on each channel on
+  its own.
+- **Noise floor:** a faint hiss around −90 dB. It also lets a
+  self-oscillating filter start on its own, from silence, as a circuit does.
+- **Mismatched pairs:** the transistor and OTA stages turn slightly
+  asymmetric, adding a touch of even harmonics when they saturate.
+- **Bass loss:** the transistor ladders and the OTA cascade lose bass as
+  the resonance rises (up to half the compensation is given up), as on the
+  circuit.
+- **Coupling high-pass:** the diode ladder's feedback runs through a
+  coupling high-pass (up to 90 Hz), so low notes keep less resonance.
+- **Living ladders:** *Ladder Tanh* and *Ladder Hyperbolic* get a touch of
+  stage saturation, so their self-oscillation drops a little in pitch as it
+  gets louder, like the real thing.
+
+*Analog* is not shown for the two digital types (*Naive 1-Pole*, *Biquad*).
 
 ### The algorithms
 
@@ -69,7 +121,9 @@ response at once.
 **Transistor Ladder (24 dB/oct)** — four low-passes in a feedback loop: the
 classic fat, steep synth filter. *Mode* picks LP, BP, HP or notch, all
 built from the ladder's taps. In low-pass mode the input is boosted with the
-resonance, so the bass doesn't thin out.
+resonance, so the bass doesn't thin out (with *Analog* only partly, as on the
+circuit). Whenever the stages saturate (*Nonlinear Stages*, Drive, Analog),
+the whole loop is solved exactly, every stage inside the feedback.
 
 | Type | What it is | Self-oscillates |
 |---|---|---|
@@ -114,7 +168,7 @@ kept for comparison and for their sound.
 |---|---|
 | SVF Atanh Damping | the damping grows on loud signals: resonance that compresses itself, bounded self-oscillation at the top |
 | SVF Hyperbolic Damping | the same with a harder-acting curve: gentler, quieter oscillation |
-| SVF Saturating (Rough) | saturating integrators: growls when driven, gritty and bounded. Drives harder than the others at the same *Drive* |
+| SVF Saturating (Rough) | saturating integrators: growls when driven, gritty and bounded |
 
 **Sallen-Key (12 dB/oct)** — a two-pole filter modelled on the
 Sallen-Key topology: two resistors, two capacitors and an amplifier whose
@@ -146,6 +200,17 @@ inside the loop, so highs die faster, like a plucked string. Set *Mix* to 100 %.
 |---|---|
 | Comb Positive | positive feedback: peaks at 1×, 2×, 3× … the cutoff, a full harmonic ring |
 | Comb Negative | negative feedback: peaks at 1×, 3×, 5× … the cutoff, hollow like a closed pipe. The cutoff is still the pitch you hear |
+
+**Circuit models** — classic circuits with their own way of breaking up.
+All self-oscillate near the top of *Resonance*.
+
+| Type | What it is | Mode |
+|---|---|---|
+| Op-Amp Slew SVF (12 dB/oct) | a state-variable filter built from slow op-amps: each integrator can only change so fast (a full-scale sine above about 4 kHz is limited) and clips at its supply rails. Clean when quiet; loud, high or resonant signals turn into ramps and rasp | ✓ |
+| Diode-Feedback Low-pass / High-pass (12 dB/oct) | the Sallen-Key structure with a diode clipper in the resonance path instead of a hard wall: the resonance is soft-limited early, so it screams without getting much louder | |
+| Diode Pair Multimode (12 dB/oct) | the integrators are fed through diode pairs: harsh and buzzy as the resonance rises | ✓ |
+| OTA 4-Pole (24 dB/oct) | four OTA stages, each integrating tanh(in − out), in a feedback loop: smoother than the transistor ladder, and it loses bass with resonance | ✓ |
+| CMOS Inverter SVF (12 dB/oct) | logic inverters as integrators: asymmetric gain, lopsided rails, very dirty even without Drive | ✓ |
 
 **Staircase** — a cascade of 1-pole sections, 1 to 8 of them (*Slope*:
 6, 12, … 48 dB/oct). The cutoff is always the −3 dB point, whatever the slope.
@@ -236,7 +301,7 @@ Five whole patches show what Filter does. In the standalone app open **File → 
 | **[Multi Filter: Ladder Bass Sweep](/library/detail/?kind=module&slug=filter#demo-1)** | A raw saw bass runs through a warm ladder-style low-pass whose Cutoff is opened by an envelope on every note, then closes again for a classic squelch. Raise Resonance or Drive for more bite, or switch Type to another ladder. |
 | **[Multi Filter: Phaser Pad](/library/detail/?kind=module&slug=filter#demo-2)** | The Type is set to a four-stage phaser: a slow LFO sweeps Cutoff through a held, slightly detuned saw chord so the notches drift up and down. Try the 2-Pole phaser, more Resonance, or a faster LFO. |
 | **[Multi Filter: Telephone Drums](/library/detail/?kind=module&slug=filter#demo-3)** | A whole drum loop goes through the unit-gain band-pass type while an LFO sweeps Cutoff: the beat shrinks to a thin radio sound, then opens up again. Move Mix to blend the original back in, or lower Resonance for a wider band. |
-| **[Multi Filter: Key-Tracked Pluck](/library/detail/?kind=module&slug=filter#demo-4)** | The sequencer's pitch also goes into the filter, and Key Track at full makes Cutoff follow every note, so high and low notes keep the same brightness. Lower Key Track to hear the low notes go dull, or move Mode to morph from low-pass to high-pass. |
+| **[Multi Filter: Key-Tracked Pluck](/library/detail/?kind=module&slug=filter#demo-4)** | The sequencer's pitch also goes into the filter, and Key Track at full makes Cutoff follow every note, so high and low notes keep the same brightness. Lower Key Track to hear the low notes go dull, or switch Mode to Band-pass or High-pass. |
 | **[Multi Filter: Flanger Jet](/library/detail/?kind=module&slug=filter#demo-5)** | Type is the flanger algorithm: a long single note rings through a sweeping comb of resonances that rise and fall with a slow LFO on Cutoff. Push Resonance for a metallic jet sound, or pull Mix back for a gentle swirl. |
 <!-- /generated -->
 
@@ -255,27 +320,30 @@ Five whole patches show what Filter does. In the standalone app open **File → 
 | Gain | −24 – +24 dB | 0 dB |
 | Vowel | A · E · I · O · U (only with the vowel filter) | A |
 | Damping | 0 – 100 % (only with the comb types) | 30 % |
+| Analog | 0 – 100 % (not with the two digital types) | 50 % |
 | Slope | 6 dB – 48 dB, in steps of 6 (only with the staircase types) | 24 dB |
-| Type | 32 algorithms in 11 groups | SVF Multimode |
+| Type | 38 algorithms in 16 groups | SVF Multimode |
 
 - **Cutoff:** the corner (LP, HP) or centre (BP, notch) frequency. Exponential
   over ten octaves; 10 % of modulation ≈ one octave.
 - **Resonance:** emphasis at the cutoff (Q from 0.5 to 25 on the SVF types,
   feedback on the ladders, phasers and flanger). Low values are smooth; high
   values ring and whistle. Self-oscillating types sing on their own near the
-  top. No effect on the 1-pole types.
-- **Drive:** how hard the input is saturated before filtering. At 0 % the
-  signal is untouched. Turn down the source level if you want drive without
-  much extra loudness.
-  Drive and the filter run at four times the sample rate, so even hard drive
-  and the saturating types stay clean, without the harsh, out-of-tune
-  overtones of aliasing.
-- **Mode:** the response, morphed continuously:
-  0 % low-pass (removes highs), 33 % band-pass (keeps a band around the
-  cutoff), 67 % high-pass (removes lows), 100 % notch (removes a band).
-  Applies to *SVF Multimode*, the transistor ladders, the biquad and the
-  nonlinear SVFs. On *Phaser 1-Pole ×4* and *Flanger* it flips the effect's
-  polarity at 50 %; on *Phaser 2-Pole ×2* it sets the notch spacing.
+  top. Not on the 1-pole types.
+- **Drive:** how hard the type saturates, up to about +30 dB into its
+  nonlinearity; the output is lowered again, so the level stays about the
+  same (a quiet source gets a little louder at high Drive, a loud one a
+  little quieter). At 0 % the signal is untouched. A quarter is a gentle
+  colour, half clearly driven, full is grit. A louder source drives harder.
+  Drive and the filter run at four times the sample rate, so drive stays
+  clean, without the harsh, out-of-tune overtones of aliasing. Only a loud,
+  very high tone at full Drive folds a little back (about −30 dB).
+- **Mode:** the response: Low-pass (removes highs), Band-pass (keeps a band
+  around the cutoff), High-pass (removes lows) or Notch (removes a band).
+  Applies to *SVF Multimode*, the transistor ladders, the biquad, the
+  nonlinear SVFs, *Op-Amp Slew SVF*, *Diode Pair*, *OTA 4-Pole* and
+  *CMOS Inverter SVF*. On *Phaser 1-Pole ×4* and *Flanger* it flips the effect's
+  polarity from High-pass on; on *Phaser 2-Pole ×2* it sets the notch spacing.
 - **Gain:** boost or cut of *1-Pole Low Shelf*, *1-Pole High Shelf* and
   *SVF Band Shelf*; the formant spacing of *Vowel A-E-I-O-U* (±24 dB = ±50 %
   spacing). No effect on the other types.
@@ -283,6 +351,8 @@ Five whole patches show what Filter does. In the standalone app open **File → 
   (Q up to ∞), the formant bandwidth of the vowel filter (10× narrower at the
   top), the feedback of the comb (up to ±98.5 %), the corner spread of the
   staircase (up to 1 octave per section).
+- **Analog:** tolerances, drift, noise floor, mismatched pairs, bass loss
+  and coupling (see *Analog* above). 0 % is the ideal circuit.
 - **Mix:** dry/wet. 100 % is only the filter; lower values mix the
   unfiltered input back in. The response curve shows the result.
 - **Key Track:** how far the cutoff follows the *Pitch* input. At 100 % the

@@ -760,7 +760,7 @@ Each module is our own design, built from generic modular concepts. Each module 
 | **MIDI Device** | A connected MIDI controller, chosen from a dropdown | **Standalone app only** (section 11). Outputs *Notes* plus mono *Pitch*, *Gate*, *Velocity*, *Trigger*, *Pressure*, *Bend*, *Mod Wheel* and CCs. |
 
 **Multi Filter details:**
-- **Type** dropdown with 32 algorithms, 25 of them from Zavalishin's *The Art of VA Filter Design* (rev. 1.0.3) and 7 own designs, all in zero-delay-feedback (TPT) form, grouped by family (the dropdown shows the groups as headings):
+- **Type** dropdown with 38 algorithms, 25 of them from Zavalishin's *The Art of VA Filter Design* (rev. 1.0.3), 7 own designs and 6 circuit models, all in zero-delay-feedback (TPT) form, grouped by family (the dropdown shows the groups as headings):
   - *State Variable*: SVF multimode, unit-gain band-pass, band shelf, peaking, allpass.
   - *1-Pole*: low-pass, high-pass, allpass, low shelf, high shelf.
   - *Transistor Ladder* (24 dB): linear, high-pass feedback shaping, tanh and hyperbolic feedback saturators (solved numerically), nonlinear stages. Multimode LP/BP/HP/notch from the ladder taps.
@@ -771,9 +771,12 @@ Each module is our own design, built from generic modular concepts. Each module 
   - *Formant*: four parallel resonators over A-E-I-O-U (*Vowel*); Cutoff moves the formants, Gain their spacing.
   - *Tuned Comb*: feedback comb with positive or negative feedback, damping in the loop, tuned by Cutoff and the Pitch input.
   - *Staircase (6-48 dB)*: low-pass and high-pass cascade of 1 – 8 sections with staggered corners (*Slope*, spread from Resonance).
+  - *Circuit models*: op-amp SVF with slew-limited, rail-bound integrators; diode-feedback low-pass and high-pass (the Sallen-Key structure with a soft diode clipper in the resonance path); diode-pair SVF; OTA 4-pole cascade (each stage integrates tanh(in − out)); CMOS-inverter SVF.
   - *Nonlinear State Variable*: atanh and hyperbolic damping, saturating integrators (the former *Rough*).
-- **Mode** morphs continuously LP → BP → HP → notch on the multimode types; on the phasers and flanger it sets polarity or notch spacing.
-- **Controls:** cutoff, resonance, drive, mode/morph, mix, key track, gain (dB, for the shelves).
+- **Mode** is a dropdown, LP, BP, HP or notch, on the multimode types; on the phasers and flanger it sets polarity or notch spacing. It shows only on the types it acts on.
+- **Drive** is each algorithm's own: it saturates where the circuit does (ladder stages, the diode ladder's loop, the Sallen-Key amplifier, feedback loops; an input stage for the linear SVFs, a tape-like stage after the 1-poles), up to about +30 dB, with level make-up.
+- **Analog** (default 50 %): per-channel and per-stage component tolerances, slow cutoff drift, a −90 dB noise floor (self-oscillation starts on its own), mismatched (asymmetric) stages, the ladders' bass loss at high resonance, a coupling high-pass in the diode ladder's feedback, light stage saturation in the feedback-saturated ladders. 0 % is the ideal circuit. The saturating ladders are solved in full (Newton over the whole loop).
+- **Controls:** cutoff, resonance, drive, mode, mix, key track, gain (dB, for the shelves), analog.
 - **Cutoff modulation** is applied in the exponential (octave) domain, so a bipolar signal sweeps musically.
 - **Pitch input** for key-tracking.
 - **Envelope follower** on the filtered signal as a `control` output, so audio drives modulation elsewhere.

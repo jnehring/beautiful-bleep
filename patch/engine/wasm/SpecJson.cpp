@@ -76,6 +76,8 @@ bool specFromJson(const juce::var& j, ModuleSpec& s, std::string& error) {
             p.label = str(pj["label"]);
             p.choices = strings(pj["choices"]);
             p.choiceGroups = strings(pj["groups"]);
+            if (auto* lists = pj["legacy"].getArray())
+                for (const auto& list : *lists) p.legacyChoices.push_back(strings(list));
             p.modulatable = !pj["modulatable"].isBool() || (bool)pj["modulatable"];
             p.group = str(pj["group"]);
             showAndNames(pj, p.show, p.namesBy, p.names);

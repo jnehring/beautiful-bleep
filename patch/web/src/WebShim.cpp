@@ -224,6 +224,14 @@ std::string describe(const ModuleSpec& s) {
             out += ",\"groups\":";
             stringList(out, p.choiceGroups);
         }
+        if (!p.legacyChoices.empty()) {   // as BoardTypes.cpp: earlier lists of the choice, for the web board's migration
+            out += ",\"legacy\":[";
+            for (size_t i = 0; i < p.legacyChoices.size(); ++i) {
+                if (i) out += ',';
+                stringList(out, p.legacyChoices[i]);
+            }
+            out += ']';
+        }
         out += ",\"min\":" + num(p.min) + ",\"max\":" + num(p.max);
         out += ",\"def\":" + num(p.def);
         if (p.map == ParamSpec::Map::Exponential) out += ",\"map\":\"exp\"";

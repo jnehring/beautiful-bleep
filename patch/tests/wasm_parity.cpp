@@ -254,7 +254,7 @@ std::string structDiff(const ModuleSpec& native, const ModuleSpec& rebuilt) {
         const ParamSpec &a = native.params[i], &b = rebuilt.params[i];
         const std::string at = "param " + a.id;
         same((at + " fields").c_str(), a.id == b.id && a.name == b.name && a.kind == b.kind && a.map == b.map && a.format == b.format && a.decimals == b.decimals &&
-                                           a.label == b.label && a.choices == b.choices && a.choiceGroups == b.choiceGroups && a.modulatable == b.modulatable &&
+                                           a.label == b.label && a.choices == b.choices && a.choiceGroups == b.choiceGroups && a.legacyChoices == b.legacyChoices && a.modulatable == b.modulatable &&
                                            a.group == b.group && a.names == b.names && a.namesBy == b.namesBy && a.show.param == b.show.param &&
                                            a.show.min == b.show.min && a.show.max == b.show.max && a.show.values == b.show.values);
         for (float x : {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 1.0f}) {
