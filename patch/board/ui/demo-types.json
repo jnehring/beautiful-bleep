@@ -5641,6 +5641,20 @@
         "def": 0.0,
         "format": "choice",
         "decimals": 2
+      },
+      {
+        "id": "lanes",
+        "name": "Extra Lanes",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 9,
+        "modulatable": true,
+        "cableable": true,
+        "min": 0.0,
+        "max": 8.0,
+        "def": 0.0,
+        "format": "integer",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -5705,6 +5719,94 @@
         "name": "Step",
         "type": "control",
         "bipolar": false
+      },
+      {
+        "id": "lane1",
+        "name": "Lane 1",
+        "type": "control",
+        "bipolar": false,
+        "show": {
+          "param": "lanes",
+          "min": 1,
+          "max": 8
+        }
+      },
+      {
+        "id": "lane2",
+        "name": "Lane 2",
+        "type": "control",
+        "bipolar": false,
+        "show": {
+          "param": "lanes",
+          "min": 2,
+          "max": 8
+        }
+      },
+      {
+        "id": "lane3",
+        "name": "Lane 3",
+        "type": "control",
+        "bipolar": false,
+        "show": {
+          "param": "lanes",
+          "min": 3,
+          "max": 8
+        }
+      },
+      {
+        "id": "lane4",
+        "name": "Lane 4",
+        "type": "control",
+        "bipolar": false,
+        "show": {
+          "param": "lanes",
+          "min": 4,
+          "max": 8
+        }
+      },
+      {
+        "id": "lane5",
+        "name": "Lane 5",
+        "type": "control",
+        "bipolar": false,
+        "show": {
+          "param": "lanes",
+          "min": 5,
+          "max": 8
+        }
+      },
+      {
+        "id": "lane6",
+        "name": "Lane 6",
+        "type": "control",
+        "bipolar": false,
+        "show": {
+          "param": "lanes",
+          "min": 6,
+          "max": 8
+        }
+      },
+      {
+        "id": "lane7",
+        "name": "Lane 7",
+        "type": "control",
+        "bipolar": false,
+        "show": {
+          "param": "lanes",
+          "min": 7,
+          "max": 8
+        }
+      },
+      {
+        "id": "lane8",
+        "name": "Lane 8",
+        "type": "control",
+        "bipolar": false,
+        "show": {
+          "param": "lanes",
+          "min": 8,
+          "max": 8
+        }
       }
     ],
     "harmony": "reader"

@@ -82,7 +82,18 @@
   "use strict";
   const hooks = new Map();
   // The first registration of a type stays: a view script loaded later (an installed module's) cannot take over another module's view.
-  window.BleepViews = { register: (type, h) => { if (!hooks.has(type)) hooks.set(type, h); }, get: (type) => hooks.get(type) || null };
+  // One exception, for development: a view script of a local build (Bleep Play's local-modules/views/, written by
+  // build-web.sh --modules-only) replaces the page's own copy, but only while the page is served from this computer.
+  const loopback = () => { const h = location.hostname.toLowerCase(); return h === "localhost" || h === "127.0.0.1" || h === "[::1]" || h.endsWith(".localhost"); };
+  const fromLocalBuild = () => {
+    const src = document.currentScript && document.currentScript.src;
+    if (!src || !loopback()) return false;
+    try { return new URL(src).pathname.startsWith(new URL("local-modules/views/", location.href).pathname); } catch (e) { return false; }
+  };
+  window.BleepViews = {
+    register: (type, h) => { if (!hooks.has(type) || fromLocalBuild()) hooks.set(type, h); },
+    get: (type) => hooks.get(type) || null,
+  };
 
   const NS = "http://www.w3.org/2000/svg";
   const el = (tag, cls, text) => {

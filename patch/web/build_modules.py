@@ -296,8 +296,14 @@ def main():
         for slug, why in prev.get("unavailable", {}).items():
             if slug not in only and slug not in manifest["unavailable"] and slug not in manifest["modules"]:
                 manifest["unavailable"][slug] = why
-    # The node types of each file come from the file itself.
-    node = subprocess.run(["node", "--experimental-wasm-exnref", str(PATCH / "web/test/list-types.mjs"), str(out)], capture_output=True, text=True)
+    # The node types of each file come from the file itself. With --only just those files: compiling all of them in one node
+    # process needs gigabytes (more than Docker has under emulation); the kept modules bring their types from the old manifest.
+    read = sorted(manifest["modules"]) if not only else sorted(s for s in only if s in manifest["modules"])
+    for slug, entry in manifest["modules"].items():
+        if slug not in read:
+            for t in entry.get("types", []):
+                manifest["types"][t] = slug
+    node = subprocess.run(["node", "--experimental-wasm-exnref", str(PATCH / "web/test/list-types.mjs"), str(out), ",".join(read)], capture_output=True, text=True)
     if node.returncode != 0:
         sys.exit(node.stderr or f"list-types.mjs failed with exit {node.returncode}" + (" (killed: out of memory, give Docker more)" if node.returncode in (-9, 137) else ""))
     for slug, specs in json.loads(node.stdout).items():

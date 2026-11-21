@@ -692,13 +692,14 @@
   async function loadModuleViews(list) {
     seal();  // from here on the page runs code that is not the app's own: take the bridge and the privileged globals out of reach
     const loaded = new Set([...document.scripts].map((s) => s.src.split("/").pop()));
-    // Bleep Play with a local development build (local-modules/, build-web.sh --modules-only): its view scripts go first, so they win
-    // over the page's own copies (the first registration of a type stays). Only while the page is served from this computer, as for the modules.
+    // Bleep Play with a local development build (local-modules/, build-web.sh --modules-only): its view scripts replace the page's own
+    // copies, also those index.html loads itself (BleepViews.register lets a script from local-modules/views/ replace a view). Only while
+    // the page is served from this computer, as for the modules.
     try {
       if (window.BleepLibrary && (await BleepLibrary.localIndex())) {
         const r = await fetch("local-modules/views.json", { cache: "no-store" });
         const mine = r.ok ? await r.json() : [];
-        await Promise.all((Array.isArray(mine) ? mine : []).filter((n) => !loaded.has(n)).map((n) => new Promise((done) => {
+        await Promise.all([...new Set(Array.isArray(mine) ? mine : [])].map((n) => new Promise((done) => {
           const s = document.createElement("script");
           s.src = "local-modules/views/" + encodeURIComponent(n);
           s.onload = s.onerror = () => done();

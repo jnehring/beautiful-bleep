@@ -8,6 +8,7 @@
 
 #include <juce_core/juce_core.h>
 
+#include <algorithm>
 #include <atomic>
 
 namespace bleep::engine {
@@ -34,6 +35,8 @@ SeqPattern parseSteps(const juce::var& data, bool& fresh) {
         s.velocity = (uint8_t)juce::jlimit(1, 127, (int)st.getProperty("v", 100));
         s.gateLen = (uint8_t)juce::jlimit(1, 100, (int)st.getProperty("l", 100));
         s.ratchet = (uint8_t)juce::jlimit(1, patch::kSeqMaxRatchet, (int)st.getProperty("r", 1));
+        if (const auto* cv = st["c"].getArray())
+            for (int k = 0; k < patch::kSeqLanes && k < cv->size(); ++k) s.cv[(size_t)k] = (uint8_t)juce::jlimit(0, 100, (int)(*cv)[k]);
     }
     return p;
 }
@@ -52,6 +55,11 @@ std::string sanitiseData(const std::string& json) {
         o->setProperty("v", (int)s.velocity);
         o->setProperty("l", (int)s.gateLen);
         o->setProperty("r", (int)s.ratchet);
+        if (std::any_of(s.cv.begin(), s.cv.end(), [](uint8_t v) { return v != 0; })) {  // the CV lanes, only once drawn
+            juce::Array<juce::var> cv;
+            for (const auto v : s.cv) cv.add((int)v);
+            o->setProperty("c", cv);
+        }
         steps.add(juce::var(o));
     }
     out->setProperty("steps", steps);
@@ -78,6 +86,8 @@ std::string sanitiseData(const std::string& json) {
     range("velocity", 1, 127, 76, 127);
     range("gatelen", 1, 100, 50, 100);
     range("ratchet", 1, patch::kSeqMaxRatchet, 1, 2);
+    for (int k = 1; k <= patch::kSeqLanes; ++k)  // the CV lanes' ranges, once the view made them
+        if (const auto key = "lane" + std::to_string(k); r["range"].hasProperty(juce::Identifier(key))) range(key.c_str(), 0, 100, 0, 100);
     ro->setProperty("range", juce::var(rr));
     out->setProperty("randomize", juce::var(ro));
     return juce::JSON::toString(result, true).toStdString();
@@ -85,9 +95,9 @@ std::string sanitiseData(const std::string& json) {
 
 class StepSequencerModule final : public Module {
 public:
-    enum { GateLength, Swing, Variation, VariationRange, Length, Rate, Direction, Root, Scale, Octave, Seed, Harmony, SyncTo };
+    enum { GateLength, Swing, Variation, VariationRange, Length, Rate, Direction, Root, Scale, Octave, Seed, Harmony, SyncTo, Lanes };
     enum { Clock, Reset, Transpose };
-    enum { Notes, Pitch, Gate, Velocity, Trigger, End, Step };
+    enum { Notes, Pitch, Gate, Velocity, Trigger, End, Step, Lane1 };
 
     using Module::Module;
 
@@ -168,6 +178,7 @@ public:
             c.outputs[Trigger][i] = o.trigger;
             c.outputs[End][i] = o.end;
             c.outputs[Step][i] = o.step;
+            for (int k = 0; k < patch::kSeqLanes; ++k) c.outputs[Lane1 + k][i] = o.lane[(size_t)k];
         }
         step_.store(dsp_.playingStep());
         varied_.store(dsp_.variedSteps());
@@ -211,13 +222,17 @@ void registerStepSequencerModule(Registry& r) {
                 ParamSpec::integer("octave", "Octave", -3, 3, 0),
                 ParamSpec::integer("seed", "Seed", 0, 999, 1),
                 ParamSpec::choice("harmony", "Harmony", {"Off", "Bus A", "Bus B", "Bus C", "Bus D"}, 0),
-                ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto)};
+                ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto),
+                // How many CV lanes the view shows (its Add lane button); Lane k's jack is shown while Lanes >= k.
+                ParamSpec::integer("lanes", "Extra Lanes", 0, patch::kSeqLanes, 0)};
     s.harmony = HarmonyRole::Reader;  // follows a Harmony Master when Harmony is set
     s.inputs = {{"clock", "Clock", Signal::Trigger}, {"reset", "Reset", Signal::Trigger}, {"transpose", "Transpose", Signal::Pitch}};
     s.outputs = {{"notes", "Notes", Signal::Notes, false},       {"pitch", "Pitch", Signal::Pitch, true},
                  {"gate", "Gate", Signal::Gate, false},          {"velocity", "Velocity", Signal::Control, false},
                  {"trigger", "Trigger", Signal::Trigger, false}, {"end", "End", Signal::Trigger, false},
                  {"step", "Step", Signal::Control, false}};
+    for (int k = 1; k <= patch::kSeqLanes; ++k)
+        s.outputs.push_back(JackSpec("lane" + std::to_string(k), "Lane " + std::to_string(k), Signal::Control, false).when("lanes", k, patch::kSeqLanes));
     s.sanitiseData = sanitiseData;
     r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<StepSequencerModule>(spec); });
 }

@@ -67,6 +67,12 @@ time.
   drag both handles together to set every step to one value. Each click is one
   undo step.
 - **Moving patterns:** ◀ and ▶ rotate the steps; **Clear** turns all gates off.
+- **More CV:** **Add lane** adds a lane below the ratchet lane, *Lane 1*, *Lane 2*, … (up
+  to 8), each with an output jack of the same name that carries the playing step's
+  value (0–1). Draw it like the velocity lane; it has its own dice and range. A lane
+  plays on every step, even Off ones, so it works as a modulation sequence for a
+  filter, a mix or an effect. The × on the newest lane removes it (its cables stay,
+  the jack is hidden until you add the lane again).
 - **Evolving lines:** patch a slow Function or Random onto **Variation**. The
   melody wanders off and comes back.
 - **Key changes:** patch another sequencer's *Pitch*, or a MIDI Device's

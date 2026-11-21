@@ -33,6 +33,7 @@ Every knob is also an input (`specs.md` section 7.3).
 | Trigger | `trigger` | A pulse when a step starts a new note (On, or the first step of a tie; not a tie's continuation). |
 | End | `trigger` | A pulse when the pattern wraps to its first step. |
 | Step | `control` (unipolar) | Playhead position, step index / (Length − 1); 0 for Length 1. |
+| Lane 1 … Lane 8 | `control` (unipolar) | The current step's value in that CV lane, 0–1, on every step (also Off steps). Holds between steps. Shown while *Extra Lanes* ≥ the lane's number; hidden jacks keep their cables. |
 
 ## 3. Controls
 
@@ -56,6 +57,7 @@ Every knob is also an input (`specs.md` section 7.3).
 | Scale | the scales in 4.3 | Major |
 | Octave | −3…+3 | 0 |
 | Seed | 0–999 | 1 |
+| Extra Lanes | 0–8: how many CV lanes the view shows (set with *Add lane* and the last lane's ×, not drawn as a setting) | 0 |
 | Harmony | Off, Bus A–D: follow a Harmony Master; while its bus is active, the bus key replaces *Root* and the bus scale replaces *Scale* (steps stay relative to the root, so the melody follows key changes). A silent bus keeps *Root* and *Scale*. | Off |
 
 ## 4. Behaviour
@@ -67,6 +69,9 @@ Each of the 32 steps stores:
 - **Gate:** *Off* (silent), *On* (plays a note), or *Tie* (plays and holds into the next step, legato).
 - **Pitch:** −24…+36 semitones above *Root* + *Octave* (0 = the root).
 - **Velocity:** 1–127, shown as 1–100 %.
+- **CV lanes 1–8:** 0–100 % each, played on *Lane k* as 0–1. A lane plays on
+  every step whatever its gate, ignores Variation and ratchets, and a drawn
+  change to the playing step reaches the output at once (also while stopped).
 
 *Length* only limits playback. Steps beyond it keep their data, so shortening
 and lengthening a pattern loses nothing.
@@ -193,6 +198,7 @@ editor above them:
 - **Ratchet lane:** the bar height is the note count, 1–16. Double-click resets a bar (also in the gate-length bars and the pitch lane).
 - **Pitch lane:** click or drag to set the pitch at the pointer's height; dragging across steps draws a line. The value snaps to the current scale (Shift: single semitones, even outside it). A row under the lane shows each step's note name (e.g. *E4*). Double-click resets to the root.
 - **Velocity lane:** drag across steps to draw a curve; with Shift, dragging moves the value relative to where it started (fine).
+- **Add lane** (in the tool row) adds a CV lane below the ratchet lane, named *Lane 1*, *Lane 2*, … up to 8, and shows its output jack. A lane draws like the velocity lane (Shift: fine; double-click: 0) and has its own dice and range (0–100 %). The newest lane has a × that removes it: its jack hides, cables stay. A new lane starts at 0 everywhere. Adding or removing is one undo step.
 - **Shift ◀ ▶** rotates the steps within Length by one; **Clear** sets all gates to Off. Both are one undo step each.
 - A drag is one undo step (`beginGesture`, `specs.md` section 9.10).
 - Steps whose last play was varied (4.5) show a dot in the pitch lane, so you can see what Variation does.
@@ -209,13 +215,13 @@ randomizer options in the board document:
   "type": "step-sequencer",
   "params": { "length": 0.4839, "scale": 0.0625, … },
   "data": {
-    "steps": [ { "g": 1, "p": 0, "v": 100, "l": 100, "r": 1 }, … 32 entries … ],
+    "steps": [ { "g": 1, "p": 0, "v": 100, "l": 100, "r": 1, "c": [0, 0, 0, 0, 0, 0, 0, 0] }, … 32 entries … ],
     "randomize": { "density": 0.6, "range": { "pitch": [0, 12], "velocity": [76, 127], "gatelen": [50, 100], "ratchet": [1, 2] } }
   }
 }
 ```
 
-`g` is 0 = Off, 1 = On, 2 = Tie; `l` is the gate length in % (1–100) and `r` the ratchet count (1–16); both are optional (100 and 1). Missing or short `steps` arrays are padded
+`g` is 0 = Off, 1 = On, 2 = Tie; `l` is the gate length in % (1–100) and `r` the ratchet count (1–16); both are optional (100 and 1). `c` holds the eight CV lanes' values in % (0–100); it is optional (all 0) and only saved once a value is drawn. The randomizer keeps a range per CV lane (`"lane1": [0, 100]`, …) once the lane exists. Missing or short `steps` arrays are padded
 with Off/0/100 when loading; values out of range are clamped (sanitise).
 A new module starts with 16 steps, all On, pitch 0, velocity 100, so it plays
 the root right away.
@@ -254,6 +260,7 @@ Implemented for this module, and available to any module:
 - No hanging notes: after stop, Reset, Length change and removal, every note-on has a note-off.
 - Variation 0 % plays the pattern exactly; the same Seed gives the same output twice; Variation never changes gates.
 - Saved data round-trips; short or broken `steps` arrays load safely.
+- CV lanes: each step's values reach *Lane k* on Off steps too, and a pattern change moves them at once.
 - The demo types file includes the module (`patch.ui-types`).
 - Engine: data is padded and clamped; a step edit changes the sound without a commit or an undo entry; ties play legato through a Voice Cell; deleting the sequencer releases the held note.
 
@@ -261,7 +268,7 @@ Implemented for this module, and available to any module:
 
 - Per-lane lengths (polymeter) and per-lane directions.
 - Per-step probability, ratchets (repeats within a step) and micro-timing.
-- More lanes: a modulation lane (`control` output) and per-step slide.
+- Per-step slide; bipolar or pitch-quantized CV lanes; removing a lane in the middle.
 - Pattern slots switched by a control input.
 - User scales (12 toggles) and scales with more or fewer than 12 notes per octave.
 - Record notes from a *Notes* input into the steps.

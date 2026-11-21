@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Step Sequencer view (doc/specs/modules/step-sequencer.md §5): the lane editor
-// (gate and its length, pitch, velocity, ratchet), the playhead, and the Randomize
+// (gate and its length, pitch, velocity, ratchet, and up to 8 CV lanes added with
+// "Add lane": Lane 1 … Lane 8, each its own output), the playhead, and the Randomize
 // tools with a value range per lane. Steps live
 // in the node's data; edits go to the engine with api.setData.
 (function () {
@@ -19,10 +20,19 @@
 
   // Lane geometry (canvas px).
   // GATE is the on/off/tie strip, GLEN the gate length bars below it.
-  const GATE = [2, 16], GLEN = [20, 76], PITCH = [84, 180], NAME = [180, 192], VEL = [200, 244], RAT = [252, 296],
-    RULER = [298, 310], H = 312, MAX_R = 16;
+  const GATE = [2, 16], GLEN = [20, 76], PITCH = [84, 180], NAME = [180, 192], VEL = [200, 244], RAT = [252, 296], MAX_R = 16;
+  // The CV lanes (the "lanes" setting says how many) follow the ratchet lane, then the step ruler.
+  const MAX_LANES = 8, LANE_H = 44, LANE_GAP = 8;
+  function geometry(n) {
+    const lanes = [];
+    for (let k = 0; k < n; k++) { const top = RAT[1] + LANE_GAP + k * (LANE_H + LANE_GAP); lanes.push([top, top + LANE_H]); }
+    const last = n ? lanes[n - 1][1] : RAT[1];
+    return { lanes, ruler: [last + 2, last + 14], h: last + 16 };
+  }
   // Randomizer ranges per lane: [min, max, default low, default high].
   const RANGES = { glen: [1, 100, 50, 100], pitch: [MIN_P, MAX_P, 0, 12], velocity: [1, 127, 76, 127], ratchet: [1, MAX_R, 1, 2] };
+  for (let k = 1; k <= MAX_LANES; k++) RANGES["lane" + k] = [0, 100, 0, 100];
+  const laneKey = (k) => "lane" + (k + 1);   // CV lane k (0-based) in the randomizer and the lane hit test
 
   function inScale(scale, s) { return SCALES[scale].includes(mod(s, 12)); }
   function quantize(semi, scale) {
@@ -37,16 +47,27 @@
     return Math.round(p.min + v * (p.max - p.min));
   }
   const freshStep = () => ({ g: 1, p: 0, v: 100, l: 100, r: 1 });
+  const laneCount = (view) => (view.type.params.some((p) => p.id === "lanes") ? clamp(setting(view, "lanes"), 0, MAX_LANES) : 0);
   function data(view) {
     let d = view.node.data;
     if (!d || !Array.isArray(d.steps)) d = view.node.data = { steps: Array.from({ length: STEPS }, freshStep) };
     while (d.steps.length < STEPS) d.steps.push({ g: 0, p: 0, v: 100, l: 100, r: 1 });
-    for (const s of d.steps) { if (s.l == null) s.l = 100; if (s.r == null) s.r = 1; }
+    for (const s of d.steps) {
+      if (s.l == null) s.l = 100;
+      if (s.r == null) s.r = 1;
+      if (!Array.isArray(s.c)) s.c = [];
+      while (s.c.length < MAX_LANES) s.c.push(0);
+    }
     if (!d.randomize) d.randomize = {};
     const o = d.randomize;
     if (o.density == null) o.density = 0.6;
     if (!o.range) o.range = {};
-    for (const k in RANGES) if (!Array.isArray(o.range[k])) o.range[k] = [RANGES[k][2], RANGES[k][3]];
+    const lanes = laneCount(view);
+    for (const k in RANGES) {
+      const cv = /^lane(\d+)$/.exec(k);
+      if (cv && +cv[1] > lanes) continue;   // a CV lane's range only once the lane exists
+      if (!Array.isArray(o.range[k])) o.range[k] = [RANGES[k][2], RANGES[k][3]];
+    }
     return d;
   }
   /// The note a step plays (without Transpose and Variation), e.g. "E4".
@@ -70,8 +91,10 @@
     if (!c) return;
     const d = data(view), st = view.seq.state || {};
     const len = clamp(setting(view, "length"), 1, STEPS);
+    const geo = geometry(laneCount(view)), RULER = geo.ruler, H = geo.h;
     const dpr = window.devicePixelRatio || 1, w = STEPS * COL;
-    if (c.width !== w * dpr) { c.width = w * dpr; c.height = H * dpr; c.style.width = w + "px"; c.style.height = H + "px"; }
+    if (c.width !== w * dpr || c.height !== H * dpr) { c.width = w * dpr; c.height = H * dpr; c.style.width = w + "px"; c.style.height = H + "px"; }
+    if (view.seq.labels) view.seq.labels.style.height = H + "px";
     const g = c.getContext("2d");
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, w, H);
@@ -126,6 +149,16 @@
         g.fillStyle = text;
         g.fillText(String(s.r), x + COL / 2, RAT[1] - rh - 2);
       }
+      // CV lanes: drawn at full strength whatever the gate, as they play on every step
+      g.globalAlpha = i < len ? 1 : 0.3;
+      g.fillStyle = accent;
+      geo.lanes.forEach(([top, bottom], k) => {
+        g.fillStyle = line;   // the lane's track, so an empty lane still shows where to draw
+        g.fillRect(x + 4, top, COL - 8, bottom - top);
+        g.fillStyle = accent;
+        const ch = (s.c[k] / 100) * (bottom - top);
+        g.fillRect(x + 4, bottom - Math.max(1, ch), COL - 8, Math.max(1, ch));
+      });
       g.globalAlpha = 1;
       g.fillStyle = i === st.step ? text : muted;
       if (i % 4 === 0 || i === len - 1) g.fillText(String(i + 1), x + COL / 2, RULER[1] - 2);
@@ -133,19 +166,24 @@
     g.strokeStyle = line;
     g.beginPath();
     g.moveTo(0, zeroY + 0.5); g.lineTo(w, zeroY + 0.5);
-    for (const [a, b] of [GLEN, VEL, RAT]) { g.moveTo(0, b + 0.5); g.lineTo(w, b + 0.5); }
+    for (const [a, b] of [GLEN, VEL, RAT, ...geo.lanes]) { g.moveTo(0, b + 0.5); g.lineTo(w, b + 0.5); }
     for (let i = 4; i < STEPS; i += 4) { g.moveTo(i * COL + 0.5, 0); g.lineTo(i * COL + 0.5, RULER[0]); }
     g.stroke();
     view.seq.length.textContent = len + (len === 1 ? " step" : " steps");
   }
 
   // ---- editing --------------------------------------------------------------
-  function lane(y) {
-    if (y < GATE[1] + 2) return "gate";
-    if (y < GLEN[1] + 3) return "glen";
-    if (y < NAME[1]) return "pitch";
-    if (y < VEL[1] + 3) return "velocity";
-    if (y < RULER[0]) return "ratchet";
+  /// The lane at canvas height y: "gate", "glen", "pitch", "velocity", "ratchet", a CV lane
+  /// (with `k`, 0-based, and its band), or null on the ruler.
+  function lane(view, y) {
+    if (y < GATE[1] + 2) return { lane: "gate" };
+    if (y < GLEN[1] + 3) return { lane: "glen" };
+    if (y < NAME[1]) return { lane: "pitch" };
+    if (y < VEL[1] + 3) return { lane: "velocity" };
+    const geo = geometry(laneCount(view));
+    if (y < RAT[1] + LANE_GAP / 2) return { lane: "ratchet" };
+    for (let k = 0; k < geo.lanes.length; k++)
+      if (y < geo.lanes[k][1] + LANE_GAP / 2) return { lane: "cv", k, band: geo.lanes[k] };
     return null;
   }
   function attach(view, c) {
@@ -169,19 +207,23 @@
       } else if (drag.lane === "velocity") {
         if (e.shiftKey) s.v = clamp(Math.round(drag.v0 + (drag.y0 - y) / 4), 1, 127);
         else s.v = clamp(Math.round(1 + (1 - (y - VEL[0]) / (VEL[1] - VEL[0])) * 126), 1, 127);
+      } else if (drag.lane === "cv") {   // 0..100 %; Shift for fine steps
+        const [top, bottom] = drag.band;
+        if (e.shiftKey) s.c[drag.k] = clamp(Math.round(drag.c0 + (drag.y0 - y) / 4), 0, 100);
+        else s.c[drag.k] = clamp(Math.round(((bottom - y) / (bottom - top)) * 100), 0, 100);
       }
       send(view);
       draw(view);
     };
     c.addEventListener("pointerdown", (e) => {
       if (e.button !== 0) return;
-      const { i, y } = at(e), l = lane(y);
+      const { i, y } = at(e), l = lane(view, y);
       if (!l) return;
       e.stopPropagation();
       c.setPointerCapture(e.pointerId);
       view.api.beginGesture();
       const s = data(view).steps[i];
-      drag = { lane: l, value: (s.g + 1) % 3, v0: s.v, y0: y };
+      drag = { ...l, value: (s.g + 1) % 3, v0: s.v, c0: l.lane === "cv" ? s.c[l.k] : 0, y0: y };
       apply(e);
     });
     c.addEventListener("pointermove", (e) => { if (drag) apply(e); });
@@ -189,15 +231,16 @@
     c.addEventListener("pointerup", end);
     c.addEventListener("pointercancel", end);
     c.addEventListener("dblclick", (e) => {
-      const { i, y } = at(e), l = lane(y);
-      const reset = { pitch: ["p", 0], glen: ["l", 100], ratchet: ["r", 1] }[l];
+      const { i, y } = at(e), l = lane(view, y);
+      if (l && l.lane === "cv") return edit(view, (d) => (d.steps[i].c[l.k] = 0));
+      const reset = l && { pitch: ["p", 0], glen: ["l", 100], ratchet: ["r", 1] }[l.lane];
       if (reset) edit(view, (d) => (d.steps[i][reset[0]] = reset[1]));
     });
   }
 
   // ---- Randomize (spec §4.5) ---------------------------------------------
   const between = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
-  /// Rewrites the given lanes ("gate", "pitch", "velocity", "ratchet") of all 32 steps. Values
+  /// Rewrites the given lanes ("gate", "pitch", "velocity", "ratchet", "lane1" …) of all 32 steps. Values
   /// come from each lane's range; a range of one value sets every step to it.
   function randomize(view, lanes) {
     edit(view, (d) => {
@@ -214,6 +257,7 @@
         if (lanes.includes("pitch")) s.p = clamp(notes[Math.floor(Math.random() * notes.length)], MIN_P, MAX_P);
         if (lanes.includes("velocity")) s.v = between(r.velocity[0], r.velocity[1]);
         if (lanes.includes("ratchet")) s.r = between(r.ratchet[0], r.ratchet[1]);
+        for (let k = 0; k < MAX_LANES; k++) if (lanes.includes(laneKey(k)) && r[laneKey(k)]) s.c[k] = between(r[laneKey(k)][0], r[laneKey(k)][1]);
       }
     });
   }
@@ -242,7 +286,7 @@
     el.innerHTML = '<div class="seq-track"><div class="seq-fill"></div><i></i><i></i></div><span class="seq-rv"></span>';
     const fill = el.querySelector(".seq-fill"), thumbs = el.querySelectorAll("i"), out = el.querySelector(".seq-rv");
     const track = el.querySelector(".seq-track");
-    const unit = { glen: "%", pitch: " st" }[key] || "";
+    const unit = { glen: "%", pitch: " st" }[key] || (key.startsWith("lane") ? "%" : "");
     const pos = (v) => ((v - min) / (max - min)) * 100;
     const refresh = () => {
       const [lo, hi] = data(view).randomize.range[key];
@@ -278,6 +322,73 @@
     return { el, refresh };
   }
 
+  // ---- CV lanes ("Add lane") -------------------------------------------------
+  /// Sets how many CV lanes there are; this shows or hides their output jacks (Lane k while lanes >= k).
+  function setLanes(view, n) {
+    n = clamp(n, 0, MAX_LANES);
+    const v = n / MAX_LANES;
+    view.node.params = view.node.params || {};
+    view.node.params.lanes = v;
+    view.api.setParam("lanes", v);
+  }
+  function addLane(view) {
+    const n = laneCount(view);
+    if (n >= MAX_LANES) return;
+    view.api.beginGesture();   // one undo step: the cleared values and the new count
+    const d = data(view);
+    for (const s of d.steps) s.c[n] = 0;   // a new lane starts empty, not with what a removed one held
+    d.randomize.range[laneKey(n)] = [RANGES[laneKey(n)][2], RANGES[laneKey(n)][3]];
+    send(view);
+    setLanes(view, n + 1);
+    syncLanes(view);
+    const added = view.seq.cvLabels.lastElementChild;   // the new lane may be below the window's fold
+    if (added) added.scrollIntoView({ block: "nearest" });
+  }
+  function removeLane(view) {
+    const n = laneCount(view);
+    if (n <= 0) return;
+    view.api.beginGesture();
+    setLanes(view, n - 1);   // its jack is hidden; cables to it stay (dimmed), its values stay until a lane is added again
+    syncLanes(view);
+  }
+  /// Rebuilds the CV lanes' labels (dice, range, remove) when their number changed, and redraws.
+  function syncLanes(view) {
+    const seq = view.seq;
+    if (!seq) return;
+    const n = laneCount(view), geo = geometry(n);
+    seq.add.disabled = n >= MAX_LANES;
+    seq.add.title = n >= MAX_LANES ? "At most " + MAX_LANES + " lanes" : "A new CV lane with an output of its own (Lane " + (n + 1) + ")";
+    if (seq.lanesShown !== n) {
+      seq.lanesShown = n;
+      seq.cvLabels.innerHTML = "";
+      seq.laneSliders = [];
+      geo.lanes.forEach(([top], k) => {
+        const box = document.createElement("div");
+        box.className = "seq-lane";
+        box.style.top = top + "px";
+        const head = document.createElement("div");
+        head.className = "seq-head";
+        head.append("Lane " + (k + 1) + " ");
+        const dice = Object.assign(document.createElement("button"), { textContent: "⚄", title: "New values for Lane " + (k + 1) });
+        dice.addEventListener("click", () => randomize(view, [laneKey(k)]));
+        head.append(dice);
+        if (k === n - 1) {
+          const rm = Object.assign(document.createElement("button"), { textContent: "×", title: "Remove Lane " + (k + 1) + " (its jack hides; cables stay)" });
+          rm.className = "seq-rm";
+          rm.addEventListener("click", () => removeLane(view));
+          head.append(rm);
+        }
+        data(view);   // makes the lane's range
+        const sl = rangeSlider(view, laneKey(k));
+        box.append(head, sl.el);
+        sl.refresh();
+        seq.laneSliders.push(sl);
+        seq.cvLabels.appendChild(box);
+      });
+    }
+    draw(view);
+  }
+
   const STYLE = `
     .seq-panel { flex: 1 1 100%; min-width: 0; }
     .seq-tools { display: flex; gap: 4px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
@@ -290,13 +401,15 @@
     .seq-opt { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
     .seq-opt .bv-number { width: 56px; }
     .seq-body { display: flex; }
-    .seq-labels { position: relative; width: 132px; margin-right: 6px; flex: none; height: ${H}px; font-size: 9px; color: var(--muted);
+    .seq-tools button:disabled { opacity: .4; cursor: default; }
+    .seq-labels { position: relative; width: 132px; margin-right: 6px; flex: none; font-size: 9px; color: var(--muted);
       text-transform: uppercase; letter-spacing: .06em; }
     .seq-labels .seq-lane { position: absolute; left: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
     .seq-labels button { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 5px;
       padding: 0 3px; font-size: 16px; line-height: 16px; cursor: pointer; }
     .seq-labels button:hover { border-color: var(--accent); }
     .seq-labels .seq-head { display: flex; align-items: center; gap: 4px; }
+    .seq-labels .seq-rm { font-size: 12px; }
     .seq-range { position: relative; width: 126px; touch-action: none; cursor: pointer; }
     .seq-range .seq-track { position: relative; height: 4px; background: var(--line); border-radius: 2px; margin: 8px 6px 10px; }
     .seq-range .seq-fill { position: absolute; top: 0; height: 100%; background: var(--accent); border-radius: 2px; }
@@ -310,6 +423,7 @@
     partNames: ["Step lanes"],
     top: true,
     width: 980,
+    hideParams: ["lanes"],   // set with Add lane and the lanes' × buttons
     layout: [
       { title: "Clock", params: ["syncto", "rate", "length", "direction"] },
       { title: "Feel", params: ["gatelength", "swing"] },
@@ -323,6 +437,7 @@
         <button class="seq-left" title="Rotate the steps left">◀</button>
         <button class="seq-right" title="Rotate the steps right">▶</button>
         <button class="seq-clear" title="All gates off">Clear</button>
+        <button class="seq-add">Add lane</button>
         <span class="seq-len"></span>
       </div>
       <div class="seq-options" hidden></div>
@@ -336,6 +451,7 @@
             <div data-range="velocity"></div></div>
           <div class="seq-lane" style="top:${RAT[0]}px"><div class="seq-head">Ratchet <button data-lane="ratchet" title="New ratchets (1–16 notes per step)">⚄</button></div>
             <div data-range="ratchet"></div></div>
+          <div class="seq-cvlabels"></div>
         </div>
         <div class="seq-scroll"><canvas></canvas></div>
       </div>
@@ -348,7 +464,8 @@
         document.head.appendChild(s);
       }
       const canvas = el.querySelector("canvas");
-      view.seq = { canvas, length: el.querySelector(".seq-len"), state: null };
+      view.seq = { canvas, length: el.querySelector(".seq-len"), state: null, labels: el.querySelector(".seq-labels"),
+        cvLabels: el.querySelector(".seq-cvlabels"), add: el.querySelector(".seq-add"), lanesShown: -1, laneSliders: [] };
       attach(view, canvas);
       const box = el.querySelector(".seq-options"), more = el.querySelector(".seq-more");
       el.querySelector(".seq-rand").addEventListener("click", () => randomize(view, ["gate", "pitch", "velocity"]));
@@ -374,6 +491,8 @@
       el.querySelector(".seq-left").addEventListener("click", () => rotate(1));
       el.querySelector(".seq-right").addEventListener("click", () => rotate(-1));
       el.querySelector(".seq-clear").addEventListener("click", () => edit(view, (d) => d.steps.forEach((s) => (s.g = 0))));
+      view.seq.add.addEventListener("click", () => addLane(view));
+      syncLanes(view);
       requestAnimationFrame(() => draw(view));
     },
     onState(st, view) {
@@ -384,7 +503,8 @@
     onRefresh(view) {
       const box = view.root.querySelector(".seq-options");
       if (box && !box.hidden) options(view, box);
-      if (view.seq) for (const sl of view.seq.sliders || []) sl.refresh();
+      if (view.seq) for (const sl of [...(view.seq.sliders || []), ...(view.seq.laneSliders || [])]) sl.refresh();
+      syncLanes(view);   // undo can change the number of lanes
       draw(view);
     },
   });

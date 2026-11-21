@@ -24,6 +24,7 @@ enum SeqDirection { SeqForward = 0, SeqBackward, SeqPingPong, SeqRandom };
 
 constexpr int kSeqSteps = 32;
 constexpr int kSeqMinPitch = -24, kSeqMaxPitch = 36, kSeqMaxRatchet = 16;
+constexpr int kSeqLanes = 8;  ///< extra CV lanes (Lane 1 … Lane 8), shown by the Lanes setting
 
 struct SeqStep {
     uint8_t gate = SeqOn;
@@ -31,6 +32,7 @@ struct SeqStep {
     uint8_t velocity = 100;  ///< 1..127
     uint8_t gateLen = 100;   ///< 1..100 %, scales the Gate Length setting
     uint8_t ratchet = 1;     ///< 1..16 notes in the step
+    std::array<uint8_t, kSeqLanes> cv{};  ///< 0..100 %, the CV lanes' values
 };
 using SeqPattern = std::array<SeqStep, kSeqSteps>;
 
@@ -58,6 +60,7 @@ struct SeqTime {
 
 struct SeqOutputs {
     float pitch = 0.0f, gate = 0.0f, velocity = 0.0f, trigger = 0.0f, end = 0.0f, step = 0.0f;
+    std::array<float, kSeqLanes> lane{};  ///< 0..1, the playing step's CV lane values
 };
 
 class StepSequencerDsp {
@@ -110,12 +113,15 @@ public:
         varied_ = 0;
         stopRequested_ = false;
         ratchLeft_ = 0;
+        lane_ = {};
     }
 
-    /// A new pattern. A sounding step that lost its gate stops.
+    /// A new pattern. A sounding step that lost its gate stops; the CV lanes take the
+    /// playing step's new values at once (drawing while stopped moves the outputs).
     void setPattern(const SeqPattern& p) noexcept {
         pattern_ = p;
         if (voice_.sounding() && pattern_[(size_t)step_].gate == SeqOff) stopRequested_ = true;
+        if (played_) loadLanes(pattern_[(size_t)step_]);
     }
     const SeqPattern& pattern() const noexcept { return pattern_; }
 
@@ -167,9 +173,14 @@ public:
         out.velocity = voice_.velocity();
         out.gate = voice_.gate() ? 1.0f : 0.0f;
         out.step = length > 1 ? (float)step_ / (float)(length - 1) : 0.0f;
+        out.lane = lane_;
     }
 
 private:
+    void loadLanes(const SeqStep& st) noexcept {
+        for (int k = 0; k < kSeqLanes; ++k) lane_[(size_t)k] = (float)std::min<int>(st.cv[(size_t)k], 100) / 100.0f;
+    }
+
     template <class Emit>
     void stop(Emit& emit) noexcept {
         stopRequested_ = false;
@@ -198,6 +209,7 @@ private:
         step_ = idx;
 
         const SeqStep& st = pattern_[(size_t)idx];
+        loadLanes(st);  // every step, gate or not: the lanes are CV of their own
         varied_ &= ~(1u << idx);
         ratchLeft_ = 0;
         if (st.gate == SeqOff) {
@@ -252,6 +264,7 @@ private:
     int64_t ratchElapsed_ = 0;
     double ratchSub_ = 0.0;
     float pitch_ = 0.0f, vel_ = 0.0f, gateLen_ = 0.5f;
+    std::array<float, kSeqLanes> lane_{};
 };
 
 }  // namespace bleep::patch

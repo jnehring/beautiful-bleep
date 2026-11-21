@@ -310,6 +310,31 @@ static void seqNoHangingNotes() {
     }
 }
 
+static void seqLanes() {
+    g_test = "seq-lanes";
+    StepSequencerDsp d;
+    d.prepare(48000.0);
+    d.reset();
+    SeqPattern pat{};
+    pat[0].cv[0] = 25;
+    pat[0].cv[7] = 100;
+    pat[1].gate = SeqOff;  // a CV lane plays on Off steps too
+    pat[1].cv[0] = 80;
+    d.setPattern(pat);
+    SeqParams p;
+    p.length = 2;
+    std::vector<SeqOutputs> outs;
+    runSeq(d, p, 12000, transportAt(), &outs);
+    EXPECT(std::abs(outs[10].lane[0] - 0.25f) < 1e-6f && outs[10].lane[7] == 1.0f && outs[10].lane[3] == 0.0f);
+    EXPECT(std::abs(outs[7000].lane[0] - 0.8f) < 1e-6f && outs[7000].lane[7] == 0.0f);
+    // A pattern change reaches the playing step's lanes at once.
+    pat[1].cv[0] = 10;
+    d.setPattern(pat);
+    SeqOutputs o;
+    d.tick(p, 0.0f, false, 0.0f, 0.0f, SeqTime{}, o, [](bool, int, float, float) {});
+    EXPECT(std::abs(o.lane[0] - 0.1f) < 1e-6f);
+}
+
 /// Steady-state gain of one algorithm for a sine at freq (after settling).
 
 void runSequencerTests() {
@@ -321,4 +346,5 @@ void runSequencerTests() {
     seqRatchet();
     seqVariation();
     seqNoHangingNotes();
+    seqLanes();
 }
