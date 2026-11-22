@@ -99,7 +99,7 @@ function heldNotes() {
   const bar = p.add("lfo", [0, 2], { wave: "Square", sync: "Tempo", division: "1/1", polarity: "Unipolar", pw: 0.1 }, { name: "Bar Clock" });
   const rt = p.add("route", [1, 0], { outputs: 4, idle: "Hold", fade: 0.4 });
   p.cable(seq, "pitch", rt, "in").cable(bar, "out", rt, "next");
-  const mix = p.add("audio-mixer", [3, 0], { level1: -12, level2: -12, level3: -12, level4: -12, master: 0 });
+  const mix = p.add("audio-mixer", [3, 0], { level1: -12, level2: -12, level3: -12, level4: -12, master: -1 });
   for (let i = 0; i < 4; i++) {
     const o = p.add("oscillator", [2, i], { ...oscWaves(i % 2 ? 0.15 : 0.45), fine: (i - 1.5) * 5, octave: i < 2 ? "0" : "+1" }, { name: "Drone " + (i + 1) });
     p.cable(rt, "out" + (i + 1), o, "pitch").cable(o, "out", mix, `in${i + 1}l`).cable(o, "out", mix, `in${i + 1}r`);

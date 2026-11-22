@@ -300,9 +300,10 @@ static void ownAlgorithms() {
 static void filterDrive() {
     g_test = "filter drive";
     // Drive is each algorithm's own (va::driveSpec()); on every type it changes the
-    // sound clearly at full Drive, gently at a quarter, and keeps the level of a
+    // sound clearly at full Drive, less at a quarter, and keeps the level of a
     // full-scale signal within a few dB (a saw at 110 Hz peaking at 1, cutoff 1 kHz,
-    // resonance 30 %): turning Drive up must not make it quieter.
+    // resonance 30 %): turning Drive up must not make it quieter. The level is the
+    // loudness as heard (K-weighted, ITU-R BS.1770 at 48 kHz), as Drive is matched.
     const double sr = 48000.0;
     std::vector<float> in(36000);
     for (size_t i = 0; i < in.size(); ++i) {
@@ -330,17 +331,28 @@ static void filterDrive() {
         return out;
     };
     auto energy = [](const std::vector<float>& a) { double e = 0; for (float v : a) e += (double)v * v; return e / (double)a.size(); };
+    auto loudness = [](const std::vector<float>& a) {
+        double z1 = 0, z2 = 0, w1 = 0, w2 = 0, e = 0;
+        for (float v : a) {
+            const double y = 1.53512485958697 * v + z1;
+            z1 = -2.69169618940638 * v + 1.69065929318241 * y + z2, z2 = 1.19839281085285 * v - 0.73248077421585 * y;
+            const double u = y + w1;
+            w1 = -2.0 * y + 1.99004745483398 * u + w2, w2 = y - 0.99007225036621 * u;
+            e += u * u;
+        }
+        return e / (double)a.size();
+    };
     for (int t = 0; t < va::kNumTypes; ++t) {
         const auto y0 = run(t, 0.0f);
-        const double e0 = energy(y0);
+        const double e0 = energy(y0), l0 = loudness(y0);
         for (float drive : {0.25f, 1.0f}) {
             const auto y = run(t, drive);
             double xy = 0.0, yy = 0.0;
             for (size_t i = 0; i < y.size(); ++i) xy += (double)y0[i] * y[i], yy += (double)y[i] * y[i];
             double r = 0.0;
             for (size_t i = 0; i < y.size(); ++i) { const double d = y0[i] - xy / yy * y[i]; r += d * d; }
-            const double level = 10.0 * std::log10(energy(y) / e0), change = 10.0 * std::log10(r / (double)y.size() / e0);
-            const bool ok = std::fabs(level) < 4.5 && (drive < 0.5f ? change < -10.0 : change > -9.0);
+            const double level = 10.0 * std::log10(loudness(y) / l0), change = 10.0 * std::log10(r / (double)y.size() / e0);
+            const bool ok = std::fabs(level) < 4.5 && (drive < 0.5f ? change < -7.0 : change > -9.0);
             if (!ok) std::printf("  type %d drive %.2f: level %+.1f dB, change %.1f dB\n", t, drive, level, change);
             EXPECT(ok);
         }

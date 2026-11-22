@@ -175,7 +175,8 @@ constexpr double kFeedbackHpHz = 250.0;
 // Analog (at 100 %).
 constexpr float kStageTolerance = 0.08f;   ///< ±8 % cutoff spread between the stages of a ladder / cascade
 constexpr float kStageMismatch = 0.2f;     ///< asymmetry of the transistor / OTA pairs (even harmonics)
-constexpr float kBassLoss = 0.5f;          ///< share of the ladders' resonance compensation given up
+constexpr float kBassLoss = 0.25f;         ///< share of the ladders' resonance compensation given up
+constexpr float kAnalogBias = 0.3f;        ///< asymmetry of the Drive / warmth curve (even harmonics), on top of the type's own
 constexpr float kCouplingHpHz = 90.0f;     ///< the diode ladder's feedback coupling high-pass
 constexpr float kSlewHz = 4000.0f;         ///< op-amp slew: a full-scale sine above this is limited
 constexpr float kOpAmpRail = 1.5f;         ///< op-amp / inverter integrators clip softly here
@@ -196,6 +197,10 @@ struct DriveSpec {
     float trimDb = 0.0f;  ///< extra output gain at full Drive, where even no make-up leaves the type quieter
 };
 
+/// Drive also drives the output amplifier a little (up to this much, after the filter), so the distortion is not
+/// all filtered away again on a low-pass. Not on the types driven after the filter, nor on the digital references.
+constexpr float kOutputStageDb = 12.0f;
+
 constexpr float kDriveReference = 0.5f;  ///< scales the knees (only kDriveReference / knee matters)
 
 /// Output gain for an input gain g: tanh(r/knee) / tanh(g·r/knee), 1 at g = 1.
@@ -209,40 +214,40 @@ inline const DriveSpec& driveSpec(FilterType type) noexcept {
     // on every type, at about the same loudness.
     static const DriveSpec specs[] = {
         // SVF Multimode, Bandpass (unit gain), Band Shelf, Peaking, Allpass: warm input stage
-        {DriveAt::Before, 30.0f, 0.75f, 0.15f}, {DriveAt::Before, 30.0f, 0.51f, 0.15f}, {DriveAt::Before, 30.0f, 0.73f, 0.15f},
-        {DriveAt::Before, 30.0f, 0.68f, 0.15f}, {DriveAt::Before, 30.0f, 0.77f, 0.15f},
+        {DriveAt::Before, 30.0f, 0.02f, 0.15f, 2.3f}, {DriveAt::Before, 30.0f, 0.02f, 0.15f}, {DriveAt::Before, 30.0f, 0.02f, 0.15f, 3.1f},
+        {DriveAt::Before, 30.0f, 0.02f, 0.15f, 5.2f}, {DriveAt::Before, 30.0f, 0.02f, 0.15f, 1.9f},
         // 1-Pole LP, HP, AP, Low Shelf, High Shelf: tape-like stage after the filter
-        {DriveAt::After, 24.0f, 0.79f, 0.1f}, {DriveAt::After, 24.0f, 0.87f, 0.1f}, {DriveAt::After, 24.0f, 0.73f, 0.1f},
-        {DriveAt::After, 24.0f, 0.01f, 0.1f}, {DriveAt::After, 24.0f, 0.65f, 0.1f},
+        {DriveAt::After, 24.0f, 5.14f, 0.1f, 15.0f}, {DriveAt::After, 24.0f, 0.37f, 0.1f}, {DriveAt::After, 24.0f, 4.34f, 0.1f, 15.0f},
+        {DriveAt::After, 24.0f, 0.02f, 0.1f, 1.9f}, {DriveAt::After, 24.0f, 0.43f, 0.1f},
         // Ladder Linear, Feedback HP, Tanh, Hyperbolic, Nonlinear Stages: input stage, then into the stages
-        {DriveAt::Inside, 24.0f, 0.97f, 0.0f}, {DriveAt::Inside, 36.0f, 1.39f, 0.0f}, {DriveAt::Inside, 30.0f, 0.77f, 0.0f},
-        {DriveAt::Inside, 30.0f, 0.83f, 0.0f}, {DriveAt::Inside, 30.0f, 1.12f, 0.0f},
+        {DriveAt::Inside, 24.0f, 0.02f, 0.0f, 2.3f}, {DriveAt::Inside, 36.0f, 0.72f, 0.0f, 2.1f}, {DriveAt::Inside, 30.0f, 0.33f, 0.0f, 1.1f},
+        {DriveAt::Inside, 30.0f, 0.45f, 0.0f}, {DriveAt::Inside, 30.0f, 0.27f, 0.0f, 1.2f},
         // Diode Linear, Diode Tanh: asymmetric input stage, then in the loop (the ladder's input)
-        {DriveAt::Inside, 20.0f, 0.86f, 0.4f}, {DriveAt::Inside, 24.0f, 1.15f, 0.4f},
+        {DriveAt::Inside, 20.0f, 3.89f, 0.4f, 15.0f}, {DriveAt::Inside, 24.0f, 0.70f, 0.4f},
         // Phaser 1-Pole, Phaser 2-Pole, Flanger: in the feedback loop
-        {DriveAt::Inside, 30.0f, 0.68f, 0.0f}, {DriveAt::Inside, 30.0f, 0.31f, 0.0f}, {DriveAt::Inside, 30.0f, 0.64f, 0.0f},
+        {DriveAt::Inside, 30.0f, 0.45f, 0.0f, 3.4f}, {DriveAt::Inside, 30.0f, 0.02f, 0.0f, 2.7f}, {DriveAt::Inside, 30.0f, 0.32f, 0.0f, 3.5f},
         // Naive 1-Pole: hard digital clipping before; Biquad: warm input stage
-        {DriveAt::Before, 24.0f, 0.76f, 0.0f}, {DriveAt::Before, 30.0f, 0.75f, 0.15f},
+        {DriveAt::Before, 24.0f, 0.70f, 0.0f}, {DriveAt::Before, 30.0f, 0.63f, 0.15f},
         // Sallen-Key LP, HP: into the amplifier's wall, which turns asymmetric
-        {DriveAt::Inside, 30.0f, 0.61f, 0.3f}, {DriveAt::Inside, 30.0f, 0.90f, 0.3f},
+        {DriveAt::Inside, 30.0f, 0.26f, 0.3f}, {DriveAt::Inside, 30.0f, 0.62f, 0.3f},
         // Vowel: a driven voice before the formants
-        {DriveAt::Before, 24.0f, 0.35f, 0.3f},
+        {DriveAt::Before, 24.0f, 0.02f, 0.3f, 1.1f},
         // Comb Positive, Negative: in the loop
-        {DriveAt::Inside, 30.0f, 0.96f, 0.0f}, {DriveAt::Inside, 30.0f, 1.36f, 0.0f},
+        {DriveAt::Inside, 30.0f, 0.54f, 0.0f, 2.8f}, {DriveAt::Inside, 30.0f, 0.70f, 0.0f, 1.9f},
         // Staircase LP, HP: into every section
-        {DriveAt::Inside, 30.0f, 1.45f, 0.0f}, {DriveAt::Inside, 30.0f, 0.30f, 0.0f, 5.5f},
+        {DriveAt::Inside, 30.0f, 0.40f, 0.0f, 2.6f}, {DriveAt::Inside, 30.0f, 0.02f, 0.0f, 5.5f},
         // Op-Amp Slew SVF: into the slewing integrators
-        {DriveAt::Inside, 30.0f, 1.11f, 0.1f},
+        {DriveAt::Inside, 30.0f, 0.02f, 0.1f, 1.7f},
         // Diode-Feedback LP, HP: into the amplifier and its diode clipper
-        {DriveAt::Inside, 30.0f, 0.37f, 0.25f}, {DriveAt::Inside, 30.0f, 0.94f, 0.25f},
+        {DriveAt::Inside, 30.0f, 0.49f, 0.25f}, {DriveAt::Inside, 30.0f, 7.68f, 0.25f, 15.0f},
         // Diode Pair: into the diode pairs
-        {DriveAt::Inside, 20.0f, 1.03f, 0.1f},
+        {DriveAt::Inside, 20.0f, 0.02f, 0.1f, 2.0f},
         // OTA 4-Pole: input stage, then into the OTA stages
-        {DriveAt::Inside, 30.0f, 1.60f, 0.05f},
+        {DriveAt::Inside, 30.0f, 0.54f, 0.05f, 1.0f},
         // CMOS Inverter SVF: into the inverters
-        {DriveAt::Inside, 24.0f, 0.86f, 0.35f},
+        {DriveAt::Inside, 24.0f, 0.02f, 0.35f, 0.4f},
         // SVF Atanh, Hyperbolic, Saturating: into their own nonlinearity
-        {DriveAt::Inside, 24.0f, 5.95f, 0.0f}, {DriveAt::Inside, 24.0f, 5.86f, 0.0f}, {DriveAt::Inside, 24.0f, 0.78f, 0.0f},
+        {DriveAt::Inside, 24.0f, 0.33f, 0.0f, 3.2f}, {DriveAt::Inside, 24.0f, 0.37f, 0.0f, 2.8f}, {DriveAt::Inside, 24.0f, 0.54f, 0.0f},
     };
     static_assert(sizeof(specs) / sizeof(specs[0]) == (size_t)FilterType::Count, "one DriveSpec per FilterType");
     return specs[(size_t)type];
@@ -297,6 +302,8 @@ struct Coeffs {
     float drive = 0.0f;    ///< 0..1
     float inGain = 1.0f;   ///< level into the nonlinearity
     float outGain = 1.0f;  ///< level compensation after it
+    float postGain = 1.0f; ///< level into the output stage (kOutputStageDb); 1: none
+    float postMul = 1.0f;  ///< output-stage make-up: a signal at kDriveReference keeps its level
     float bias = 0.0f;     ///< asymmetry of the curve
     float stageSat = 0.0f; ///< hardness of the stage saturators (ladders, diodes, staircase); 0: linear stages
     float loopSat = 0.0f;  ///< hardness of the loop saturator (diodes, phasers, flanger, comb); 0: linear loop
@@ -360,7 +367,7 @@ inline Coeffs makeCoeffs(FilterType type, float hz, float resonance, float morph
     const float driveIn = std::clamp(drive, 0.0f, 1.0f);
     if (last.type == type && std::fabs(last.drive - driveIn) <= 0.0f && std::fabs(last.analog - c.analog) <= 0.0f) {
         const Coeffs& k = last.c;
-        c.drive = k.drive, c.inGain = k.inGain, c.outGain = k.outGain, c.bias = k.bias, c.biasTb = k.biasTb, c.biasNorm = k.biasNorm;
+        c.drive = k.drive, c.inGain = k.inGain, c.outGain = k.outGain, c.postGain = k.postGain, c.postMul = k.postMul, c.bias = k.bias, c.biasTb = k.biasTb, c.biasNorm = k.biasNorm;
         c.stageSat = k.stageSat, c.stageBias = k.stageBias, c.stageTb = k.stageTb, c.stageNorm = k.stageNorm, c.loopSat = k.loopSat;
     } else {
         const DriveSpec& d = driveSpec(type);
@@ -368,7 +375,13 @@ inline Coeffs makeCoeffs(FilterType type, float hz, float resonance, float morph
         // A curve, so the lower half of the knob stays fine-grained.
         c.inGain = c.drive > 0.0f ? std::pow(10.0f, d.maxDb * std::pow(c.drive, 1.5f) / 20.0f) : 1.0f;
         c.outGain = driveMakeup(c.inGain, d.knee) * std::pow(10.0f, d.trimDb * std::pow(c.drive, 1.5f) / 20.0f);
-        c.bias = d.bias * c.drive;
+        // Analog adds asymmetry: a circuit's curve is never quite symmetric, so its warmth adds even harmonics
+        // (a symmetric curve takes them away from a saw).
+        c.bias = d.bias * c.drive + kAnalogBias * c.analog;
+        if (d.at != DriveAt::After && type != FilterType::NaiveOnePole && type != FilterType::Biquad && c.drive > 0.0f) {
+            c.postGain = std::pow(10.0f, kOutputStageDb * std::pow(c.drive, 1.5f) / 20.0f);
+            c.postMul = std::tanh(kDriveReference) / std::tanh(kDriveReference * c.postGain);
+        }
         c.biasTb = std::tanh((double)c.bias);
         c.biasNorm = 1.0 / (1.0 - c.biasTb * c.biasTb);
         // The saturators' hardness grows with Drive, so Drive 0 stays exactly linear on the linear types and
@@ -585,17 +598,20 @@ public:
         const DriveSpec& d = driveSpec(c.type);
         const double in = (double)c.inGain * x;
         const auto shape = [&c](double v) { return (fastTanh(v + c.bias) - c.biasTb) * c.biasNorm; };  // asym(v, bias)
+        // The output stage, the same curve: a signal at kDriveReference keeps about its level, louder ones are
+        // squashed, quieter ones come out a little louder.
+        const auto post = [&c, &shape](float y) { return c.postGain > 1.0f ? (float)(shape((double)c.postGain * y) * c.postMul) : y; };
         switch (d.at) {
             case DriveAt::Before: {
                 const double shaped = c.type == FilterType::NaiveOnePole ? std::clamp(in, -1.0, 1.0) : shape(in);
-                return c.outGain * core(c, (float)shaped, sampleRate);
+                return c.outGain * post(core(c, (float)shaped, sampleRate));
             }
             case DriveAt::After: return c.outGain * (float)shape((double)c.inGain * core(c, x, sampleRate));
             case DriveAt::Inside: {
                 // The ladders and diodes have a soft input stage of their own (clipping at ±2).
                 const bool stage = (c.type >= FilterType::Ladder && c.type <= FilterType::DiodeTanh) || c.type == FilterType::Ota4;
                 const double v = stage ? 2.0 * shape(0.5 * in) : in;
-                return c.outGain * core(c, (float)v, sampleRate);
+                return c.outGain * post(core(c, (float)v, sampleRate));
             }
         }
         return x;

@@ -38,6 +38,7 @@ public:
     static constexpr int kMaxChannels = 2;
     static constexpr float kChannelTolerance = 0.06f;  ///< Analog 100 %: the channels' cutoffs differ up to ±6 %
     static constexpr float kDrift = 0.06f;             ///< Analog 100 %: the cutoff wanders up to ±6 %
+    static constexpr float kWarmthKnee = 0.8f;  ///< make-up of the warmth alone: loud and quiet signals keep about their level
     static constexpr float kWarmth = 0.4f;             ///< Analog 100 %: the type's own saturation, as at least this much Drive
     static constexpr int kOversampling = 4;
     static constexpr float kRunaway = 1.0e4f;  ///< |output| from which (or NaN) a voice counts as blown up
@@ -136,6 +137,12 @@ public:
                 coeffs_[ch] = va::makeCoeffs((FilterType)type, chHz, p.resonance, p.morph, p.gain, sampleRate_, p.vowel,
                                              p.damping, p.slope, drive, analog);
                 coeffs_[ch].warmthOnly = p.drive < drive;  // the ladders take the light path for Analog's warmth
+                if (coeffs_[ch].warmthOnly) {
+                    // Warmth alone: no output stage, and quiet signals keep their level exactly (only loud ones are
+                    // rounded off), so Analog changes the colour, not the loudness.
+                    coeffs_[ch].postGain = coeffs_[ch].postMul = 1.0f;
+                    coeffs_[ch].outGain = va::driveMakeup(coeffs_[ch].inGain, kWarmthKnee);
+                }
                 lastHz_[ch] = chHz;
             }
         }

@@ -71,6 +71,16 @@ audio rate. **Type** picks the algorithm; the dropdown groups them by family.
 | OTA 4-Pole | a soft input stage, then into the four OTA stages | smoother than the transistor ladder, rounder resonance |
 | CMOS Inverter SVF | into the inverters | very dirty and asymmetric, early |
 
+On every type but the 1-poles (already driven after the filter) and the two
+digital types, Drive also pushes the output amplifier a little (up to
+12 dB). Otherwise a low-pass would filter most of the distortion away
+again: a saw that saturates before a low-pass mostly turns rounder and
+hollower, not dirtier. The output stage adds the grit above the cutoff.
+
+The level is matched by loudness as you hear it (K-weighted, as loudness
+meters measure), not by the plain signal level: a full-scale saw sounds
+about as loud at every Drive.
+
 ### Analog
 
 *Analog* (0 – 100 %, default 50 %) brings in the imperfections of real
@@ -78,7 +88,10 @@ parts. Together they make the filter breathe:
 
 - **Warmth:** a circuit is never quite linear. The type's own saturation
   (see *Drive per type*) always works a little: at 100 % as if *Drive* were
-  at least 40 % (20 % at the default 50 %). The level stays the same.
+  at least 40 % (20 % at the default 50 %), and its curve turns
+  asymmetric, adding even harmonics (a symmetric curve would take them away
+  from a saw). Quiet and loud signals keep about their level (within 2 to
+  3 dB): Analog changes the colour, not the volume.
 
 - **Tolerances:** the two channels' cutoffs differ (up to ±6 %), so a
   stereo signal widens and a resonant peak beats between left and right, and
@@ -92,8 +105,8 @@ parts. Together they make the filter breathe:
 - **Mismatched pairs:** the transistor and OTA stages turn asymmetric,
   adding even harmonics when they saturate.
 - **Bass loss:** the transistor ladders and the OTA cascade lose bass as
-  the resonance rises (up to half the compensation is given up), as on the
-  circuit.
+  the resonance rises (up to a quarter of the compensation is given up),
+  as on the circuit.
 - **Coupling high-pass:** the diode ladder's feedback runs through a
   coupling high-pass (up to 90 Hz), so low notes keep less resonance.
 - **Living ladders:** *Ladder Tanh* and *Ladder Hyperbolic* get a touch of
@@ -236,7 +249,13 @@ attack, 120 ms release).
 
 The view shows the filter's response curve for the selected type. It is drawn
 from the modulated values, so you can see it move. For the saturating types
-it shows the quiet-signal (linear) response.
+it shows the quiet-signal (linear) response. With *Analog* it shows the bass
+loss and the coupling high-pass, but not the random spread between channels,
+stages and moments: the nominal curve, which a real filter scatters around
+(most visibly in the ladders' notch, which their spread makes shallower). With
+*Mix* below 100 % the curve is the sum of the dry and the filtered signal, as
+heard: where the filter turns the phase, the two can cancel, so a dip shows
+next to a resonant peak.
 
 ## How to use it?
 
@@ -338,9 +357,10 @@ Five whole patches show what Filter does. In the standalone app open **File → 
   values ring and whistle. Self-oscillating types sing on their own near the
   top. Not on the 1-pole types.
 - **Drive:** how hard the type saturates, up to about +30 dB into its
-  nonlinearity; the output is lowered again, so the level stays about the
-  same (a quiet source gets a little louder at high Drive, a loud one a
-  little quieter). At 0 % the signal is untouched. A quarter is a gentle
+  nonlinearity, plus a little into the output amplifier; the output is
+  lowered again, so a full-scale source sounds about as loud (a quieter
+  source gets louder at high Drive, up to about +10 dB at −10 dB in, as a
+  driven circuit does). At 0 % the signal is untouched. A quarter is a gentle
   colour, half clearly driven, full is grit. A louder source drives harder.
   Drive and the filter run at four times the sample rate, so drive stays
   clean, without the harsh, out-of-tune overtones of aliasing. Only a loud,

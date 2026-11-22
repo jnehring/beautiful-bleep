@@ -23,6 +23,10 @@
     { hz: [330, 720, 2450, 3350], db: [0, -8, -20, -26], bw: [65, 90, 120, 180] },
   ];
 
+  // dsp::RoughSvf's saturate(): slope 1 − tanh²(0.12 / 1.4) at rest, so each sample keeps that share of its state;
+  // −ln of it is the leak per sample.
+  const ROUGH_LEAK = -Math.log(1 - Math.pow(Math.tanh(0.12 / 1.4), 2));
+
   // Complex numbers as [re, im].
   const add = (a, b) => [a[0] + b[0], a[1] + b[1]];
   const sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
@@ -53,8 +57,12 @@
     if (type === "svfAtanh" || type === "svfHyper") c.R -= 0.06 * res * res;
     if (type === "slewSvf" || type === "diodePair") c.R -= 0.05 * res * res;
     if (type === "cmosSvf") c.R -= 0.08 * res * res;
-    if (type === "ota4") { c.k = 4.3 * res; c.comp = Math.pow(1 + c.k * morphWeights(mode)[0], 0.5); }
-    if (type.startsWith("ladder") && type !== "ladderHp") c.comp = 1 + c.k * morphWeights(mode)[0];
+    // Analog: the ladders and the OTA cascade give up part of their bass compensation (kBassLoss), the diode ladder
+    // gets a coupling high-pass in its feedback (kCouplingHpHz). Its random spread is not drawn: the nominal curve.
+    const analog = Math.min(Math.max((ex && ex.analog) || 0, 0), 1);
+    if (type === "ota4") { c.k = 4.3 * res; c.comp = Math.pow(1 + c.k * morphWeights(mode)[0], 0.5 - 0.25 * analog); }
+    if (type.startsWith("ladder") && type !== "ladderHp") c.comp = Math.pow(1 + c.k * morphWeights(mode)[0], 1 - 0.25 * analog);
+    c.couplingHz = (type === "diode" || type === "diodeTanh") && analog > 0 ? 90 * analog : 0;
     if (type === "diode" || type === "diodeTanh") { c.comp = Math.pow(1 + c.k, 0.75); c.scale = Math.SQRT2; }
     if (type === "lowShelf1") c.scale = 1 / Math.sqrt(1 + c.K);
     if (type === "highShelf1") c.scale = Math.sqrt(1 + c.K);
@@ -76,8 +84,11 @@
   function response(type, freq, fc, c, mode) {
     const s = [0, freq / (fc * c.scale)];
     const svf = () => {
-      const den = add(add(mul(s, s), scale(s, 2 * c.R)), ONE);
-      return { lp: div(ONE, den), bp: div(s, den), hp: div(mul(s, s), den) };
+      // Rough (dsp::RoughSvf) saturates its integrator states every sample, with a slope just under 1 at rest: its
+      // integrators leak, 1/(s + ε) instead of 1/s, ε the decay rate over the cutoff (at the oversampled rate).
+      const sl = type === "svfRough" ? add(s, [ROUGH_LEAK * (c.ex.rate || 192000) / (2 * Math.PI * fc * c.scale), 0]) : s;
+      const den = add(add(mul(sl, sl), scale(sl, 2 * c.R)), ONE);
+      return { lp: div(ONE, den), bp: div(sl, den), hp: div(mul(sl, sl), den) };
     };
     const svfMorph = () => {
       const o = svf(), w = morphWeights(mode);
@@ -150,7 +161,9 @@
       case "diode": case "diodeTanh": {
         const L = lp1(), L2 = mul(L, L), L4 = scale(mul(L2, L2), 1 / 8);
         const d = div(L4, add(sub(L4, L2), ONE));
-        return div(scale(d, c.comp), add(ONE, scale(d, c.k)));
+        let fb = d;
+        if (c.couplingHz) { const sh = [0, freq / c.couplingHz]; fb = mul(d, div(sh, add(ONE, sh))); }
+        return div(scale(d, c.comp), add(ONE, scale(fb, c.k)));
       }
       case "phaser1": { const a = sub(scale(lp1(), 2), ONE), a2 = mul(a, a); return fbMix(mul(a2, a2)); }
       case "phaser2": { const o = svf(), a = sub(ONE, scale(o.bp, 4 * c.R)); return fbMix(mul(a, a)); }
@@ -267,6 +280,8 @@
       const ex = {
         vowel: view.value(st, "vowel"), damping: view.value(st, "damping"),
         stages: 1 + Math.round(view.value(st, "slope") * ((sp ? sp.steps : 8) - 1)),
+        rate: 4 * ((st.arrays && st.arrays.sampleRate && st.arrays.sampleRate[0]) || 48000),  // the filter runs at 4×
+        analog: view.type.params.some((p) => p.id === "analog") ? view.value(st, "analog") : 0,
       };
       const co = coeffs(type, res, mode, -24 + 48 * view.value(st, "gain"), ex);
       const { g, w, h } = BleepView.fit(cv);
