@@ -45,7 +45,8 @@
 //   layout     the controls in logical order, as sections (cards) side by side:
 //                [{ title: "Pitch", params: ["octave", "coarse", "fine"] }, ...]
 //              knobs, choices and toggles alike; params not listed follow in a last
-//              untitled section; "columns": true stacks a section's knobs vertically.
+//              untitled section; "columns": true stacks a section's knobs vertically,
+//              "stack": true its settings (dropdowns, toggles) one under another.
 //              Without a layout the module's ParamSpec groups become the sections.
 //   hideParams   ids of knobs/settings the custom section replaces (they stay
 //                modulatable through cables, just not drawn twice)
@@ -458,6 +459,7 @@
       for (const l of h.layout) {
         const sec = section(l.title);
         if (l.columns) sec.classList.add("bv-column");
+        if (l.stack) sec.classList.add("bv-stack");
         for (const id of l.params) put(sec, id);
       }
       if (items.size) { const rest = section(""); for (const id of [...items.keys()]) put(rest, id); }

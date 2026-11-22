@@ -61,8 +61,10 @@
     if (type === "phaser2") c.R = 5 * Math.pow(0.02, Math.min(Math.max(mode, 0), 1));
     // The linear curve of a self-oscillating model would be unstable: draw it just below.
     c.k = Math.min(c.k, type === "diode" || type === "diodeTanh" ? 16.9 : type.startsWith("ladder") || type === "ota4" ? 3.97 : c.k);
-    if (type === "keyLp" || type === "keyHp") c.R = (3 - (1 + 2.04 * res)) / 2;  // amplifier gain K: H = 1 / (s² + (3 − K)·s + 1)
-    if (type === "dfbLp" || type === "dfbHp") c.R = (3 - (1 + 2.3 * res)) / 2;
+    // Sallen-Key and diode feedback: amplifier gain K (sallenKeyGain), H = 1 / (s² + (3 − K)·s + 1).
+    const skGain = (top) => { const over = Math.max(0, (res - 0.85) / 0.15); return 3 - 1 / q + top * over * over; };
+    if (type === "keyLp" || type === "keyHp") c.R = (3 - skGain(0.06)) / 2;
+    if (type === "dfbLp" || type === "dfbHp") c.R = (3 - skGain(0.3)) / 2;
     c.R = Math.max(c.R, 0.01);
     c.ex = ex || {};
     c.res = res;
@@ -236,7 +238,7 @@
   const hooks = {
     width: 800,
     layout: [
-      { title: "Algorithm", params: ["type", "mode", "vowel", "damping", "slope"] },
+      { title: "Algorithm", params: ["type", "mode", "vowel", "damping", "slope"], stack: true },
       { title: "Cutoff", params: ["cutoff", "keytrack", "resonance"] },
       { title: "Drive / Output", params: ["drive", "analog", "gain", "mix"] },
     ],

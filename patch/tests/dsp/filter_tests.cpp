@@ -300,14 +300,15 @@ static void ownAlgorithms() {
 static void filterDrive() {
     g_test = "filter drive";
     // Drive is each algorithm's own (va::driveSpec()); on every type it changes the
-    // sound clearly at full Drive, gently at a quarter, and keeps the level within a
-    // few dB (a 0.5 saw at 110 Hz, cutoff 1 kHz, resonance 30 %).
+    // sound clearly at full Drive, gently at a quarter, and keeps the level of a
+    // full-scale signal within a few dB (a saw at 110 Hz peaking at 1, cutoff 1 kHz,
+    // resonance 30 %): turning Drive up must not make it quieter.
     const double sr = 48000.0;
     std::vector<float> in(36000);
     for (size_t i = 0; i < in.size(); ++i) {
         double s = 0.0;
         for (int k = 1; k * 110 < 20000; ++k) s += std::sin(2.0 * 3.14159265358979 * k * 110.0 * (double)i / sr) / k;
-        in[i] = (float)(0.5 * s * 2.0 / 3.14159265358979);
+        in[i] = (float)(s * 2.0 / 3.14159265358979);
     }
     auto run = [&](int type, float drive) {
         FilterDsp f;

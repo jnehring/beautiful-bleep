@@ -77,9 +77,7 @@ void registerFilterModule(Registry& r) {
     s.name = "Multi Filter";
     s.category = "Audio/Filters";
     s.colour = "#f472b6";
-    s.description = "Stereo multimode filter: 38 virtual-analog algorithms (SVF, ladders, 1-poles, shelves, phasers, flanger, "
-                    "Sallen-Key, vowel formants, tuned comb, staircase, op-amp, diode, OTA and CMOS circuits), LP/BP/HP/notch "
-                    "mode, drive per algorithm, analog character, key tracking, envelope out.";
+    s.description = "Stereo multimode filter with 38 virtual-analog algorithms.";
     using T = va::FilterType;
     // Mode only where it does something: the multimode types mix LP, BP, HP and notch; the phasers and the
     // flanger read it as polarity (Phaser 2-Pole also as notch spacing). A setting, so a cable sets it.

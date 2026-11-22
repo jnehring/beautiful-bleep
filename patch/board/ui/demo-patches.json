@@ -20127,7 +20127,7 @@
           {"id":"audiom2","type":"audio-mixer","name":"Band","x":1540,"y":40,"parent":"","params":{"level1":0.872771,"level2":0.812652,"master":0.754845}},
           {"id":"record","type":"recorder","name":"Recorder","x":1840,"y":40,"parent":"","params":{"limit":0.25,"start":1,"threshold":0.444444,"preroll":0,"gatecontrol":1}},
           {"id":"punchc","type":"punch-cymbal","name":"Punch Cymbal","x":2140,"y":260,"parent":"","params":{"level":0.6,"decay":0.618246}},
-          {"id":"audiom3","type":"audio-mixer","name":"Mix","x":2440,"y":40,"parent":"","params":{"master":0.842422,"level1":0.903702,"pan1":0.5,"level2":0.5,"pan2":0.625}},
+          {"id":"audiom3","type":"audio-mixer","name":"Mix","x":2440,"y":40,"parent":"","params":{"master":0.812652,"level1":0.903702,"pan1":0.5,"level2":0.5,"pan2":0.625}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2740,"y":40,"parent":"","params":{"size":0.5,"decay":0.462935,"damping":0.5,"mix":0.2,"quality":0}}
         ],
         "cables": [

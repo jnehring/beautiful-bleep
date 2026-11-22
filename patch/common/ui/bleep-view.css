@@ -13,6 +13,7 @@
 .bv-sec-body { display: flex; flex-direction: column; gap: 6px; }
 .bv-sec-knobs { display: flex; flex-wrap: wrap; gap: 2px 4px; }
 .bv-column .bv-sec-knobs { flex-direction: column; flex-wrap: nowrap; }
+.bv-stack .bv-sec-settings { flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
 .bv-sec-settings { display: flex; flex-wrap: wrap; gap: 6px; }
 .bv-sec-settings .bv-setting { background: none; padding: 0; flex-direction: column; align-items: flex-start; gap: 2px; }
 .bv-sec-flat { flex: 1 1 100%; }

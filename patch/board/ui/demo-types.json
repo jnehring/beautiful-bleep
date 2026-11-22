@@ -1218,7 +1218,7 @@
     "name": "Multi Filter",
     "category": "Audio/Filters",
     "colour": "#f472b6",
-    "description": "Stereo multimode filter: 38 virtual-analog algorithms (SVF, ladders, 1-poles, shelves, phasers, flanger, Sallen-Key, vowel formants, tuned comb, staircase, op-amp, diode, OTA and CMOS circuits), LP/BP/HP/notch mode, drive per algorithm, analog character, key tracking, envelope out.",
+    "description": "Stereo multimode filter with 38 virtual-analog algorithms.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,

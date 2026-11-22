@@ -74,18 +74,23 @@ audio rate. **Type** picks the algorithm; the dropdown groups them by family.
 ### Analog
 
 *Analog* (0 – 100 %, default 50 %) brings in the imperfections of real
-parts. Each one is small; together they make the filter breathe:
+parts. Together they make the filter breathe:
 
-- **Tolerances:** the two channels' cutoffs differ a little (up to ±1.2 %),
-  so a stereo signal widens, and the stages of the ladders, the OTA cascade
-  and the staircase each sit at a slightly different cutoff (up to ±3 %).
+- **Warmth:** a circuit is never quite linear. The type's own saturation
+  (see *Drive per type*) always works a little: at 100 % as if *Drive* were
+  at least 40 % (20 % at the default 50 %). The level stays the same.
+
+- **Tolerances:** the two channels' cutoffs differ (up to ±6 %), so a
+  stereo signal widens and a resonant peak beats between left and right, and
+  the stages of the ladders, the OTA cascade and the staircase each sit at a
+  different cutoff (up to ±8 %).
   Every filter on the board gets its own spread.
-- **Drift:** the cutoff wanders slowly (up to ±0.6 %), on each channel on
-  its own.
-- **Noise floor:** a faint hiss around −90 dB. It also lets a
+- **Drift:** the cutoff wanders (up to ±6 %, about a semitone), on each
+  channel on its own; most audible on a resonant peak.
+- **Noise floor:** a faint hiss around −80 dB. It also lets a
   self-oscillating filter start on its own, from silence, as a circuit does.
-- **Mismatched pairs:** the transistor and OTA stages turn slightly
-  asymmetric, adding a touch of even harmonics when they saturate.
+- **Mismatched pairs:** the transistor and OTA stages turn asymmetric,
+  adding even harmonics when they saturate.
 - **Bass loss:** the transistor ladders and the OTA cascade lose bass as
   the resonance rises (up to half the compensation is given up), as on the
   circuit.
@@ -173,7 +178,9 @@ kept for comparison and for their sound.
 **Sallen-Key (12 dB/oct)** — a two-pole filter modelled on the
 Sallen-Key topology: two resistors, two capacitors and an amplifier whose
 gain sets the resonance. *Resonance* raises that gain towards the edge of
-self-oscillation (a peak of Q = 1/(3 − gain)). The twist here: the amplifier
+self-oscillation (a peak of Q = 1/(3 − gain)), with Q following the same
+curve as the SVF (0.5 … 25), so the whole knob is heard; over the last 15 % it
+goes past the edge. The twist here: the amplifier
 clips against a hard-knee wall, so quiet signals ring cleanly but the
 resonance bites as soon as it hits the wall, and at 100 % the filter holds a
 bounded, self-sustaining tone. There is no *Mode*.

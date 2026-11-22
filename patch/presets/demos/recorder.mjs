@@ -109,7 +109,7 @@ function loopBounce() {
   p.cable(gate, "gate", rec, "gate");
   const crash = p.add("punch-cymbal", [6, 1], { level: 0.6, decay: 3 });
   p.cable(rec, "done", crash, "trig");
-  finish(p, [7, 0], [{ n: rec, l: "l", r: "r", level: 3 }, { n: crash, l: "out", level: -12, pan: 0.25 }], { vmix: 0.2, master: 1 });
+  finish(p, [7, 0], [{ n: rec, l: "l", r: "r", level: 3 }, { n: crash, l: "out", level: -12, pan: 0.25 }], { vmix: 0.2, master: 0 });
   return p;
 }
 

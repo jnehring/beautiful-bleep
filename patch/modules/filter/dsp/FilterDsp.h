@@ -36,6 +36,9 @@ struct FilterParams {
 class FilterDsp {
 public:
     static constexpr int kMaxChannels = 2;
+    static constexpr float kChannelTolerance = 0.06f;  ///< Analog 100 %: the channels' cutoffs differ up to ±6 %
+    static constexpr float kDrift = 0.06f;             ///< Analog 100 %: the cutoff wanders up to ±6 %
+    static constexpr float kWarmth = 0.4f;             ///< Analog 100 %: the type's own saturation, as at least this much Drive
     static constexpr int kOversampling = 4;
     static constexpr float kRunaway = 1.0e4f;  ///< |output| from which (or NaN) a voice counts as blown up
     /// Half-band delay per FIR at its own rate; the 4× stages add half a host
@@ -54,7 +57,7 @@ public:
     void prepare(double sampleRate) {
         sampleRate_ = sampleRate * kOversampling;
         hostRate_ = sampleRate;
-        driftFollow_ = 1.0f - (float)std::exp(-1.0 / sampleRate);  // the drift follows its target over ~1 s
+        driftFollow_ = 1.0f - (float)std::exp(-3.0 / sampleRate);  // the drift follows its target over ~0.3 s
         env_.prepare(sampleRate, 0.005f, 0.12f);
         // This instance's components: a spread per channel and per ladder stage, and its own noise.
         uint32_t seed = 0x2545f491u * (uint32_t)(++instances()) + 0x9e3779b9u;
@@ -93,12 +96,16 @@ public:
     /// Processes one sample frame in place. Returns the envelope (0..1).
     float tick(const FilterParams& p, float pitch, float* frame, int numChannels) noexcept {
         const int type = std::clamp(p.type, 0, va::kNumTypes - 1);
-        const float analog = std::clamp(p.analog, 0.0f, 1.0f);
+        // The two digital types have no Analog (the knob is hidden there, its value may not be 0).
+        const bool digital = (FilterType)type == FilterType::NaiveOnePole || (FilterType)type == FilterType::Biquad;
+        const float analog = digital ? 0.0f : std::clamp(p.analog, 0.0f, 1.0f);
+        // Analog: a circuit is never quite linear; its own saturation always works a little (warmth).
+        const float drive = std::max(p.drive, kWarmth * analog);
         if (type != last_.type) {
             for (auto& v : voices_) v.reset();  // another algorithm: start from silence
             lastHz_.fill(-1.0f);
         }
-        // Analog: slow drift, a new random target every 32 samples, followed over about a second.
+        // Analog: drift, a new random target every 32 samples, followed over about a third of a second.
         if (analog > 0.0f && ++driftCount_ >= 32) {
             driftCount_ = 0;
             for (size_t ch = 0; ch < (size_t)kMaxChannels; ++ch) {
@@ -114,25 +121,27 @@ public:
         const auto changed = [](float a, float b) { return std::fabs(a - b) > 0.0f; };
         const bool settings = changed(p.resonance, last_.resonance) || changed(p.morph, last_.morph) ||
                               changed(p.gain, last_.gain) || changed(p.vowel, last_.vowel) || changed(p.damping, last_.damping) ||
-                              changed(p.drive, last_.drive) || changed(analog, last_.analog) || p.slope != last_.slope ||
+                              changed(drive, last_.drive) || changed(analog, last_.analog) || p.slope != last_.slope ||
                               type != last_.type;
         const int channelsUsed = std::min(numChannels, kMaxChannels);
         for (size_t ch = 0; ch < (size_t)channelsUsed; ++ch) {
-            // Each channel's cutoff: its tolerance (±1.2 %) and drift (±0.6 %), both with Analog; quantised to
+            // Each channel's cutoff: its tolerance and drift, both with Analog; quantised to
             // steps of 0.01 % so a drifting cutoff does not recompute every sample.
             float chHz = hz;
             if (analog > 0.0f) {
-                const float dev = analog * (0.012f * channelTol_[ch] + 0.006f * drift_[ch]);
+                const float dev = analog * (kChannelTolerance * channelTol_[ch] + kDrift * drift_[ch]);
                 chHz = hz * (1.0f + std::round(dev * 1e4f) * 1e-4f);
             }
             if (settings || changed(chHz, lastHz_[ch])) {
                 coeffs_[ch] = va::makeCoeffs((FilterType)type, chHz, p.resonance, p.morph, p.gain, sampleRate_, p.vowel,
-                                             p.damping, p.slope, p.drive, analog);
+                                             p.damping, p.slope, drive, analog);
+                coeffs_[ch].warmthOnly = p.drive < drive;  // the ladders take the light path for Analog's warmth
                 lastHz_[ch] = chHz;
             }
         }
         if (settings) {
             last_ = p;
+            last_.drive = drive;
             last_.analog = analog;
             last_.type = type;
         }
@@ -164,7 +173,7 @@ public:
             const float blocked = wet - dcIn_[c] + dcPole_ * dcOut_[c];
             dcIn_[c] = wet;
             dcOut_[c] = blocked;
-            if (p.drive > 0.0f || analog > 0.0f || (FilterType)type == FilterType::CmosSvf) wet = blocked;  // CMOS: offsets of its own
+            if (drive > 0.0f || analog > 0.0f || (FilterType)type == FilterType::CmosSvf) wet = blocked;  // CMOS: offsets of its own
             const float dry = dry_[c][(size_t)dryPos_];
             dry_[c][(size_t)dryPos_] = frame[ch];
             frame[ch] = dry + p.mix * (wet - dry);
