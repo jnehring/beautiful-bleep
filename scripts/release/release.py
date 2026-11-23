@@ -340,20 +340,20 @@ def is_local_url(url: str) -> bool:
     return host in ("localhost", "127.0.0.1", "::1") or host.endswith(".localhost")
 
 
-def check_library_url(build_dir: Path, registry_url: str) -> str | None:
-    """Why the compiled plugins in build_dir must not go to registry_url, or None. The build bakes in the library's address
-    (config/library.json, BLEEP_LIBRARY_URL) and writes it to library-url.txt; a build for a local library released to the
-    real one would make every user's app and plugins look for modules on their own machine (0.1.1 did)."""
+def check_library_url(artefact: Path, registry_url: str) -> str | None:
+    """Why this compiled plugin must not go to registry_url, or None. The build bakes the library's address into the binary
+    (config/library.json, BLEEP_LIBRARY_URL); a build for a local library released to the real one makes every user's app and
+    plugins look for modules on their own machine (0.1.1 did, and so did the first 0.1.0 again: build/patch was configured for
+    the new address but not built). So the binary itself is searched for the address, as the C string the build put in."""
     if is_local_url(registry_url):
         return None   # testing against a local library: any build will do
-    f = build_dir / "library-url.txt"
-    if not f.is_file():
-        return f"{f} is missing: configure the build again (./bleep build plugins) so it records the library address it bakes in"
-    baked = f.read_text().strip().rstrip("/")
-    if baked != registry_url.rstrip("/"):
-        return (f"the build in {build_dir} looks for the library at {baked or '(no address)'}, not at {registry_url}: "
-                f"set libraryUrl in config/library.json (or BLEEP_LIBRARY_URL) and build again")
-    return None
+    needle = registry_url.rstrip("/").encode() + b"\0"
+    files = [artefact] if artefact.is_file() else [f for f in artefact.rglob("*") if f.is_file() and not f.is_symlink()]
+    for f in files:
+        if needle in f.read_bytes():
+            return None
+    return (f"{artefact.name} was not built for the library at {registry_url} (the address is not in its binary): "
+            f"set libraryUrl in config/library.json (or BLEEP_LIBRARY_URL) and build again (./bleep build plugins)")
 
 
 def make_source_zip(slug: str, src: Path, out: Path) -> None:
@@ -560,10 +560,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.build:
         subprocess.run([str(ROOT / "bleep"), "build", "plugins", "--plugins-only"], check=True)
-    if any(slug not in SOURCE_PLUGINS for slug in names):
-        why = check_library_url(args.build_dir, args.registry)
+    for slug in names:   # before anything is asked of the library: a missing build is reported below
+        artefact = None if slug in SOURCE_PLUGINS else find_artefact(slug, args.build_dir, args.config)
+        why = artefact and check_library_url(artefact, args.registry)
         if why:
-            sys.exit(why)
+            sys.exit(f"{slug}: {why}")
     registry = Registry(args.registry, None if args.dry_run else read_token(args))
     plan = []
     try:

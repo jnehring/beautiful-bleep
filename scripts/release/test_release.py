@@ -122,40 +122,44 @@ class FakeLibrary:
 
 
 class LibraryUrl(unittest.TestCase):
-    """A build that looks for the library on localhost must not reach the users (0.1.1 did)."""
+    """A build that looks for the library on localhost must not reach the users (0.1.1 did, and a stale build after that)."""
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
-        self.dir = Path(self.tmp.name)
+        self.app = Path(self.tmp.name) / "BleepApp_artefacts" / "Release" / "Bleep App.app"
+        (self.app / "Contents" / "MacOS").mkdir(parents=True)
+        (self.app / "Contents" / "Info.plist").write_text("<plist/>")
 
     def tearDown(self):
         self.tmp.cleanup()
 
     def bake(self, url):
-        (self.dir / "library-url.txt").write_text(url + "\n")
+        (self.app / "Contents" / "MacOS" / "Bleep App").write_bytes(b"\x7fELF..\0http://localhost:\0" + url.encode() + b"\0more")
 
     def test_a_build_for_the_same_library_passes(self):
         self.bake("https://beautifulbleep.com")
-        self.assertIsNone(release.check_library_url(self.dir, "https://beautifulbleep.com/"))
+        self.assertIsNone(release.check_library_url(self.app, "https://beautifulbleep.com/"))
 
     def test_a_localhost_build_is_refused_for_the_real_library(self):
         self.bake("http://localhost:8080")
-        self.assertIn("http://localhost:8080", release.check_library_url(self.dir, "https://beautifulbleep.com"))
+        self.assertIn("not built for", release.check_library_url(self.app, "https://beautifulbleep.com"))
 
-    def test_a_build_without_the_record_is_refused(self):
-        self.assertIn("missing", release.check_library_url(self.dir, "https://beautifulbleep.com"))
+    def test_a_longer_address_does_not_count(self):
+        self.bake("https://beautifulbleep.com.example")
+        self.assertIsNotNone(release.check_library_url(self.app, "https://beautifulbleep.com"))
 
     def test_any_build_may_go_to_a_local_library(self):
         self.bake("https://beautifulbleep.com")
         for url in ("http://localhost:8080", "http://127.0.0.1:8080", "http://bleep.localhost"):
-            self.assertIsNone(release.check_library_url(self.dir, url), url)
+            self.assertIsNone(release.check_library_url(self.app, url), url)
 
     def test_main_stops_before_it_talks_to_the_library(self):
         self.bake("http://localhost:8080")
         with mock.patch.object(release, "Registry") as reg, redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
             with self.assertRaises(SystemExit) as e:
-                release.main(["bleep-app", "--level", "0.x", "--registry", "https://library.example", "--build-dir", str(self.dir), "--yes"])
-        self.assertIn("localhost", str(e.exception.code))
+                release.main(["bleep-app", "--level", "0.x", "--registry", "https://library.example",
+                              "--build-dir", str(Path(self.tmp.name)), "--yes"])
+        self.assertIn("not built for", str(e.exception.code))
         reg.assert_not_called()
 
 
