@@ -70,6 +70,10 @@ jobs:
           # JUCE links the board's web view against the WebView2 NuGet package and looks for it by this location
           nuget install Microsoft.Web.WebView2 -Version 1.0.1901.177 -OutputDirectory "$RUNNER_TEMP/webview2"
           echo "WEBVIEW2_DIR=$(cygpath -m "$RUNNER_TEMP/webview2")" >> "$GITHUB_ENV"
+      # The Bleep Script compiler and editor the plugins embed for the Code node (patch/CMakeLists.txt)
+      - run: npm ci --no-audit --no-fund && npm run bundle
+        shell: bash
+        working-directory: patch/script
       - run: cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3 ${WEBVIEW2_DIR:+-DJUCE_WEBVIEW2_PACKAGE_LOCATION="$WEBVIEW2_DIR"}
       - run: cmake --build build/patch --config Release --parallel
       - name: Add the platform

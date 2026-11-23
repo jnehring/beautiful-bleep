@@ -69,9 +69,9 @@ A Code node's knobs can be put on a panel like any module's: right-click a knob 
 |---|---|---|
 | **Bleep Play (the browser)** | Yes | Yes |
 | **Dev server (`scripts/run/ui-server.py`)** | Yes | No audio (the demo engine) |
-| **Standalone app and plugins** | Not yet: the compiler is not shipped with them | The engine runs a Code node's module once the UI has registered it, and keeps the node's cables, knob values and source |
+| **Standalone app and plugins** | Yes: the compiler is embedded in them | Yes: the engine runs a Code node's module once the UI has registered it, and keeps the node's cables, knob values and source |
 
-The compiler is a separate file, `bleep-script-compiler.js` (about 15 MB, 3 MB compressed), and the editor another, `bleep-script-editor.js` (about 470 KB). Without the compiler the Code node says so and keeps working as far as already compiled scripts go; without the editor it falls back to a plain text box.
+The compiler is a separate file, `bleep-script-compiler.js` (about 15 MB, 3 MB compressed), and the editor another, `bleep-script-editor.js` (about 470 KB). Without the compiler the Code node says so and keeps working as far as already compiled scripts go; without the editor it falls back to a plain text box. The app and the plugins embed both, and `bleep-script-merge.js` (about 12 MB, for scripts that import a library module): `./bleep build plugins` runs `npm run bundle` when they are missing or older than their sources, and a CMake build without them warns and leaves them out (`-DBLEEP_EMBED_SCRIPT_COMPILER=OFF` leaves them out on purpose).
 
 ### Building the bundles
 

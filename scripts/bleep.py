@@ -140,6 +140,28 @@ def install_live_link_device(library=None):
     print(f"installed the Bleep Live Link device in {dest}")
 
 
+SCRIPT_BUNDLES = ["bleep-script-compiler.js", "bleep-script-merge.js", "bleep-script-editor.js"]
+
+
+def ensure_script_bundles():
+    """The Bleep Script bundles (patch/script/dist) that the plugins embed for the Code node: built with npm when one is missing or
+    older than the sources. Without npm the build goes on, and its Code node says the compiler is not part of it."""
+    script = ROOT / "patch" / "script"
+    bundles = [script / "dist" / f for f in SCRIPT_BUNDLES]
+    if all(b.exists() for b in bundles):
+        sources = [script / "bundle.mjs", script / "package-lock.json"]
+        for d in ("src", "compiler", "transform", "editor"):
+            sources += [p for p in (script / d).rglob("*") if p.is_file()]
+        if max(p.stat().st_mtime for p in sources if p.exists()) <= min(b.stat().st_mtime for b in bundles):
+            return
+    if not have("npm"):
+        print("npm not found: the plugins are built without the Bleep Script compiler (patch/script: npm install && npm run bundle).\n")
+        return
+    if not (script / "node_modules").exists():
+        run(["npm", "ci", "--no-audit", "--no-fund"], cwd=script)
+    run(["npm", "run", "bundle"], cwd=script)
+
+
 def build_plugins(args, s):
     """The plugins as VST3 (and the standalone app unless --no-app), then the DSP, engine and bridge tests.
     Copies them to the user plugin folders unless told not to (--no-install). It also copies while Live is running:
@@ -149,6 +171,7 @@ def build_plugins(args, s):
     if install and live_running():
         print("Ableton Live is running: the plugins are copied over ones it may have loaded, which can crash it. "
               "Quit Live first, or use --no-install.\n")
+    ensure_script_bundles()
     d = patch_defines(args, s, tests=not (args.plugins_only or args.no_test_build), app=not args.no_app, install=install)
     cmake(ROOT / "patch", BUILD / "patch", config, d, test=not (args.no_test or args.plugins_only), clean=args.clean)
     if install:
@@ -166,6 +189,7 @@ def build_plugins(args, s):
 def build_app(args, s):
     """Only the standalone app, in its own build dir: build/patch is configured with other options and sharing it recompiled both."""
     config = cfg_name(args, s)
+    ensure_script_bundles()
     cmake(ROOT / "patch", BUILD / "app", config, {
         "BLEEP_JUCE_DIR": args.juce or s.get("juceDir", ""), "BLEEP_FORMATS": "VST3",
         "BLEEP_BUILD_APP": "ON", "BLEEP_UI_DEV": onoff(args.ui_dev)}, target="BleepApp", clean=args.clean)
