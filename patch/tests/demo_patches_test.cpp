@@ -29,7 +29,7 @@ namespace {
 constexpr float kPeakLimit = 1.0f;    // a patch must not clip
 constexpr double kSilence = 0.008;    // RMS below this (about −42 dB) over the last 8 s counts as silent
 constexpr double kCpuLimit = 0.6;     // seconds of CPU per second of audio
-// The limit depends on the machine: a shared build server runs the shards side by side. BLEEP_DEMO_CPU_LIMIT (1.0 = real time) overrides it.
+// The limit depends on the machine: a shared build server runs the shards side by side and is slower (the dev build sets 2.5). BLEEP_DEMO_CPU_LIMIT (1.0 = real time) overrides it.
 double cpuLimit() {
     const char* v = std::getenv("BLEEP_DEMO_CPU_LIMIT");
     const double x = v ? std::atof(v) : 0.0;

@@ -49,9 +49,11 @@ jobs:
           persist-credentials: false
       - run: ./bleep test js presets
       - name: Native tests
-        # The demo patches are timed: the server renders six shards side by side on shared cores, so "too slow" here means slower than real time
+        # The demo patches are timed (CPU seconds per second of audio). The server renders six shards side by side on shared cores and
+        # takes about four times the CPU of a developer's Mac for the same patch (Roll: Low and High: 28 % there, 110 % here), so the
+        # limit of 0.6 on a Mac is about 2.5 here. Real time is not the measure: the test renders offline.
         env:
-          BLEEP_DEMO_CPU_LIMIT: "1.0"
+          BLEEP_DEMO_CPU_LIMIT: "2.5"
         run: ./bleep test native
       # The build rewrites the generated type list; a difference means the committed copy was stale.
       - name: demo-types.json is current
