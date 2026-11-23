@@ -182,6 +182,30 @@ void voiceCells() {
         EXPECT((int)rig.e->liveState({})["nodes"]["vc"]["voices"] == 0);  // asleep
     }
     {
+        // The VCA's Gain CV input adds to the knob (0 %): the envelope opens it to unity, not to 400 %.
+        VoiceRig rig;
+        rig.build(voiceParams(8, 0, 0), [](juce::Array<juce::var>& n, juce::Array<juce::var>& c) {
+            n.add(node("osc", "oscillator", "vc"));
+            n.add(node("env", "adsr", "vc"));
+            n.add(node("amp", "vca", "vc"));
+            c.add(cable("vi", "pitch", "osc", "pitch"));
+            c.add(cable("vi", "gate", "env", "gate"));
+            c.add(cable("vi", "trigger", "env", "retrig"));
+            c.add(cable("osc", "out", "amp", "l"));
+            c.add(cable("env", "env", "amp", "cv"));
+            c.add(cable("amp", "l", "vo", "l"));
+            c.add(cable("env", "active", "vo", "active"));
+        });
+        rig.block({{0x90, 69, 127}});
+        float peak = 0.0f;
+        for (int b = 0; b < 40; ++b) {
+            rig.block();
+            for (float x : rig.pOut->out[0]) peak = std::max(peak, std::fabs(x));
+        }
+        EXPECT(peak > 0.1f);
+        EXPECT(peak < 1.2f);
+    }
+    {
         // Hammering: random chords, quick taps and stealing; when every key is up,
         // every voice must fall silent and sleep. No voice may hang.
         VoiceRig rig;

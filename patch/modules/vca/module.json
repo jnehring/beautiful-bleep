@@ -2,7 +2,7 @@
   "name": "VCA",
   "slug": "vca",
   "license": "GPL-3.0-only",
-  "tagline": "Stereo amplifier with linear or exponential response; an envelope into Gain opens it.",
+  "tagline": "Stereo amplifier with linear or exponential response; an envelope into Gain CV opens it.",
   "colour": "#fb7185",
   "formats": [
     "Board module"

@@ -30467,7 +30467,7 @@
       "preset": {
         "format": 1,
         "module": "vca",
-        "description": "A saw note shaped by a short envelope into the VCA's Gain, with Response on Exponential so the decay sounds natural and plucked. Switch Response to Linear to hear a stiffer, more abrupt tail, or change the envelope's Decay.",
+        "description": "A saw note shaped by a short envelope into the VCA's Gain CV input, with Response on Exponential so the decay sounds natural and plucked. Switch Response to Linear to hear a stiffer, more abrupt tail, or change the envelope's Decay.",
         "tags": ["envelope","exponential","pluck","response","basic","effect"],
         "tempo": 100,
         "nodes": [
@@ -30485,7 +30485,7 @@
           {"id":"k3","from":{"node":"stepse","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k4","from":{"node":"oscill","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k5","from":{"node":"oscill","jack":"out"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k6","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
+          {"id":"k6","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"cv"},"amount":1},
           {"id":"k7","from":{"node":"vca","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
           {"id":"k8","from":{"node":"vca","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
           {"id":"k9","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
@@ -30503,7 +30503,7 @@
       "preset": {
         "format": 1,
         "module": "vca",
-        "description": "A held chord goes through a VCA whose Gain rests at a middle value while a triangle LFO swings it up and down, a classic tremolo. Raise the LFO Rate for a flutter, change its amount for a deeper chop, or move the VCA's Gain to rebalance.",
+        "description": "A held chord goes through a VCA whose Gain rests at a middle value while a triangle LFO on Gain CV swings it up and down, a classic tremolo. Raise the LFO Rate for a flutter, change its amount for a deeper chop, or move the VCA's Gain to rebalance.",
         "tags": ["tremolo","lfo","chords","amplitude modulation","gain","effect"],
         "tempo": 88,
         "nodes": [
@@ -30534,10 +30534,10 @@
           {"id":"k10","from":{"node":"oscill3","jack":"out"},"to":{"node":"audiom","jack":"in3l"},"amount":1},
           {"id":"k11","from":{"node":"audiom","jack":"outl"},"to":{"node":"vca2","jack":"l"},"amount":1},
           {"id":"k12","from":{"node":"audiom","jack":"outl"},"to":{"node":"vca2","jack":"r"},"amount":1},
-          {"id":"k13","from":{"node":"lfo","jack":"out"},"to":{"node":"vca2","jack":"gain"},"amount":0.2},
+          {"id":"k13","from":{"node":"lfo","jack":"out"},"to":{"node":"vca2","jack":"cv"},"amount":0.8},
           {"id":"k14","from":{"node":"vca2","jack":"l"},"to":{"node":"vca3","jack":"l"},"amount":1},
           {"id":"k15","from":{"node":"vca2","jack":"r"},"to":{"node":"vca3","jack":"r"},"amount":1},
-          {"id":"k16","from":{"node":"adsr","jack":"env"},"to":{"node":"vca3","jack":"gain"},"amount":0.25},
+          {"id":"k16","from":{"node":"adsr","jack":"env"},"to":{"node":"vca3","jack":"cv"},"amount":1},
           {"id":"k17","from":{"node":"vca3","jack":"l"},"to":{"node":"audiom2","jack":"in1l"},"amount":1},
           {"id":"k18","from":{"node":"vca3","jack":"r"},"to":{"node":"audiom2","jack":"in1r"},"amount":1},
           {"id":"k19","from":{"node":"audiom2","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
@@ -30555,7 +30555,7 @@
       "preset": {
         "format": 1,
         "module": "vca",
-        "description": "A very slow attack on the envelope lets a rich pad fade in and out through a VCA with Response set to Linear, so the volume rises evenly instead of rushing in at the end. Compare it with Exponential, or lengthen Attack and Release.",
+        "description": "A very slow attack on the envelope lets a rich pad fade in and out through a VCA (envelope into Gain CV) with Response set to Linear, so the volume rises evenly instead of rushing in at the end. Compare it with Exponential, or lengthen Attack and Release.",
         "tags": ["linear","swell","pad","slow attack","fade","effect"],
         "tempo": 70,
         "nodes": [
@@ -30586,7 +30586,7 @@
           {"id":"k11","from":{"node":"stepse","jack":"gate"},"to":{"node":"adsr2","jack":"gate"},"amount":1},
           {"id":"k12","from":{"node":"audiom","jack":"outl"},"to":{"node":"vca2","jack":"l"},"amount":1},
           {"id":"k13","from":{"node":"audiom","jack":"outl"},"to":{"node":"vca2","jack":"r"},"amount":1},
-          {"id":"k14","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":0.25},
+          {"id":"k14","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"cv"},"amount":1},
           {"id":"k15","from":{"node":"vca2","jack":"l"},"to":{"node":"audiom2","jack":"in1l"},"amount":1},
           {"id":"k16","from":{"node":"vca2","jack":"r"},"to":{"node":"audiom2","jack":"in1r"},"amount":1},
           {"id":"k17","from":{"node":"audiom2","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
@@ -30604,7 +30604,7 @@
       "preset": {
         "format": 1,
         "module": "vca",
-        "description": "Every kick fires an envelope that pushes the pad VCA's Gain down by a negative amount, so the chords dip on the beat and swell back between hits. Change the envelope Release for a longer pump, or raise the VCA's Gain for an even bigger pad.",
+        "description": "Every kick fires an envelope into the pad VCA's Gain CV with a negative amount, so the chords dip on the beat and swell back between hits. Change the envelope Release for a longer pump, or raise the VCA's Gain for an even bigger pad.",
         "tags": ["ducking","sidechain","pump","negative cv","dance","effect"],
         "tempo": 122,
         "nodes": [
@@ -30646,7 +30646,7 @@
           {"id":"k18","from":{"node":"punchh","jack":"out"},"to":{"node":"audiom2","jack":"in3l"},"amount":1},
           {"id":"k19","from":{"node":"audiom","jack":"outl"},"to":{"node":"vca2","jack":"l"},"amount":1},
           {"id":"k20","from":{"node":"audiom","jack":"outl"},"to":{"node":"vca2","jack":"r"},"amount":1},
-          {"id":"k21","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":-0.1875},
+          {"id":"k21","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"cv"},"amount":-0.75},
           {"id":"k22","from":{"node":"stepse2","jack":"gate"},"to":{"node":"adsr2","jack":"gate"},"amount":1},
           {"id":"k23","from":{"node":"stepse2","jack":"trigger"},"to":{"node":"adsr2","jack":"retrig"},"amount":1},
           {"id":"k24","from":{"node":"vca2","jack":"l"},"to":{"node":"audiom3","jack":"in1l"},"amount":1},
@@ -30666,7 +30666,7 @@
       "preset": {
         "format": 1,
         "module": "vca",
-        "description": "A sustained saw chord is chopped into a rhythm by a drum-grid track that fires a tight envelope into the VCA's Gain, the stuttering gate used in trance and electro. Edit the pattern, or lengthen the envelope Release to soften the chops.",
+        "description": "A sustained saw chord is chopped into a rhythm by a drum-grid track that fires a tight envelope into the VCA's Gain CV, the stuttering gate used in trance and electro. Edit the pattern, or lengthen the envelope Release to soften the chops.",
         "tags": ["gate","rhythm","chop","trance","envelope","effect"],
         "tempo": 130,
         "nodes": [
@@ -30699,7 +30699,7 @@
           {"id":"k12","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"adsr2","jack":"retrig"},"amount":1},
           {"id":"k13","from":{"node":"audiom","jack":"outl"},"to":{"node":"vca2","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"audiom","jack":"outl"},"to":{"node":"vca2","jack":"r"},"amount":1},
-          {"id":"k15","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":0.25},
+          {"id":"k15","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"cv"},"amount":1},
           {"id":"k16","from":{"node":"drumgr","jack":"gate2"},"to":{"node":"punchk","jack":"trig"},"amount":1},
           {"id":"k17","from":{"node":"vca2","jack":"l"},"to":{"node":"audiom2","jack":"in1l"},"amount":1},
           {"id":"k18","from":{"node":"vca2","jack":"r"},"to":{"node":"audiom2","jack":"in1r"},"amount":1},
