@@ -11,6 +11,8 @@
     python -m app.cli token-revoke ID
     python -m app.cli community-takedown ID VERSION
     python -m app.cli community-ban HANDLE
+    python -m app.cli release-takedown VERSION [SLUG ...]     withdraw a version of our plugins; the number stays used
+    python -m app.cli release-purge VERSION [SLUG ...] [--yes]  delete it with its files; the number can be released again
 
 The token is a secret. --out FILE writes it to a file that only the owner can read (0600). Without --out it goes to
 stdout, which is refused when that is a regular file other users can read (a shell redirect "> token" under the default umask);
@@ -222,6 +224,30 @@ def release_takedown(args: argparse.Namespace) -> None:
     print(f"{args.version} taken down: {', '.join(r.slug for r in rows)}")
 
 
+def release_purge(args: argparse.Namespace) -> None:
+    """Deletes one version of our own plugins (published, taken down or draft) with its files, so the number can be released
+    again. For a release that went wrong before anyone relied on it (the first one); copies already downloaded stay as they are."""
+    with SessionLocal() as db:
+        q = select(Release).where(Release.kind == "plugin", Release.version == args.version, Release.channel != "dev")
+        if args.slugs:
+            q = q.where(Release.slug.in_(args.slugs))
+        rows = db.scalars(q.order_by(Release.slug)).all()
+        missing = sorted(set(args.slugs) - {r.slug for r in rows})
+        if missing or not rows:
+            sys.exit(f"No plugin release {args.version}" + (f" of {', '.join(missing)}" if missing else ""))
+        listing = ", ".join(f"{r.slug} ({r.status})" for r in rows)
+        if not args.yes:
+            print(f"Delete {args.version} of {listing} with its files? This cannot be undone.")
+            if input("Type the version to confirm: ").strip() != args.version:
+                sys.exit("Nothing deleted")
+        storage = get_storage()
+        for row in rows:
+            registry.delete_release(db, storage, row)
+        db.commit()
+        registry.write_index(db, storage)
+    print(f"{args.version} deleted: {listing}")
+
+
 def community_ban(args: argparse.Namespace) -> None:
     """Takes down every community release of an author and deactivates the account."""
     with SessionLocal() as db:
@@ -272,6 +298,11 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("version")
     p.add_argument("slugs", nargs="*", help="plugin ids, e.g. bleep-app (default: every plugin released with this version)")
     p.set_defaults(run=release_takedown)
+    p = sub.add_parser("release-purge", help="delete one version of our plugins with its files, so the number can be released again")
+    p.add_argument("version")
+    p.add_argument("slugs", nargs="*", help="plugin ids, e.g. bleep-app (default: every plugin with this version)")
+    p.add_argument("--yes", action="store_true", help="do not ask for confirmation")
+    p.set_defaults(run=release_purge)
     p = sub.add_parser("community-ban", help="take down every community release of an author and deactivate the account")
     p.add_argument("handle")
     p.set_defaults(run=community_ban)

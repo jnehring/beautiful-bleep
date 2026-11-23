@@ -533,3 +533,27 @@ def test_release_takedown_by_the_cli(client, make_admin, storage, capsys):
         cli.main(["release-takedown", "0.1.0"])  # nothing published with it any more
     with pytest.raises(SystemExit):
         cli.main(["release-takedown", "0.1.1", "bleep-nothing"])
+
+
+def test_release_purge_frees_the_number(client, make_admin, storage, capsys, monkeypatch):
+    from app import cli
+    token = make_token(client, make_admin)
+    for slug in ("bleep-board", "bleep-app"):
+        assert release(client, token, slug, "0.1.0").status_code == 200
+    assert release(client, token, "bleep-board", "0.1.1").status_code == 200
+    cli.main(["release-takedown", "0.1.1"])
+    assert any(k.startswith("v1/plugins/bleep-board/0.1.1/") for k in storage.objects)
+    monkeypatch.setattr("builtins.input", lambda _: "no")
+    with pytest.raises(SystemExit):
+        cli.main(["release-purge", "0.1.1"])  # not confirmed: nothing happens
+    assert any(k.startswith("v1/plugins/bleep-board/0.1.1/") for k in storage.objects)
+    monkeypatch.setattr("builtins.input", lambda _: "0.1.1")
+    cli.main(["release-purge", "0.1.1"])  # a taken-down version is deleted too
+    cli.main(["release-purge", "0.1.0", "--yes"])
+    assert "bleep-app (published), bleep-board (published)" in capsys.readouterr().out
+    assert not any("/0.1." in k for k in storage.objects)
+    assert json.loads(storage.objects["v1/index.json"])["channels"]["stable"]["plugins"] == {}
+    assert release(client, token, "bleep-app", "0.1.0").status_code == 200  # the number is free again
+    assert client.get("/api/registry/plugin/bleep-app/newest", headers={"Authorization": f"Bearer {token}"}).json()["version"] == "0.1.0"
+    with pytest.raises(SystemExit):
+        cli.main(["release-purge", "0.1.1", "--yes"])  # nothing left with it

@@ -24,7 +24,7 @@ if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum macOS version")
 endif ()
 
-project(BleepBoard VERSION 0.1.1 LANGUAGES C CXX)
+project(BleepBoard VERSION 0.1.0 LANGUAGES C CXX)
 find_program(BLEEP_CCACHE ccache)
 if (BLEEP_CCACHE AND NOT CMAKE_CXX_COMPILER_LAUNCHER)
     set(CMAKE_C_COMPILER_LAUNCHER "${BLEEP_CCACHE}")
@@ -521,6 +521,21 @@ if (BLEEP_APP_BUNDLES_MODULES)  # otherwise the installed packages bring their o
         file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/ui/*"
             "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/doc/*.md")
         list(APPEND BLEEP_BOARD_UI ${s})
+    endforeach ()
+endif ()
+# The Bleep Script compiler, its wasm-merge tool and the code editor for the Code node (patch/script: npm install && npm run bundle;
+# ./bleep build plugins runs it when they are missing). About 29 MB together; loaded only when a Code node is opened.
+option(BLEEP_EMBED_SCRIPT_COMPILER "Embed the Bleep Script compiler and editor bundles (patch/script/dist) in the board" ON)
+if (BLEEP_EMBED_SCRIPT_COMPILER)
+    foreach (f bleep-script-compiler.js bleep-script-merge.js bleep-script-editor.js)
+        set(p "${CMAKE_CURRENT_SOURCE_DIR}/script/dist/${f}")
+        if (EXISTS "${p}")
+            list(APPEND BLEEP_BOARD_UI "${p}")
+            set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${p}")
+        else ()
+            message(WARNING "patch/script/dist/${f} is missing (cd patch/script && npm install && npm run bundle): "
+                "the Code node of this build cannot compile")
+        endif ()
     endforeach ()
 endif ()
 # module-views.json: the module view scripts that exist, so the board loads

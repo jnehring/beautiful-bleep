@@ -341,12 +341,17 @@ def write_index(db: Session, storage: Storage) -> dict:
     return index
 
 
+def delete_release(db: Session, storage: Storage, row: Release) -> None:
+    """Deletes a release with its files, so its version number is free again. The caller commits and writes the index."""
+    for key in [_key(row, f["path"]) for f in row.files] + [_key(row, "entry.json")] + ([_key(row, row.image)] if row.image else []):
+        storage.delete(key)
+    db.delete(row)
+
+
 def _prune_dev(db: Session, storage: Storage, kind: str, slug: str) -> None:
     """Keeps the newest KEEP_DEV_BUILDS development builds of a plugin or module; older ones are deleted with their files."""
     for old in _published(db, kind, slug, dev=True)[:-KEEP_DEV_BUILDS]:
-        for key in [_key(old, f["path"]) for f in old.files] + [_key(old, "entry.json")] + ([_key(old, old.image)] if old.image else []):
-            storage.delete(key)
-        db.delete(old)
+        delete_release(db, storage, old)
     db.commit()
 
 
