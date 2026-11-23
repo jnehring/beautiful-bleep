@@ -189,6 +189,8 @@ def create_release(kind: Kind, body: ReleaseIn, slug: str = Slug, db: Session = 
     if row is None:
         row = Release(kind=kind, slug=slug, version=body.version, major=major, minor=minor, patch=patch, build=build)
         db.add(row)
+    elif row.status != "draft":  # published or taken down: the number is used up, its files are never replaced
+        raise HTTPException(status.HTTP_409_CONFLICT, "That version already exists")
     else:
         _own_draft(row, token)  # a draft is replaced only by the token that started it
     row.channel, row.title, row.notes, row.requires = body.channel, body.title, body.notes, body.requires

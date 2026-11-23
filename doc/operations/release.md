@@ -40,6 +40,8 @@ Each plugin has its own version counter. With nothing published yet, `x`, `0.x` 
 
 **Dev builds.** `--dev` (instead of `--level`) releases a development build into the dev channel, numbered `<next patch>-dev.<commit time>`; `--dev --add-platform latest` adds this machine's build to the one of the same commit. CI does this after every push: see [dev-builds.md](dev-builds.md).
 
+**Withdrawing a release.** A published version cannot be changed or deleted, but an admin can take it down on the server: `docker compose exec api python -m app.cli release-takedown 0.1.0` (every plugin released with that version; name plugins after the version to take down only those). It leaves the index and the library, its number stays used. Release the fixed version first, so the plugins never drop out of the index.
+
 Other options: `--channel beta`, `--notes TEXT`, `--list`, `-y` (no confirmation), `--dry-run`. A dry run needs no token and changes nothing.
 
 **What it does.** It zips the build (named for this machine: `macos-arm64`, …), asks the API for the published versions, creates a draft release, uploads the zip (the server checks size and SHA-256), and publishes. Publishing writes `entry.json` and a new `v1/index.json` into the bucket; clients see the release when the index changes. Versions are immutable: a release is never overwritten, a fix is a new version.

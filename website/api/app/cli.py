@@ -205,6 +205,23 @@ def community_takedown(args: argparse.Namespace) -> None:
     print(f"{args.id} {args.version} taken down")
 
 
+def release_takedown(args: argparse.Namespace) -> None:
+    """Withdraws one version of our own plugins: it leaves the index and the library, and the number stays used."""
+    with SessionLocal() as db:
+        q = select(Release).where(Release.kind == "plugin", Release.version == args.version, Release.status == "published")
+        if args.slugs:
+            q = q.where(Release.slug.in_(args.slugs))
+        rows = db.scalars(q.order_by(Release.slug)).all()
+        missing = sorted(set(args.slugs) - {r.slug for r in rows})
+        if missing or not rows:
+            sys.exit(f"No published plugin release {args.version}" + (f" of {', '.join(missing)}" if missing else ""))
+        for row in rows:
+            row.status = "taken_down"
+        db.commit()
+        registry.write_index(db, get_storage())
+    print(f"{args.version} taken down: {', '.join(r.slug for r in rows)}")
+
+
 def community_ban(args: argparse.Namespace) -> None:
     """Takes down every community release of an author and deactivates the account."""
     with SessionLocal() as db:
@@ -251,6 +268,10 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("id", help="the module id, author/name")
     p.add_argument("version")
     p.set_defaults(run=community_takedown)
+    p = sub.add_parser("release-takedown", help="withdraw one version of our plugins (every plugin with it, or the ones named)")
+    p.add_argument("version")
+    p.add_argument("slugs", nargs="*", help="plugin ids, e.g. bleep-app (default: every plugin released with this version)")
+    p.set_defaults(run=release_takedown)
     p = sub.add_parser("community-ban", help="take down every community release of an author and deactivate the account")
     p.add_argument("handle")
     p.set_defaults(run=community_ban)

@@ -515,3 +515,21 @@ def test_newest_and_add_platform_in_the_dev_channel(client, make_admin):
     assert client.get("/api/registry/plugin/bleep-board/newest?channel=dev", headers={"Authorization": f"Bearer {stable}"}).status_code == 403
     assert client.post(f"/api/registry/plugin/bleep-board/releases/{version}/platforms", json={"files": [other]},
                        headers={"Authorization": f"Bearer {stable}"}).status_code == 403
+
+
+def test_release_takedown_by_the_cli(client, make_admin, storage, capsys):
+    from app import cli
+    token = make_token(client, make_admin)
+    for slug in ("bleep-board", "bleep-app"):
+        assert release(client, token, slug, "0.1.0").status_code == 200
+    assert release(client, token, "bleep-board", "0.1.1").status_code == 200
+    cli.main(["release-takedown", "0.1.0"])
+    assert "bleep-app, bleep-board" in capsys.readouterr().out
+    plugins = json.loads(storage.objects["v1/index.json"])["channels"]["stable"]["plugins"]
+    assert plugins["bleep-board"]["version"] == "0.1.1" and "bleep-app" not in plugins
+    assert [x["version"] for x in client.get("/api/library/plugin/bleep-board").json()["releases"]] == ["0.1.1"]
+    assert release(client, token, "bleep-app", "0.1.0").status_code == 409  # the number stays used
+    with pytest.raises(SystemExit):
+        cli.main(["release-takedown", "0.1.0"])  # nothing published with it any more
+    with pytest.raises(SystemExit):
+        cli.main(["release-takedown", "0.1.1", "bleep-nothing"])

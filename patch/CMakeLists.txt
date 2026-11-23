@@ -24,7 +24,7 @@ if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum macOS version")
 endif ()
 
-project(BleepBoard VERSION 0.1.0 LANGUAGES C CXX)
+project(BleepBoard VERSION 0.1.1 LANGUAGES C CXX)
 find_program(BLEEP_CCACHE ccache)
 if (BLEEP_CCACHE AND NOT CMAKE_CXX_COMPILER_LAUNCHER)
     set(CMAKE_C_COMPILER_LAUNCHER "${BLEEP_CCACHE}")
@@ -733,6 +733,7 @@ if (BLEEP_BUILD_APP)
             FetchContent_MakeAvailable(link)
         endif ()
         include("${link_SOURCE_DIR}/AbletonLinkConfig.cmake")
+        set(CMAKE_CXX_STANDARD 20)  # AbletonLinkConfig.cmake sets 17 for every target after it; the engine needs 20 (std::countl_zero)
     endif ()
 
     # System Audio (doc/specs/system-audio.md): one backend per platform; Linux needs libpulse, without it the stub.
