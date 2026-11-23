@@ -15,7 +15,7 @@ namespace va = patch::va;
 
 class FilterModule final : public Module {
 public:
-    enum { Cutoff, Resonance, Drive, Morph, Mix, KeyTrack, Type, Gain, Vowel, Damping, Slope, Analog };
+    enum { Cutoff, Resonance, Drive, Morph, Mix, KeyTrack, Type, Gain, Vowel, Damping, Slope, Analog, Output };
     enum { InL, InR, Pitch };
     enum { OutL, OutR, Env };
 
@@ -53,6 +53,7 @@ public:
             p.slope = (int)std::round(value(c, Slope, i)) + 1;  // 6 dB per section
             p.mix = value(c, Mix, i);
             p.analog = value(c, Analog, i);
+            p.output = value(c, Output, i);
             p.keyTrack = value(c, KeyTrack, i);
             float frame[2] = {c.inputs[InL][i], inR[i]};
             c.outputs[Env][i] = dsp_.tick(p, c.inputs[Pitch][i], frame, 2);
@@ -118,7 +119,8 @@ void registerFilterModule(Registry& r) {
                 ParamSpec::percent("damping", "Damping", 0.0f, 1.0f, 0.3f).when("type", (int)va::FilterType::CombPositive, (int)va::FilterType::CombNegative),
                 ParamSpec::stepped("slope", "Slope", {"6 dB", "12 dB", "18 dB", "24 dB", "30 dB", "36 dB", "42 dB", "48 dB"}, 3)
                     .when("type", (int)va::FilterType::StaircaseLp, (int)va::FilterType::StaircaseHp),
-                ParamSpec::percent("analog", "Analog", 0.0f, 1.0f, 0.5f).whenAny("type", analogTypes)};
+                ParamSpec::percent("analog", "Analog", 0.0f, 1.0f, 0.5f).whenAny("type", analogTypes),
+                ParamSpec::number("output", "Output", -18.0f, 18.0f, 0.0f, "dB", 1)};
     s.inputs = {{"l", "In L", Signal::Audio}, {"r", "In R", Signal::Audio}, {"pitch", "Pitch", Signal::Pitch}};
     s.outputs = {{"l", "Out L", Signal::Audio, true}, {"r", "Out R", Signal::Audio, true},
                  {"env", "Env", Signal::Control, false}};

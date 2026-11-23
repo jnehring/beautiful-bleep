@@ -97,6 +97,7 @@
   };
 
   const NS = "http://www.w3.org/2000/svg";
+  const kSearchFrom = 16;  // a setting with more choices than this gets a searchable menu instead of a <select>
   const el = (tag, cls, text) => {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
@@ -377,6 +378,120 @@
         });
         box.appendChild(b);
         s.draw = () => { b.classList.toggle("on", cur() >= 0.5); lock(b); };
+      } else if ((p.kind === "choice" || steps <= 33) && steps > kSearchFrom) {
+        // A long list: a button that opens a menu whose first row is a search field; typing filters the list at once.
+        const name = (i) => (p.choices ? p.choices[i] : String(Math.round(p.min + i)));
+        const btn = el("button", "bv-combo");
+        btn.type = "button";
+        box.appendChild(btn);
+        let menu = null;
+        const close = () => {
+          if (!menu) return;
+          menu.cleanup();
+          menu.remove();
+          menu = null;
+        };
+        const pick = (i) => {
+          close();
+          api.beginGesture();
+          setParam(p.id, i / (steps - 1));
+          s.draw();
+          btn.focus();
+        };
+        const open = () => {
+          close();
+          menu = el("div", "bv-cmenu");
+          const cs = getComputedStyle(view.root);  // the menu sits on the page, outside the view: carry its colours
+          for (const v of ["--panel", "--panel-2", "--panel-3", "--text", "--muted", "--line", "--accent"])
+            menu.style.setProperty(v, cs.getPropertyValue(v));
+          const search = el("input", "bv-csearch");
+          search.type = "search";
+          search.placeholder = "Search…";
+          search.setAttribute("aria-label", "Search " + p.name);
+          const list = el("div", "bv-clist");
+          menu.append(search, list);
+          const selected = Math.round(cur() * (steps - 1));
+          let rows = [], active = -1;
+          const mark = (k) => {
+            if (rows[active]) rows[active].classList.remove("hl");
+            active = k;
+            if (rows[active]) { rows[active].classList.add("hl"); rows[active].scrollIntoView({ block: "nearest" }); }
+          };
+          const fill = () => {
+            const q = search.value.trim().toLowerCase();
+            list.textContent = "";
+            rows = [];
+            let group = null;
+            for (let i = 0; i < steps; i++) {
+              const g = p.groups && p.groups[i] ? p.groups[i] : "";
+              // A word matches the name or its group ("ladder", "24 dB", "diode low").
+              const hay = (name(i) + " " + g).toLowerCase();
+              if (q && !q.split(/\s+/).every((w) => hay.includes(w))) continue;
+              if (g && g !== group) { group = g; list.appendChild(el("div", "bv-chead", g)); }
+              const row = el("div", "bv-citem" + (i === selected ? " on" : ""), name(i));
+              row.addEventListener("pointerdown", (e) => e.preventDefault());  // keep the focus in the search field
+              row.addEventListener("click", () => pick(i));
+              row.addEventListener("pointermove", () => mark(rows.indexOf(row)));
+              row.dataset.index = i;
+              rows.push(row);
+              list.appendChild(row);
+            }
+            if (!rows.length) list.appendChild(el("div", "bv-cempty", "No match"));
+            active = -1;
+            const k = rows.findIndex((r) => +r.dataset.index === selected);
+            mark(q ? 0 : Math.max(0, k));
+          };
+          search.addEventListener("input", fill);
+          search.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+              e.preventDefault();
+              if (rows.length) mark((active + (e.key === "ArrowDown" ? 1 : rows.length - 1)) % rows.length);
+            } else if (e.key === "Enter") {
+              e.preventDefault();
+              if (rows[active]) pick(+rows[active].dataset.index);
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              e.stopPropagation();
+              close();
+              btn.focus();
+            }
+            e.stopPropagation();  // typing here is not a board shortcut
+          });
+          document.body.appendChild(menu);
+          const r = btn.getBoundingClientRect();
+          menu.style.minWidth = Math.max(220, r.width) + "px";
+          menu.style.left = Math.max(8, Math.min(r.left, innerWidth - menu.offsetWidth - 8)) + "px";
+          const below = innerHeight - r.bottom - 12, above = r.top - 12;
+          if (below >= 240 || below >= above) {
+            menu.style.top = r.bottom + 4 + "px";
+            menu.style.maxHeight = Math.max(160, below) + "px";
+          } else {
+            menu.style.bottom = innerHeight - r.top + 4 + "px";
+            menu.style.maxHeight = Math.max(160, above) + "px";
+          }
+          const away = (e) => { if (menu && !menu.contains(e.target) && !btn.contains(e.target)) close(); };
+          document.addEventListener("pointerdown", away, true);
+          menu.cleanup = () => document.removeEventListener("pointerdown", away, true);
+          fill();
+          search.focus();
+        };
+        btn.addEventListener("click", () => (menu ? close() : open()));
+        btn.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+          else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {  // start typing on the button: search
+            e.preventDefault();
+            open();
+            menu.querySelector(".bv-csearch").value = e.key;
+            menu.querySelector(".bv-csearch").dispatchEvent(new Event("input"));
+          }
+        });
+        s.draw = () => {
+          const i = Math.round(cur() * (steps - 1));
+          btn.textContent = name(i);
+          btn.title = p.groups && p.groups[i] ? p.groups[i] + " · " + name(i) : name(i);
+          lock(btn);
+          if (btn.disabled) close();
+        };
       } else if (p.kind === "choice" || steps <= 33) {
         const select = el("select");
         let group = null;  // consecutive choices with the same group share an <optgroup>

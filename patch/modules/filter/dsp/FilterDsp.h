@@ -26,6 +26,7 @@ struct FilterParams {
     float morph = 0.0f;     ///< 0 LP, 1/3 BP, 2/3 HP, 1 notch (meaning per algorithm)
     float gain = 0.0f;      ///< shelf gain in dB, −24..+24
     float mix = 1.0f;       ///< dry/wet
+    float output = 0.0f;    ///< output level in dB, −18..+18, after Mix
     float keyTrack = 0.0f;  ///< 0..1: octaves of cutoff per octave of pitch
     float vowel = 0.0f;     ///< 0..1: A, E, I, O, U (Vowel type)
     float damping = 0.0f;   ///< 0..1: loop damping of the comb types
@@ -36,10 +37,10 @@ struct FilterParams {
 class FilterDsp {
 public:
     static constexpr int kMaxChannels = 2;
-    static constexpr float kChannelTolerance = 0.06f;  ///< Analog 100 %: the channels' cutoffs differ up to ±6 %
-    static constexpr float kDrift = 0.06f;             ///< Analog 100 %: the cutoff wanders up to ±6 %
-    static constexpr float kWarmthKnee = 0.8f;  ///< make-up of the warmth alone: loud and quiet signals keep about their level
-    static constexpr float kWarmth = 0.4f;             ///< Analog 100 %: the type's own saturation, as at least this much Drive
+    static constexpr float kChannelTolerance = 0.08f;  ///< Analog 100 %: the channels' cutoffs differ up to ±8 %
+    static constexpr float kDrift = 0.10f;             ///< Analog 100 %: the cutoff wanders up to ±10 %
+    static constexpr float kWarmthKnee = 1.2f;  ///< make-up of the warmth alone: loud and quiet signals keep about their level
+    static constexpr float kWarmth = 0.6f;             ///< Analog 100 %: the type's own saturation, as at least this much Drive
     static constexpr int kOversampling = 4;
     static constexpr float kRunaway = 1.0e4f;  ///< |output| from which (or NaN) a voice counts as blown up
     /// Half-band delay per FIR at its own rate; the 4× stages add half a host
@@ -152,6 +153,10 @@ public:
             last_.analog = analog;
             last_.type = type;
         }
+        if (std::fabs(p.output - outputDb_) > 0.0f) {
+            outputDb_ = p.output;
+            outputGain_ = std::pow(10.0f, std::clamp(p.output, -18.0f, 18.0f) / 20.0f);
+        }
         float sum = 0.0f;
         const int channels = std::min(numChannels, kMaxChannels);
         for (int ch = 0; ch < channels; ++ch) {
@@ -183,7 +188,7 @@ public:
             if (drive > 0.0f || analog > 0.0f || (FilterType)type == FilterType::CmosSvf) wet = blocked;  // CMOS: offsets of its own
             const float dry = dry_[c][(size_t)dryPos_];
             dry_[c][(size_t)dryPos_] = frame[ch];
-            frame[ch] = dry + p.mix * (wet - dry);
+            frame[ch] = outputGain_ * (dry + p.mix * (wet - dry));
             sum += frame[ch];
         }
         if (++dryPos_ == kLatency) dryPos_ = 0;
@@ -191,6 +196,7 @@ public:
     }
 
 private:
+    float outputDb_ = 0.0f, outputGain_ = 1.0f;  ///< Output, and its gain
     double sampleRate_ = 192000.0;  ///< the oversampled rate the voices run at
     std::array<va::FilterVoice, kMaxChannels> voices_{};
     std::array<dsp::Upsampler, kMaxChannels> up_{};

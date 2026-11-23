@@ -45,6 +45,24 @@
 .bv-setting select, .bv-number { background: var(--panel); color: var(--text); border: 1px solid var(--line);
                                   border-radius: 6px; padding: 2px 4px; font: inherit; font-size: 12px; }
 .bv-number { width: 64px; }
+.bv-combo { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 2px 22px 2px 6px;
+            font: inherit; font-size: 12px; cursor: pointer; text-align: left; position: relative; min-width: 0; max-width: 100%;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bv-combo::after { content: "▾"; position: absolute; right: 7px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 10px; }
+.bv-combo:disabled { cursor: default; }
+.bv-setting.bv-modulated .bv-combo { border-color: var(--mod); opacity: .75; }
+.bv-cmenu { position: fixed; z-index: 1000; display: flex; flex-direction: column; background: var(--panel); color: var(--text);
+            border: 1px solid var(--line); border-radius: 8px; padding: 4px; font-size: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+            box-sizing: border-box; max-width: calc(100vw - 16px); }
+.bv-csearch { flex: none; background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 6px;
+              padding: 5px 8px; margin: 2px 2px 4px; font: inherit; font-size: 12px; outline: none; }
+.bv-csearch:focus { border-color: var(--accent); }
+.bv-clist { overflow-y: auto; min-height: 0; }
+.bv-chead { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 7px 8px 3px; }
+.bv-citem { padding: 4px 8px 4px 14px; border-radius: 5px; cursor: pointer; white-space: nowrap; }
+.bv-citem.hl { background: var(--panel-3); }
+.bv-citem.on { color: var(--accent); }
+.bv-cempty { color: var(--muted); font-style: italic; padding: 6px 8px; }
 .bv-toggle { background: var(--panel); color: var(--muted); border: 1px solid var(--line); border-radius: 6px;
              padding: 3px 10px; font: inherit; font-size: 12px; cursor: pointer; }
 .bv-toggle.on { background: var(--accent); color: #0d1014; border-color: var(--accent); }

@@ -50,6 +50,7 @@ audio rate. **Type** picks the algorithm; the dropdown groups them by family.
 - **Key Track** moves the cutoff with the *Pitch* input, so high notes are as
   bright as low ones.
 - **Mix** blends the dry input with the filtered signal.
+- **Output** raises or lowers the level at the very end (±18 dB).
 
 ### Drive per type
 
@@ -72,8 +73,7 @@ audio rate. **Type** picks the algorithm; the dropdown groups them by family.
 | CMOS Inverter SVF | into the inverters | very dirty and asymmetric, early |
 
 On every type but the 1-poles (already driven after the filter) and the two
-digital types, Drive also pushes the output amplifier a little (up to
-12 dB). Otherwise a low-pass would filter most of the distortion away
+digital types, Drive also pushes the output amplifier (up to 18 dB). Otherwise a low-pass would filter most of the distortion away
 again: a saw that saturates before a low-pass mostly turns rounder and
 hollower, not dirtier. The output stage adds the grit above the cutoff.
 
@@ -87,20 +87,21 @@ about as loud at every Drive.
 parts. Together they make the filter breathe:
 
 - **Warmth:** a circuit is never quite linear. The type's own saturation
-  (see *Drive per type*) always works a little: at 100 % as if *Drive* were
-  at least 40 % (20 % at the default 50 %), and its curve turns
+  (see *Drive per type*) always works: at 100 % as if *Drive* were at
+  least 60 % (30 % at the default 50 %), and its curve turns
   asymmetric, adding even harmonics (a symmetric curve would take them away
-  from a saw). Quiet and loud signals keep about their level (within 2 to
-  3 dB): Analog changes the colour, not the volume.
+  from a saw). Like a circuit, it squeezes the dynamics a little: at 100 %
+  loud signals come out a few dB quieter (up to 6 dB on the Sallen-Key)
+  and quiet ones a few dB louder.
 
-- **Tolerances:** the two channels' cutoffs differ (up to ±6 %), so a
+- **Tolerances:** the two channels' cutoffs differ (up to ±8 %), so a
   stereo signal widens and a resonant peak beats between left and right, and
   the stages of the ladders, the OTA cascade and the staircase each sit at a
   different cutoff (up to ±8 %).
   Every filter on the board gets its own spread.
-- **Drift:** the cutoff wanders (up to ±6 %, about a semitone), on each
+- **Drift:** the cutoff wanders (up to ±10 %, about a semitone and a half), on each
   channel on its own; most audible on a resonant peak.
-- **Noise floor:** a faint hiss around −80 dB. It also lets a
+- **Noise floor:** a faint hiss around −70 dB. It also lets a
   self-oscillating filter start on its own, from silence, as a circuit does.
 - **Mismatched pairs:** the transistor and OTA stages turn asymmetric,
   adding even harmonics when they saturate.
@@ -348,6 +349,7 @@ Five whole patches show what Filter does. In the standalone app open **File → 
 | Damping | 0 – 100 % (only with the comb types) | 30 % |
 | Analog | 0 – 100 % (not with the two digital types) | 50 % |
 | Slope | 6 dB – 48 dB, in steps of 6 (only with the staircase types) | 24 dB |
+| Output | −18 – +18 dB | 0 dB |
 | Type | 38 algorithms in 16 groups | SVF Multimode |
 
 - **Cutoff:** the corner (LP, HP) or centre (BP, notch) frequency. Exponential
@@ -356,15 +358,17 @@ Five whole patches show what Filter does. In the standalone app open **File → 
   feedback on the ladders, phasers and flanger). Low values are smooth; high
   values ring and whistle. Self-oscillating types sing on their own near the
   top. Not on the 1-pole types.
-- **Drive:** how hard the type saturates, up to about +30 dB into its
-  nonlinearity, plus a little into the output amplifier; the output is
+- **Drive:** how hard the type saturates, up to about +42 dB into its
+  nonlinearity, plus up to 18 dB into the output amplifier; the output is
   lowered again, so a full-scale source sounds about as loud (a quieter
   source gets louder at high Drive, up to about +10 dB at −10 dB in, as a
   driven circuit does). At 0 % the signal is untouched. A quarter is a gentle
-  colour, half clearly driven, full is grit. A louder source drives harder.
+  colour, half clearly driven, full is heavy distortion; most of the range is
+  in the upper half of the knob. A louder source drives harder.
   Drive and the filter run at four times the sample rate, so drive stays
   clean, without the harsh, out-of-tune overtones of aliasing. Only a loud,
-  very high tone at full Drive folds a little back (about −30 dB).
+  very high tone at full Drive folds a little back (about −25 dB; on the
+  diode ladders and *Phaser 1-Pole ×4* about −15 dB).
 - **Mode:** the response: Low-pass (removes highs), Band-pass (keeps a band
   around the cutoff), High-pass (removes lows) or Notch (removes a band).
   Applies to *SVF Multimode*, the transistor ladders, the biquad, the
@@ -382,6 +386,9 @@ Five whole patches show what Filter does. In the standalone app open **File → 
   and coupling (see *Analog* above). 0 % is the ideal circuit.
 - **Mix:** dry/wet. 100 % is only the filter; lower values mix the
   unfiltered input back in. The response curve shows the result.
+- **Output:** the level after everything else (filter, Drive, Mix), from
+  −18 to +18 dB; 0 dB in the middle leaves it as it is. The response curve
+  moves with it.
 - **Key Track:** how far the cutoff follows the *Pitch* input. At 100 % the
   cutoff moves one octave per octave of pitch; at 50 %, half an octave. No
   effect when *Pitch* is unpatched.

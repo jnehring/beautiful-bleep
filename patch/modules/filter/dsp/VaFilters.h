@@ -174,9 +174,9 @@ constexpr double kFeedbackHpHz = 250.0;
 
 // Analog (at 100 %).
 constexpr float kStageTolerance = 0.08f;   ///< ±8 % cutoff spread between the stages of a ladder / cascade
-constexpr float kStageMismatch = 0.2f;     ///< asymmetry of the transistor / OTA pairs (even harmonics)
+constexpr float kStageMismatch = 0.35f;    ///< asymmetry of the transistor / OTA pairs (even harmonics)
 constexpr float kBassLoss = 0.25f;         ///< share of the ladders' resonance compensation given up
-constexpr float kAnalogBias = 0.3f;        ///< asymmetry of the Drive / warmth curve (even harmonics), on top of the type's own
+constexpr float kAnalogBias = 0.5f;        ///< asymmetry of the Drive / warmth curve (even harmonics), on top of the type's own
 constexpr float kCouplingHpHz = 90.0f;     ///< the diode ladder's feedback coupling high-pass
 constexpr float kSlewHz = 4000.0f;         ///< op-amp slew: a full-scale sine above this is limited
 constexpr float kOpAmpRail = 1.5f;         ///< op-amp / inverter integrators clip softly here
@@ -194,12 +194,13 @@ enum class DriveAt { Before, After, Inside };
 struct DriveSpec {
     DriveAt at;
     float maxDb, knee, bias;
-    float trimDb = 0.0f;  ///< extra output gain at full Drive, where even no make-up leaves the type quieter
+    float trimDb = 0.0f;  ///< extra output gain at full Drive, where even no make-up leaves the type quieter (or louder: < 0)
+    float trimExp = 1.5f; ///< how late over the knob the trim comes in (Drive^trimExp)
 };
 
 /// Drive also drives the output amplifier a little (up to this much, after the filter), so the distortion is not
 /// all filtered away again on a low-pass. Not on the types driven after the filter, nor on the digital references.
-constexpr float kOutputStageDb = 12.0f;
+constexpr float kOutputStageDb = 18.0f;
 
 constexpr float kDriveReference = 0.5f;  ///< scales the knees (only kDriveReference / knee matters)
 
@@ -214,40 +215,40 @@ inline const DriveSpec& driveSpec(FilterType type) noexcept {
     // on every type, at about the same loudness.
     static const DriveSpec specs[] = {
         // SVF Multimode, Bandpass (unit gain), Band Shelf, Peaking, Allpass: warm input stage
-        {DriveAt::Before, 30.0f, 0.02f, 0.15f, 2.3f}, {DriveAt::Before, 30.0f, 0.02f, 0.15f}, {DriveAt::Before, 30.0f, 0.02f, 0.15f, 3.1f},
-        {DriveAt::Before, 30.0f, 0.02f, 0.15f, 5.2f}, {DriveAt::Before, 30.0f, 0.02f, 0.15f, 1.9f},
+        {DriveAt::Before, 42.0f, 0.02f, 0.15f, 3.4f}, {DriveAt::Before, 42.0f, 0.02f, 0.15f, -4.0f, 6.0f}, {DriveAt::Before, 42.0f, 0.02f, 0.15f, 4.2f},
+        {DriveAt::Before, 42.0f, 0.02f, 0.15f, 6.8f}, {DriveAt::Before, 42.0f, 0.02f, 0.15f, 2.8f},
         // 1-Pole LP, HP, AP, Low Shelf, High Shelf: tape-like stage after the filter
-        {DriveAt::After, 24.0f, 5.14f, 0.1f, 15.0f}, {DriveAt::After, 24.0f, 0.37f, 0.1f}, {DriveAt::After, 24.0f, 4.34f, 0.1f, 15.0f},
-        {DriveAt::After, 24.0f, 0.02f, 0.1f, 1.9f}, {DriveAt::After, 24.0f, 0.43f, 0.1f},
+        {DriveAt::After, 36.0f, 0.31f, 0.1f, -5.6f, 2.0f}, {DriveAt::After, 36.0f, 0.02f, 0.1f, -8.0f, 4.0f}, {DriveAt::After, 36.0f, 0.02f, 0.1f, -5.2f, 2.0f},
+        {DriveAt::After, 36.0f, 0.02f, 0.1f, 2.6f}, {DriveAt::After, 36.0f, 0.02f, 0.1f, -3.8f, 3.0f},
         // Ladder Linear, Feedback HP, Tanh, Hyperbolic, Nonlinear Stages: input stage, then into the stages
-        {DriveAt::Inside, 24.0f, 0.02f, 0.0f, 2.3f}, {DriveAt::Inside, 36.0f, 0.72f, 0.0f, 2.1f}, {DriveAt::Inside, 30.0f, 0.33f, 0.0f, 1.1f},
-        {DriveAt::Inside, 30.0f, 0.45f, 0.0f}, {DriveAt::Inside, 30.0f, 0.27f, 0.0f, 1.2f},
+        {DriveAt::Inside, 36.0f, 0.02f, 0.0f, 3.2f}, {DriveAt::Inside, 48.0f, 0.69f, 0.0f, 2.4f}, {DriveAt::Inside, 42.0f, 0.14f, 0.0f, 0.6f, 6.0f},
+        {DriveAt::Inside, 42.0f, 0.39f, 0.0f, -0.4f, 2.0f}, {DriveAt::Inside, 42.0f, 0.02f, 0.0f, 1.4f},
         // Diode Linear, Diode Tanh: asymmetric input stage, then in the loop (the ladder's input)
-        {DriveAt::Inside, 20.0f, 3.89f, 0.4f, 15.0f}, {DriveAt::Inside, 24.0f, 0.70f, 0.4f},
+        {DriveAt::Inside, 32.0f, 0.13f, 0.4f, -2.6f}, {DriveAt::Inside, 36.0f, 0.58f, 0.4f, -1.8f, 3.0f},
         // Phaser 1-Pole, Phaser 2-Pole, Flanger: in the feedback loop
-        {DriveAt::Inside, 30.0f, 0.45f, 0.0f, 3.4f}, {DriveAt::Inside, 30.0f, 0.02f, 0.0f, 2.7f}, {DriveAt::Inside, 30.0f, 0.32f, 0.0f, 3.5f},
+        {DriveAt::Inside, 42.0f, 0.34f, 0.0f, 2.0f}, {DriveAt::Inside, 42.0f, 0.02f, 0.0f, 2.0f}, {DriveAt::Inside, 42.0f, 0.16f, 0.0f, 3.0f},
         // Naive 1-Pole: hard digital clipping before; Biquad: warm input stage
-        {DriveAt::Before, 24.0f, 0.70f, 0.0f}, {DriveAt::Before, 30.0f, 0.63f, 0.15f},
+        {DriveAt::Before, 36.0f, 0.61f, 0.0f, -1.4f}, {DriveAt::Before, 42.0f, 0.24f, 0.15f, -5.4f, 2.0f},
         // Sallen-Key LP, HP: into the amplifier's wall, which turns asymmetric
-        {DriveAt::Inside, 30.0f, 0.26f, 0.3f}, {DriveAt::Inside, 30.0f, 0.62f, 0.3f},
+        {DriveAt::Inside, 42.0f, 0.02f, 0.3f, -0.2f, 3.0f}, {DriveAt::Inside, 42.0f, 0.02f, 0.3f, -11.6f, 4.0f},
         // Vowel: a driven voice before the formants
-        {DriveAt::Before, 24.0f, 0.02f, 0.3f, 1.1f},
+        {DriveAt::Before, 36.0f, 0.02f, 0.3f, 0.8f},
         // Comb Positive, Negative: in the loop
-        {DriveAt::Inside, 30.0f, 0.54f, 0.0f, 2.8f}, {DriveAt::Inside, 30.0f, 0.70f, 0.0f, 1.9f},
+        {DriveAt::Inside, 42.0f, 0.47f, 0.0f, 2.6f}, {DriveAt::Inside, 42.0f, 0.70f, 0.0f, 2.6f},
         // Staircase LP, HP: into every section
-        {DriveAt::Inside, 30.0f, 0.40f, 0.0f, 2.6f}, {DriveAt::Inside, 30.0f, 0.02f, 0.0f, 5.5f},
+        {DriveAt::Inside, 42.0f, 0.02f, 0.0f, 1.8f, 6.0f}, {DriveAt::Inside, 42.0f, 0.18f, 0.0f, 3.2f},
         // Op-Amp Slew SVF: into the slewing integrators
-        {DriveAt::Inside, 30.0f, 0.02f, 0.1f, 1.7f},
+        {DriveAt::Inside, 42.0f, 0.02f, 0.1f, 2.6f},
         // Diode-Feedback LP, HP: into the amplifier and its diode clipper
-        {DriveAt::Inside, 30.0f, 0.49f, 0.25f}, {DriveAt::Inside, 30.0f, 7.68f, 0.25f, 15.0f},
+        {DriveAt::Inside, 42.0f, 0.14f, 0.25f, -4.6f, 2.0f}, {DriveAt::Inside, 42.0f, 0.61f, 0.25f, -12.0f, 4.0f},
         // Diode Pair: into the diode pairs
-        {DriveAt::Inside, 20.0f, 0.02f, 0.1f, 2.0f},
+        {DriveAt::Inside, 32.0f, 0.02f, 0.1f, 2.6f},
         // OTA 4-Pole: input stage, then into the OTA stages
-        {DriveAt::Inside, 30.0f, 0.54f, 0.05f, 1.0f},
+        {DriveAt::Inside, 42.0f, 0.43f, 0.05f, 0.2f, 6.0f},
         // CMOS Inverter SVF: into the inverters
-        {DriveAt::Inside, 24.0f, 0.02f, 0.35f, 0.4f},
+        {DriveAt::Inside, 36.0f, 0.02f, 0.35f, 1.0f},
         // SVF Atanh, Hyperbolic, Saturating: into their own nonlinearity
-        {DriveAt::Inside, 24.0f, 0.33f, 0.0f, 3.2f}, {DriveAt::Inside, 24.0f, 0.37f, 0.0f, 2.8f}, {DriveAt::Inside, 24.0f, 0.54f, 0.0f},
+        {DriveAt::Inside, 36.0f, 1.11f, 0.0f, 15.0f}, {DriveAt::Inside, 36.0f, 0.02f, 0.0f, 5.0f, 6.0f}, {DriveAt::Inside, 36.0f, 0.38f, 0.0f, -2.8f, 2.0f},
     };
     static_assert(sizeof(specs) / sizeof(specs[0]) == (size_t)FilterType::Count, "one DriveSpec per FilterType");
     return specs[(size_t)type];
@@ -373,13 +374,13 @@ inline Coeffs makeCoeffs(FilterType type, float hz, float resonance, float morph
         const DriveSpec& d = driveSpec(type);
         c.drive = driveIn;
         // A curve, so the lower half of the knob stays fine-grained.
-        c.inGain = c.drive > 0.0f ? std::pow(10.0f, d.maxDb * std::pow(c.drive, 1.5f) / 20.0f) : 1.0f;
-        c.outGain = driveMakeup(c.inGain, d.knee) * std::pow(10.0f, d.trimDb * std::pow(c.drive, 1.5f) / 20.0f);
+        c.inGain = c.drive > 0.0f ? std::pow(10.0f, d.maxDb * c.drive * c.drive / 20.0f) : 1.0f;
+        c.outGain = driveMakeup(c.inGain, d.knee) * std::pow(10.0f, d.trimDb * std::pow(c.drive, d.trimExp) / 20.0f);
         // Analog adds asymmetry: a circuit's curve is never quite symmetric, so its warmth adds even harmonics
         // (a symmetric curve takes them away from a saw).
         c.bias = d.bias * c.drive + kAnalogBias * c.analog;
         if (d.at != DriveAt::After && type != FilterType::NaiveOnePole && type != FilterType::Biquad && c.drive > 0.0f) {
-            c.postGain = std::pow(10.0f, kOutputStageDb * std::pow(c.drive, 1.5f) / 20.0f);
+            c.postGain = std::pow(10.0f, kOutputStageDb * c.drive * c.drive / 20.0f);
             c.postMul = std::tanh(kDriveReference) / std::tanh(kDriveReference * c.postGain);
         }
         c.biasTb = std::tanh((double)c.bias);
@@ -591,9 +592,9 @@ public:
 
     /// One sample, with the type's Drive (driveSpec()).
     float process(const Coeffs& c, float x, double sampleRate) noexcept {
-        // Analog: a noise floor around −80 dB, which also lets self-oscillation start on its own.
+        // Analog: a noise floor around −70 dB, which also lets self-oscillation start on its own.
         if (c.analog > 0.0f && c.type != FilterType::NaiveOnePole && c.type != FilterType::Biquad)
-            x += 1.0e-4f * c.analog * noise();
+            x += 3.0e-4f * c.analog * noise();
         if (c.drive <= 0.0f) return core(c, x, sampleRate);
         const DriveSpec& d = driveSpec(c.type);
         const double in = (double)c.inGain * x;

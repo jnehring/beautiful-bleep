@@ -1683,6 +1683,21 @@
             37
           ]
         }
+      },
+      {
+        "id": "output",
+        "name": "Output",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -18.0,
+        "max": 18.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB"
       }
     ],
     "inputs": [

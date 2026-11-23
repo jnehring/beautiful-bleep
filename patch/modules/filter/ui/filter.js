@@ -253,7 +253,7 @@
     layout: [
       { title: "Algorithm", params: ["type", "mode", "vowel", "damping", "slope"], stack: true },
       { title: "Cutoff", params: ["cutoff", "keytrack", "resonance"] },
-      { title: "Drive / Output", params: ["drive", "analog", "gain", "mix"] },
+      { title: "Drive / Output", params: ["drive", "analog", "gain", "mix", "output"] },
     ],
     template: '<div class="bv-panel"><h2>Response <span style="float:right;font-weight:normal;font-size:11px">' +
       ["in", "out"].map((k) => '<button type="button" class="flt-legend-btn" data-s="' + k + '" title="Show or hide the ' + k + 'put spectrum">▬ ' + k + '</button>').join(" ") +
@@ -277,6 +277,9 @@
       const type = TYPES[index] || "svf";
       const mode = view.value(st, "mode"), mix = view.value(st, "mix"), res = view.value(st, "resonance");
       const sp = view.type.params.find((p) => p.id === "slope");
+      // Output, after Mix (a board saved before the knob has no value: 0 dB, the middle).
+      const outN = st && st.params && st.params.output ? view.value(st, "output") : view.node.params.output ?? 0.5;
+      const outDb = view.type.params.some((p) => p.id === "output") ? -18 + 36 * outN : 0;
       const ex = {
         vowel: view.value(st, "vowel"), damping: view.value(st, "damping"),
         stages: 1 + Math.round(view.value(st, "slope") * ((sp ? sp.steps : 8) - 1)),
@@ -312,7 +315,7 @@
         const freq = 20 * Math.pow(1000, x / w);
         const wet = response(type, freq, fc, co, mode);
         const lin = abs(add(scale(wet, mix), [1 - mix, 0]));
-        pts.push([x, y(20 * Math.log10(Math.max(lin, 1e-6)))]);
+        pts.push([x, y(20 * Math.log10(Math.max(lin, 1e-6)) + outDb)]);
       }
       const path = () => { g.beginPath(); pts.forEach(([x, yy], i) => (i ? g.lineTo(x, yy) : g.moveTo(x, yy))); };
       // gradient fill under the curve
