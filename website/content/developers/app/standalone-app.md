@@ -53,7 +53,7 @@ On macOS, start the smoke run with `--system-audio` through LaunchServices (`ope
 ## Licences and signing
 
 - **Link is GPLv2-or-later**, so app binaries built with it are distributed under the GPL with their source. A closed-source build needs a licence from Ableton, or `-DBLEEP_LINK=OFF` (the app then uses an internal clock). JUCE is AGPLv3 or commercial.
-- No script here signs or notarises the app. A downloaded unsigned macOS build is blocked by Gatekeeper until it is signed with a Developer ID and notarised; users of unsigned builds follow [Installing unsigned builds](../../musicians/start/unsigned-builds.md). The app is released to the [Bleep Library](../modules/library.md) like the plugins.
+- The app has no Developer ID and is not notarised. The release script signs the macOS bundle ad hoc, so Gatekeeper warns about an unidentified developer and offers *Open Anyway*; users of unsigned builds follow [Installing unsigned builds](../../musicians/start/unsigned-builds.md). The app is released to the [Bleep Library](../modules/library.md) like the plugins.
 
 ## Modules in the app
 

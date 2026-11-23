@@ -71,3 +71,6 @@ No signing is involved. Make the app executable (`chmod +x`) and run it.
   the VST3 folder of your system, not in a subfolder of another folder.
 - macOS keeps blocking the app: run the `xattr` command above on the app, then
   open it again.
+- macOS says the app **is damaged and can't be opened** and offers only to move
+  it to the Trash: that is Bleep App 0.1.0, which was released before the app was
+  signed. Run the `xattr` command above on the app, or download a newer version.

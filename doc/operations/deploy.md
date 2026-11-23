@@ -8,7 +8,7 @@ Four workflows in `.github/workflows/` (the fourth, `dev.yml`, builds and releas
 | `deploy.yml` | every push to `main` (while `ci.yml` is manual-only); manually on `main` | self-hosted runner on the server | rebuilds and restarts the website stack, waits for the API |
 | `release.yml` | manually (Actions tab → Run workflow, with the version level) | GitHub-hosted runners | builds the plugins on macOS, Windows and Linux and releases them to the library; the macOS job publishes the version, the others add their platform |
 
-No Windows server is needed: the Windows and macOS builds come from GitHub's `windows-latest` and `macos-14` runners. The builds are not code-signed (Authenticode, Apple notarization).
+No Windows server is needed: the Windows and macOS builds come from GitHub's `windows-latest` and `macos-14` runners. The builds have no Authenticode or Developer ID signature and are not notarized; the release script signs macOS bundles ad hoc.
 
 ## One-time: the deploy runner on the server
 

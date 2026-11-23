@@ -48,4 +48,4 @@ The Windows executable ends up in `build/patch/BleepApp_artefacts/Release/`.
 ./bleep run app --smoke
 ```
 
-The app is **not signed or notarized** by any script in this repository. On macOS a downloaded unsigned build is blocked by Gatekeeper until it is signed with a Developer ID and notarized; see [release.md](release.md).
+The app has no Developer ID. On macOS its bundle is signed ad hoc by `scripts/release/release.py` (without a Developer ID) before zipping, so macOS shows the unidentified-developer warning with *Open Anyway* instead of calling the download damaged. It is not notarized; see [release.md](release.md).

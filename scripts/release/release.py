@@ -49,6 +49,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.parse
@@ -344,10 +345,26 @@ def make_source_zip(slug: str, src: Path, out: Path) -> None:
             z.write(src / f, f"{inner}/{f}")
 
 
+def adhoc_sign(bundle: Path) -> None:
+    """Signs a macOS bundle ad hoc (no Developer ID): the linker signs only the executable, which leaves the bundle's
+    resources unsealed, and Gatekeeper then calls a downloaded copy "damaged" with no way to open it. A complete ad hoc
+    signature turns that into the "unidentified developer" warning, which the user can get past (Open Anyway)."""
+    subprocess.run(["xattr", "-cr", str(bundle)], check=True)  # codesign refuses Finder info and resource forks
+    subprocess.run(["codesign", "--force", "--deep", "--sign", "-", "--timestamp=none", str(bundle)], check=True)
+    subprocess.run(["codesign", "--verify", "--deep", "--strict", str(bundle)], check=True)
+
+
 def make_zip(src: Path, out: Path) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.unlink(missing_ok=True)
     if platform.system() == "Darwin":  # keeps symlinks, permissions and the macOS code signatures inside bundles
+        if src.is_dir():  # .app, .vst3: sign a copy, so the build tree stays as the build left it
+            with tempfile.TemporaryDirectory() as tmp:
+                signed = Path(tmp) / src.name
+                subprocess.run(["ditto", str(src), str(signed)], check=True)
+                adhoc_sign(signed)
+                subprocess.run(["ditto", "-c", "-k", "--keepParent", str(signed), str(out)], check=True)
+            return
         subprocess.run(["ditto", "-c", "-k", "--keepParent", str(src), str(out)], check=True)
         return
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:

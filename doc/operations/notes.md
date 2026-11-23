@@ -98,7 +98,7 @@ scripts/release/release.py bleep-app --level patch --notes "what changed" --toke
 ```
 
 - The app includes Ableton Link, which makes the binary GPL (`-DBLEEP_LINK=OFF` for a build without Link). Never ship a `BLEEP_UI_DEV=ON` build.
-- The zip is **not** signed with a Developer ID or notarized by any script. Gatekeeper blocks a downloaded unsigned app until you do that by hand.
+- The release script signs the bundle ad hoc before zipping (no Developer ID, not notarized): Gatekeeper shows the unidentified-developer warning with *Open Anyway* instead of calling it damaged.
 - One release holds this machine's build (`macos-arm64`, …). Add another platform to a published version from the other machine: `release.py bleep-app --add-platform latest`.
 
 ## Plugins (VST3)

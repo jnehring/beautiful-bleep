@@ -44,7 +44,7 @@ Other options: `--channel beta`, `--notes TEXT`, `--list`, `-y` (no confirmation
 
 **What it does.** It zips the build (named for this machine: `macos-arm64`, …), asks the API for the published versions, creates a draft release, uploads the zip (the server checks size and SHA-256), and publishes. Publishing writes `entry.json` and a new `v1/index.json` into the bucket; clients see the release when the index changes. Versions are immutable: a release is never overwritten, a fix is a new version.
 
-**Not yet:** one release holds the builds of the machine that ran the script, so a Windows build is a separate run and needs a new version. The zips are not code-signed or notarised (step 5 below stays manual). Combining platforms in one release is meant for CI.
+**Not yet:** one release holds the builds of the machine that ran the script, so a Windows build is a separate run and needs a new version. On macOS each bundle (`.app`, `.vst3`) is signed ad hoc (`codesign --sign -`, on a copy) before zipping: the linker signs only the executable and leaves the resources unsealed, which Gatekeeper reports as "damaged" with no way past it. With a complete ad hoc signature users get the unidentified-developer warning and *Open Anyway*. Nothing is signed with a Developer ID or notarised (step 5 below). Combining platforms in one release is meant for CI.
 
 ## The manual release (until CI does it)
 
@@ -52,7 +52,7 @@ Other options: `--channel beta`, `--notes TEXT`, `--list`, `-y` (no confirmation
 2. **Set the version.** The product version is `project(BleepBoard VERSION …)` in `patch/CMakeLists.txt`; the plugins and the app take it from there. The bus has its own version in `bus/CMakeLists.txt` (it follows the spec version). Commit the bump.
 3. **Tag.** `git tag plugin-vX.Y.Z && git push origin plugin-vX.Y.Z`.
 4. **Take the build from CI.** The `plugins` job uploads `beautiful-bleep-macos-latest` and `beautiful-bleep-windows-latest` (VST3 and Standalone) as workflow artifacts. Download them from the run for the tag. To build locally instead, see [build-standalone-app.md](build-standalone-app.md) and `./bleep build plugins`.
-5. **Sign for the operating system.** Not automated. macOS builds need a Developer ID signature and notarization to open without a Gatekeeper warning; Windows builds are unsigned. Do this before publishing.
+5. **Sign for the operating system.** The release script signs macOS bundles ad hoc. Opening without any Gatekeeper warning would need a Developer ID signature and notarization, which the project does not have; Windows builds are unsigned.
 6. **Publish.** Attach the signed files to a GitHub release for the tag, with the changelog, and release them to the library (above).
 7. **Website.** Deployed by `.github/workflows/deploy.yml` after CI is green on `main` ([deploy.md](deploy.md)).
 
