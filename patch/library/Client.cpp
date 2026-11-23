@@ -117,6 +117,8 @@ bool readFile(const juce::File& f, std::vector<uint8_t>& out) {
 
 // ---- settings --------------------------------------------------------------------------------------------
 
+bool isDawPlugin(const std::string& slug) { return slug != "bleep-app" && slug != "bleep-live-link"; }
+
 std::string platformId() {
 #if JUCE_MAC
     const char* os = "macos";

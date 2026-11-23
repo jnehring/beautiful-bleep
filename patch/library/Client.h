@@ -39,6 +39,10 @@ juce::File defaultDataDir();
 
 /// `macos-arm64`, `windows-x86_64`, ...: the platform names of the library's plugin files (scripts/release/release.py platform_id).
 std::string platformId();
+
+/// Whether a library plugin is a VST3 plugin to install into a DAW: not the app (`bleep-app`) or the Max for Live device
+/// (`bleep-live-link`, one file for every platform, opened in Live).
+bool isDawPlugin(const std::string& slug);
 /// The VST3 folder of this user (no administrator rights needed).
 juce::File userPluginFolder();
 /// Is Ableton Live running? Replacing a plugin it has loaded can crash it.
@@ -58,7 +62,7 @@ struct IndexPlugin {
 };
 struct Index {
     std::vector<IndexModule> modules;
-    std::vector<IndexPlugin> plugins;   ///< the VST3 plugins (and the app); `bleep-app` is not one to install into a DAW
+    std::vector<IndexPlugin> plugins;   ///< the VST3 plugins, the app and the Max for Live device (isDawPlugin tells them apart)
     const IndexModule* find(const std::string& slug) const;
     /// The module that provides a node type, or null.
     const IndexModule* providing(const std::string& type) const;

@@ -49,6 +49,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -70,6 +71,13 @@ PLUGINS = {
     "bleep-instrument": ("Bleep Instrument (VST3)", "BleepInstrument_artefacts/{cfg}/VST3/Bleep Instrument.vst3"),
     "bleep-fx": ("Bleep FX (VST3)", "BleepFx_artefacts/{cfg}/VST3/Bleep FX.vst3"),
     "bleep-app": ("Bleep App (standalone app)", "BleepApp_artefacts/{cfg}/Bleep App.app"),
+    "bleep-live-link": ("Bleep Live Link (Max for Live)", "Bleep Live Link.amxd"),
+}
+
+# Plugins that are not built but taken from the sources, the same on every platform ("any"): slug -> (folder in the repository,
+# the files of the zip, the folder they are in inside the zip). They have no build to add from another machine.
+SOURCE_PLUGINS = {
+    "bleep-live-link": ("patch/bridges/ableton/live-link", ("Bleep Live Link.amxd", "live-link.js"), "Bleep Live Link"),
 }
 
 
@@ -83,12 +91,15 @@ PLUGIN_TILES = {
     "bleep-instrument": ("A Bleep board played as an instrument: MIDI in, audio out.", "Plugins"),
     "bleep-fx": ("A Bleep board as an effect: audio in, audio out.", "Plugins"),
     "bleep-app": ("Bleep App is the standalone app, with the Bleep Library to install modules and plugins.", "Apps"),
+    "bleep-live-link": ("A Max for Live device (Live Suite): the board's Live Params node moves, switches and selects parameters in your Live set.",
+                        "Max for Live"),
 }
 
 
 # What the library's detail view says about a plugin's licence: the sources are MIT, but the binaries are built with JUCE
 # (AGPLv3, or a commercial JUCE licence: change this if you hold one), and the app includes Ableton Link (GPL), doc/operations/release.md.
-PLUGIN_LICENSES = {"bleep-app": "GPL-3.0-only AND AGPL-3.0-only"}
+PLUGIN_LICENSES = {"bleep-app": "GPL-3.0-only AND AGPL-3.0-only",
+                   "bleep-live-link": "GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception"}   # live-link.js's header
 PLUGIN_LICENSE_DEFAULT = "AGPL-3.0-only"
 
 
@@ -161,6 +172,30 @@ class RegistryError(Exception):
     pass
 
 
+TIMEOUT = 60                 # seconds per socket operation (connect, send, wait for the answer)
+RETRY_WAITS = (2, 5, 15, 30)  # pauses before the retries of a request that did not get through
+
+
+def open_retrying(req, data=None, waits=RETRY_WAITS):
+    """urlopen that retries when the request did not get through (no connection, or it broke while sending).
+    urllib raises URLError only while connecting and sending; an error status (HTTPError) or a failure while
+    waiting for the answer is not retried, so a request the server may have carried out is never sent twice.
+    A file body is rewound before each retry."""
+    for attempt in range(len(waits) + 1):
+        try:
+            return urllib.request.urlopen(req, timeout=TIMEOUT)
+        except urllib.error.HTTPError:
+            raise
+        except urllib.error.URLError as e:
+            if attempt == len(waits):
+                raise
+            url = req.full_url if isinstance(req, urllib.request.Request) else req
+            print(f"    ({urllib.parse.urlsplit(url).path}: {e.reason}; trying again in {waits[attempt]} s)", file=sys.stderr)
+            time.sleep(waits[attempt])
+            if hasattr(data, "seek"):
+                data.seek(0)
+
+
 class Registry:
     def __init__(self, url: str, token: str | None):
         parts = urllib.parse.urlsplit(url)
@@ -182,7 +217,7 @@ class Registry:
             headers["Content-Length"] = str(length)
         req = urllib.request.Request(self.base + path, data=data, method=method, headers=headers)
         try:
-            with urllib.request.urlopen(req) as r:
+            with open_retrying(req, data) as r:
                 raw = r.read()
                 return json.loads(raw) if raw else None
         except urllib.error.HTTPError as e:
@@ -194,6 +229,10 @@ class Registry:
             raise RegistryError(f"{method} {path}: {e.code} {detail}") from None
         except urllib.error.URLError as e:
             raise RegistryError(f"cannot reach {self.base}: {e.reason}") from None
+        except TimeoutError:
+            raise RegistryError(f"{method} {path}: no answer within {TIMEOUT} s") from None
+        except OSError as e:   # the connection broke while waiting for the answer: not retried, the server may have done it
+            raise RegistryError(f"{method} {path}: {e}") from None
 
     def check_token(self) -> None:
         self._request("GET", "/token")
@@ -213,7 +252,7 @@ class Registry:
     def entry(self, slug: str, version: str, kind: str = "plugin") -> dict | None:
         """The published entry.json of a release (what clients read), or None if there is none."""
         try:
-            with urllib.request.urlopen(f"{self.site}/registry/v1/{kind}s/{slug}/{version}/entry.json") as r:
+            with open_retrying(f"{self.site}/registry/v1/{kind}s/{slug}/{version}/entry.json") as r:
                 return json.loads(r.read())
         except urllib.error.HTTPError as e:
             if e.code == 404:
@@ -221,6 +260,8 @@ class Registry:
             raise RegistryError(f"GET entry.json of {slug} {version}: {e.code}") from None
         except urllib.error.URLError as e:
             raise RegistryError(f"cannot reach {self.site}: {e.reason}") from None
+        except TimeoutError:
+            raise RegistryError(f"GET entry.json of {slug} {version}: no answer within {TIMEOUT} s") from None
 
     def release(self, slug: str, version: str, channel: str, title: str, notes: str, files: list[dict], kind: str = "plugin",
                 summary: str = "", category: str = "", image: bytes | None = None,
@@ -265,6 +306,10 @@ def platform_id() -> str:
 
 
 def find_artefact(slug: str, build_dir: Path, cfg: str) -> Path | None:
+    if slug in SOURCE_PLUGINS:   # the folder in the repository, if all of its files are there
+        folder, files, _ = SOURCE_PLUGINS[slug]
+        src = ROOT / folder
+        return src if all((src / f).is_file() for f in files) else None
     path = build_dir / PLUGINS[slug][1].format(cfg=cfg)
     if path.exists():
         return path
@@ -274,6 +319,29 @@ def find_artefact(slug: str, build_dir: Path, cfg: str) -> Path | None:
             if alt.exists():
                 return alt
     return None
+
+
+def artefact_hint(slug: str, build_dir: Path, cfg: str) -> str:
+    """Where a missing artefact was looked for, for the error message."""
+    if slug in SOURCE_PLUGINS:
+        folder, files, _ = SOURCE_PLUGINS[slug]
+        return f"{', '.join(files)} in {folder}"
+    return f"{build_dir / PLUGINS[slug][1].format(cfg=cfg)} (run ./bleep build plugins, or pass --build)"
+
+
+def plugin_platform(slug: str) -> str:
+    """The platform of a plugin's file: this machine's, or "any" for one taken from the sources."""
+    return "any" if slug in SOURCE_PLUGINS else platform_id()
+
+
+def make_source_zip(slug: str, src: Path, out: Path) -> None:
+    """The files of a source plugin in their folder, without the macOS extended attributes ditto would add."""
+    _, files, inner = SOURCE_PLUGINS[slug]
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.unlink(missing_ok=True)
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+        for f in files:
+            z.write(src / f, f"{inner}/{f}")
 
 
 def make_zip(src: Path, out: Path) -> None:
@@ -462,7 +530,10 @@ def main(argv: list[str] | None = None) -> int:
         for slug in names:
             artefact = find_artefact(slug, args.build_dir, args.config)
             if artefact is None:
-                sys.exit(f"{slug}: no build at {args.build_dir / PLUGINS[slug][1].format(cfg=args.config)} (run ./bleep build plugins, or pass --build)")
+                sys.exit(f"{slug}: no build at {artefact_hint(slug, args.build_dir, args.config)}")
+            if args.add_platform and slug in SOURCE_PLUGINS:   # its one file is for every platform: nothing to add from this machine
+                print(f"  {slug}: one file for every platform, nothing to add")
+                continue
             published = registry.versions(slug)
             if args.dev:
                 newest = registry.newest(slug, dev=True)
@@ -505,10 +576,14 @@ def main(argv: list[str] | None = None) -> int:
     done = 0
     for slug, artefact, published, version in plan:
         old = published[-1] if published else "none"
-        zip_path = out_dir / f"{slug}-{version}-{plat}.zip"
+        file_plat = plugin_platform(slug)
+        zip_path = out_dir / f"{slug}-{version}-{file_plat}.zip"
         try:
-            make_zip(artefact, zip_path)
-            files = [plugin_declaration(zip_path, plat)]
+            if slug in SOURCE_PLUGINS:
+                make_source_zip(slug, artefact, zip_path)
+            else:
+                make_zip(artefact, zip_path)
+            files = [plugin_declaration(zip_path, file_plat)]
             if args.add_platform:
                 registry.add_platform(slug, version, files)
             else:

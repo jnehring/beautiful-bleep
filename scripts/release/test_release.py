@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from unittest import mock
 import zipfile
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -62,6 +62,46 @@ class Pinning(unittest.TestCase):
                 release.Registry(url, "t")
 
 
+class Retries(unittest.TestCase):
+    """A request that did not get through (no connection) is sent again; one the server answered or may have carried out is not."""
+
+    def _open(self, effects, data=None):
+        with mock.patch.object(release.urllib.request, "urlopen", side_effect=effects) as urlopen, \
+                mock.patch.object(release.time, "sleep") as sleep, redirect_stderr(io.StringIO()):
+            try:
+                return release.open_retrying("https://library.example/api/registry/token", data), urlopen.call_count, sleep.call_count
+            except Exception as e:
+                return e, urlopen.call_count, sleep.call_count
+
+    def test_a_connection_that_times_out_is_tried_again(self):
+        gone = release.urllib.error.URLError(TimeoutError(60, "Operation timed out"))
+        result, calls, sleeps = self._open([gone, gone, "answer"])
+        self.assertEqual((result, calls, sleeps), ("answer", 3, 2))
+
+    def test_it_gives_up_after_the_last_retry(self):
+        gone = release.urllib.error.URLError(ConnectionRefusedError())
+        result, calls, _ = self._open([gone] * 10)
+        self.assertIsInstance(result, release.urllib.error.URLError)
+        self.assertEqual(calls, len(release.RETRY_WAITS) + 1)
+
+    def test_an_error_status_is_not_retried(self):
+        refused = release.urllib.error.HTTPError("u", 409, "conflict", {}, io.BytesIO(b""))
+        result, calls, _ = self._open([refused, "answer"])
+        self.assertIs(result, refused)
+        self.assertEqual(calls, 1)
+
+    def test_a_break_while_waiting_for_the_answer_is_not_retried(self):
+        result, calls, _ = self._open([ConnectionResetError(), "answer"])
+        self.assertIsInstance(result, ConnectionResetError)
+        self.assertEqual(calls, 1)
+
+    def test_a_file_body_is_rewound_before_a_retry(self):
+        body = io.BytesIO(b"package")
+        body.read()
+        self._open([release.urllib.error.URLError(TimeoutError()), "answer"], body)
+        self.assertEqual(body.tell(), 0)
+
+
 class FakeLibrary:
     """The few calls release_modules makes; `published` is {slug: {version: entry.json}}."""
 
@@ -79,6 +119,45 @@ class FakeLibrary:
         self.licenses = getattr(self, "licenses", {}) | {slug: (license, origin)}
         self.released.append((slug, version, kind, title, files[0]["declaration"]))
         self.tiles = getattr(self, "tiles", {}) | {slug: (summary, category, image)}
+
+
+class SourcePlugins(unittest.TestCase):
+    """The Max for Live device is taken from the sources: one zip for every platform, nothing to add from another machine."""
+
+    def run_main(self, *argv, published=None):
+        lib = FakeLibrary(published or {})
+        lib.added = []
+        lib.add_platform = lambda slug, version, files: lib.added.append((slug, version))
+        out = io.StringIO()
+        with mock.patch.object(release, "Registry", return_value=lib), mock.patch.object(release, "read_token", return_value="t"), \
+                redirect_stdout(out), redirect_stderr(io.StringIO()):
+            code = release.main([*argv, "--registry", "https://library.example", "--yes"])
+            self.names = {}   # the zips it wrote into build/release
+            for z in (release.ROOT / "build" / "release").glob("bleep-live-link-*-any.zip"):
+                with zipfile.ZipFile(z) as f:
+                    self.names[z.name] = sorted(f.namelist())
+        return code, lib, out.getvalue()
+
+    def test_it_is_released_for_any_platform_with_its_two_files(self):
+        code, lib, _ = self.run_main("bleep-live-link", "--level", "0.x")
+        self.assertEqual(code, 0)
+        slug, version, kind, title, declared = lib.released[0]
+        self.assertEqual((slug, version, title), ("bleep-live-link", "0.1.0", "Bleep Live Link (Max for Live)"))
+        self.assertEqual((declared["platform"], declared["path"]), ("any", "bleep-live-link-0.1.0-any.zip"))
+        self.assertEqual(self.names["bleep-live-link-0.1.0-any.zip"], ["Bleep Live Link/Bleep Live Link.amxd", "Bleep Live Link/live-link.js"])
+        self.assertIn("GPL-3.0-only", lib.licenses["bleep-live-link"][0])
+        self.assertEqual(lib.tiles["bleep-live-link"][1], "Max for Live")
+
+    def test_adding_a_platform_skips_it(self):
+        code, lib, out = self.run_main("bleep-live-link", "--add-platform", "0.1.0", published={"bleep-live-link": {"0.1.0": {"files": []}}})
+        self.assertEqual((code, lib.added), (0, []))
+        self.assertIn("nothing to add", out)
+
+    def test_it_is_in_the_list(self):
+        out = io.StringIO()
+        with redirect_stdout(out):
+            release.main(["--list"])
+        self.assertIn("bleep-live-link", out.getvalue())
 
 
 class ReleaseModules(unittest.TestCase):

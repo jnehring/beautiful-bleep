@@ -225,7 +225,7 @@ void ModuleLibrary::installPluginsAsync() {
         int installed = 0;
         std::string problems;
         for (const auto& p : index.plugins) {
-            if (p.slug == "bleep-app") continue;  // the app is not a plugin
+            if (!library::isDawPlugin(p.slug)) continue;  // the app and the Max for Live device are not VST3 plugins
             { std::lock_guard<std::mutex> l(mutex_); pluginJob_.message = "Installing " + p.slug + "…"; }
             std::vector<std::string> names;
             std::string e;

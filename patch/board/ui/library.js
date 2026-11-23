@@ -216,8 +216,8 @@
       list.className = "st-tiles";
       const local = new Map((plugins || []).map((p) => [p.name, p]));
       const offered = status.index.plugins || [];
-      // What the library offers (the app itself is not a plugin to install into a DAW); else what is known to be installable.
-      const entries = offered.filter((p) => p.slug !== "bleep-app").map((p) => ({ e: p, name: (p.title || p.slug).replace(/\s*\(VST3\)$/, "") }));
+      // What the library offers (the app and the Max for Live device are not plugins to install into a DAW); else what is known to be installable.
+      const entries = offered.filter((p) => p.slug !== "bleep-app" && p.slug !== "bleep-live-link").map((p) => ({ e: p, name: (p.title || p.slug).replace(/\s*\(VST3\)$/, "") }));
       for (const p of plugins || []) if (!entries.some((x) => x.name === p.name)) entries.push({ e: null, name: p.name });
       for (const { e, name } of entries) {
         const { tile: t, body: b } = tile("plugin", e ? Object.assign({}, e, { title: name }) : null, name);

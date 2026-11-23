@@ -2,7 +2,7 @@
 
 ## Releasing plugins to the library
 
-`scripts/release/release.py` publishes plugins to the library in the website stack: `bleep-board`, the port plugins (`bleep-midi-in`, `bleep-midi-out`, `bleep-audio-in`, `bleep-audio-out`), `bleep-instrument`, `bleep-fx` and the standalone app `bleep-app` (`--list` shows them). The Audio Bridge is no longer on the list. Modules are not released this way yet.
+`scripts/release/release.py` publishes plugins to the library in the website stack: `bleep-board`, the port plugins (`bleep-midi-in`, `bleep-midi-out`, `bleep-audio-in`, `bleep-audio-out`), `bleep-instrument`, `bleep-fx` the standalone app `bleep-app` and the Max for Live device `bleep-live-link` (`--list` shows them). The device is not built: its zip holds `Bleep Live Link.amxd` and `live-link.js` from `patch/bridges/ableton/live-link`, as one file for every platform (`any`), so `--add-platform` skips it and the app's "install plugins" leaves it out. The Audio Bridge is no longer on the list. Modules are not released this way yet.
 
 **One-time: a release token.** An admin creates it on the website (Admin → Release tokens; shown once), or from the command line (it is shown once; put it in a file only you can read):
 
