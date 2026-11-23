@@ -9,10 +9,11 @@ type Detail = { releases: Release[] };
 
 /** The Bleep App is a library entry like any plugin (kind plugin, id bleep-app); its files are one build per platform. */
 const APP = "/library/plugin/bleep-app";
+/** `offered: false`: "Coming soon" even when the library has a build (Windows and Linux are not tested yet). */
 const SYSTEMS = [
-  { id: "macos", label: "macOS", note: "macOS 12 or later", builds: { "macos-arm64": "Apple silicon", "macos-x86_64": "Intel" } },
-  { id: "windows", label: "Windows", note: "Windows 10 or later, 64-bit", builds: { "windows-x86_64": "64-bit" } },
-  { id: "linux", label: "Linux", note: "64-bit, PulseAudio or PipeWire", builds: { "linux-x86_64": "64-bit" } },
+  { id: "macos", label: "macOS", note: "macOS 12 or later", offered: true, builds: { "macos-arm64": "Apple silicon", "macos-x86_64": "Intel" } },
+  { id: "windows", label: "Windows", note: "Windows 10 or later, 64-bit", offered: false, builds: { "windows-x86_64": "64-bit" } },
+  { id: "linux", label: "Linux", note: "64-bit, PulseAudio or PipeWire", offered: false, builds: { "linux-x86_64": "64-bit" } },
 ] as const;
 
 const size = (b: number) => (b >= 1048576 ? `${(b / 1048576).toFixed(0)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
@@ -47,7 +48,7 @@ export default function DownloadList() {
     <div className="downloads">
       {release && <p className="muted">Version {release.version}{release.channel !== "stable" && ` ${release.channel}`}</p>}
       {systems.map((s) => {
-        const files = release ? release.file_list.filter((f) => f.uploaded && f.platform in s.builds) : [];
+        const files = release && s.offered ? release.file_list.filter((f) => f.uploaded && f.platform in s.builds) : [];
         return (
           <div key={s.id} className="download-row">
             <div>
