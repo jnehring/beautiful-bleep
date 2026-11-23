@@ -553,6 +553,8 @@ endif ()
 if (BLEEP_LIBRARY_URL)
     set(BLEEP_LIBRARY_URL_BAKED "${BLEEP_LIBRARY_URL}")
 endif ()
+# The address this build bakes in, for scripts/release/release.py: it refuses to release a build made for another library.
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/library-url.txt" "${BLEEP_LIBRARY_URL_BAKED}\n")
 function(bleep_use_library target)
     if (NOT BLEEP_WASMTIME_DIR)
         return()

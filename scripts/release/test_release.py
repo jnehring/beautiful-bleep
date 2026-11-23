@@ -121,6 +121,44 @@ class FakeLibrary:
         self.tiles = getattr(self, "tiles", {}) | {slug: (summary, category, image)}
 
 
+class LibraryUrl(unittest.TestCase):
+    """A build that looks for the library on localhost must not reach the users (0.1.1 did)."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def bake(self, url):
+        (self.dir / "library-url.txt").write_text(url + "\n")
+
+    def test_a_build_for_the_same_library_passes(self):
+        self.bake("https://beautifulbleep.com")
+        self.assertIsNone(release.check_library_url(self.dir, "https://beautifulbleep.com/"))
+
+    def test_a_localhost_build_is_refused_for_the_real_library(self):
+        self.bake("http://localhost:8080")
+        self.assertIn("http://localhost:8080", release.check_library_url(self.dir, "https://beautifulbleep.com"))
+
+    def test_a_build_without_the_record_is_refused(self):
+        self.assertIn("missing", release.check_library_url(self.dir, "https://beautifulbleep.com"))
+
+    def test_any_build_may_go_to_a_local_library(self):
+        self.bake("https://beautifulbleep.com")
+        for url in ("http://localhost:8080", "http://127.0.0.1:8080", "http://bleep.localhost"):
+            self.assertIsNone(release.check_library_url(self.dir, url), url)
+
+    def test_main_stops_before_it_talks_to_the_library(self):
+        self.bake("http://localhost:8080")
+        with mock.patch.object(release, "Registry") as reg, redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit) as e:
+                release.main(["bleep-app", "--level", "0.x", "--registry", "https://library.example", "--build-dir", str(self.dir), "--yes"])
+        self.assertIn("localhost", str(e.exception.code))
+        reg.assert_not_called()
+
+
 class SourcePlugins(unittest.TestCase):
     """The Max for Live device is taken from the sources: one zip for every platform, nothing to add from another machine."""
 

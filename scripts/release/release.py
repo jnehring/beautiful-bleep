@@ -335,6 +335,27 @@ def plugin_platform(slug: str) -> str:
     return "any" if slug in SOURCE_PLUGINS else platform_id()
 
 
+def is_local_url(url: str) -> bool:
+    host = urllib.parse.urlsplit(url).hostname or ""
+    return host in ("localhost", "127.0.0.1", "::1") or host.endswith(".localhost")
+
+
+def check_library_url(build_dir: Path, registry_url: str) -> str | None:
+    """Why the compiled plugins in build_dir must not go to registry_url, or None. The build bakes in the library's address
+    (config/library.json, BLEEP_LIBRARY_URL) and writes it to library-url.txt; a build for a local library released to the
+    real one would make every user's app and plugins look for modules on their own machine (0.1.1 did)."""
+    if is_local_url(registry_url):
+        return None   # testing against a local library: any build will do
+    f = build_dir / "library-url.txt"
+    if not f.is_file():
+        return f"{f} is missing: configure the build again (./bleep build plugins) so it records the library address it bakes in"
+    baked = f.read_text().strip().rstrip("/")
+    if baked != registry_url.rstrip("/"):
+        return (f"the build in {build_dir} looks for the library at {baked or '(no address)'}, not at {registry_url}: "
+                f"set libraryUrl in config/library.json (or BLEEP_LIBRARY_URL) and build again")
+    return None
+
+
 def make_source_zip(slug: str, src: Path, out: Path) -> None:
     """The files of a source plugin in their folder, without the macOS extended attributes ditto would add."""
     _, files, inner = SOURCE_PLUGINS[slug]
@@ -539,6 +560,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.build:
         subprocess.run([str(ROOT / "bleep"), "build", "plugins", "--plugins-only"], check=True)
+    if any(slug not in SOURCE_PLUGINS for slug in names):
+        why = check_library_url(args.build_dir, args.registry)
+        if why:
+            sys.exit(why)
     registry = Registry(args.registry, None if args.dry_run else read_token(args))
     plan = []
     try:
