@@ -87,6 +87,10 @@ def test_a_cell_has_categories_and_roles(client):
     assert made["categories"] == ["Pads", "Drums/Kicks"] and made["roles"] == ["instrument"]
     assert client.get("/api/presets/ann/warm-pad/file").json()["categories"] == ["Pads", "Drums/Kicks"]
     assert TestClient(app).get("/api/library?kind=preset").json()["items"][0]["category"] == "Cells/Pads"
+    anon = TestClient(app)
+    assert [i["title"] for i in anon.get("/api/library?role=instrument").json()["items"]] == [cell["title"]]   # the Instruments filter
+    assert anon.get("/api/library?role=effect").json()["items"] == []
+    assert anon.get("/api/library?role=drone").status_code == 422
     # a new version may change them; no plays means no roles
     again = client.post("/api/presets", json={**cell, "pid": made["pid"], "version_label": "1.1", "categories": ["Basses"], "preset": PRESET["preset"]}).json()
     assert again["categories"] == ["Basses"] and again["roles"] == []

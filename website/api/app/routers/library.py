@@ -72,6 +72,7 @@ def _item(r: Release) -> LibraryItemOut:
 @router.get("", response_model=LibraryListOut)
 def listing(
     kind: Literal["plugin", "module", "preset"] | None = None,
+    role: Literal["instrument", "effect"] | None = None,
     q: str = Query("", max_length=100),
     category: str = Query("", max_length=64),
     page: int = Query(1, ge=1),
@@ -80,16 +81,17 @@ def listing(
     user: User | None = Depends(get_optional_library_user),
 ):
     """One entry per plugin, module or preset (its newest published version), filtered by kind, category and search text,
-    each with its rating. Accounts with dev access also see development builds."""
+    each with its rating. Accounts with dev access also see development builds. `role` keeps only the presets that load as an
+    instrument or an effect (their `plays`); plugins and modules have no role."""
     newest: dict[tuple[str, str], Release] = {}
-    if kind != "preset":
+    if kind != "preset" and role is None:
         for r in _releases(db, user, kind):
             newest.setdefault((r.kind, r.slug), r)
     needle = q.strip().lower()
     found = [_item(r) for r in newest.values()
              if not needle or needle in " ".join((r.title or "", r.slug, r.summary, r.category)).lower()]
     if kind in (None, "preset"):
-        found += [_preset_item(p) for p in listed_presets(db, q)]
+        found += [_preset_item(p) for p in listed_presets(db, q) if role is None or role in (p.roles or [])]
     items = [i for i in found if not category or i.category == category or i.category.startswith(category + "/")]
     items.sort(key=lambda i: (i.title.lower(), i.slug))
     start = (page - 1) * page_size

@@ -4,7 +4,7 @@
 # repository root, because the site reads the docs (website/content), module
 # metadata (patch/modules/*/module.json, board/ui/demo-types.json for the
 # categories; demo-patches.json, module-presets.json and factory-presets.json for the
-# Library's example patches and presets and the instrument and effect pages), the bus header (spec version) and
+# Library's example patches and presets and its Instruments and Effects filters), the bus header (spec version) and
 # the docs generator (scripts/docs/build-docs.py).
 #
 #   docker compose -f website/docker-compose.yml up --build

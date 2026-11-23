@@ -20,7 +20,7 @@ export default function PlayPage() {
       </section>
       <LaunchButton />
 
-      <p>Or try an <a href="/instruments/">instrument</a> or an <a href="/effects/">effect</a> on its own.</p>
+      <p>Or try an <a href="/library/?kind=instrument">instrument</a> or an <a href="/library/?kind=effect">effect</a> on its own.</p>
 
       <h2>How to use it</h2>
       <ol className="play-steps">

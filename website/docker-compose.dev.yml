@@ -42,7 +42,7 @@ services:
       - ../bus/include:/repo/bus/include:ro
       - ../patch/modules:/repo/patch/modules
       - ../patch/board/ui/demo-types.json:/repo/patch/board/ui/demo-types.json:ro
-      # the Library's example patches and presets, the instrument and effect pages (lib/content.ts)
+      # the Library's example patches and presets, its Instruments and Effects filters (lib/content.ts)
       - ../patch/board/ui/demo-patches.json:/repo/patch/board/ui/demo-patches.json:ro
       - ../patch/board/ui/module-presets.json:/repo/patch/board/ui/module-presets.json:ro
       - ../patch/board/ui/factory-presets.json:/repo/patch/board/ui/factory-presets.json:ro

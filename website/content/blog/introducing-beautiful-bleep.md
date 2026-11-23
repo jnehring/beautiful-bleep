@@ -16,7 +16,7 @@ The same engine, the same modules and the same project files run in three places
 
 Bleep Play needs no install and no account. Open [the board](/board/), pick an instrument or start from an empty canvas, and you are making sound within seconds. When the board needs a module it has not seen yet, it fetches the module from the Bleep Library, checks it and runs it, so a visitor needs nothing installed.
 
-That makes the browser the easiest way to try Beautiful Bleep and to share a project: send a link and the other person hears what you hear. It does not have every module yet, and the board page lists what is missing. If you are curious, [play now](/board/) or browse the [instruments](/instruments/) and [effects](/effects/) that open directly in it.
+That makes the browser the easiest way to try Beautiful Bleep and to share a project: send a link and the other person hears what you hear. It does not have every module yet, and the board page lists what is missing. If you are curious, [play now](/board/) or browse the [instruments](/library/?kind=instrument) and [effects](/library/?kind=effect) that open directly in it.
 
 ### In Ableton Live
 

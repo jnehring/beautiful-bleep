@@ -276,18 +276,19 @@ export function modulePresets(slug: string): ModulePreset[] {
   return presetCache[slug] ?? [];
 }
 
-// --- Instrument and effect presets, for the pages that open them in Bleep Play (patch/board/ui/play-wrap.js has the rules) -----------
+// --- Instrument and effect presets, for the Instruments and Effects filters of the Library (patch/board/ui/play-wrap.js has the rules) -----
 
-export type PlayablePreset = { name: string; category: string; description: string; tags: string[]; polyphonic: boolean };
+export type PlayablePreset = { name: string; category: string; description: string; roles: ("instrument" | "effect")[]; polyphonic: boolean };
 
 /** The factory cell presets that are instruments or effects; all of them play in Bleep Play. `polyphonic`: it uses a Voice Cell. */
-export function playablePresets(role: "instrument" | "effect"): PlayablePreset[] {
+export function playablePresets(): PlayablePreset[] {
   const out: PlayablePreset[] = [];
   for (const p of readJson("factory-presets.json")?.presets ?? []) {
     const pre = p.preset ?? {};
-    if (!pre.plays?.[role]) continue;
+    const roles = (["instrument", "effect"] as const).filter((r) => pre.plays?.[r]);
+    if (!roles.length) continue;
     out.push({
-      name: p.name, category: p.category, description: pre.description ?? "", tags: pre.tags ?? [],
+      name: p.name, category: p.category, description: pre.description ?? "", roles,
       polyphonic: (pre.nodes ?? []).some((n: any) => n.type === "voice-cell"),   // the root, or one inside the cell
     });
   }

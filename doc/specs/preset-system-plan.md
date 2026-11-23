@@ -246,7 +246,7 @@ the browser (`patch/web/README.md`). A web instrument is the plugin's wrapper do
   self-playing one). [play-wrap.js](../../patch/board/ui/play-wrap.js) decides what can be played and which cables it needs
   (`patch/web/test/play-wrap-test.mjs` runs it over every factory preset). The preset's panel comes with it.
 - [play-keys.js](../../patch/board/ui/play-keys.js): an on-screen piano (two octaves, octave buttons, touch and mouse) under an instrument.
-- Pages `/instruments/` and `/effects/` list the factory presets with *Play it* (static, from `factory-presets.json`); the Play page links to them.
+- The Library's Instruments and Effects filters (`/library/?kind=instrument`, `?kind=effect`) list the factory presets with *Play it* (static, `/factory-presets.json` from `factory-presets.json`) next to the shared presets with that role; the Play page links to them. The old pages `/instruments/` and `/effects/` redirect there.
 - **Voices** ([voices.js](../../patch/web/js/voices.js), wired into `graph.js`): a Voice Cell is expanded before the board is compiled, into
   one plain cell per voice (copies of everything inside) plus an allocator that ports `engine/VoiceCell.cpp` (round robin / lowest free /
   same note, stealing, mono and legato, glide, spread, compensation). The patch bay bundles of the factory voice presets resolve through the
