@@ -87,6 +87,7 @@ public:
         dcIn_.fill(0.0f);
         dcOut_.fill(0.0f);
         dryPos_ = padPos_ = 0;
+        linked_ = false;
         env_.reset();
         last_ = {};
         lastHz_.fill(-1.0f);
@@ -95,8 +96,9 @@ public:
         driftCount_ = 0;
     }
 
-    /// Processes one sample frame in place. Returns the envelope (0..1).
-    float tick(const FilterParams& p, float pitch, float* frame, int numChannels) noexcept {
+    /// Processes one sample frame in place. Returns the envelope (0..1). `mono`: both channels get the same input (a
+    /// mono source); without Analog they then sound the same, and only the left one is computed.
+    float tick(const FilterParams& p, float pitch, float* frame, int numChannels, bool mono = false) noexcept {
         const int type = std::clamp(p.type, 0, va::kNumTypes - 1);
         // The two digital types have no Analog (the knob is hidden there, its value may not be 0).
         const bool digital = (FilterType)type == FilterType::NaiveOnePole || (FilterType)type == FilterType::Biquad;
@@ -159,8 +161,26 @@ public:
         }
         float sum = 0.0f;
         const int channels = std::min(numChannels, kMaxChannels);
+        // Linked: the right channel is a copy of the left. When that ends (Analog up, or a stereo source), the right
+        // channel takes over the left one's state and goes on from there.
+        const bool linked = mono && analog <= 0.0f && channels == 2;
+        if (linked_ && !linked) {
+            voices_[1].copyState(voices_[0]);
+            up_[1] = up_[0];
+            down_[1] = down_[0];
+            pad_[1] = pad_[0];
+            dcIn_[1] = dcIn_[0];
+            dcOut_[1] = dcOut_[0];
+        }
+        linked_ = linked;
         for (int ch = 0; ch < channels; ++ch) {
             const auto c = (size_t)ch;
+            if (ch == 1 && linked) {
+                dry_[1][(size_t)dryPos_] = frame[1];
+                frame[1] = frame[0];
+                sum += frame[1];
+                continue;
+            }
             // A non-finite input would sit in the half-band history and the filter state for good.
             if (!std::isfinite(frame[ch])) frame[ch] = 0.0f;
             float x[kOversampling];
@@ -204,6 +224,7 @@ private:
     std::array<std::array<float, kLatency>, kMaxChannels> dry_{};  ///< dry delay to match the wet path
     std::array<std::array<float, std::max(1, kPad)>, kMaxChannels> pad_{};  ///< wet delay to a whole host sample
     int dryPos_ = 0, padPos_ = 0;
+    bool linked_ = false;  ///< the last frame computed only the left channel (tick()'s `mono`)
     std::array<float, kMaxChannels> dcIn_{}, dcOut_{};  ///< DC blocker state, per channel
     float dcPole_ = 0.999f;
     std::array<va::Coeffs, kMaxChannels> coeffs_{};  ///< per channel: the cutoffs differ with Analog

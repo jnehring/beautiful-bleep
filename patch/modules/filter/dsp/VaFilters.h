@@ -556,6 +556,7 @@ inline double fastTanh(double x) noexcept {
     const double x2 = x * x;
     return x * (135135.0 + x2 * (17325.0 + x2 * (378.0 + x2))) / (135135.0 + x2 * (62370.0 + x2 * (3150.0 + 28.0 * x2)));
 }
+inline double fastTanhD(double x) noexcept { const double t = fastTanh(x); return 1.0 - t * t; }
 inline double hyper(double u) noexcept { return u / (1.0 + std::fabs(u)); }
 inline double hyperD(double u) noexcept { const double d = 1.0 + std::fabs(u); return 1.0 / (d * d); }
 
@@ -570,6 +571,14 @@ public:
     /// This voice's component spread: one value in −1 … 1 per ladder stage (Analog scales it).
     void setVariation(const std::array<float, 4>& v) noexcept { tol_ = v; }
     void seedNoise(uint32_t seed) noexcept { rng_ = seed ? seed : 0x9e3779b9u; }
+    /// Takes over another voice's filter state, keeping this voice's own components (spread and noise).
+    void copyState(const FilterVoice& o) {
+        const auto tol = tol_;
+        const auto rng = rng_;
+        *this = o;
+        tol_ = tol;
+        rng_ = rng;
+    }
 
     void reset() noexcept {
         for (auto& p : p_) p = {};
@@ -585,7 +594,8 @@ public:
         write_ = 0;
         rough_.reset();
         roughQ_ = roughHz_ = -1.0f;
-        lastW_ = 0.0;
+        lastW_ = prevW_ = lastX_ = prevX_ = 0.0;
+        lastLoop_ = 0.0;
         lastY_.fill(0.0);
         lastT_.fill(0.0);
     }
@@ -754,6 +764,9 @@ private:
         return w[0] * y[4] + w[1] * 4.0f * bp + w[2] * hp + w[3] * (y[4] + 2.0f * bp + hp);
     }
 
+    /// A Newton step on the feedback point below this ends the full solution: the stages follow it to first order.
+    static constexpr double kLadderLinearStep = 1e-3;
+
     /// §4.2–4.6: four TPT 1-poles in a negative feedback loop, solved at the
     /// feedback point. Linear stages: closed form, with a saturator there
     /// (tanh or x/(1 + |x|)) the equation u = x − k(G·f(u) + S) is solved
@@ -786,7 +799,7 @@ private:
                            c.type != FilterType::LadderNonlinear && c.type != FilterType::Ota4;
         if (light) {
             if (c.type == FilterType::LadderTanh)
-                y[0] = std::tanh(solveFeedback(kf * Gt, x - kf * (St - hpZ), linear, [](double v) { return std::tanh(v); }, tanhD));
+                y[0] = (float)fastTanh(solveFeedback(kf * Gt, x - kf * (St - hpZ), linear, fastTanh, fastTanhD));
             else if (c.type == FilterType::LadderHyperbolic)
                 y[0] = (float)hyper(solveFeedback(kf * Gt, x - kf * (St - hpZ), linear, hyper, hyperD));
             else
@@ -809,7 +822,7 @@ private:
             lastT_ = t;
         } else if (c.stageSat <= 0.0f) {
             if (c.type == FilterType::LadderTanh)
-                y[0] = std::tanh(solveFeedback(kf * Gt, x - kf * (St - hpZ), linear, [](double v) { return std::tanh(v); }, tanhD));
+                y[0] = (float)fastTanh(solveFeedback(kf * Gt, x - kf * (St - hpZ), linear, fastTanh, fastTanhD));
             else if (c.type == FilterType::LadderHyperbolic)
                 y[0] = (float)hyper(solveFeedback(kf * Gt, x - kf * (St - hpZ), linear, hyper, hyperD));
             else
@@ -818,28 +831,44 @@ private:
         } else {
             // w: the feedback point before the loop's saturator (if any), y0 = fb(w).
             const int fb = c.type == FilterType::LadderTanh ? 1 : c.type == FilterType::LadderHyperbolic ? 2 : 0;
-            const auto fbF = [fb](double w) { return fb == 1 ? std::tanh(w) : fb == 2 ? hyper(w) : w; };
-            const auto fbD = [fb](double w) { return fb == 1 ? tanhD(w) : fb == 2 ? hyperD(w) : 1.0; };
-            // Warm start: at 4× oversampling the feedback point moves little from one sample to the next.
-            double w = std::isfinite(lastW_) ? lastW_ : (double)linear;
+            const auto fbF = [fb](double w) { return fb == 1 ? fastTanh(w) : fb == 2 ? hyper(w) : w; };
+            const auto fbD = [fb](double w) { return fb == 1 ? fastTanhD(w) : fb == 2 ? hyperD(w) : 1.0; };
+            // Warm start: at 4× oversampling the feedback point moves smoothly, so the last two samples predict it,
+            // and the input's departure from its own trend (noise, an edge) moves it by 1 / (1 + loop gain).
+            const double trend = (double)x - (2.0 * lastX_ - prevX_);
+            double w = 2.0 * lastW_ - prevW_ + trend / (1.0 + kf * lastLoop_);
+            if (!std::isfinite(w)) w = linear;
+            prevX_ = lastX_;
+            lastX_ = x;
             std::array<double, 4> ys = lastY_;
             bool solved = false;
             for (int it = 0; it < 4; ++it) {
-                double d4 = 1.0;
+                const double dw = fbD(w);
+                double d4 = dw;
+                std::array<double, 4> slope{};  // dys[i]/dw
                 double v = fbF(w);
                 for (size_t i = 0; i < 4; ++i) {
                     double di = 0.0;
                     v = stage(c, p_[i].z, g[i], v, di, ys[i]);
                     ys[i] = v;
                     d4 *= di;
+                    slope[i] = d4;
                 }
                 const double r = w - x + kf * (v - hpZ);
-                if (std::fabs(r) < 1e-6) { solved = true; break; }  // ys belong to this w
-                const double next = w - r / (1.0 + kf * d4 * fbD(w));
-                if (!std::isfinite(next)) { w = linear; break; }
-                w = next;
+                if (std::fabs(r) < 1e-6) { solved = true; lastLoop_ = d4; break; }  // ys belong to this w
+                lastLoop_ = d4;
+                const double step = -r / (1.0 + kf * d4);
+                if (!std::isfinite(step)) { w = linear; break; }
+                w += step;
+                if (std::fabs(step) < kLadderLinearStep) {
+                    // A small last step: the stages follow it to first order (the error is of order step²), so they need
+                    // not be solved again.
+                    for (size_t i = 0; i < 4; ++i) ys[i] += slope[i] * step;
+                    solved = true;
+                    break;
+                }
             }
-            lastW_ = w;
+            prevW_ = lastW_; lastW_ = w;
             y[0] = (float)fbF(w);
             for (size_t i = 0; i < 4; ++i) {
                 if (!solved) {  // the last step moved w: run the stages once more for it
@@ -1180,7 +1209,9 @@ private:
     dsp::RoughSvf rough_;
     float roughHz_ = -1.0f, roughQ_ = -1.0f;
     std::array<float, 4> tol_{};  ///< component spread per ladder stage, −1 … 1
-    double lastW_ = 0.0;              ///< the ladder's last feedback point (warm start)
+    double lastW_ = 0.0, prevW_ = 0.0;  ///< the ladder's last two feedback points (warm start)
+    double lastX_ = 0.0, prevX_ = 0.0;  ///< and its last two inputs
+    double lastLoop_ = 0.0;             ///< the loop's gain dy4/dw at the last solution
     std::array<double, 4> lastY_{};   ///< each ladder stage's last output (warm start)
     std::array<double, 5> lastT_{};   ///< light path: tanh(a·v + b) of the stages' last inputs and the last output
     uint32_t rng_ = 0x9e3779b9u;  ///< noise floor (xorshift)

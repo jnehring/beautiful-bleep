@@ -56,7 +56,7 @@ public:
             p.output = value(c, Output, i);
             p.keyTrack = value(c, KeyTrack, i);
             float frame[2] = {c.inputs[InL][i], inR[i]};
-            c.outputs[Env][i] = dsp_.tick(p, c.inputs[Pitch][i], frame, 2);
+            c.outputs[Env][i] = dsp_.tick(p, c.inputs[Pitch][i], frame, 2, !c.inputConnected[InR]);
             c.outputs[OutL][i] = frame[0];
             c.outputs[OutR][i] = frame[1];
             tap_.push(0.5f * (c.inputs[InL][i] + inR[i]), 0.5f * (frame[0] + frame[1]));
