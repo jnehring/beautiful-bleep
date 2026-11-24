@@ -82,8 +82,8 @@
 
   const abs = (p) => (typeof document !== "undefined" ? new URL(p, document.baseURI).href : p);
 
-  async function getJSON(path) {
-    const res = await fetch(abs(path));
+  async function getJSON(path, init) {
+    const res = await fetch(abs(path), init);
     if (!res.ok) throw new Error(`${path}: ${res.status}`);
     return res.json();
   }
@@ -186,14 +186,23 @@
         }
         const libBase = (await libraryIndex()).base;   // the dev index's files come from the API too
         const dir = libBase + entryPath.replace(/entry\.json$/, "");
-        const entry = await getJSON(libBase + entryPath);
-        if (version && entry.version !== version) throw new Error(`${slug}: the library's entry for ${version} is for ${entry.version}`);
-        const file = entry.files.find((f) => f.platform === "any");
-        if (!file) throw new Error(`${slug}: no package in the entry`);
-        const res = await fetch(abs(dir + file.path));
-        if (!res.ok) throw new Error(`${file.path}: ${res.status}`);
-        const bytes = new Uint8Array(await res.arrayBuffer());
-        if (hex(await sha256(bytes)) !== file.sha256) throw new Error(`${slug}: the download is not the file the library lists`);
+        // The entry and the package, checked against each other. Both are cached as immutable; when a version was deleted and
+        // released again (release-purge), the browser may hold the old copy of one of them: then both are fetched once more
+        // past the cache before the package is refused.
+        const download = async (init) => {
+          const entry = await getJSON(libBase + entryPath, init);
+          if (version && entry.version !== version) throw new Error(`${slug}: the library's entry for ${version} is for ${entry.version}`);
+          const file = entry.files.find((f) => f.platform === "any");
+          if (!file) throw new Error(`${slug}: no package in the entry`);
+          const res = await fetch(abs(dir + file.path), init);
+          if (!res.ok) throw new Error(`${file.path}: ${res.status}`);
+          const bytes = new Uint8Array(await res.arrayBuffer());
+          return { entry, file, bytes, ok: hex(await sha256(bytes)) === file.sha256 };
+        };
+        let got = await download(undefined);
+        if (!got.ok) got = await download({ cache: "reload" });
+        const { entry, file, bytes } = got;
+        if (!got.ok) throw new Error(`${slug}: the download is not the file the library lists`);
         const zip = await readZip(bytes);
         if (file.uploaded === true) {   // a package an account uploaded: data and the sandboxed .wasm only
           const extra = communityFilesOk(zip.files.keys());

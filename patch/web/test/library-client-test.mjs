@@ -91,6 +91,36 @@ await test("fetchModule: the whole path through the index, the entry and the pac
   });
 });
 
+await test("fetchModule: a stale cached entry or package is fetched again past the cache, a wrong package is still refused", async () => {
+  const pkg = makeZip(files), old = makeZip({ ...files, "ui/reverb.js": "// the old view\n" });
+  const entryUrl = base + "modules/stale/1.0.0/entry.json", pkgUrl = base + "modules/stale/1.0.0/stale-1.0.0.bleepmod";
+  const fresh = { [base + "index.json"]: indexOf("stale", "1.0.0", ["reverb"]), [entryUrl]: await entryOf("stale", "1.0.0", pkg), [pkgUrl]: pkg };
+  const cached = { [entryUrl]: await entryOf("stale", "1.0.0", old) };   // the browser kept the entry of the deleted 1.0.0
+  const realFetch = globalThis.fetch, asked = [];
+  let reloadServes = fresh;
+  globalThis.fetch = async (url, init) => {
+    asked.push([url, init && init.cache]);
+    const body = (init && init.cache === "reload" ? reloadServes : { ...fresh, ...cached })[url];
+    if (body === undefined) return new Response("no", { status: 404 });
+    return new Response(body instanceof Uint8Array ? body : JSON.stringify(body));
+  };
+  try {
+    Library.configure({ base });
+    const got = await Library.fetchModule("stale");
+    assert.equal(got.version, "1.0.0");
+    assert.deepEqual(asked.filter(([, c]) => c === "reload").map(([u]) => u), [entryUrl, pkgUrl], "both fetched again past the cache");
+    // The library itself serves a package that is not the one its entry lists: refused, after one more try.
+    delete cached[entryUrl];
+    fresh[pkgUrl] = old;
+    reloadServes = fresh;
+    Library.configure({ base });   // forgets what was loaded
+    await assert.rejects(Library.fetchModule("stale"), /not the file the library lists/);
+  } finally {
+    globalThis.fetch = realFetch;
+    Library.configure({ base: "/registry/v1/", channel: "stable", localBase: "local-modules/", hostname: null });
+  }
+});
+
 await test("fetchModule: a package an account uploaded may not bring page scripts", async () => {
   const clean = makeZip({ "module.json": files["module.json"], "module.wasm": wasm, "view.sandbox.js": "// picture\n", "doc/reverb.md": "# Verb\n" });
   const served = {
