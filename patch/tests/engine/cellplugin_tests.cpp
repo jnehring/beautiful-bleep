@@ -92,9 +92,10 @@ void cellPluginsFollowHost() {
         const int inst = e->registerInstance(PortKind::Instrument);
         setPreset(*e, inst, factoryPreset(name));
         FakePort p(*e, inst);
+        // Idle: no drum plays. A Multi Filter's Analog noise floor (up to −70 dB, 1.5e-4 at its default 50 %) may remain.
         const float idle = peakAfter(p, 200, 8);
-        if (!(idle < 0.0001f)) std::printf("%s: idle peak %f\n", name, idle);
-        EXPECT(idle < 0.0001f);
+        if (!(idle < 0.001f)) std::printf("%s: idle peak %f\n", name, idle);
+        EXPECT(idle < 0.001f);
         bool wired = false;
         for (const auto& c : *e->board()["cables"].getArray())
             wired |= c["from"]["node"].toString() == portNode(*e, inst) && c["from"]["jack"].toString() == "notes";
